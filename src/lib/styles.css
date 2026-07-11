@@ -217,13 +217,15 @@
   background: none;
   font-size: 1rem;
   line-height: 1.5;
-  color: var(--hn-text-muted);
+  /* 未勾选圆点：主题色的柔和变体，随主题色变化 */
+  color: color-mix(in srgb, var(--hn-theme) 35%, var(--hn-text-muted));
   cursor: default;
   user-select: none;
 }
 
 .hn-note-checkbox--checked {
-  color: #16a34a;
+  /* 已勾选圆点：完整主题色 */
+  color: var(--hn-theme);
 }
 
 .hn-note-checkbox--editable {
@@ -235,7 +237,8 @@
 }
 
 .hn-note-checkbox--editable.hn-note-checkbox--checked:hover {
-  color: #15803d;
+  /* 勾选态 hover：主题色加深，保持可感知的反馈 */
+  color: color-mix(in srgb, var(--hn-theme) 85%, black);
 }
 
 .hn-note-quote {
@@ -346,5 +349,78 @@
 
   .hn-note-hero-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ===== 选区弹出层（SelectionPopover）===== */
+/* position:fixed 相对视口定位，不受 .hn-note-shell 的 overflow:hidden 裁切 */
+.hn-note-popover {
+  position: fixed;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.3rem;
+  border-radius: 10px;
+  background: #1e293b;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
+  animation: hn-popover-in 0.12s ease;
+}
+
+.hn-note-popover-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 0.55rem;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: #e2e8f0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.hn-note-popover-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+/* 复制按钮：文字更紧凑 */
+.hn-note-popover-btn--copy {
+  min-width: auto;
+  font-size: 0.78rem;
+}
+
+.hn-note-popover-glyph {
+  display: inline-block;
+  line-height: 1;
+  font-size: 0.85rem;
+}
+
+.hn-note-popover-glyph--bold {
+  font-weight: 800;
+}
+
+.hn-note-popover-glyph--italic {
+  font-style: italic;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.hn-note-popover-glyph--underline {
+  text-decoration: underline;
+}
+
+/* 仅做淡入，避免与定位 transform 冲突 */
+@keyframes hn-popover-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
   }
 }

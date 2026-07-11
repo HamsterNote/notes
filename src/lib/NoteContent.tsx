@@ -1,7 +1,8 @@
-import type { CSSProperties, FocusEvent, ReactElement } from "react"
+import { useRef, type CSSProperties, type FocusEvent, type ReactElement } from "react"
 
 import "./styles.css"
 
+import { SelectionPopover } from "./SelectionPopover"
 import type { NoteBlock, NoteContentProps } from "./types"
 import { assertNever, calloutToneLabelMap, formatUpdatedAt, getReadingMinutes } from "./utils"
 
@@ -100,6 +101,13 @@ const editableProps = (
   onBlur
 })
 
+/**
+ * 富文本渲染辅助：统一通过 dangerouslySetInnerHTML 注入文本。
+ * 编辑态捕获的是 innerHTML，可携带 <b>/<i>/<u> 等格式标签，
+ * 因此渲染态必须以 HTML 方式还原，否则标签会被当作纯文本展示。
+ */
+const richText = (value: string) => ({ dangerouslySetInnerHTML: { __html: value } })
+
 const renderBlock = (block: NoteBlock, ctx: EditContext): ReactElement => {
   const { editable, blocks, onBlocksChange } = ctx
 
@@ -114,15 +122,12 @@ const renderBlock = (block: NoteBlock, ctx: EditContext): ReactElement => {
             {editable ? (
               <span
                 {...editableProps((event) =>
-                  onBlocksChange?.(
-                    updateText(blocks, block.id, event.currentTarget.textContent ?? "")
-                  )
+                  onBlocksChange?.(updateText(blocks, block.id, event.currentTarget.innerHTML))
                 )}
-              >
-                {block.text}
-              </span>
+                {...richText(block.text)}
+              />
             ) : (
-              block.text
+              <span {...richText(block.text)} />
             )}
           </HeadingTag>
         </section>
@@ -138,15 +143,12 @@ const renderBlock = (block: NoteBlock, ctx: EditContext): ReactElement => {
           {editable ? (
             <span
               {...editableProps((event) =>
-                onBlocksChange?.(
-                  updateText(blocks, block.id, event.currentTarget.textContent ?? "")
-                )
+                onBlocksChange?.(updateText(blocks, block.id, event.currentTarget.innerHTML))
               )}
-            >
-              {block.text}
-            </span>
+              {...richText(block.text)}
+            />
           ) : (
-            block.text
+            <span {...richText(block.text)} />
           )}
         </p>
       )
@@ -194,15 +196,14 @@ const renderBlock = (block: NoteBlock, ctx: EditContext): ReactElement => {
                           blocks,
                           block.id,
                           item.id,
-                          event.currentTarget.textContent ?? ""
+                          event.currentTarget.innerHTML
                         )
                       )
                     )}
-                  >
-                    {item.text}
-                  </span>
+                    {...richText(item.text)}
+                  />
                 ) : (
-                  item.text
+                  <span {...richText(item.text)} />
                 )}
               </li>
             ))}
@@ -216,29 +217,23 @@ const renderBlock = (block: NoteBlock, ctx: EditContext): ReactElement => {
           {editable ? (
             <p
               {...editableProps((event) =>
-                onBlocksChange?.(
-                  updateText(blocks, block.id, event.currentTarget.textContent ?? "")
-                )
+                onBlocksChange?.(updateText(blocks, block.id, event.currentTarget.innerHTML))
               )}
-            >
-              {block.text}
-            </p>
+              {...richText(block.text)}
+            />
           ) : (
-            <p>{block.text}</p>
+            <p {...richText(block.text)} />
           )}
           {block.author ? (
             editable ? (
               <footer
                 {...editableProps((event) =>
-                  onBlocksChange?.(
-                    updateQuoteAuthor(blocks, block.id, event.currentTarget.textContent ?? "")
-                  )
+                  onBlocksChange?.(updateQuoteAuthor(blocks, block.id, event.currentTarget.innerHTML))
                 )}
-              >
-                {block.author}
-              </footer>
+                {...richText(block.author)}
+              />
             ) : (
-              <footer>{block.author}</footer>
+              <footer {...richText(block.author)} />
             )
           ) : null}
         </blockquote>
@@ -254,9 +249,7 @@ const renderBlock = (block: NoteBlock, ctx: EditContext): ReactElement => {
           {editable ? (
             <pre
               {...editableProps((event) =>
-                onBlocksChange?.(
-                  updateCode(blocks, block.id, event.currentTarget.textContent ?? "")
-                )
+                onBlocksChange?.(updateCode(blocks, block.id, event.currentTarget.textContent ?? ""))
               )}
             >
               <code>{block.code}</code>
@@ -280,28 +273,24 @@ const renderBlock = (block: NoteBlock, ctx: EditContext): ReactElement => {
               <strong
                 {...editableProps((event) =>
                   onBlocksChange?.(
-                    updateCalloutTitle(blocks, block.id, event.currentTarget.textContent ?? "")
+                    updateCalloutTitle(blocks, block.id, event.currentTarget.innerHTML)
                   )
                 )}
-              >
-                {block.title}
-              </strong>
+                {...richText(block.title)}
+              />
             ) : (
-              <strong>{block.title}</strong>
+              <strong {...richText(block.title)} />
             )}
           </div>
           {editable ? (
             <p
               {...editableProps((event) =>
-                onBlocksChange?.(
-                  updateText(blocks, block.id, event.currentTarget.textContent ?? "")
-                )
+                onBlocksChange?.(updateText(blocks, block.id, event.currentTarget.innerHTML))
               )}
-            >
-              {block.text}
-            </p>
+              {...richText(block.text)}
+            />
           ) : (
-            <p>{block.text}</p>
+            <p {...richText(block.text)} />
           )}
         </aside>
       )
@@ -328,62 +317,65 @@ export const NoteContent = ({
   const shellStyle = themeColor
     ? ({ "--hn-theme": themeColor } as CSSProperties)
     : undefined
+  // 笔记容器引用：选区 Popover 仅响应该容器内的文字选中
+  const shellRef = useRef<HTMLElement>(null)
 
   return (
-    <article className="hn-note-shell" style={shellStyle}>
-      <header className="hn-note-hero">
-        <div className="hn-note-hero-grid">
-          <div>
-            {tagLabel ? <span className="hn-note-badge">{tagLabel}</span> : null}
-            {editable ? (
-              <h1
-                {...editableProps((event) =>
-                  onTitleChange?.(event.currentTarget.textContent ?? "")
-                )}
-              >
-                {title}
-              </h1>
-            ) : (
-              <h1>{title}</h1>
-            )}
-            {summary ? (
-              editable ? (
-                <p
-                  {...editableProps(
-                    (event) => onSummaryChange?.(event.currentTarget.textContent ?? ""),
-                    "hn-note-summary"
+    <>
+      <article className="hn-note-shell" ref={shellRef} style={shellStyle}>
+        <header className="hn-note-hero">
+          <div className="hn-note-hero-grid">
+            <div>
+              {tagLabel ? <span className="hn-note-badge">{tagLabel}</span> : null}
+              {editable ? (
+                <h1
+                  {...editableProps((event) =>
+                    onTitleChange?.(event.currentTarget.innerHTML)
                   )}
-                >
-                  {summary}
-                </p>
+                  {...richText(title)}
+                />
               ) : (
-                <p className="hn-note-summary">{summary}</p>
-              )
-            ) : null}
-          </div>
+                <h1 {...richText(title)} />
+              )}
+              {summary ? (
+                editable ? (
+                  <p
+                    {...editableProps(
+                      (event) => onSummaryChange?.(event.currentTarget.innerHTML),
+                      "hn-note-summary"
+                    )}
+                    {...richText(summary)}
+                  />
+                ) : (
+                  <p className="hn-note-summary" {...richText(summary)} />
+                )
+              ) : null}
+            </div>
 
-          <dl className="hn-note-facts" aria-label="Note metadata">
-            <div>
-              <dt>Reading</dt>
-              <dd>{readingMinutes} min</dd>
-            </div>
-            <div>
-              <dt>Blocks</dt>
-              <dd>{blocks.length}</dd>
-            </div>
-            {updatedAt ? (
+            <dl className="hn-note-facts" aria-label="Note metadata">
               <div>
-                <dt>Updated</dt>
-                <dd>{formatUpdatedAt(updatedAt)}</dd>
+                <dt>Reading</dt>
+                <dd>{readingMinutes} min</dd>
               </div>
-            ) : null}
-          </dl>
-        </div>
-      </header>
+              <div>
+                <dt>Blocks</dt>
+                <dd>{blocks.length}</dd>
+              </div>
+              {updatedAt ? (
+                <div>
+                  <dt>Updated</dt>
+                  <dd>{formatUpdatedAt(updatedAt)}</dd>
+                </div>
+              ) : null}
+            </dl>
+          </div>
+        </header>
 
-      <div className="hn-note-body">
-        {blocks.map((block) => renderBlock(block, { editable, blocks, onBlocksChange }))}
-      </div>
-    </article>
+        <div className="hn-note-body">
+          {blocks.map((block) => renderBlock(block, { editable, blocks, onBlocksChange }))}
+        </div>
+      </article>
+      <SelectionPopover containerRef={shellRef} editable={editable} />
+    </>
   )
 }

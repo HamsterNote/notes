@@ -34,7 +34,13 @@ select {
 }
 
 /* ===== 左侧边栏 ===== */
+/* sticky + height:100vh：侧边栏固定满屏高度、内部独立滚动，不随文档流滚动 */
+/* align-self:start：阻止 grid 拉伸该列，使显式 height 生效 */
 .demo-sidebar {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -238,6 +244,8 @@ select {
   }
 
   .demo-sidebar {
+    position: static;
+    height: auto;
     border-right: none;
     border-bottom: 1px solid rgba(15, 23, 42, 0.08);
   }
