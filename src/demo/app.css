@@ -1,0 +1,80 @@
+:root {
+  color: #f8fafc;
+  background:
+    radial-gradient(circle at top, rgba(96, 165, 250, 0.24), transparent 36%),
+    linear-gradient(180deg, #020617 0%, #0f172a 100%);
+  font-family: "Suisse Intl", "Avenir Next", "Segoe UI", sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.demo-page {
+  min-height: 100vh;
+  padding: 3rem 1.25rem;
+}
+
+.demo-shell {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 1160px;
+  margin: 0 auto;
+}
+
+.demo-copy {
+  display: grid;
+  gap: 0.8rem;
+  max-width: 50rem;
+}
+
+.demo-kicker {
+  margin: 0;
+  color: #93c5fd;
+  font-size: 0.9rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.demo-copy h1 {
+  margin: 0;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  line-height: 0.95;
+}
+
+.demo-copy p:last-child {
+  margin: 0;
+  color: rgba(226, 232, 240, 0.84);
+  font-size: 1.05rem;
+  line-height: 1.8;
+}
+
+@media (min-width: 960px) {
+  .demo-page {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+  }
+
+  .demo-shell {
+    gap: 2rem;
+  }
+}
