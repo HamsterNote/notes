@@ -1,8 +1,6 @@
 :root {
-  color: #f8fafc;
-  background:
-    radial-gradient(circle at top, rgba(96, 165, 250, 0.24), transparent 36%),
-    linear-gradient(180deg, #020617 0%, #0f172a 100%);
+  color: #1e293b;
+  background: #f1f5f9;
   font-family: "Suisse Intl", "Avenir Next", "Segoe UI", sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -28,53 +26,223 @@ select {
   min-height: 100vh;
 }
 
-.demo-page {
+/* ===== 两栏布局：侧边栏 + 主内容区 ===== */
+.demo-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
   min-height: 100vh;
-  padding: 3rem 1.25rem;
 }
 
-.demo-shell {
-  display: grid;
+/* ===== 左侧边栏 ===== */
+.demo-sidebar {
+  display: flex;
+  flex-direction: column;
   gap: 1.5rem;
-  max-width: 1160px;
-  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  border-right: 1px solid rgba(15, 23, 42, 0.08);
+  background: #ffffff;
+  overflow-y: auto;
 }
 
-.demo-copy {
-  display: grid;
-  gap: 0.8rem;
-  max-width: 50rem;
+.demo-sidebar-header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.demo-sidebar-header p {
+  margin: 0.35rem 0 0;
+  color: rgba(51, 65, 85, 0.6);
+  font-size: 0.85rem;
+}
+
+.demo-control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.demo-control-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(51, 65, 85, 0.5);
+}
+
+/* 主题色选择行 */
+.demo-color-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.demo-color-input {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 12px;
+  background: none;
+  cursor: pointer;
+}
+
+.demo-color-input::-webkit-color-swatch-wrapper {
+  padding: 4px;
+}
+
+.demo-color-input::-webkit-color-swatch {
+  border: none;
+  border-radius: 8px;
+}
+
+.demo-color-value {
+  font-family: "SFMono-Regular", "Menlo", monospace;
+  font-size: 0.85rem;
+  color: rgba(51, 65, 85, 0.7);
+}
+
+/* 预设色板 */
+.demo-preset-colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.demo-preset-swatch {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.demo-preset-swatch:hover {
+  transform: scale(1.12);
+}
+
+.demo-preset-swatch--active {
+  border-color: #1e293b;
+  box-shadow: 0 0 0 2px white inset;
+}
+
+/* 开关行 */
+.demo-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.demo-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.15);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.demo-switch--on {
+  background: #3b82f6;
+}
+
+.demo-switch-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.demo-switch--on .demo-switch-thumb {
+  transform: translateX(20px);
+}
+
+.demo-hint {
+  margin: 0;
+  color: rgba(51, 65, 85, 0.5);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+/* 文本输入 */
+.demo-text-input {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #1e293b;
+  font-size: 0.9rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.demo-text-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* ===== 主内容区 ===== */
+.demo-main {
+  padding: 3rem 2rem;
+  overflow-y: auto;
+}
+
+.demo-header {
+  max-width: 60rem;
+  margin: 0 auto 2rem;
 }
 
 .demo-kicker {
   margin: 0;
-  color: #93c5fd;
-  font-size: 0.9rem;
+  color: #3b82f6;
+  font-size: 0.85rem;
+  font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
-.demo-copy h1 {
-  margin: 0;
+.demo-header h1 {
+  margin: 0.5rem 0 0;
   font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, serif;
-  font-size: clamp(2.5rem, 6vw, 5rem);
-  line-height: 0.95;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1;
 }
 
-.demo-copy p:last-child {
-  margin: 0;
-  color: rgba(226, 232, 240, 0.84);
-  font-size: 1.05rem;
-  line-height: 1.8;
+.demo-desc {
+  margin: 0.8rem 0 0;
+  max-width: 46rem;
+  color: rgba(51, 65, 85, 0.65);
+  font-size: 1rem;
+  line-height: 1.7;
 }
 
-@media (min-width: 960px) {
-  .demo-page {
-    padding-top: 4rem;
-    padding-bottom: 4rem;
+/* NoteContent 组件居中限宽 */
+.demo-main > :last-child {
+  max-width: 60rem;
+  margin: 0 auto;
+}
+
+/* ===== 响应式：窄屏折叠侧边栏到顶部 ===== */
+@media (max-width: 840px) {
+  .demo-layout {
+    grid-template-columns: 1fr;
   }
 
-  .demo-shell {
-    gap: 2rem;
+  .demo-sidebar {
+    border-right: none;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  }
+
+  .demo-main {
+    padding: 2rem 1.25rem;
   }
 }

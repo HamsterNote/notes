@@ -1,21 +1,46 @@
+/* ===== 主题变量 ===== */
+/* --hn-theme 由组件 props 注入到根节点，默认蓝色 */
 .hn-note-shell {
+  --hn-theme: #3b82f6;
+
+  /* 从主题色派生的语义色（使用 color-mix 自动计算） */
+  --hn-theme-soft: color-mix(in srgb, var(--hn-theme) 12%, white);
+  --hn-theme-border: color-mix(in srgb, var(--hn-theme) 30%, transparent);
+  --hn-theme-text: color-mix(in srgb, var(--hn-theme) 75%, #1e293b);
+
+  /* 浅色主题中性色 */
+  --hn-bg: #ffffff;
+  --hn-surface: #f8fafc;
+  --hn-surface-hover: #f1f5f9;
+  --hn-border: rgba(15, 23, 42, 0.08);
+  --hn-border-strong: rgba(15, 23, 42, 0.14);
+  --hn-text: #1e293b;
+  --hn-text-muted: rgba(51, 65, 85, 0.65);
+  --hn-text-soft: rgba(51, 65, 85, 0.85);
+  --hn-radius: 24px;
+
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  border: 1px solid var(--hn-border);
   border-radius: 32px;
   background:
-    radial-gradient(circle at top left, rgba(250, 204, 21, 0.14), transparent 28%),
-    radial-gradient(circle at top right, rgba(96, 165, 250, 0.18), transparent 22%),
-    linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.98));
-  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
-  color: #e5eefb;
+    radial-gradient(
+      circle at top left,
+      color-mix(in srgb, var(--hn-theme) 6%, transparent),
+      transparent 30%
+    ),
+    var(--hn-bg);
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.04),
+    0 12px 40px rgba(15, 23, 42, 0.06);
+  color: var(--hn-text);
 }
 
 .hn-note-shell::before {
   position: absolute;
   inset: 0;
-  background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-image: linear-gradient(rgba(15, 23, 42, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.018) 1px, transparent 1px);
   background-size: 28px 28px;
   content: "";
   pointer-events: none;
@@ -29,7 +54,7 @@
 
 .hn-note-hero {
   padding: 2rem 2rem 1.25rem;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+  border-bottom: 1px solid var(--hn-border);
 }
 
 .hn-note-hero-grid {
@@ -45,16 +70,17 @@
   gap: 0.35rem;
   padding: 0.4rem 0.7rem;
   border-radius: 999px;
-  background: rgba(96, 165, 250, 0.16);
-  color: #bfdbfe;
+  background: var(--hn-theme-soft);
+  color: var(--hn-theme-text);
   font-size: 0.75rem;
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .hn-note-chip--strong {
-  background: rgba(255, 255, 255, 0.1);
-  color: #f8fafc;
+  background: var(--hn-surface-hover);
+  color: var(--hn-text);
 }
 
 .hn-note-hero h1,
@@ -72,7 +98,7 @@
 .hn-note-summary {
   max-width: 56ch;
   margin-top: 1rem;
-  color: rgba(226, 232, 240, 0.76);
+  color: var(--hn-text-muted);
   font-size: 1.04rem;
   line-height: 1.8;
 }
@@ -82,10 +108,9 @@
   gap: 0.9rem;
   align-content: start;
   padding: 1rem;
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  border-radius: 24px;
-  background: rgba(15, 23, 42, 0.34);
-  backdrop-filter: blur(14px);
+  border: 1px solid var(--hn-border);
+  border-radius: var(--hn-radius);
+  background: var(--hn-surface);
 }
 
 .hn-note-facts div {
@@ -95,7 +120,7 @@
 }
 
 .hn-note-facts dt {
-  color: rgba(191, 219, 254, 0.72);
+  color: var(--hn-text-muted);
 }
 
 .hn-note-facts dd {
@@ -120,8 +145,9 @@
 .hn-note-eyebrow {
   display: inline-block;
   margin-bottom: 0.65rem;
-  color: #fbbf24;
+  color: var(--hn-theme);
   font-size: 0.8rem;
+  font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
@@ -140,16 +166,16 @@
 
 .hn-note-paragraph {
   max-width: 66ch;
-  color: rgba(226, 232, 240, 0.88);
+  color: var(--hn-text-soft);
   line-height: 1.85;
 }
 
 .hn-note-paragraph--muted {
-  color: rgba(148, 163, 184, 0.92);
+  color: var(--hn-text-muted);
 }
 
 .hn-note-paragraph--accent {
-  color: #f8fafc;
+  color: var(--hn-text);
   font-size: 1.05rem;
 }
 
@@ -179,24 +205,44 @@
   gap: 0.75rem;
   align-items: flex-start;
   padding: 0.95rem 1rem;
-  border: 1px solid rgba(148, 163, 184, 0.16);
+  border: 1px solid var(--hn-border);
   border-radius: 18px;
-  background: rgba(15, 23, 42, 0.4);
+  background: var(--hn-surface);
 }
 
 .hn-note-checkbox {
-  color: rgba(148, 163, 184, 0.84);
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--hn-text-muted);
+  cursor: default;
+  user-select: none;
 }
 
 .hn-note-checkbox--checked {
-  color: #4ade80;
+  color: #16a34a;
+}
+
+.hn-note-checkbox--editable {
+  cursor: pointer;
+}
+
+.hn-note-checkbox--editable:hover {
+  color: var(--hn-theme);
+}
+
+.hn-note-checkbox--editable.hn-note-checkbox--checked:hover {
+  color: #15803d;
 }
 
 .hn-note-quote {
   padding: 1.25rem 1.35rem;
-  border-left: 4px solid #fbbf24;
+  border-left: 4px solid var(--hn-theme);
   border-radius: 0 20px 20px 0;
-  background: rgba(250, 204, 21, 0.08);
+  background: var(--hn-theme-soft);
 }
 
 .hn-note-quote p {
@@ -207,13 +253,14 @@
 
 .hn-note-quote footer {
   margin-top: 0.8rem;
-  color: rgba(253, 224, 71, 0.9);
+  color: var(--hn-theme-text);
+  font-weight: 600;
 }
 
 .hn-note-code-card {
-  border: 1px solid rgba(96, 165, 250, 0.24);
-  border-radius: 24px;
-  background: rgba(2, 6, 23, 0.8);
+  border: 1px solid var(--hn-border-strong);
+  border-radius: var(--hn-radius);
+  background: #0f172a;
 }
 
 .hn-note-code-meta {
@@ -221,34 +268,37 @@
   justify-content: space-between;
   gap: 0.8rem;
   padding: 0.9rem 1rem;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
-  color: #93c5fd;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--hn-theme);
   font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .hn-note-code-card pre {
   overflow-x: auto;
   padding: 1rem;
   margin: 0;
-  color: #dbeafe;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+  line-height: 1.7;
 }
 
 .hn-note-callout {
   padding: 1.1rem 1.2rem;
   border-radius: 22px;
-  background: rgba(30, 41, 59, 0.68);
+  background: var(--hn-surface);
 }
 
 .hn-note-callout--info {
-  border: 1px solid rgba(96, 165, 250, 0.24);
+  border: 1px solid var(--hn-theme-border);
 }
 
 .hn-note-callout--success {
-  border: 1px solid rgba(74, 222, 128, 0.24);
+  border: 1px solid rgba(22, 163, 74, 0.28);
 }
 
 .hn-note-callout--warning {
-  border: 1px solid rgba(250, 204, 21, 0.28);
+  border: 1px solid rgba(217, 119, 6, 0.28);
 }
 
 .hn-note-callout-title-row {
@@ -260,8 +310,31 @@
 
 .hn-note-callout p {
   margin: 0.75rem 0 0;
-  color: rgba(226, 232, 240, 0.88);
+  color: var(--hn-text-soft);
   line-height: 1.7;
+}
+
+/* ===== 可编辑状态样式 ===== */
+.hn-note-editable {
+  border-radius: 6px;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+  outline: none;
+}
+
+.hn-note-editable:hover {
+  background: color-mix(in srgb, var(--hn-theme) 5%, transparent);
+  box-shadow: 0 0 0 1px var(--hn-theme-border);
+}
+
+.hn-note-editable:focus {
+  background: color-mix(in srgb, var(--hn-theme) 8%, transparent);
+  box-shadow: 0 0 0 2px var(--hn-theme);
+}
+
+.hn-note-code-card pre.hn-note-editable:hover,
+.hn-note-code-card pre.hn-note-editable:focus {
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
 }
 
 @media (max-width: 840px) {
