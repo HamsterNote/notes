@@ -1,0 +1,166 @@
+# Hamster Note Design System
+
+This document captures the existing CSS contract from `src/lib/styles.css` so future UI work, including the block-editor interactions, stays aligned with the current tokens.
+
+---
+
+## 1. Theme Tokens
+
+The theme color is injected through `--hn-theme` and the rest of the theme tokens are derived from it.
+
+| Token               | Value / Derivation                                     | Source                 |
+| ------------------- | ------------------------------------------------------ | ---------------------- |
+| `--hn-theme`        | `#3b82f6` (default blue)                               | `src/lib/styles.css:4` |
+| `--hn-theme-soft`   | `color-mix(in srgb, var(--hn-theme) 12%, white)`       | `src/lib/styles.css:7` |
+| `--hn-theme-border` | `color-mix(in srgb, var(--hn-theme) 30%, transparent)` | `src/lib/styles.css:8` |
+| `--hn-theme-text`   | `color-mix(in srgb, var(--hn-theme) 75%, #1e293b)`     | `src/lib/styles.css:9` |
+
+The shell also applies a radial gradient highlight using `color-mix(in srgb, var(--hn-theme) 6%, transparent)` (`src/lib/styles.css:27-31`).
+
+---
+
+## 2. Neutral Palette
+
+| Token                | Value                    | Source                  |
+| -------------------- | ------------------------ | ----------------------- |
+| `--hn-bg`            | `#ffffff`                | `src/lib/styles.css:12` |
+| `--hn-surface`       | `#f8fafc`                | `src/lib/styles.css:13` |
+| `--hn-surface-hover` | `#f1f5f9`                | `src/lib/styles.css:14` |
+| `--hn-border`        | `rgba(15, 23, 42, 0.08)` | `src/lib/styles.css:15` |
+| `--hn-border-strong` | `rgba(15, 23, 42, 0.14)` | `src/lib/styles.css:16` |
+| `--hn-text`          | `#1e293b`                | `src/lib/styles.css:17` |
+| `--hn-text-muted`    | `rgba(51, 65, 85, 0.65)` | `src/lib/styles.css:18` |
+| `--hn-text-soft`     | `rgba(51, 65, 85, 0.85)` | `src/lib/styles.css:19` |
+
+These tokens cover every surface, divider, and text tone used in the note shell. No new neutral colors should be introduced for block-editor chrome.
+
+---
+
+## 3. Radius, Spacing, and Shadow
+
+### Radius
+
+- `--hn-radius: 24px` — default large radius for cards and facts (`src/lib/styles.css:20`).
+- Shell border radius: `32px` (`src/lib/styles.css:25`).
+- Inline pills use `999px` (`src/lib/styles.css:72`).
+- Quote uses `0 20px 20px 0` (`src/lib/styles.css:247`).
+- Editable fields use `6px` (`src/lib/styles.css:322`).
+- Checklist items use `18px` (`src/lib/styles.css:209`).
+- Callouts use `22px` (`src/lib/styles.css:291`).
+- Popover uses `10px` (`src/lib/styles.css:364`).
+- Popover buttons use `7px` (`src/lib/styles.css:378`).
+
+### Spacing Scale (from existing rules)
+
+- `--hn-body-gap: 1.25rem` (`src/lib/styles.css:133`).
+- `--hn-body-padding: 1.5rem 2rem 2rem` (`src/lib/styles.css:134`).
+- `--hn-hero-padding: 2rem 2rem 1.25rem` (`src/lib/styles.css:56`).
+- `--hn-facts-gap: 0.9rem` (`src/lib/styles.css:108`).
+- `--hn-checklist-gap: 0.8rem` (`src/lib/styles.css:197`).
+- `--hn-section-header-gap: 0.8rem` (`src/lib/styles.css:186`).
+
+### Shadow
+
+- Shell: `0 1px 3px rgba(15, 23, 42, 0.04), 0 12px 40px rgba(15, 23, 42, 0.06)` (`src/lib/styles.css:33-35`).
+- Popover: `0 8px 24px rgba(15, 23, 42, 0.28)` (`src/lib/styles.css:366`).
+
+---
+
+## 4. Typography Scale
+
+| Element           | Size                          | Line Height | Notes                                                        | Source                                             |
+| ----------------- | ----------------------------- | ----------- | ------------------------------------------------------------ | -------------------------------------------------- |
+| Hero h1           | `clamp(2.2rem, 4vw, 3.5rem)`  | `1.02`      | Serif stack                                                  | `src/lib/styles.css:92-95`                         |
+| Heading 1         | `clamp(1.8rem, 3vw, 2.6rem)`  | default     | Serif stack                                                  | `src/lib/styles.css:155-157`                       |
+| Heading 2         | `1.4rem`                      | default     | Serif stack                                                  | `src/lib/styles.css:159-161`                       |
+| Heading 3         | `1.1rem`                      | default     | Serif stack                                                  | `src/lib/styles.css:163-165`                       |
+| Section header h3 | `1.1rem`                      | default     |                                                              | `src/lib/styles.css:190-192`                       |
+| Summary           | `1.04rem`                     | `1.8`       | `max-width: 56ch`, muted                                     | `src/lib/styles.css:98-104`                        |
+| Paragraph         | default                       | `1.85`      | `max-width: 66ch`, soft                                      | `src/lib/styles.css:167-171`                       |
+| Paragraph accent  | `1.05rem`                     | default     | solid text color                                             | `src/lib/styles.css:177-180`                       |
+| Quote p           | `1.1rem`                      | `1.7`       |                                                              | `src/lib/styles.css:251-255`                       |
+| Code pre          | `0.9rem`                      | `1.7`       | `#e2e8f0` on `#0f172a`                                       | `src/lib/styles.css:280-287`                       |
+| Badge / chip      | `0.75rem`                     | default     | uppercase, `letter-spacing: 0.08em`, weight 600              | `src/lib/styles.css:75-78`                         |
+| Eyebrow           | `0.8rem`                      | default     | theme color, uppercase, `letter-spacing: 0.18em`, weight 700 | `src/lib/styles.css:145-153`                       |
+| Popover button    | `0.8rem` / `0.78rem` for copy | default     | weight 600                                                   | `src/lib/styles.css:381`, `src/lib/styles.css:395` |
+
+Serif headings use `"Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, serif` (`src/lib/styles.css:89`).
+
+---
+
+## 5. Editable Hover / Focus States
+
+All editable fields share the same transition and outline reset.
+
+- Base: `border-radius: 6px`, `transition: background 0.15s ease, box-shadow 0.15s ease`, `outline: none` (`src/lib/styles.css:322-324`).
+- Hover: `background: color-mix(in srgb, var(--hn-theme) 5%, transparent)`, `box-shadow: 0 0 0 1px var(--hn-theme-border)` (`src/lib/styles.css:327-329`).
+- Focus: `background: color-mix(in srgb, var(--hn-theme) 8%, transparent)`, `box-shadow: 0 0 0 2px var(--hn-theme)` (`src/lib/styles.css:332-335`).
+- Code blocks override hover/focus with `background: rgba(255, 255, 255, 0.05)` and `box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15)` (`src/lib/styles.css:337-341`).
+
+---
+
+## 6. Popover Layer
+
+The selection popover is a fixed-position dark surface.
+
+- Positioning: `position: fixed`, `z-index: 9999` (`src/lib/styles.css:357-359`).
+- Background: `#1e293b` (`src/lib/styles.css:365`).
+- Shadow: `0 8px 24px rgba(15, 23, 42, 0.28)` (`src/lib/styles.css:366`).
+- Radius: `10px` (`src/lib/styles.css:364`).
+- Padding: `0.3rem`, internal gap `0.15rem` (`src/lib/styles.css:362-363`).
+
+Popover buttons:
+
+- Base: transparent background, `#e2e8f0` text, `7px` radius (`src/lib/styles.css:377-380`).
+- Hover: `rgba(255, 255, 255, 0.14)` background, `#ffffff` text (`src/lib/styles.css:387-390`).
+
+Animation is a pure opacity fade: `@keyframes hn-popover-in` from `opacity: 0` to `opacity: 1` (`src/lib/styles.css:418-425`).
+
+---
+
+## 7. Responsive Breakpoints
+
+The only responsive breakpoint in the file is `max-width: 840px` (`src/lib/styles.css:343-353`).
+
+At that breakpoint:
+
+- Hero and body horizontal padding reduce to `1.25rem` (`src/lib/styles.css:346-347`).
+- Hero grid collapses to a single column (`src/lib/styles.css:350-352`).
+
+---
+
+## 8. Accessibility Constraints
+
+- Checkboxes use `cursor: default` in read-only mode and `cursor: pointer` only when editable (`src/lib/styles.css:222`, `src/lib/styles.css:232`).
+- Checkbox hover and checked-hover rely on theme color changes rather than relying on color alone; the cursor also changes (`src/lib/styles.css:235-242`).
+- Editable elements remove the default outline and replace it with a visible `box-shadow` ring on focus (`src/lib/styles.css:324`, `src/lib/styles.css:332-335`).
+- Popover uses a high-contrast dark surface (`#1e293b` on light shell) and a large shadow to separate it from content (`src/lib/styles.css:365-366`).
+- Focus ring for editable fields uses a solid `2px` theme stroke (`src/lib/styles.css:334`).
+
+---
+
+## 9. Planned Block Handle / Menu Tokens
+
+The block-editor handle and menu must reuse the tokens above. No new colors should be added.
+
+### Handle
+
+| State         | Visual treatment                                        | Grounded tokens                                                                             |
+| ------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Hidden        | `opacity: 0`, no pointer events                         | Derived from transition behavior (`src/lib/styles.css:323`)                                 |
+| Hover         | Background `--hn-surface-hover`, text `--hn-text-muted` | `--hn-surface-hover` (`src/lib/styles.css:14`), `--hn-text-muted` (`src/lib/styles.css:18`) |
+| Focus         | `box-shadow: 0 0 0 2px var(--hn-theme)`                 | Editable focus pattern (`src/lib/styles.css:334`)                                           |
+| Active / Open | Background `--hn-theme-soft`, text `--hn-theme-text`    | `--hn-theme-soft` (`src/lib/styles.css:7`), `--hn-theme-text` (`src/lib/styles.css:9`)      |
+
+### Block Menu
+
+| Part                      | Treatment                                                      | Grounded tokens                                                                                                                                                  |
+| ------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Container                 | Dark surface, popover shadow, `10px` radius                    | Background `#1e293b` (`src/lib/styles.css:365`), shadow `0 8px 24px rgba(15, 23, 42, 0.28)` (`src/lib/styles.css:366`), radius `10px` (`src/lib/styles.css:364`) |
+| Menu item default         | Transparent background, `#e2e8f0` text                         | Popover button base (`src/lib/styles.css:377-380`)                                                                                                               |
+| Menu item hover / active  | `rgba(255, 255, 255, 0.14)` background, `#ffffff` text         | Popover button hover (`src/lib/styles.css:387-390`)                                                                                                              |
+| Disabled / not applicable | `--hn-text-muted` text at reduced opacity, no hover background | `--hn-text-muted` (`src/lib/styles.css:18`)                                                                                                                      |
+
+### Open state
+
+When the menu is open, the owning block handle should stay in the active/open treatment (`--hn-theme-soft` background) so the user can see which block the menu belongs to. The menu itself should animate with the same `hn-popover-in` opacity fade (`src/lib/styles.css:418-425`) to avoid conflicting with positioning transforms.
