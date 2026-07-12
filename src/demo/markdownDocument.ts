@@ -27,9 +27,13 @@ export type DemoMarkdownDocument = {
   readonly blocks: readonly NoteBlock[]
 }
 
-export const parseMarkdownDocument = (markdown: string): DemoMarkdownDocument => {
+export const parseMarkdownDocument = (
+  markdown: string
+): DemoMarkdownDocument => {
   const trimmedMarkdown = markdown.trimStart()
-  const metadataMatch = /^```json\s*\n([\s\S]*?)\n```\s*\n/.exec(trimmedMarkdown)
+  const metadataMatch = /^```json\s*\n([\s\S]*?)\n```\s*\n/.exec(
+    trimmedMarkdown
+  )
   const metadataJson = metadataMatch?.[1]
 
   if (metadataMatch === null || metadataJson === undefined) {
@@ -46,13 +50,19 @@ export const parseMarkdownDocument = (markdown: string): DemoMarkdownDocument =>
   return { ...metadata, blocks: parseMarkdownBlocks(tree) }
 }
 
-export const serializeMarkdownDocument = (document: DemoMarkdownDocument): string => {
-  const metadataJson = JSON.stringify({
-    title: document.title,
-    summary: document.summary,
-    tagLabel: document.tagLabel,
-    updatedAt: document.updatedAt
-  }, null, 2)
+export const serializeMarkdownDocument = (
+  document: DemoMarkdownDocument
+): string => {
+  const metadataJson = JSON.stringify(
+    {
+      title: document.title,
+      summary: document.summary,
+      tagLabel: document.tagLabel,
+      updatedAt: document.updatedAt
+    },
+    null,
+    2
+  )
 
   return `\`\`\`json\n${metadataJson}\n\`\`\`\n\n${serializeBlocks(document.blocks)}`
 }
@@ -74,25 +84,31 @@ const serializeBlock = (block: NoteBlock): string => {
     case "heading":
       return [
         blockDirective(block.id, optionalAttribute("eyebrow", block.eyebrow)),
-        `${"#".repeat(block.level)} ${block.text}`
+        block.text === ""
+          ? "#".repeat(block.level)
+          : `${"#".repeat(block.level)} ${block.text}`
       ].join("\n")
     case "paragraph":
       return [
         blockDirective(
           block.id,
-          block.tone === undefined || block.tone === "default"
-            ? ""
-            : requiredAttribute("tone", block.tone)
+          [
+            block.text === "" ? requiredAttribute("empty", "true") : "",
+            block.tone === undefined || block.tone === "default"
+              ? ""
+              : requiredAttribute("tone", block.tone)
+          ].join("")
         ),
-        block.text
+        paragraphText(block.text)
       ].join("\n")
     case "quote":
       return [blockDirective(block.id), ...quoteLines(block)].join("\n")
     case "checklist":
       return [
         `<!-- hn:checklist id="${block.id}" title="${block.title}" -->`,
-        ...block.items.map((item) =>
-          `- [${item.checked ? "x" : " "}] <!-- hn:item id="${item.id}" --> ${item.text}`
+        ...block.items.map(
+          (item) =>
+            `- [${item.checked ? "x" : " "}] <!-- hn:item id="${item.id}" --> ${item.text}`
         )
       ].join("\n")
     case "code":
@@ -113,7 +129,9 @@ const serializeBlock = (block: NoteBlock): string => {
   }
 }
 
-const quoteLines = (block: Extract<NoteBlock, { readonly kind: "quote" }>): readonly string[] => {
+const quoteLines = (
+  block: Extract<NoteBlock, { readonly kind: "quote" }>
+): readonly string[] => {
   const lines = quoteTextLines(block.text)
   return block.author === undefined ? lines : [...lines, `> — ${block.author}`]
 }
@@ -121,13 +139,16 @@ const quoteLines = (block: Extract<NoteBlock, { readonly kind: "quote" }>): read
 const quoteTextLines = (text: string): readonly string[] =>
   text.split("\n").map((line) => `> ${line}`)
 
+const paragraphText = (text: string): string => text.replaceAll("\n", "<br>")
+
 const blockDirective = (id: string, attributes = ""): string =>
   `<!-- hn:block id="${id}"${attributes} -->`
 
 const optionalAttribute = (name: string, value: string | undefined): string =>
   value === undefined ? "" : requiredAttribute(name, value)
 
-const requiredAttribute = (name: string, value: string): string => ` ${name}="${value}"`
+const requiredAttribute = (name: string, value: string): string =>
+  ` ${name}="${value}"`
 
 const assertNever = (value: never): never => {
   throw new Error(`Unsupported note block: ${JSON.stringify(value)}`)

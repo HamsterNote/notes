@@ -14,7 +14,10 @@ import type {
   NoteCalloutTone,
   NoteChecklistItem
 } from "../lib/types"
-import type { BlockDirective, ChecklistDirective } from "./markdownDocumentDirectives"
+import type {
+  BlockDirective,
+  ChecklistDirective
+} from "./markdownDocumentDirectives"
 import { parseAttributes, parseHnDirective } from "./markdownDocumentDirectives"
 
 export const parseMarkdownBlocks = (tree: Root): readonly NoteBlock[] => {
@@ -26,7 +29,14 @@ export const parseMarkdownBlocks = (tree: Root): readonly NoteBlock[] => {
     switch (node.type) {
       case "html": {
         const directive = parseHnDirective(node)
-        if (directive?.directive === "block") blockDirective = directive
+        if (directive?.directive === "block") {
+          if (directive.empty === true) {
+            blocks.push(parseEmptyParagraph(directive))
+            blockDirective = undefined
+          } else {
+            blockDirective = directive
+          }
+        }
         if (directive?.directive === "checklist") checklistDirective = directive
         break
       }
@@ -89,6 +99,13 @@ const parseParagraph = (
   ...(directive?.tone === undefined ? {} : { tone: directive.tone })
 })
 
+const parseEmptyParagraph = (directive: BlockDirective): NoteBlock => ({
+  id: directive.id,
+  kind: "paragraph",
+  text: "",
+  ...(directive.tone === undefined ? {} : { tone: directive.tone })
+})
+
 const parseBlockquote = (
   node: Blockquote,
   directive: BlockDirective | undefined,
@@ -109,7 +126,9 @@ const parseBlockquote = (
   }
 
   const lastLine = lines.at(-1)
-  const author = lastLine?.startsWith("— ") ? lastLine.slice(2).trim() : undefined
+  const author = lastLine?.startsWith("— ")
+    ? lastLine.slice(2).trim()
+    : undefined
 
   return {
     id,
@@ -119,7 +138,10 @@ const parseBlockquote = (
   }
 }
 
-const parseChecklist = (node: List, directive: ChecklistDirective): NoteBlock => ({
+const parseChecklist = (
+  node: List,
+  directive: ChecklistDirective
+): NoteBlock => ({
   id: directive.id,
   kind: "checklist",
   title: directive.title,
@@ -135,15 +157,18 @@ const parseChecklistItem = (
   if (paragraph?.type !== "paragraph") return []
 
   const firstInline = paragraph.children[0]
-  const directive = firstInline?.type === "html" ? parseHnDirective(firstInline) : undefined
+  const directive =
+    firstInline?.type === "html" ? parseHnDirective(firstInline) : undefined
   const hasItemId = directive?.directive === "item"
   const children = hasItemId ? paragraph.children.slice(1) : paragraph.children
 
-  return [{
-    id: hasItemId ? directive.id : `item-${index + 1}`,
-    checked: item.checked,
-    text: textFromPhrasing(children).trim()
-  }]
+  return [
+    {
+      id: hasItemId ? directive.id : `item-${index + 1}`,
+      checked: item.checked,
+      text: textFromPhrasing(children).trim()
+    }
+  ]
 }
 
 const parseCode = (
@@ -172,7 +197,9 @@ const parseCalloutHeader = (
   return tone === undefined || title === undefined ? undefined : { tone, title }
 }
 
-const parseCalloutTone = (value: string | undefined): NoteCalloutTone | undefined => {
+const parseCalloutTone = (
+  value: string | undefined
+): NoteCalloutTone | undefined => {
   switch (value) {
     case "info":
     case "success":
@@ -184,10 +211,12 @@ const parseCalloutTone = (value: string | undefined): NoteCalloutTone | undefine
 }
 
 const textFromBlockquote = (node: Blockquote): string =>
-  node.children.map((child) => {
-    if (child.type === "paragraph") return textFromPhrasing(child.children)
-    return ""
-  }).join("\n\n")
+  node.children
+    .map((child) => {
+      if (child.type === "paragraph") return textFromPhrasing(child.children)
+      return ""
+    })
+    .join("\n\n")
 
 const textFromPhrasing = (children: readonly PhrasingContent[]): string =>
   children.map(textFromInline).join("")
@@ -206,7 +235,7 @@ const textFromInline = (node: PhrasingContent): string => {
     case "linkReference":
       return textFromPhrasing(node.children)
     case "html":
-      return ""
+      return isSoftBreakHtml(node.value) ? "\n" : ""
     case "image":
     case "imageReference":
       return node.alt ?? ""
@@ -218,9 +247,12 @@ const textFromInline = (node: PhrasingContent): string => {
 }
 
 const isChecklistList = (node: List): boolean =>
-  node.children.length > 0 && node.children.every((item) => typeof item.checked === "boolean")
+  node.children.length > 0 &&
+  node.children.every((item) => typeof item.checked === "boolean")
 
-const isHeadingLevel = (value: number): value is 1 | 2 | 3 =>
-  value === 1 || value === 2 || value === 3
+const isSoftBreakHtml = (value: string): boolean => /^<br\s*\/?>$/i.test(value)
+
+const isHeadingLevel = (value: number): value is 1 | 2 | 3 | 4 | 5 =>
+  value === 1 || value === 2 || value === 3 || value === 4 || value === 5
 
 const fallbackBlockId = (index: number): string => `block-${index + 1}`

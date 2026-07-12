@@ -2,13 +2,14 @@ import type { Html } from "mdast"
 
 export type ParagraphTone = "default" | "muted" | "accent"
 
-type AttributeName = "eyebrow" | "filename" | "id" | "title" | "tone"
+type AttributeName = "empty" | "eyebrow" | "filename" | "id" | "title" | "tone"
 
 export type ParsedAttributes = Partial<Record<AttributeName, string>>
 
 export type BlockDirective = {
   readonly directive: "block"
   readonly id: string
+  readonly empty?: true
   readonly eyebrow?: string
   readonly tone?: ParagraphTone
 }
@@ -23,7 +24,9 @@ type ItemDirective = { readonly directive: "item"; readonly id: string }
 type HnDirective = BlockDirective | ChecklistDirective | ItemDirective
 
 export const parseHnDirective = (node: Html): HnDirective | undefined => {
-  const match = /^<!--\s*hn:(block|checklist|item)\s*([^>]*)-->$/.exec(node.value)
+  const match = /^<!--\s*hn:(block|checklist|item)\s*([^>]*)-->$/.exec(
+    node.value
+  )
   const directive = match?.[1]
   const rawAttributes = match?.[2]
   if (directive === undefined || rawAttributes === undefined) return undefined
@@ -60,7 +63,9 @@ export const parseAttributes = (value: string): ParsedAttributes => {
   return attributes
 }
 
-export const parseParagraphTone = (value: string | undefined): ParagraphTone | undefined => {
+export const parseParagraphTone = (
+  value: string | undefined
+): ParagraphTone | undefined => {
   switch (value) {
     case "default":
     case "muted":
@@ -76,11 +81,13 @@ const buildBlockDirective = (
   attributes: Readonly<ParsedAttributes>
 ): BlockDirective => {
   const eyebrow = attributes.eyebrow
+  const empty = attributes.empty === "true" ? true : undefined
   const tone = parseParagraphTone(attributes.tone)
 
   return {
     directive: "block",
     id,
+    ...(empty === undefined ? {} : { empty }),
     ...(eyebrow === undefined ? {} : { eyebrow }),
     ...(tone === undefined ? {} : { tone })
   }
@@ -88,6 +95,7 @@ const buildBlockDirective = (
 
 const isAttributeName = (value: string | undefined): value is AttributeName => {
   switch (value) {
+    case "empty":
     case "eyebrow":
     case "filename":
     case "id":
