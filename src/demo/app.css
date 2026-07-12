@@ -121,7 +121,9 @@ select {
   border: 2px solid transparent;
   border-radius: 8px;
   cursor: pointer;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
 }
 
 .demo-preset-swatch:hover {
@@ -187,7 +189,9 @@ select {
   background: #f8fafc;
   color: #1e293b;
   font-size: 0.9rem;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .demo-text-input:focus {
@@ -218,7 +222,8 @@ select {
 
 .demo-header h1 {
   margin: 0.5rem 0 0;
-  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  font-family:
+    "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, serif;
   font-size: clamp(2rem, 4vw, 3rem);
   line-height: 1;
 }

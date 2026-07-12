@@ -20,7 +20,11 @@ const packageJson = JSON.parse(packageJsonContent)
 
 packageJson.version = releaseVersion
 
-await writeFile(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8")
+await writeFile(
+  packageJsonPath,
+  `${JSON.stringify(packageJson, null, 2)}\n`,
+  "utf8"
+)
 
 const prereleaseSegment = releaseVersion.split("-")[1]
 const npmTag = prereleaseSegment ? prereleaseSegment.split(".")[0] : "latest"

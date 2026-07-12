@@ -1,0 +1,10 @@
+# Build artifacts
+dist/
+coverage/
+
+# OpenCode working data (scratch files, session logs, evidence)
+.omo/
+
+# Lock files and build info
+pnpm-lock.yaml
+*.tsbuildinfo

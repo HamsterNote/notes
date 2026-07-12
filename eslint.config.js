@@ -10,16 +10,19 @@ export default tseslint.config(
     ignores: ["dist", "node_modules"]
   },
   {
-    extends: [js.configs.recommended, ...tseslint.configs.recommendedTypeChecked],
+    extends: [
+      js.configs.recommended,
+      ...tseslint.configs.recommendedTypeChecked
+    ],
     files: ["**/*.{ts,tsx}"],
-      languageOptions: {
-        ecmaVersion: 2024,
-        globals: globals.browser,
-        parserOptions: {
-          project: ["./tsconfig.app.json", "./tsconfig.node.json"],
-          tsconfigRootDir: import.meta.dirname
-        }
-      },
+    languageOptions: {
+      ecmaVersion: 2024,
+      globals: globals.browser,
+      parserOptions: {
+        project: ["./tsconfig.app.json", "./tsconfig.node.json"],
+        tsconfigRootDir: import.meta.dirname
+      }
+    },
     plugins: {
       "react-hooks": reactHooks,
       "react-refresh": reactRefresh

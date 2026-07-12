@@ -12,5 +12,10 @@
     "isolatedModules": true,
     "types": ["node"]
   },
-  "include": ["vite.config.ts", "vite.demo.config.ts", "eslint.config.js", "scripts/**/*.mjs"]
+  "include": [
+    "vite.config.ts",
+    "vite.demo.config.ts",
+    "eslint.config.js",
+    "scripts/**/*.mjs"
+  ]
 }
