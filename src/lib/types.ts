@@ -12,7 +12,7 @@ export type NoteBlockKind = (typeof noteBlockKinds)[keyof typeof noteBlockKinds]
 export type NoteHeadingBlock = {
   readonly id: string
   readonly kind: "heading"
-  readonly level: 1 | 2 | 3
+  readonly level: 1 | 2 | 3 | 4 | 5
   readonly text: string
   readonly eyebrow?: string
 }

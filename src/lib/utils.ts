@@ -1,4 +1,6 @@
-import type { NoteCalloutTone, NoteBlock } from "./types"
+import type { NoteBlock, NoteCalloutTone, NoteHeadingBlock } from "./types"
+
+type HeadingLevelTag = "h1" | "h2" | "h3" | "h4" | "h5"
 
 export const assertNever = (value: never): never => {
   throw new Error(`Unhandled note block: ${JSON.stringify(value)}`)
@@ -20,6 +22,44 @@ export const calloutToneLabelMap: Record<NoteCalloutTone, string> = {
   warning: "Watch"
 }
 
+export const headingLevelClassName = (
+  level: NoteHeadingBlock["level"]
+): string => {
+  switch (level) {
+    case 1:
+      return "hn-note-heading hn-note-heading--1"
+    case 2:
+      return "hn-note-heading hn-note-heading--2"
+    case 3:
+      return "hn-note-heading hn-note-heading--3"
+    case 4:
+      return "hn-note-heading hn-note-heading--4"
+    case 5:
+      return "hn-note-heading hn-note-heading--5"
+    default:
+      return assertNever(level)
+  }
+}
+
+export const headingLevelTag = (
+  level: NoteHeadingBlock["level"]
+): HeadingLevelTag => {
+  switch (level) {
+    case 1:
+      return "h1"
+    case 2:
+      return "h2"
+    case 3:
+      return "h3"
+    case 4:
+      return "h4"
+    case 5:
+      return "h5"
+    default:
+      return assertNever(level)
+  }
+}
+
 export const getReadingMinutes = (blocks: readonly NoteBlock[]): number => {
   const totalWords = blocks.reduce((count, block) => {
     switch (block.kind) {
@@ -28,7 +68,13 @@ export const getReadingMinutes = (blocks: readonly NoteBlock[]): number => {
       case "paragraph":
         return count + block.text.split(/\s+/u).length
       case "checklist":
-        return count + block.items.reduce((itemCount, item) => itemCount + item.text.split(/\s+/u).length, 0)
+        return (
+          count +
+          block.items.reduce(
+            (itemCount, item) => itemCount + item.text.split(/\s+/u).length,
+            0
+          )
+        )
       case "quote":
         return count + block.text.split(/\s+/u).length
       case "code":
