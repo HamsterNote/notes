@@ -237,6 +237,30 @@ select {
   margin: 0 auto;
 }
 
+/* ===== 侧栏底部 Markdown 文档数据面板 ===== */
+/* margin-top:auto 把面板推到侧边栏最底部，同时允许内部 pre 缩放 */
+.demo-markdown-panel {
+  min-height: 0;
+  margin-top: auto;
+}
+
+/* 等宽字体展示 JSON+Markdown 源码，保留原始格式 + 水平/垂直滚动 */
+.demo-markdown-document {
+  margin: 0;
+  font-family: "SFMono-Regular", "Menlo", "Consolas", monospace;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  background: #f8fafc;
+  color: #1e293b;
+  padding: 0.75rem;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 10px;
+  white-space: pre;
+  overflow: auto;
+  max-height: 320px;
+  word-wrap: normal;
+}
+
 /* ===== 响应式：窄屏折叠侧边栏到顶部 ===== */
 @media (max-width: 840px) {
   .demo-layout {
@@ -252,5 +276,10 @@ select {
 
   .demo-main {
     padding: 2rem 1.25rem;
+  }
+
+  /* 窄屏减小面板高度，避免占据过多竖向空间 */
+  .demo-markdown-document {
+    max-height: 240px;
   }
 }

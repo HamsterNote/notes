@@ -1,9 +1,12 @@
-import { useState } from "react"
-
-import { NoteContent } from "../lib"
+import { useCallback, useState } from "react"
 import type { NoteBlock } from "../lib"
-
-import { demoBlocks } from "./noteData"
+import { NoteContent } from "../lib"
+import type { DemoMarkdownDocument } from "./markdownDocument"
+import {
+  parseMarkdownDocument,
+  serializeMarkdownDocument
+} from "./markdownDocument"
+import { demoMarkdownDocument } from "./noteData"
 import "./app.css"
 
 // 预设主题色供侧边栏快速切换
@@ -16,17 +19,40 @@ const presetColors = [
   { name: "青色", value: "#0891b2" }
 ]
 
+// 解析一次 markdown 文档作为初始状态（避免每次渲染重新解析）
+const initialDocument = parseMarkdownDocument(demoMarkdownDocument)
+
 export const App = () => {
   // ===== 受控状态：由侧边栏面板驱动 NoteContent 的全部可调参数 =====
   const [themeColor, setThemeColor] = useState("#3b82f6")
   const [editable, setEditable] = useState(false)
-  const [title, setTitle] = useState("Launch Notes for the first public package")
-  const [summary, setSummary] = useState(
-    "An editorial note surface for changelogs, meeting recaps, or product knowledge cards."
+  // 结构化文档状态（包含 title/summary/tagLabel/updatedAt/blocks）
+  const [document, setDocument] =
+    useState<DemoMarkdownDocument>(initialDocument)
+  // markdown 源文字符串状态（编辑时通过 serializeMarkdownDocument 实时重新生成）
+  // markdownDocument 值在侧栏底部面板渲染展示
+  const [markdownDocument, setMarkdownDocument] = useState(demoMarkdownDocument)
+
+  // 统一文档更新函数：对 document 应用变更后立即序列化同步 markdownDocument。
+  // 在 setDocument 回调内部调用 setMarkdownDocument，确保两者基于同一份 next 值，
+  // 避免分别更新带来的过期闭包与竞态问题。
+  const updateDocument = useCallback(
+    (update: (current: DemoMarkdownDocument) => DemoMarkdownDocument) => {
+      setDocument((current) => {
+        const next = update(current)
+        setMarkdownDocument(serializeMarkdownDocument(next))
+        return next
+      })
+    },
+    []
   )
-  const [tagLabel, setTagLabel] = useState("Release candidate")
-  // demoBlocks 是 readonly，展开为可变副本以支持编辑
-  const [blocks, setBlocks] = useState<NoteBlock[]>([...demoBlocks])
+
+  // 从 document 直接派生展示字段（不再使用独立 state，确保 UI 与文档始终一致）
+  const title = document.title
+  const summary = document.summary
+  const tagLabel = document.tagLabel
+  // document.blocks 是 readonly NoteBlock[]，展开为可变副本传给 NoteContent
+  const blocks: NoteBlock[] = [...document.blocks]
 
   return (
     <div className="demo-layout">
@@ -59,12 +85,12 @@ export const App = () => {
                 type="button"
                 className={[
                   "demo-preset-swatch",
-                    themeColor.toLowerCase() === color.value.toLowerCase()
-                      ? "demo-preset-swatch--active"
-                      : ""
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
+                  themeColor.toLowerCase() === color.value.toLowerCase()
+                    ? "demo-preset-swatch--active"
+                    : ""
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
                 style={{ background: color.value }}
                 title={color.name}
                 aria-label={color.name}
@@ -89,7 +115,9 @@ export const App = () => {
             </button>
           </label>
           <p className="demo-hint">
-            {editable ? "已开启：点击文本可直接编辑，点击圆圈切换勾选" : "关闭：只读展示模式"}
+            {editable
+              ? "已开启：点击文本可直接编辑，点击圆圈切换勾选"
+              : "关闭：只读展示模式"}
           </p>
         </section>
 
@@ -103,7 +131,10 @@ export const App = () => {
             type="text"
             className="demo-text-input"
             value={title}
-            onChange={(event) => setTitle(event.target.value)}
+            onChange={(event) => {
+              const nextTitle = event.target.value
+              updateDocument((current) => ({ ...current, title: nextTitle }))
+            }}
           />
         </section>
 
@@ -117,8 +148,25 @@ export const App = () => {
             type="text"
             className="demo-text-input"
             value={tagLabel}
-            onChange={(event) => setTagLabel(event.target.value)}
+            onChange={(event) => {
+              const nextTagLabel = event.target.value
+              updateDocument((current) => ({
+                ...current,
+                tagLabel: nextTagLabel
+              }))
+            }}
           />
+        </section>
+
+        {/* Markdown 文档数据：实时展示当前 JSON 元数据 + Markdown 正文源码 */}
+        <section
+          className="demo-control-group demo-markdown-panel"
+          aria-label="Markdown document data"
+        >
+          <h3 className="demo-control-label">Markdown Document Data</h3>
+          <pre className="demo-markdown-document">
+            <code>{markdownDocument}</code>
+          </pre>
         </section>
       </aside>
 
@@ -128,8 +176,8 @@ export const App = () => {
           <p className="demo-kicker">Component library demo</p>
           <h1>@hamster-note/notes</h1>
           <p className="demo-desc">
-            A React 19 note-content component built as a publishable library, with theme color,
-            inline editing, and a tag-driven release workflow.
+            A React 19 note-content component built as a publishable library,
+            with theme color, inline editing, and a tag-driven release workflow.
           </p>
         </header>
 
@@ -138,12 +186,18 @@ export const App = () => {
           summary={summary}
           tagLabel={tagLabel}
           title={title}
-          updatedAt="2026-07-11"
+          updatedAt={document.updatedAt}
           themeColor={themeColor}
           editable={editable}
-          onTitleChange={setTitle}
-          onSummaryChange={setSummary}
-          onBlocksChange={setBlocks}
+          onTitleChange={(nextTitle) =>
+            updateDocument((current) => ({ ...current, title: nextTitle }))
+          }
+          onSummaryChange={(nextSummary) =>
+            updateDocument((current) => ({ ...current, summary: nextSummary }))
+          }
+          onBlocksChange={(nextBlocks) =>
+            updateDocument((current) => ({ ...current, blocks: nextBlocks }))
+          }
         />
       </main>
     </div>
