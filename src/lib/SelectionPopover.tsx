@@ -30,7 +30,10 @@ const FLIP_THRESHOLD = 88
 // popover 与选区之间的间距
 const POPPER_GAP = 8
 
-export const SelectionPopover = ({ containerRef, editable }: SelectionPopoverProps) => {
+export const SelectionPopover = ({
+  containerRef,
+  editable
+}: SelectionPopoverProps) => {
   const [position, setPosition] = useState<PopoverPosition | null>(null)
   const [selectedText, setSelectedText] = useState("")
 
@@ -40,7 +43,12 @@ export const SelectionPopover = ({ containerRef, editable }: SelectionPopoverPro
       const container = containerRef.current
       const selection = window.getSelection()
 
-      if (!selection || selection.rangeCount === 0 || selection.isCollapsed || !container) {
+      if (
+        !selection ||
+        selection.rangeCount === 0 ||
+        selection.isCollapsed ||
+        !container
+      ) {
         setPosition(null)
         return
       }
@@ -125,8 +133,16 @@ export const SelectionPopover = ({ containerRef, editable }: SelectionPopoverPro
   }
 
   const style: CSSProperties = position.flip
-    ? { top: position.bottom + POPPER_GAP, left: position.left, transform: "translate(-50%, 0)" }
-    : { top: position.top - POPPER_GAP, left: position.left, transform: "translate(-50%, -100%)" }
+    ? {
+        top: position.bottom + POPPER_GAP,
+        left: position.left,
+        transform: "translate(-50%, 0)"
+      }
+    : {
+        top: position.top - POPPER_GAP,
+        left: position.left,
+        transform: "translate(-50%, -100%)"
+      }
 
   const popover = (
     <div
@@ -146,7 +162,9 @@ export const SelectionPopover = ({ containerRef, editable }: SelectionPopoverPro
             title="粗体"
             aria-label="粗体"
           >
-            <span className="hn-note-popover-glyph hn-note-popover-glyph--bold">B</span>
+            <span className="hn-note-popover-glyph hn-note-popover-glyph--bold">
+              B
+            </span>
           </button>
           <button
             type="button"
@@ -155,7 +173,9 @@ export const SelectionPopover = ({ containerRef, editable }: SelectionPopoverPro
             title="斜体"
             aria-label="斜体"
           >
-            <span className="hn-note-popover-glyph hn-note-popover-glyph--italic">I</span>
+            <span className="hn-note-popover-glyph hn-note-popover-glyph--italic">
+              I
+            </span>
           </button>
           <button
             type="button"
@@ -164,7 +184,9 @@ export const SelectionPopover = ({ containerRef, editable }: SelectionPopoverPro
             title="下划线"
             aria-label="下划线"
           >
-            <span className="hn-note-popover-glyph hn-note-popover-glyph--underline">U</span>
+            <span className="hn-note-popover-glyph hn-note-popover-glyph--underline">
+              U
+            </span>
           </button>
         </>
       ) : (
