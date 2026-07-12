@@ -1,0 +1,148 @@
+{
+  "automated_checks": {
+    "pnpm test": true,
+    "pnpm typecheck": true,
+    "pnpm build": true,
+    "pnpm build:demo": true
+  },
+  "browser_checks": [
+    {
+      "check_id": "01",
+      "name": "Demo 加载无控制台错误",
+      "passed": true,
+      "details": [
+        "页面标题: @hamster-note/notes",
+        "块数量: 10"
+      ],
+      "errors": [],
+      "screenshot": null
+    },
+    {
+      "check_id": "02",
+      "name": "悬停 heading 块显示左侧 handle",
+      "passed": true,
+      "details": [
+        "悬停后 handle opacity: 1"
+      ],
+      "errors": [],
+      "screenshot": "desktop-hover-handle.png"
+    },
+    {
+      "check_id": "03",
+      "name": "键盘聚焦 handle 显示",
+      "passed": true,
+      "details": [
+        "键盘聚焦后 handle opacity: 1",
+        "焦点元素: <BUTTON> class=hn-note-block-handle"
+      ],
+      "errors": [],
+      "screenshot": "desktop-focus-handle.png"
+    },
+    {
+      "check_id": "04",
+      "name": "801px 视口菜单贴近 handle",
+      "passed": true,
+      "details": [
+        "801px handle box: {'x': 41, 'y': 317.015625, 'width': 24, 'height': 24}",
+        "801px menu box: {'x': 73, 'y': 317.015625, 'width': 160, 'height': 207.78125}",
+        "801px menu style: {'position': 'fixed', 'left': '73px', 'transform': 'none', 'top': '317.016px'}",
+        "801px 未居中: True, 贴近 handle: True"
+      ],
+      "errors": [],
+      "screenshot": "desktop-menu-near-handle-801.png"
+    },
+    {
+      "check_id": "05",
+      "name": "800px 视口菜单水平居中",
+      "passed": true,
+      "details": [
+        "800px menu box: {'x': 320, 'y': 348.96875, 'width': 160, 'height': 207.78125}",
+        "800px menu style: {'position': 'fixed', 'left': '400px', 'transform': 'matrix(1, 0, 0, 1, -80, 0)', 'top': '348.969px'}",
+        "800px transform 居中: True, 位置居中: True"
+      ],
+      "errors": [],
+      "screenshot": "mobile-centered-menu-800.png"
+    },
+    {
+      "check_id": "06",
+      "name": "段落中间 Enter 拆分为两块",
+      "passed": true,
+      "details": [
+        "拆分前块数量: 10",
+        "intro 文本长度: 188, 光标位置: 94",
+        "拆分后块数量: 11",
+        "新块 intro-line 存在: True",
+        "新块文本: hy, callouts, checklists, and code snippets for pr..."
+      ],
+      "errors": [],
+      "screenshot": "enter-split.png"
+    },
+    {
+      "check_id": "07",
+      "name": "Shift+Enter 插入 <br> 软换行",
+      "passed": true,
+      "details": [
+        "软换行前块数量: 10",
+        "软换行后块数量: 10",
+        "块内 HTML 含 <br>: True",
+        "Markdown 面板含 <br>: True"
+      ],
+      "errors": [],
+      "screenshot": "shift-enter-soft-break.png"
+    },
+    {
+      "check_id": "08",
+      "name": "空块 Backspace 删除并移动焦点",
+      "passed": true,
+      "details": [
+        "删除前块数量: 10",
+        "删除后块数量: 9",
+        "subheading 已删除: True",
+        "删除后焦点块 ID: intro"
+      ],
+      "errors": [],
+      "screenshot": "backspace-delete.png"
+    },
+    {
+      "check_id": "09",
+      "name": "唯一空块 Backspace 重置为空段落",
+      "passed": true,
+      "details": [
+        "设置后块数量: 1",
+        "Backspace 后块数量: 1",
+        "solo 块仍存在: True",
+        "块容器 class: hn-note-paragraph hn-note-paragraph--default",
+        "块类型为 paragraph: True"
+      ],
+      "errors": [],
+      "screenshot": "last-block-protection.png"
+    },
+    {
+      "check_id": "10",
+      "name": "checklist/quote/code/callout Enter 不创建新块",
+      "passed": true,
+      "details": [
+        "初始块数量: 10",
+        "checklist Enter 后块数量: 10 (不变: True)",
+        "quote Enter 后块数量: 10 (不变: True)",
+        "code Enter 后块数量: 10 (不变: True)",
+        "callout Enter 后块数量: 10 (不变: True)"
+      ],
+      "errors": [],
+      "screenshot": null
+    },
+    {
+      "check_id": "11",
+      "name": "全程无控制台错误",
+      "passed": true,
+      "details": [
+        "全程累计控制台错误数: 0"
+      ],
+      "errors": [],
+      "screenshot": null
+    }
+  ],
+  "all_passed": true,
+  "console_messages_captured": 21,
+  "console_errors": []
+}
