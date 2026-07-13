@@ -1,12 +1,9 @@
 import type { ReactElement } from "react"
-
+import { renderChecklistBlock } from "./NoteChecklistBlock"
+import { NoteCodeBlock } from "./NoteCodeEditorBlock"
 import type { EditContext } from "./NoteContentEditing"
-import {
-  renderCalloutBlock,
-  renderChecklistBlock,
-  renderCodeBlock,
-  renderQuoteBlock
-} from "./NoteSecondaryBlocks"
+import { renderQuoteBlock } from "./NoteQuoteBlock"
+import { renderCalloutBlock } from "./NoteSecondaryBlocks"
 import { renderHeadingBlock, renderParagraphBlock } from "./NoteTextBlocks"
 import type { NoteBlock } from "./types"
 import { assertNever } from "./utils"
@@ -27,7 +24,7 @@ export const renderBlock = (
     case "quote":
       return renderQuoteBlock(block, ctx)
     case "code":
-      return renderCodeBlock(block, ctx)
+      return <NoteCodeBlock key={block.id} block={block} ctx={ctx} />
     case "callout":
       return renderCalloutBlock(block, ctx)
     default:

@@ -1,5 +1,6 @@
 import { describe, expect, expectTypeOf, it } from "vitest"
 import {
+  convertBlockFormat,
   convertTextBlockFormat,
   createNextBlockId,
   deleteEmptyTextBlock,
@@ -8,6 +9,7 @@ import {
   normalizeEditableHtml,
   splitTextBlockAtHtml
 } from "./blockEditing"
+import { resolveDeletionFocus } from "./NoteBlockFocus"
 import type { NoteBlock, NoteHeadingBlock, NoteParagraphBlock } from "./types"
 
 const paragraphBlock: NoteParagraphBlock = {
@@ -73,6 +75,70 @@ describe("convertTextBlockFormat", () => {
       NoteHeadingBlock | NoteParagraphBlock
     >()
   })
+})
+
+describe("convertBlockFormat", () => {
+  it.each([
+    [
+      "checklist",
+      {
+        id: "tasks",
+        kind: "checklist",
+        title: "Tasks & notes",
+        items: [
+          { id: "done", checked: true, text: "Done" },
+          { id: "next", checked: false, text: "<em>Next</em>" }
+        ]
+      },
+      "<strong>Tasks &amp; notes</strong><br>[x] Done<br>[ ] <em>Next</em>"
+    ],
+    [
+      "quote",
+      {
+        id: "quote",
+        kind: "quote",
+        text: "Insight",
+        author: "Ada & Lin"
+      },
+      "Insight<br>Ada &amp; Lin"
+    ],
+    [
+      "callout",
+      {
+        id: "notice",
+        kind: "callout",
+        tone: "warning",
+        title: "Heads <up>",
+        text: "Read this"
+      },
+      "<strong>Heads &lt;up&gt;</strong><br>Read this"
+    ],
+    [
+      "code",
+      {
+        id: "sample",
+        kind: "code",
+        language: "tsx",
+        filename: "App.tsx",
+        code: "const node = <tag>"
+      },
+      "<strong>App.tsx (tsx)</strong><br>const node = &lt;tag&gt;"
+    ]
+  ] satisfies readonly (readonly [string, NoteBlock, string])[])(
+    "preserves all visible %s content when converting to a paragraph",
+    (_label, block, expectedText) => {
+      // Given: a structured block with visible primary and metadata content.
+      // When: the user explicitly converts it through the block action menu.
+      const converted = convertBlockFormat(block, { kind: "paragraph" })
+
+      // Then: every visible field is flattened into the resulting rich text.
+      expect(converted).toEqual({
+        id: block.id,
+        kind: "paragraph",
+        text: expectedText
+      })
+    }
+  )
 })
 
 describe("editable HTML normalization", () => {
@@ -215,6 +281,110 @@ describe("insertSplitBlock", () => {
       { id: "next", kind: "paragraph", text: "After" }
     ])
   })
+
+  it.each([
+    [
+      "quote",
+      { id: "quote", kind: "quote", text: "AlphaBeta", author: "Ada" },
+      { id: "quote", kind: "quote", text: "Alpha", author: "Ada" },
+      { id: "quote-line", kind: "quote", text: "Beta", author: "Ada" }
+    ],
+    [
+      "callout",
+      {
+        id: "callout",
+        kind: "callout",
+        tone: "warning",
+        title: "Heads up",
+        text: "AlphaBeta"
+      },
+      {
+        id: "callout",
+        kind: "callout",
+        tone: "warning",
+        title: "Heads up",
+        text: "Alpha"
+      },
+      {
+        id: "callout-line",
+        kind: "callout",
+        tone: "warning",
+        title: "Heads up",
+        text: "Beta"
+      }
+    ],
+    [
+      "code",
+      {
+        id: "code",
+        kind: "code",
+        language: "ts",
+        filename: "demo.ts",
+        code: "AlphaBeta"
+      },
+      {
+        id: "code",
+        kind: "code",
+        language: "ts",
+        filename: "demo.ts",
+        code: "Alpha"
+      },
+      {
+        id: "code-line",
+        kind: "code",
+        language: "ts",
+        filename: "demo.ts",
+        code: "Beta"
+      }
+    ]
+  ] as const)("splits a %s into a matching block", (_label, block, before, after) => {
+    // Given: a non-heading block whose primary content is edited.
+    const blocks: readonly NoteBlock[] = [block]
+
+    // When: Enter splits its primary content around the caret.
+    const result = insertSplitBlock({
+      afterHtml: "Beta",
+      beforeHtml: "Alpha",
+      blocks,
+      sourceId: block.id
+    })
+
+    // Then: the inserted block keeps the source block style and metadata.
+    expect(result).toEqual([before, after])
+  })
+
+  it("inserts a checklist item after the edited item", () => {
+    // Given: a checklist with an item being split in the middle.
+    const blocks: readonly NoteBlock[] = [
+      {
+        id: "tasks",
+        kind: "checklist",
+        title: "Tasks",
+        items: [{ id: "first", checked: true, text: "AlphaBeta" }]
+      }
+    ]
+
+    // When: Enter splits the item around the caret.
+    const result = insertSplitBlock({
+      afterHtml: "Beta",
+      beforeHtml: "Alpha",
+      blocks,
+      sourceId: "first"
+    })
+
+    // Then: a new unchecked checklist item follows the edited item.
+    expect(result).toEqual([
+      {
+        id: "tasks",
+        kind: "checklist",
+        title: "Tasks",
+        items: [
+          { id: "first", checked: true, text: "Alpha" },
+          { id: "first-line", checked: false, text: "Beta" }
+        ]
+      }
+    ])
+  })
 })
 
 describe("createNextBlockId", () => {
@@ -284,5 +454,124 @@ describe("deleteEmptyTextBlock", () => {
 
     // Then: the stable id is reused for a single empty paragraph.
     expect(result).toEqual([{ id: "solo", kind: "paragraph", text: "" }])
+  })
+
+  it("deletes an empty checklist item while preserving its checklist", () => {
+    // Given: a checklist containing one empty item and one remaining item.
+    const blocks: readonly NoteBlock[] = [
+      {
+        id: "tasks",
+        kind: "checklist",
+        title: "Tasks",
+        items: [
+          { id: "empty", checked: false, text: "Old" },
+          { id: "after", checked: false, text: "After" }
+        ]
+      }
+    ]
+
+    // When: Backspace is applied to the empty item.
+    const result = deleteEmptyTextBlock({
+      blocks,
+      currentHtml: "<br>",
+      sourceId: "empty"
+    })
+
+    // Then: only that item is removed, not the whole checklist block.
+    expect(result).toEqual([
+      {
+        id: "tasks",
+        kind: "checklist",
+        title: "Tasks",
+        items: [{ id: "after", checked: false, text: "After" }]
+      }
+    ])
+  })
+
+  it.each([
+    [
+      "quote author",
+      { id: "quote", kind: "quote", text: "Old", author: "Ada" },
+      { id: "quote", kind: "quote", text: "", author: "Ada" }
+    ],
+    [
+      "callout title",
+      {
+        id: "callout",
+        kind: "callout",
+        tone: "info",
+        title: "Read me",
+        text: "Old"
+      },
+      {
+        id: "callout",
+        kind: "callout",
+        tone: "info",
+        title: "Read me",
+        text: ""
+      }
+    ],
+    [
+      "code metadata",
+      {
+        id: "code",
+        kind: "code",
+        language: "tsx",
+        filename: "App.tsx",
+        code: "Old"
+      },
+      {
+        id: "code",
+        kind: "code",
+        language: "tsx",
+        filename: "App.tsx",
+        code: ""
+      }
+    ]
+  ] satisfies readonly (readonly [string, NoteBlock, NoteBlock])[])(
+    "keeps a block with visible %s when its primary field is empty",
+    (_label, source, expected) => {
+      // Given: a structured block whose secondary content remains visible.
+      const blocks: readonly NoteBlock[] = [
+        source,
+        { id: "after", kind: "paragraph", text: "After" }
+      ]
+
+      // When: Backspace is applied to its empty primary field.
+      const result = deleteEmptyTextBlock({
+        blocks,
+        currentHtml: "<br>",
+        sourceId: source.id
+      })
+
+      // Then: the structured block remains and only its primary field is cleared.
+      expect(result).toEqual([
+        expected,
+        { id: "after", kind: "paragraph", text: "After" }
+      ])
+    }
+  )
+})
+
+describe("resolveDeletionFocus", () => {
+  it("focuses the replacement paragraph after deleting the only checklist item", () => {
+    // Given: a one-item checklist is replaced by a stable empty paragraph.
+    const before: readonly NoteBlock[] = [
+      {
+        id: "tasks",
+        kind: "checklist",
+        title: "Tasks",
+        items: [{ id: "only", checked: false, text: "" }]
+      }
+    ]
+    const after: readonly NoteBlock[] = [
+      { id: "tasks", kind: "paragraph", text: "" }
+    ]
+
+    // When: the focus destination is resolved after item deletion.
+    const target = resolveDeletionFocus({ after, before, sourceId: "only" })
+
+    // Then: the replacement block receives focus at its start.
+    expect(target).toEqual({ id: "tasks", position: "start" })
   })
 })

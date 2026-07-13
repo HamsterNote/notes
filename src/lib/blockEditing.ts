@@ -1,15 +1,9 @@
 import type { NoteBlock, NoteHeadingBlock, NoteParagraphBlock } from "./types"
 import { assertNever } from "./utils"
 
+export { convertBlockFormat, convertTextBlockFormat } from "./blockConversion"
+
 type TextBlock = NoteHeadingBlock | NoteParagraphBlock
-
-type HeadingLevel = 1 | 2 | 3 | 4 | 5
-
-type ConvertedHeadingBlock = Omit<NoteHeadingBlock, "level"> & {
-  readonly level: HeadingLevel
-}
-
-type ConvertedTextBlock = ConvertedHeadingBlock | NoteParagraphBlock
 
 type SplitTextBlockAtHtmlInput = {
   readonly afterHtml: string
@@ -31,45 +25,17 @@ type DeleteEmptyTextBlockInput = {
   readonly sourceId: string
 }
 
-type HeadingTarget = {
-  readonly kind: "heading"
-  readonly level: HeadingLevel
-}
-
-type ParagraphTarget = {
-  readonly kind: "paragraph"
-}
-
-type TextBlockTarget = HeadingTarget | ParagraphTarget
-
-export const convertTextBlockFormat = (
-  block: TextBlock,
-  target: TextBlockTarget
-): ConvertedTextBlock => {
-  switch (target.kind) {
-    case "heading":
-      return {
-        id: block.id,
-        kind: "heading",
-        level: target.level,
-        text: block.text
-      }
-    case "paragraph":
-      return {
-        id: block.id,
-        kind: "paragraph",
-        text: block.text
-      }
-    default:
-      return assertNever(target)
-  }
-}
-
 export const createNextBlockId = (
   blocks: readonly NoteBlock[],
   sourceId: string
 ): string => {
-  const takenIds = new Set(blocks.map((block) => block.id))
+  const takenIds = new Set(
+    blocks.flatMap((block) =>
+      block.kind === "checklist"
+        ? [block.id, ...block.items.map((item) => item.id)]
+        : [block.id]
+    )
+  )
   const baseId = `${sourceId}-line`
 
   if (!takenIds.has(baseId)) {
@@ -169,22 +135,50 @@ export const insertSplitBlock = ({
 }: InsertSplitBlockInput): NoteBlock[] => {
   const nextId = createNextBlockId(blocks, sourceId)
 
-  return blocks.flatMap((block) => {
-    if (block.id !== sourceId) {
-      return [block]
-    }
-
+  return blocks.flatMap<NoteBlock>((block): NoteBlock[] => {
     switch (block.kind) {
       case "heading":
       case "paragraph":
+        if (block.id !== sourceId) return [block]
         return splitTextBlockAtHtml({
           afterHtml,
           beforeHtml,
           block,
           nextId
         }).map((textBlock) => toPlainStoredTextBlock(textBlock, textBlock.text))
+      case "checklist": {
+        const itemIndex = block.items.findIndex((item) => item.id === sourceId)
+        if (itemIndex < 0) return [block]
+        const item = block.items[itemIndex]
+        if (!item) return [block]
+        const items = [...block.items]
+        items.splice(
+          itemIndex,
+          1,
+          { ...item, text: normalizeEditableHtml(beforeHtml) },
+          {
+            id: nextId,
+            checked: false,
+            text: normalizeEditableHtml(afterHtml)
+          }
+        )
+        return [{ ...block, items }]
+      }
+      case "quote":
+      case "callout":
+        if (block.id !== sourceId) return [block]
+        return [
+          { ...block, text: normalizeEditableHtml(beforeHtml) },
+          { ...block, id: nextId, text: normalizeEditableHtml(afterHtml) }
+        ]
+      case "code":
+        if (block.id !== sourceId) return [block]
+        return [
+          { ...block, code: beforeHtml },
+          { ...block, id: nextId, code: afterHtml }
+        ]
       default:
-        return [block]
+        return assertNever(block)
     }
   })
 }
@@ -196,6 +190,40 @@ export const deleteEmptyTextBlock = ({
 }: DeleteEmptyTextBlockInput): NoteBlock[] => {
   const normalizedText = normalizeEditableHtml(currentHtml)
 
+  const checklist = blocks.find(
+    (block) =>
+      block.kind === "checklist" &&
+      block.items.some((item) => item.id === sourceId)
+  )
+  if (checklist?.kind === "checklist") {
+    if (!isVisibleHtmlEmpty(normalizedText)) {
+      return blocks.map((block) =>
+        block.id === checklist.id
+          ? {
+              ...checklist,
+              items: checklist.items.map((item) =>
+                item.id === sourceId ? { ...item, text: normalizedText } : item
+              )
+            }
+          : block
+      )
+    }
+    if (checklist.items.length > 1) {
+      return blocks.map((block) =>
+        block.id === checklist.id
+          ? {
+              ...checklist,
+              items: checklist.items.filter((item) => item.id !== sourceId)
+            }
+          : block
+      )
+    }
+    if (blocks.length === 1) {
+      return [{ id: checklist.id, kind: "paragraph", text: "" }]
+    }
+    return blocks.filter((block) => block.id !== checklist.id)
+  }
+
   if (!isVisibleHtmlEmpty(normalizedText)) {
     return blocks.map((block) => {
       if (block.id !== sourceId) {
@@ -206,9 +234,31 @@ export const deleteEmptyTextBlock = ({
         case "heading":
         case "paragraph":
           return toPlainStoredTextBlock(block, normalizedText)
-        default:
+        case "quote":
+        case "callout":
+          return { ...block, text: normalizedText }
+        case "code":
+          return { ...block, code: currentHtml }
+        case "checklist":
           return block
+        default:
+          return assertNever(block)
       }
+    })
+  }
+
+  const sourceBlock = blocks.find((block) => block.id === sourceId)
+  if (
+    (sourceBlock?.kind === "quote" && sourceBlock.author?.trim()) ||
+    (sourceBlock?.kind === "callout" && sourceBlock.title.trim()) ||
+    (sourceBlock?.kind === "code" && sourceBlock.filename?.trim())
+  ) {
+    return blocks.map((block) => {
+      if (block.id !== sourceId) return block
+      if (block.kind === "quote" || block.kind === "callout") {
+        return { ...block, text: "" }
+      }
+      return block.kind === "code" ? { ...block, code: "" } : block
     })
   }
 

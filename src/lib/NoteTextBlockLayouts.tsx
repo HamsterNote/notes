@@ -16,7 +16,7 @@ type EditableTextLayoutInput = {
 type BlockActionMenuLayoutInput = {
   readonly block: EditTextBlock
   readonly ctx: EditContext
-  readonly onConvert: (target: BlockConvertTarget) => void
+  readonly onConvert: (target: BlockConvertTarget) => string
 }
 
 type HeadingBlockLayoutInput = {

@@ -108,10 +108,9 @@ export const NoteContent = ({
           )}
         </div>
       </article>
-      <SelectionPopover
-        containerRef={shellRef}
-        editable={editable && openBlockMenuId === null}
-      />
+      {editable && openBlockMenuId === null ? (
+        <SelectionPopover containerRef={shellRef} />
+      ) : null}
     </>
   )
 }

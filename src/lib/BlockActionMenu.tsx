@@ -10,14 +10,20 @@ import { createPortal } from "react-dom"
 
 import "./styles.css"
 
+import {
+  type BlockConvertTarget,
+  blockKindLabel,
+  blockMenuItems,
+  blockMenuItemTarget,
+  isCurrentBlockMenuItem,
+  type MenuItem
+} from "./BlockActionMenuTypes"
+import type { NoteBlockKind } from "./types"
 import { focusEditableBlock } from "./useBlockEditing"
 
 // ===== 类型导出 =====
 
-/** 格式转换目标：标题（带层级）或正文，与 blockEditing.TextBlockTarget 对齐 */
-export type BlockConvertTarget =
-  | { readonly kind: "heading"; readonly level: 1 | 2 | 3 | 4 | 5 }
-  | { readonly kind: "paragraph" }
+export type { BlockConvertTarget } from "./BlockActionMenuTypes"
 
 export type BlockActionMenuProps = {
   /** 菜单是否打开，由父组件统一控制，便于和 SelectionPopover 互斥 */
@@ -27,14 +33,14 @@ export type BlockActionMenuProps = {
   /** 所属区块 ID（渲染为 data-block-id 供 Wave 4.2 定位） */
   readonly blockId: string
   /** 当前区块类型 */
-  readonly kind: "heading" | "paragraph"
+  readonly kind: NoteBlockKind
   /** 标题层级，kind === "heading" 时由父组件传入 */
   readonly headingLevel?: 1 | 2 | 3 | 4 | 5
   /**
    * 格式转换回调。
    * 父组件（Wave 4.2）应接入 blockEditing.convertTextBlockFormat 执行不可变更新。
    */
-  readonly onConvert: (target: BlockConvertTarget) => void
+  readonly onConvert: (target: BlockConvertTarget) => string
 }
 
 // ===== 常量 =====
@@ -45,30 +51,6 @@ const MENU_CENTER_BREAKPOINT = 800
 const HANDLE_MENU_GAP = 8
 /** 菜单层级，与 SelectionPopover 复用同一固定层 */
 const MENU_Z_INDEX = 9999
-
-type HeadingMenuItem = {
-  readonly kind: "heading"
-  readonly level: 1 | 2 | 3 | 4 | 5
-  readonly label: string
-}
-
-type ParagraphMenuItem = {
-  readonly kind: "paragraph"
-  readonly label: string
-}
-
-/** 单个菜单项（判别联合：标题项有 level，正文项无） */
-type MenuItem = HeadingMenuItem | ParagraphMenuItem
-
-/** 菜单项列表：H1 → H5 → 正文，顺序固定 */
-const MENU_ITEMS: readonly MenuItem[] = [
-  { kind: "heading", level: 1, label: "H1" },
-  { kind: "heading", level: 2, label: "H2" },
-  { kind: "heading", level: 3, label: "H3" },
-  { kind: "heading", level: 4, label: "H4" },
-  { kind: "heading", level: 5, label: "H5" },
-  { kind: "paragraph", label: "正文" }
-]
 
 // ===== 组件 =====
 
@@ -104,12 +86,8 @@ export const BlockActionMenu = ({
   }, [])
 
   /** 判断某菜单项是否匹配当前区块格式 */
-  const isCurrentItem = (item: MenuItem): boolean => {
-    if (item.kind === "heading") {
-      return kind === "heading" && headingLevel === item.level
-    }
-    return kind === "paragraph"
-  }
+  const isCurrentItem = (item: MenuItem): boolean =>
+    isCurrentBlockMenuItem(item, kind, headingLevel)
 
   /** 根据 handle 按钮位置计算菜单的 fixed 定位坐标 */
   const computeMenuStyle = (): CSSProperties => {
@@ -152,26 +130,30 @@ export const BlockActionMenu = ({
     // 当前格式不可重复选择
     if (isCurrentItem(item)) return
 
-    if (item.kind === "heading") {
-      onConvert({ kind: "heading", level: item.level })
-    } else {
-      onConvert({ kind: "paragraph" })
-    }
+    const focusId = onConvert(blockMenuItemTarget(item))
 
     onOpenChange(false)
-    setTimeout(() => focusEditableBlock(blockId, "end"), 0)
+    setTimeout(() => focusEditableBlock(focusId, "end"), 0)
   }
 
   // 菜单打开时：将焦点移至当前格式项（让用户知道当前位置），找不到则聚焦第一项
   useEffect(() => {
     if (!open) return
 
+    const menu = menuRef.current
+    if (menu) {
+      const rect = menu.getBoundingClientRect()
+      const top = Math.min(
+        Math.max(rect.top, HANDLE_MENU_GAP),
+        Math.max(HANDLE_MENU_GAP, window.innerHeight - rect.height - HANDLE_MENU_GAP)
+      )
+      if (top !== rect.top) setMenuStyle((current) => ({ ...current, top }))
+    }
+
     // 内联判断，使依赖项显式化（避免 exhaustive-deps 告警）
-    const currentIndex = MENU_ITEMS.findIndex((item) => {
-      if (item.kind === "heading")
-        return kind === "heading" && headingLevel === item.level
-      return kind === "paragraph"
-    })
+    const currentIndex = blockMenuItems.findIndex((item) =>
+      isCurrentBlockMenuItem(item, kind, headingLevel)
+    )
     const focusIndex = currentIndex >= 0 ? currentIndex : 0
     itemRefs.current[focusIndex]?.focus()
   }, [open, kind, headingLevel])
@@ -236,7 +218,7 @@ export const BlockActionMenu = ({
 
   // ===== 渲染 =====
 
-  const currentLabel = kind === "heading" ? `标题 ${headingLevel ?? 1}` : "正文"
+  const currentLabel = blockKindLabel(kind, headingLevel)
   const handleAriaLabel = `更改区块格式，当前为${currentLabel}`
 
   // 菜单 DOM（仅在 open 时构建，通过 portal 渲染到 document.body）
@@ -249,7 +231,7 @@ export const BlockActionMenu = ({
       style={menuStyle}
       onKeyDown={handleMenuKeyDown}
     >
-      {MENU_ITEMS.map((item, index) => {
+      {blockMenuItems.map((item, index) => {
         const isCurrent = isCurrentItem(item)
 
         return (
