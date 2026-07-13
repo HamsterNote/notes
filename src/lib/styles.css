@@ -486,6 +486,14 @@
     opacity 0.15s ease;
 }
 
+.hn-note-block-handle-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: -0.18em;
+  transform: translateX(-0.03em);
+}
+
 /* 行 hover、行内聚焦、handle 自身 hover/focus 或菜单打开时显现并可交互 */
 .hn-note-block-row:hover .hn-note-block-handle,
 .hn-note-block-row:focus-within .hn-note-block-handle,

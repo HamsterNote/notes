@@ -300,7 +300,11 @@ export const BlockActionMenu = ({
         aria-label={handleAriaLabel}
         data-block-id={blockId}
         onClick={handleToggle}
-      />
+      >
+        <span className="hn-note-block-handle-glyph" aria-hidden="true">
+          ⋮⋮
+        </span>
+      </button>
       {menu ? createPortal(menu, document.body) : null}
     </>
   )

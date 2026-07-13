@@ -25,7 +25,7 @@ const initialDocument = parseMarkdownDocument(demoMarkdownDocument)
 export const App = () => {
   // ===== 受控状态：由侧边栏面板驱动 NoteContent 的全部可调参数 =====
   const [themeColor, setThemeColor] = useState("#3b82f6")
-  const [editable, setEditable] = useState(false)
+  const [editable, setEditable] = useState(true)
   // 结构化文档状态（包含 title/summary/tagLabel/updatedAt/blocks）
   const [document, setDocument] =
     useState<DemoMarkdownDocument>(initialDocument)
@@ -116,7 +116,7 @@ export const App = () => {
           </label>
           <p className="demo-hint">
             {editable
-              ? "已开启：点击文本可直接编辑，点击圆圈切换勾选"
+              ? "已开启：悬停标题/正文左侧可见格式按钮，点击文本可直接编辑"
               : "关闭：只读展示模式"}
           </p>
         </section>
