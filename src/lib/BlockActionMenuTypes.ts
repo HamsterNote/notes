@@ -11,7 +11,7 @@ export type HeadingMenuItem = {
 }
 
 export type StructuralMenuItem = {
-  readonly kind: "paragraph" | "checklist" | "quote" | "code" | "callout"
+  readonly kind: "paragraph" | "checklist" | "quote" | "code" | "callout" | "table"
   readonly label: string
 }
 
@@ -27,7 +27,8 @@ export const blockMenuItems: readonly MenuItem[] = [
   { kind: "checklist", label: "List" },
   { kind: "quote", label: "Quote" },
   { kind: "code", label: "Code" },
-  { kind: "callout", label: "Callout" }
+  { kind: "callout", label: "Callout" },
+  { kind: "table", label: "Table" }
 ] satisfies readonly (BlockConvertTarget & { readonly label: string })[]
 
 export const isCurrentBlockMenuItem = (
@@ -48,6 +49,7 @@ export const blockMenuItemTarget = (item: MenuItem): BlockConvertTarget => {
     case "quote":
     case "code":
     case "callout":
+    case "table":
       return { kind: item.kind }
     default:
       return assertNever(item)
@@ -71,6 +73,8 @@ export const blockKindLabel = (
       return "Code"
     case "callout":
       return "Callout"
+    case "table":
+      return "Table"
     default:
       return assertNever(kind)
   }

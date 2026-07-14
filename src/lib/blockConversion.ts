@@ -17,7 +17,7 @@ type ParagraphTarget = {
 }
 
 type StructuralTarget = {
-  readonly kind: "checklist" | "quote" | "code" | "callout"
+  readonly kind: "checklist" | "quote" | "code" | "callout" | "table"
 }
 
 export type BlockConvertTarget =
@@ -122,6 +122,10 @@ const blockAsRichText = (block: NoteBlock): string => {
         : block.language
       return `<strong>${escapePlainText(metadata)}</strong><br>${escapeCodeAsRichText(block.code)}`
     }
+    case "table":
+      return block.rows
+        .flatMap((row) => row.map((cell) => cell))
+        .join("<br>")
     default:
       return assertNever(block)
   }
@@ -165,6 +169,12 @@ export const convertBlockFormat = (
         tone: "info",
         title: "Note",
         text
+      }
+    case "table":
+      return {
+        id: block.id,
+        kind: "table",
+        rows: [[text]]
       }
     default:
       return assertNever(target)

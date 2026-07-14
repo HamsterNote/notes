@@ -4,6 +4,7 @@ import { NoteCodeBlock } from "./NoteCodeEditorBlock"
 import type { EditContext } from "./NoteContentEditing"
 import { renderQuoteBlock } from "./NoteQuoteBlock"
 import { renderCalloutBlock } from "./NoteSecondaryBlocks"
+import { renderTableBlock } from "./NoteTableBlock"
 import { renderHeadingBlock, renderParagraphBlock } from "./NoteTextBlocks"
 import type { NoteBlock } from "./types"
 import { assertNever } from "./utils"
@@ -27,6 +28,8 @@ export const renderBlock = (
       return <NoteCodeBlock key={block.id} block={block} ctx={ctx} />
     case "callout":
       return renderCalloutBlock(block, ctx)
+    case "table":
+      return renderTableBlock(block, ctx)
     default:
       return assertNever(block)
   }

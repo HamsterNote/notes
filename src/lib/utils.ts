@@ -81,6 +81,19 @@ export const getReadingMinutes = (blocks: readonly NoteBlock[]): number => {
         return count + Math.max(8, block.code.split(/\s+/u).length)
       case "callout":
         return count + block.text.split(/\s+/u).length
+      case "table":
+        return (
+          count +
+          block.rows.reduce(
+            (cellCount, row) =>
+              cellCount +
+              row.reduce(
+                (rowCount, cell) => rowCount + cell.split(/\s+/u).length,
+                0
+              ),
+            0
+          )
+        )
       default:
         return assertNever(block)
     }

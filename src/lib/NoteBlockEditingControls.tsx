@@ -46,8 +46,30 @@ export const handleEditableBlockKeyDown = ({
   const selection = window.getSelection()
 
   if (event.key === "Enter" && event.shiftKey && mode === "rich-text") {
+    // shift + 回车：在 block 内插入软换行 <br>，不拆分 block
     event.preventDefault()
-    document.execCommand("insertHTML", false, "<br>")
+    const selection = window.getSelection()
+    if (!selection || selection.rangeCount === 0) return
+    const range = selection.getRangeAt(0)
+    const element = event.currentTarget
+    if (!element.contains(range.commonAncestorContainer)) return
+    if (!range.collapsed) range.deleteContents()
+
+    // 用 Range API 手动插入 <br>（execCommand 已废弃且行末行为不一致）
+    const br = document.createElement("br")
+    range.insertNode(br)
+
+    // 行末时浏览器会将末尾 <br> 视为 trailing BR 不渲染空行，
+    // 需追加一个占位 <br>，光标置于两者之间确保空行可见
+    if (!br.nextSibling) {
+      br.after(document.createElement("br"))
+    }
+
+    // 将光标移到新插入的 <br> 之后
+    range.setStartAfter(br)
+    range.collapse(true)
+    selection.removeAllRanges()
+    selection.addRange(range)
     return
   }
 

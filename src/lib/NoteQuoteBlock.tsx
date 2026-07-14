@@ -126,56 +126,49 @@ export const renderQuoteBlock = (
   }
 
   return (
-    <div className="hn-note-quote-group" key={block.id}>
-      {lines.map((line, lineIndex) => {
-        const lineId = quoteLineId(block.id, lineIndex)
-        const isLastLine = lineIndex === lines.length - 1
-        return (
-          <div className="hn-note-block-row" key={lineId}>
-            {renderBlockActionMenu(block, ctx, {
-              kind: "quote-line",
-              blockId: block.id,
-              lineId,
-              lineIndex
-            })}
-            <div className="hn-note-block-content">
-              <blockquote className="hn-note-quote hn-note-quote--line">
-                <p
-                  {...editableProps((event) =>
-                    onBlocksChange?.(
-                      updateQuoteLine(
-                        blocks,
-                        block.id,
-                        lineIndex,
-                        normalizeEditableHtml(event.currentTarget.innerHTML)
-                      )
+    <div className="hn-note-block-row" key={block.id}>
+      {renderBlockActionMenu(block, ctx)}
+      <div className="hn-note-block-content">
+        <blockquote className="hn-note-quote">
+          {lines.map((line, lineIndex) => {
+            const lineId = quoteLineId(block.id, lineIndex)
+            return (
+              <p
+                key={lineId}
+                {...editableProps((event) =>
+                  onBlocksChange?.(
+                    updateQuoteLine(
+                      blocks,
+                      block.id,
+                      lineIndex,
+                      normalizeEditableHtml(event.currentTarget.innerHTML)
                     )
-                  )}
-                  onKeyDown={(event) =>
-                    handleQuoteLineKeyDown({ block, ctx, event, lineIndex })
-                  }
-                  data-editable-block-id={lineId}
-                  {...richText(line)}
-                />
-                {isLastLine && block.author ? (
-                  <footer
-                    {...editableProps((event) =>
-                      onBlocksChange?.(
-                        updateQuoteAuthor(
-                          blocks,
-                          block.id,
-                          event.currentTarget.innerHTML
-                        )
-                      )
-                    )}
-                    {...richText(block.author)}
-                  />
-                ) : null}
-              </blockquote>
-            </div>
-          </div>
-        )
-      })}
+                  )
+                )}
+                onKeyDown={(event) =>
+                  handleQuoteLineKeyDown({ block, ctx, event, lineIndex })
+                }
+                data-editable-block-id={lineId}
+                {...richText(line)}
+              />
+            )
+          })}
+          {block.author ? (
+            <footer
+              {...editableProps((event) =>
+                onBlocksChange?.(
+                  updateQuoteAuthor(
+                    blocks,
+                    block.id,
+                    event.currentTarget.innerHTML
+                  )
+                )
+              )}
+              {...richText(block.author)}
+            />
+          ) : null}
+        </blockquote>
+      </div>
     </div>
   )
 }

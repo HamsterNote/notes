@@ -124,6 +124,10 @@ const serializeBlock = (block: NoteBlock): string => {
         `> [!${block.tone}] ${block.title}`,
         ...quoteTextLines(block.text)
       ].join("\n")
+    case "table":
+      return [blockDirective(block.id), ...serializeTableRows(block.rows)].join(
+        "\n"
+      )
     default:
       return assertNever(block)
   }
@@ -140,6 +144,26 @@ const quoteTextLines = (text: string): readonly string[] =>
   text.split("\n").map((line) => `> ${line}`)
 
 const paragraphText = (text: string): string => text.replaceAll("\n", "<br>")
+
+const serializeTableCell = (text: string): string =>
+  text.replaceAll("\n", "<br>").replaceAll("|", "\\|")
+
+const serializeTableRows = (
+  rows: readonly (readonly string[])[]
+): readonly string[] => {
+  const header = rows[0]
+  if (!header) return []
+  const colCount = header.length
+  const separator = Array.from({ length: colCount }, () => "---")
+
+  return [
+    `| ${header.map(serializeTableCell).join(" | ")} |`,
+    `| ${separator.join(" | ")} |`,
+    ...rows.slice(1).map(
+      (row) => `| ${row.map(serializeTableCell).join(" | ")} |`
+    )
+  ]
+}
 
 const blockDirective = (id: string, attributes = ""): string =>
   `<!-- hn:block id="${id}"${attributes} -->`

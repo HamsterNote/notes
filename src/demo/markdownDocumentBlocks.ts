@@ -6,7 +6,8 @@ import type {
   ListItem,
   Paragraph,
   PhrasingContent,
-  Root
+  Root,
+  Table
 } from "mdast"
 
 import type {
@@ -62,6 +63,10 @@ export const parseMarkdownBlocks = (tree: Root): readonly NoteBlock[] => {
         break
       case "code":
         blocks.push(parseCode(node, blockDirective, blocks.length))
+        blockDirective = undefined
+        break
+      case "table":
+        blocks.push(parseTable(node, blockDirective, blocks.length))
         blockDirective = undefined
         break
       default:
@@ -186,6 +191,18 @@ const parseCode = (
     ...(filename === undefined ? {} : { filename })
   }
 }
+
+const parseTable = (
+  node: Table,
+  directive: BlockDirective | undefined,
+  index: number
+): NoteBlock => ({
+  id: directive?.id ?? fallbackBlockId(index),
+  kind: "table",
+  rows: node.children.map((row) =>
+    row.children.map((cell) => textFromPhrasing(cell.children))
+  )
+})
 
 const parseCalloutHeader = (
   firstLine: string | undefined

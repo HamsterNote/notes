@@ -4,7 +4,8 @@ export const noteBlockKinds = {
   checklist: "checklist",
   quote: "quote",
   code: "code",
-  callout: "callout"
+  callout: "callout",
+  table: "table"
 } as const
 
 export type NoteBlockKind = (typeof noteBlockKinds)[keyof typeof noteBlockKinds]
@@ -62,6 +63,16 @@ export type NoteCalloutBlock = {
   readonly text: string
 }
 
+/**
+ * 表格块。rows 为二维数组，rows[r][c] 表示第 r 行第 c 列单元格的富文本 HTML。
+ * 第一行（rows[0]）作为表头。每个单元格文本内换行用 <br> 表示。
+ */
+export type NoteTableBlock = {
+  readonly id: string
+  readonly kind: "table"
+  readonly rows: readonly (readonly string[])[]
+}
+
 export type NoteBlock =
   | NoteHeadingBlock
   | NoteParagraphBlock
@@ -69,6 +80,7 @@ export type NoteBlock =
   | NoteQuoteBlock
   | NoteCodeBlock
   | NoteCalloutBlock
+  | NoteTableBlock
 
 export type NoteContentProps = {
   readonly blocks: readonly NoteBlock[]

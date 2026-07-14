@@ -26,9 +26,24 @@ export const editableProps = (
   onBlur
 })
 
-export const richText = (value: string) => ({
-  dangerouslySetInnerHTML: { __html: value }
-})
+/**
+ * 缓存 richText 返回值，相同字符串返回相同对象引用。
+ * 防止 React 因 dangerouslySetInnerHTML 引用变化而重设 innerHTML，
+ * 从而避免 contenteditable 元素的光标位置在重渲染时被重置。
+ */
+const richTextCache = new Map<
+  string,
+  { readonly dangerouslySetInnerHTML: { readonly __html: string } }
+>()
+
+export const richText = (value: string) => {
+  let cached = richTextCache.get(value)
+  if (!cached) {
+    cached = { dangerouslySetInnerHTML: { __html: value } }
+    richTextCache.set(value, cached)
+  }
+  return cached
+}
 
 export const updateText = (
   blocks: readonly NoteBlock[],

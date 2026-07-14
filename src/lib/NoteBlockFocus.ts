@@ -25,6 +25,10 @@ const editableIds = (blocks: readonly NoteBlock[]): string[] =>
       case "code":
       case "callout":
         return [block.id]
+      case "table":
+        return block.rows.flatMap((row, rowIndex) =>
+          row.map((_, colIndex) => `${block.id}-r${rowIndex}-c${colIndex}`)
+        )
       default:
         return assertNever(block)
     }

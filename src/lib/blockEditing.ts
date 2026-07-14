@@ -96,6 +96,7 @@ const toPlainStoredTextBlock = (block: TextBlock, text: string): TextBlock => {
 export const normalizeEditableHtml = (html: string): string => {
   const normalized = html
     .trim()
+    .replace(/\u200B/gu, "")
     .replace(/<\s*br\s*\/?>/giu, "<br>")
     .replace(/<\s*(?:div|p)\b[^>]*>/giu, "<br>")
     .replace(/<\s*\/\s*(?:div|p)\s*>/giu, "")
@@ -177,6 +178,8 @@ export const insertSplitBlock = ({
           { ...block, code: beforeHtml },
           { ...block, id: nextId, code: afterHtml }
         ]
+      case "table":
+        return [block]
       default:
         return assertNever(block)
     }
@@ -240,6 +243,8 @@ export const deleteEmptyTextBlock = ({
         case "code":
           return { ...block, code: currentHtml }
         case "checklist":
+          return block
+        case "table":
           return block
         default:
           return assertNever(block)
