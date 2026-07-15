@@ -200,6 +200,46 @@ select {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
+/* 撤销/恢复按钮行：沿用 demo-text-input 的边框/圆角/聚焦规范，保证视觉一致 */
+.demo-undo-redo-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.demo-undo-redo-button {
+  flex: 1;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #1e293b;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.demo-undo-redo-button:hover:not(:disabled) {
+  background: #ffffff;
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+/* :focus-visible 保证键盘聚焦时显示可见焦点环，鼠标点击不冗余高亮 */
+.demo-undo-redo-button:focus-visible {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.demo-undo-redo-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 /* ===== 主内容区 ===== */
 .demo-main {
   padding: 3rem 2rem;
@@ -236,10 +276,48 @@ select {
   line-height: 1.7;
 }
 
-/* NoteContent 组件居中限宽 */
-.demo-main > :last-child {
+/* 宿主包装层决定 NoteContent 的尺寸、背景与容器装饰。 */
+.demo-note-preview {
   max-width: 60rem;
   margin: 0 auto;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 32px;
+  background: #ffffff;
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.04),
+    0 12px 40px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+.demo-note-preview--dark {
+  border-color: rgba(226, 232, 240, 0.12);
+  background: #0f172a;
+  box-shadow:
+    0 1px 3px rgba(2, 6, 23, 0.3),
+    0 12px 40px rgba(2, 6, 23, 0.24);
+}
+
+/* ===== 侧栏：魔法链接点击事件列表 ===== */
+.demo-magic-link-events {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.demo-magic-link-event-item {
+  padding: 0.4rem 0.55rem;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #1e293b;
+  font-family: "SFMono-Regular", "Menlo", "Consolas", monospace;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  word-break: break-all;
 }
 
 /* ===== 侧栏底部 Markdown 文档数据面板 ===== */

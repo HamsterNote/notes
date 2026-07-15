@@ -23,7 +23,14 @@ export const editableProps = (
     ? `${baseClassName} hn-note-editable`
     : "hn-note-editable",
   spellCheck: false,
-  onBlur
+  onBlur: (event: FocusEvent<HTMLElement>) => {
+    // 焦点移向 SelectionPopover（如链接输入框）时跳过同步：
+    // 避免 React 因 dangerouslySetInnerHTML 引用变化而替换 DOM 节点，
+    // 导致 SelectionPopover 内保存的选区 Range 指向已被销毁的节点
+    const related = event.relatedTarget as HTMLElement | null
+    if (related && related.closest?.(".hn-note-popover")) return
+    onBlur(event)
+  }
 })
 
 /**
@@ -91,6 +98,26 @@ export const updateCode = (
   blocks.map((block) => {
     if (block.id !== id || block.kind !== "code") return block
     return { ...block, code }
+  })
+
+export const updateCodeLanguage = (
+  blocks: readonly NoteBlock[],
+  id: string,
+  language: string
+): NoteBlock[] =>
+  blocks.map((block) => {
+    if (block.id !== id || block.kind !== "code") return block
+    return { ...block, language }
+  })
+
+export const updateCodeFilename = (
+  blocks: readonly NoteBlock[],
+  id: string,
+  filename: string
+): NoteBlock[] =>
+  blocks.map((block) => {
+    if (block.id !== id || block.kind !== "code") return block
+    return { ...block, filename }
   })
 
 export const toggleChecklistItem = (

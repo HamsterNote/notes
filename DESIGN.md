@@ -6,7 +6,7 @@ This document captures the existing CSS contract from `src/lib/styles.css` so fu
 
 ## 1. Theme Tokens
 
-The theme color is injected through `--hn-theme` and the rest of the theme tokens are derived from it.
+The `theme` prop selects the explicit `light` or `dark` token set. The theme color is injected through `--hn-theme` and its accent tokens are derived from it.
 
 | Token               | Value / Derivation                                     | Source                 |
 | ------------------- | ------------------------------------------------------ | ---------------------- |
@@ -15,7 +15,7 @@ The theme color is injected through `--hn-theme` and the rest of the theme token
 | `--hn-theme-border` | `color-mix(in srgb, var(--hn-theme) 30%, transparent)` | `src/lib/styles.css:8` |
 | `--hn-theme-text`   | `color-mix(in srgb, var(--hn-theme) 75%, #1e293b)`     | `src/lib/styles.css:9` |
 
-The shell also applies a radial gradient highlight using `color-mix(in srgb, var(--hn-theme) 6%, transparent)` (`src/lib/styles.css:27-31`).
+The component shell is transparent and does not own a background, border, radius, shadow, or maximum width. The consuming layout owns all outer-container presentation.
 
 ---
 
@@ -34,6 +34,8 @@ The shell also applies a radial gradient highlight using `color-mix(in srgb, var
 
 These tokens cover every surface, divider, and text tone used in the note shell. No new neutral colors should be introduced for block-editor chrome.
 
+The dark theme overrides the neutral palette with slate surfaces and high-contrast light text while preserving the same semantic token names. Theme switching is controlled only through the `theme` prop, not through a media query.
+
 ---
 
 ## 3. Radius, Spacing, and Shadow
@@ -41,7 +43,7 @@ These tokens cover every surface, divider, and text tone used in the note shell.
 ### Radius
 
 - `--hn-radius: 24px` — default large radius for cards and facts (`src/lib/styles.css:20`).
-- Shell border radius: `32px` (`src/lib/styles.css:25`).
+- Shell radius is intentionally unset; the consuming layout owns outer rounding.
 - Inline pills use `999px` (`src/lib/styles.css:72`).
 - Quote uses `0 20px 20px 0` (`src/lib/styles.css:247`).
 - Editable fields use `6px` (`src/lib/styles.css:322`).
@@ -61,7 +63,7 @@ These tokens cover every surface, divider, and text tone used in the note shell.
 
 ### Shadow
 
-- Shell: `0 1px 3px rgba(15, 23, 42, 0.04), 0 12px 40px rgba(15, 23, 42, 0.06)` (`src/lib/styles.css:33-35`).
+- Shell shadow is intentionally unset; the consuming layout owns outer elevation.
 - Popover: `0 8px 24px rgba(15, 23, 42, 0.28)` (`src/lib/styles.css:366`).
 
 ---
@@ -79,7 +81,7 @@ These tokens cover every surface, divider, and text tone used in the note shell.
 | Paragraph         | default                       | `1.85`      | `max-width: 66ch`, soft                                      | `src/lib/styles.css:167-171`                       |
 | Paragraph accent  | `1.05rem`                     | default     | solid text color                                             | `src/lib/styles.css:177-180`                       |
 | Quote p           | `1.1rem`                      | `1.7`       |                                                              | `src/lib/styles.css:251-255`                       |
-| Code pre          | `0.9rem`                      | `1.7`       | `#e2e8f0` on `#0f172a`                                       | `src/lib/styles.css:280-287`                       |
+| Code              | `0.9rem`                      | `1.7`       | Shared monospace stack and syntax colors in preview and edit states; `#e2e8f0` on `#0f172a` | `src/lib/styles.css` |
 | Badge / chip      | `0.75rem`                     | default     | uppercase, `letter-spacing: 0.08em`, weight 600              | `src/lib/styles.css:75-78`                         |
 | Eyebrow           | `0.8rem`                      | default     | theme color, uppercase, `letter-spacing: 0.18em`, weight 700 | `src/lib/styles.css:145-153`                       |
 | Popover button    | `0.8rem` / `0.78rem` for copy | default     | weight 600                                                   | `src/lib/styles.css:381`, `src/lib/styles.css:395` |
@@ -95,7 +97,8 @@ All editable fields share the same transition and outline reset.
 - Base: `border-radius: 6px`, `transition: background 0.15s ease, box-shadow 0.15s ease`, `outline: none` (`src/lib/styles.css:322-324`).
 - Hover: `background: color-mix(in srgb, var(--hn-theme) 5%, transparent)`, `box-shadow: 0 0 0 1px var(--hn-theme-border)` (`src/lib/styles.css:327-329`).
 - Focus: `background: color-mix(in srgb, var(--hn-theme) 8%, transparent)`, `box-shadow: 0 0 0 2px var(--hn-theme)` (`src/lib/styles.css:332-335`).
-- Code blocks override hover/focus with `background: rgba(255, 255, 255, 0.05)` and `box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15)` (`src/lib/styles.css:337-341`).
+- Code blocks keep the highlighted preview beneath a transparent plain-text editing layer, preserving the same monospace font, size, line height, and syntax colors while the caret remains visible.
+- Code editors override hover/focus with `background: rgba(255, 255, 255, 0.05)` and `box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15)`.
 
 ---
 
@@ -164,3 +167,18 @@ The block-editor handle and menu must reuse the tokens above. No new colors shou
 ### Open state
 
 When the menu is open, the owning block handle should stay in the active/open treatment (`--hn-theme-soft` background) so the user can see which block the menu belongs to. The menu itself should animate with the same `hn-popover-in` opacity fade (`src/lib/styles.css:418-425`) to avoid conflicting with positioning transforms.
+
+---
+
+## 10. Editable Table Edge Controls
+
+Table insertion and operation controls sit on cell boundaries rather than inside cell content.
+
+- Left and right circular `+` controls insert columns; top and bottom circular `+` controls insert rows.
+- The focused row operation control is centered on the first cell's left boundary. The focused column operation control is centered on the header cell's top boundary.
+- The first row's top boundary belongs exclusively to column operations, and the first column's left boundary belongs exclusively to row operations; neither boundary renders a `+` control.
+- Cells below the first row and to the right of the first column expose top, bottom, left, and right `+` controls, so internal boundaries support insertion from either adjacent cell.
+- Boundary controls remain hidden until their owning cell is hovered. Focused row and column operation controls remain visible while that cell has focus.
+- Controls reuse `--hn-bg`, `--hn-border-strong`, `--hn-text-muted`, and `--hn-theme`; no table-specific palette is introduced.
+- While dragging a row or column control, a solid `--hn-theme` line previews the insertion boundary. Crossing the target cell's midpoint along the drag axis advances the preview to its next boundary, and releasing must place the row or column at that exact line.
+- Destructive row deletion uses an in-menu two-step state: `删除行` changes to `确认删除行`, and only the second explicit activation deletes the row. Escape, outside click, scroll, or resize cancels the pending state by closing the menu.

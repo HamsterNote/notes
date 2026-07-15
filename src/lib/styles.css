@@ -27,33 +27,28 @@
   --hn-text-muted: rgba(51, 65, 85, 0.65);
   --hn-text-soft: rgba(51, 65, 85, 0.85);
   --hn-radius: 24px;
+  --hn-code-font:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
 
   position: relative;
-  overflow: hidden;
-  border: 1px solid var(--hn-border);
-  border-radius: 32px;
-  background:
-    radial-gradient(
-      circle at top left,
-      color-mix(in srgb, var(--hn-theme) 6%, transparent),
-      transparent 30%
-    ),
-    var(--hn-bg);
-  box-shadow:
-    0 1px 3px rgba(15, 23, 42, 0.04),
-    0 12px 40px rgba(15, 23, 42, 0.06);
+  color-scheme: light;
   color: var(--hn-text);
 }
 
-.hn-note-shell::before {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(15, 23, 42, 0.018) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15, 23, 42, 0.018) 1px, transparent 1px);
-  background-size: 28px 28px;
-  content: "";
-  pointer-events: none;
+.hn-note-shell--dark {
+  --hn-theme-soft: color-mix(in srgb, var(--hn-theme) 18%, #111827);
+  --hn-theme-border: color-mix(in srgb, var(--hn-theme) 48%, transparent);
+  --hn-theme-text: color-mix(in srgb, var(--hn-theme) 55%, #f8fafc);
+  --hn-bg: #0f172a;
+  --hn-surface: #172033;
+  --hn-surface-hover: #202b3f;
+  --hn-border: rgba(226, 232, 240, 0.12);
+  --hn-border-strong: rgba(226, 232, 240, 0.22);
+  --hn-text: #f1f5f9;
+  --hn-text-muted: rgba(203, 213, 225, 0.72);
+  --hn-text-soft: rgba(226, 232, 240, 0.88);
+  color-scheme: dark;
 }
 
 .hn-note-hero,
@@ -143,6 +138,17 @@
   display: grid;
   gap: 1.25rem;
   padding: 1.5rem 2rem 2rem;
+}
+
+/* 正文下方可点击空白区域：点击新建空段落，同时为页面底部留出 1/3 屏幕高度 */
+.hn-note-body-tail {
+  width: 100%;
+  min-height: 33vh;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: text;
+  text-align: left;
 }
 
 .hn-note-block,
@@ -296,6 +302,7 @@
 .hn-note-code-meta {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 0.8rem;
   padding: 0.9rem 1rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -304,9 +311,51 @@
   font-weight: 600;
 }
 
+.hn-note-code-lang-select {
+  padding: 0.2rem 0.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hn-note-code-lang-select:focus {
+  outline: 2px solid var(--hn-theme);
+  outline-offset: 0;
+}
+
+.hn-note-code-filename-input {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 12px;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+  font-family: var(--hn-code-font);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: right;
+}
+
+.hn-note-code-filename-input::placeholder {
+  color: rgba(226, 232, 240, 0.4);
+}
+
+.hn-note-code-filename-input:focus {
+  outline: 2px solid var(--hn-theme);
+  outline-offset: 0;
+}
+
 .hn-note-code-card pre,
 .hn-note-code-editor,
-.hn-note-code-preview {
+.hn-note-code-preview,
+.hn-note-code-highlight {
   display: block;
   width: 100%;
   overflow-x: auto;
@@ -315,11 +364,36 @@
   border: 0;
   background: transparent;
   color: #e2e8f0;
-  font-family: inherit;
+  font-family: var(--hn-code-font);
   font-size: 0.9rem;
   line-height: 1.7;
   text-align: left;
   white-space: pre;
+}
+
+.hn-note-code-card code {
+  font-family: var(--hn-code-font);
+}
+
+.hn-note-code-editing {
+  display: grid;
+}
+
+.hn-note-code-editor,
+.hn-note-code-highlight {
+  grid-area: 1 / 1;
+}
+
+.hn-note-code-highlight {
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hn-note-code-editor {
+  z-index: 1;
+  overflow: auto;
+  color: transparent;
+  caret-color: #e2e8f0;
 }
 
 .hn-note-code-card .hljs-keyword,
@@ -405,18 +479,26 @@
 
 .hn-note-editable:hover {
   background: color-mix(in srgb, var(--hn-theme) 5%, transparent);
-  box-shadow: 0 0 0 1px var(--hn-theme-border);
+  outline: 1px solid var(--hn-theme-border);
+  outline-offset: -1px;
 }
 
 .hn-note-editable:focus {
   background: color-mix(in srgb, var(--hn-theme) 8%, transparent);
-  box-shadow: 0 0 0 2px var(--hn-theme);
+  outline: 2px solid var(--hn-theme);
+  outline-offset: -2px;
 }
 
-.hn-note-code-card pre.hn-note-editable:hover,
-.hn-note-code-card pre.hn-note-editable:focus {
+.hn-note-code-editor.hn-note-editable:hover {
   background: rgba(255, 255, 255, 0.05);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  outline: 1px solid rgba(255, 255, 255, 0.15);
+  outline-offset: -1px;
+}
+
+.hn-note-code-editor.hn-note-editable:focus {
+  background: rgba(255, 255, 255, 0.05);
+  outline: 2px solid rgba(255, 255, 255, 0.25);
+  outline-offset: -2px;
 }
 
 @media (max-width: 840px) {
@@ -504,6 +586,107 @@
   to {
     opacity: 1;
   }
+}
+
+/* 格式按钮与链接按钮之间的分隔线 */
+.hn-note-popover-divider {
+  width: 1px;
+  height: 20px;
+  align-self: center;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* 链接按钮 */
+.hn-note-popover-btn--link {
+  min-width: auto;
+}
+
+.hn-note-popover-glyph--link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 链接配置表单 */
+.hn-note-popover-link-form {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.hn-note-popover-link-input {
+  width: 200px;
+  padding: 0.35rem 0.55rem;
+  border: none;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.55);
+  color: #f1f5f9;
+  font-size: 0.8rem;
+  outline: none;
+  transition:
+    background 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.hn-note-popover-link-input:focus {
+  background: rgba(15, 23, 42, 0.8);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+.hn-note-popover-link-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.hn-note-popover-link-input::placeholder {
+  color: rgba(226, 232, 240, 0.45);
+}
+
+/* 魔法链接按钮：用主题色高亮 */
+.hn-note-popover-btn--magic {
+  white-space: nowrap;
+  background: var(--hn-theme, #3b82f6);
+  color: #ffffff;
+  font-size: 0.78rem;
+}
+
+.hn-note-popover-btn--magic:hover {
+  background: var(--hn-theme, #3b82f6);
+  filter: brightness(1.15);
+  color: #ffffff;
+}
+
+.hn-note-popover-btn--confirm {
+  min-width: auto;
+  color: #86efac;
+  font-size: 0.95rem;
+}
+
+.hn-note-popover-btn--confirm:hover {
+  color: #4ade80;
+}
+
+.hn-note-popover-btn--cancel {
+  min-width: auto;
+  color: #fca5a5;
+  font-size: 0.9rem;
+}
+
+.hn-note-popover-btn--cancel:hover {
+  color: #f87171;
+}
+
+/* 魔法链接：以 hnmagic:// 开头的链接在内容中可视化区分 */
+.hn-note-shell a[href^="hnmagic://"] {
+  color: var(--hn-theme, #3b82f6);
+  text-decoration: underline;
+  text-decoration-style: dashed;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.hn-note-shell a[href^="hnmagic://"]:hover {
+  filter: brightness(1.1);
 }
 
 /* ===== 区块编辑交互（BlockActionMenu / 区块行）===== */
@@ -716,56 +899,39 @@
 /* ===== 表格块 ===== */
 .hn-note-table-wrapper {
   width: 100%;
-  overflow-x: auto;
-}
-
-.hn-note-table-toolbar {
-  display: flex;
-  gap: 0.35rem;
-  margin-bottom: 0.5rem;
-}
-
-.hn-note-table-toolbar button {
-  padding: 0.3rem 0.6rem;
-  font-size: 0.8rem;
-  line-height: 1;
-  border: 1px solid var(--hn-border-strong);
-  border-radius: 6px;
-  background: var(--hn-surface);
-  color: var(--hn-text-muted);
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.hn-note-table-toolbar button:hover:not(:disabled) {
-  background: var(--hn-surface-hover);
-  color: var(--hn-text);
-}
-
-.hn-note-table-toolbar button:disabled {
-  opacity: 0.4;
-  cursor: default;
+  overflow: visible;
 }
 
 .hn-note-table {
   width: 100%;
   border-collapse: collapse;
   border: 1px solid var(--hn-border-strong);
-  border-radius: 8px;
-  overflow: hidden;
   font-size: 0.95rem;
   line-height: 1.5;
+  overflow: visible;
 }
 
 .hn-note-table td {
-  border: 1px solid var(--hn-border);
+  border: 1px solid var(--hn-border-strong);
   padding: 0;
   vertical-align: top;
+  position: relative;
 }
 
 .hn-note-table-header-row .hn-note-table-header-cell {
   background: var(--hn-surface);
   font-weight: 600;
+  border-bottom: 2px solid var(--hn-border-strong);
+}
+
+/* 隔行斑马纹：表头以下的偶数行加浅色背景，让行边界更清晰 */
+.hn-note-table tbody tr:not(.hn-note-table-header-row):nth-child(even) {
+  background: color-mix(in srgb, var(--hn-surface) 60%, transparent);
+}
+
+/* 行 hover 高亮 */
+.hn-note-table tbody tr:hover {
+  background: var(--hn-surface-hover);
 }
 
 .hn-note-table-cell {
@@ -773,8 +939,205 @@
   min-height: 2.2rem;
   outline: none;
   word-break: break-word;
+  border-radius: 0;
 }
 
-.hn-note-table-cell:focus {
+/* 表格单元格 hover/focus：使用 outline，无 border-radius */
+.hn-note-table-cell.hn-note-editable:hover {
+  background: transparent;
+  outline: 1px solid var(--hn-theme-border);
+  outline-offset: -1px;
+}
+
+.hn-note-table-cell.hn-note-editable:focus {
   background: var(--hn-theme-soft);
+  outline: 2px solid var(--hn-theme);
+  outline-offset: -2px;
+}
+
+/* ===== 表格行列操作按钮 ===== */
+/* 行操作按钮：中心压在焦点行的左边界上 */
+.hn-note-table-row-op {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: var(--hn-theme);
+  color: #ffffff;
+  font-size: 0.75rem;
+  line-height: 1;
+  cursor: grab;
+  touch-action: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.hn-note-table-row-op--visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hn-note-table-row-op:hover {
+  background: color-mix(in srgb, var(--hn-theme) 85%, black);
+}
+
+/* 列操作按钮：中心压在焦点列的上边界上 */
+.hn-note-table-col-op {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: var(--hn-theme);
+  color: #ffffff;
+  font-size: 0.75rem;
+  line-height: 1;
+  cursor: grab;
+  touch-action: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.hn-note-table-col-op--visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hn-note-table-col-op:hover {
+  background: color-mix(in srgb, var(--hn-theme) 85%, black);
+}
+
+.hn-note-table-drag-handle--dragging {
+  cursor: grabbing;
+  filter: brightness(0.85);
+}
+
+.hn-note-table-drop-preview--row-before::after,
+.hn-note-table-drop-preview--row-after::after,
+.hn-note-table-drop-preview--column-before::after,
+.hn-note-table-drop-preview--column-after::after {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  background: var(--hn-theme);
+  box-shadow: 0 0 0 1px var(--hn-theme-soft);
+  pointer-events: none;
+}
+
+.hn-note-table-drop-preview--row-before::after,
+.hn-note-table-drop-preview--row-after::after {
+  left: -1px;
+  right: -1px;
+  height: 3px;
+}
+
+.hn-note-table-drop-preview--row-before::after {
+  top: -2px;
+}
+
+.hn-note-table-drop-preview--row-after::after {
+  bottom: -2px;
+}
+
+.hn-note-table-drop-preview--column-before::after,
+.hn-note-table-drop-preview--column-after::after {
+  top: -1px;
+  bottom: -1px;
+  width: 3px;
+}
+
+.hn-note-table-drop-preview--column-before::after {
+  left: -2px;
+}
+
+.hn-note-table-drop-preview--column-after::after {
+  right: -2px;
+}
+
+/* 单元格边界操作按钮：中心压在对应边线上 */
+.hn-note-table-edge-btn {
+  position: absolute;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid var(--hn-border-strong);
+  border-radius: 50%;
+  background: var(--hn-bg);
+  color: var(--hn-text-muted);
+  font-size: 0.7rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+/* 左右按钮只添加列，上下按钮只添加行。 */
+.hn-note-table-edge-btn--left {
+  left: 0;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.hn-note-table-edge-btn--right {
+  right: 0;
+  top: 50%;
+  transform: translate(50%, -50%);
+}
+
+.hn-note-table-edge-btn--top {
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.hn-note-table-edge-btn--bottom {
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, 50%);
+}
+
+td:hover > .hn-note-table-edge-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hn-note-table-edge-btn:hover {
+  background: var(--hn-theme);
+  color: #ffffff;
+  border-color: var(--hn-theme);
+}
+
+/* 表格操作菜单复用 .hn-note-block-menu / .hn-note-block-menu-item 样式 */
+.hn-note-block-menu-item--danger {
+  color: #fca5a5;
+}
+
+.hn-note-block-menu-item--danger:hover,
+.hn-note-block-menu-item--danger:focus {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ffffff;
 }
