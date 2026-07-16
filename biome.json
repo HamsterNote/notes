@@ -1,0 +1,18 @@
+{
+  "formatter": {
+    "enabled": false
+  },
+  "vcs": {
+    "useIgnoreFile": true
+  },
+  "files": {
+    "includes": ["**", "!.omo", "!dist"]
+  },
+  "linter": {
+    "rules": {
+      "a11y": {
+        "useSemanticElements": "off"
+      }
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "schema_version": 2,
+  "active_work_id": "markdown-demo-data-9ebf1cbe",
+  "works": {
+    "markdown-demo-data-9ebf1cbe": {
+      "work_id": "markdown-demo-data-9ebf1cbe",
+      "active_plan": "/home/zhangxiao/frontend/HamsterNote/notes/.omo/plans/markdown-demo-data.md",
+      "plan_name": "markdown-demo-data",
+      "status": "completed",
+      "started_at": "2026-07-12T03:25:25.153Z",
+      "updated_at": "2026-07-12T07:53:04.483Z",
+      "ended_at": "2026-07-12T07:53:04.483Z",
+      "session_ids": [
+        "opencode:ses_0aba446f2ffeovIi2iqCQkDpEx"
+      ],
+      "session_origins": {
+        "opencode:ses_0aba446f2ffeovIi2iqCQkDpEx": "direct"
+      },
+      "agent": "atlas",
+      "task_sessions": {}
+    }
+  },
+  "active_plan": "/home/zhangxiao/frontend/HamsterNote/notes/.omo/plans/markdown-demo-data.md",
+  "started_at": "2026-07-12T03:25:25.153Z",
+  "status": "completed",
+  "updated_at": "2026-07-12T07:53:04.483Z",
+  "ended_at": "2026-07-12T07:53:04.483Z",
+  "session_ids": [
+    "opencode:ses_0aba446f2ffeovIi2iqCQkDpEx"
+  ],
+  "session_origins": {
+    "opencode:ses_0aba446f2ffeovIi2iqCQkDpEx": "direct"
+  },
+  "plan_name": "markdown-demo-data",
+  "task_sessions": {},
+  "agent": "atlas"
+}

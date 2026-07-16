@@ -1,0 +1,175 @@
+{
+  "automated_checks": {
+    "biome check .": true,
+    "prettier --check .": true,
+    "pnpm lint": true,
+    "pnpm typecheck": true,
+    "pnpm test (31 tests)": true,
+    "pnpm build": true,
+    "pnpm build:demo": true
+  },
+  "browser_checks": [
+    {
+      "check_id": "01",
+      "name": "Demo 加载无控制台错误",
+      "passed": true,
+      "details": [
+        "页面标题: @hamster-note/notes",
+        "块数量: 10"
+      ],
+      "errors": [],
+      "screenshot": "01_default_desktop.png",
+      "console_errors": []
+    },
+    {
+      "check_id": "02",
+      "name": "悬停/聚焦显示块手柄",
+      "passed": true,
+      "details": [
+        "悬停后 handle opacity: 1"
+      ],
+      "errors": [],
+      "screenshot": "02_hover_handle.png",
+      "console_errors": []
+    },
+    {
+      "check_id": "03",
+      "name": "菜单打开/关闭/焦点归还",
+      "passed": true,
+      "details": [
+        "菜单打开后可见: True",
+        "菜单项数量: 6",
+        "Escape 后菜单已关闭: True",
+        "Escape 后焦点元素: <BUTTON> class=hn-note-block-handle"
+      ],
+      "errors": [],
+      "screenshot": "03_menu_open.png",
+      "console_errors": []
+    },
+    {
+      "check_id": "04",
+      "name": "H1/H2/H3/H4/H5/正文 格式转换",
+      "passed": true,
+      "details": [
+        "转换前标签: H1",
+        "转换后标签: H2, class: hn-note-heading hn-note-heading--2",
+        "Markdown 面板包含 ## : True",
+        "转回 H1 后标签: H1",
+        "hero 转正文后类型: paragraph",
+        "正文转换后 Markdown 前100字符: ```json\n{\n  \"title\": \"Launch Notes for the first public package\",\n  \"summary\": \"An editorial note su"
+      ],
+      "errors": [],
+      "screenshot": null,
+      "console_errors": []
+    },
+    {
+      "check_id": "05",
+      "name": "Enter 在段落中间拆分为两块",
+      "passed": true,
+      "details": [
+        "拆分前块数量: 10",
+        "intro 文本长度: 188, 光标位置: 94",
+        "拆分后块数量: 11",
+        "块数量增加 1: True",
+        "新块 intro-line 存在: True",
+        "新块文本（后半部分）: hy, callouts, checklists, and code snippets for pr..."
+      ],
+      "errors": [],
+      "screenshot": "05_after_enter_split.png",
+      "console_errors": []
+    },
+    {
+      "check_id": "06",
+      "name": "Shift+Enter 插入 <br> 软换行",
+      "passed": true,
+      "details": [
+        "软换行前块数量: 10",
+        "软换行后块数量: 10",
+        "块数量未变: True",
+        "块内 HTML 包含 <br>: True",
+        "Markdown 面板包含 <br>: True"
+      ],
+      "errors": [],
+      "screenshot": "06_after_shift_enter.png",
+      "console_errors": []
+    },
+    {
+      "check_id": "07",
+      "name": "Backspace 删除空块并移动焦点",
+      "passed": true,
+      "details": [
+        "删除前块数量: 10",
+        "清空后 subheading HTML: ''",
+        "删除后块数量: 9",
+        "块数量减少 1: True",
+        "subheading 块已删除: True",
+        "删除后焦点块 ID: intro"
+      ],
+      "errors": [],
+      "screenshot": "07_after_backspace_delete.png",
+      "console_errors": []
+    },
+    {
+      "check_id": "08",
+      "name": "最后一块 Backspace 重置为空段落",
+      "passed": true,
+      "details": [
+        "设置后块数量: 1",
+        "可编辑块数量: 1",
+        "清空后 solo HTML: ''",
+        "Backspace 后块数量: 1",
+        "块数量仍为 1: True",
+        "solo 块仍存在: True",
+        "块容器 class: hn-note-paragraph hn-note-paragraph--default"
+      ],
+      "errors": [],
+      "screenshot": "08_last_block_protection.png",
+      "console_errors": []
+    },
+    {
+      "check_id": "09",
+      "name": "宽屏菜单贴 handle / 窄屏居中",
+      "passed": true,
+      "details": [
+        "801px 菜单样式: {'position': 'fixed', 'left': '73px', 'transform': 'none', 'top': '407.016px'}",
+        "801px 菜单未居中 (transform=none): True",
+        "799px 菜单样式: {'position': 'fixed', 'left': '399.5px', 'transform': 'matrix(1, 0, 0, 1, -80, 0)', 'top': '438.969px'}",
+        "799px 菜单居中 (transform 非 none): True"
+      ],
+      "errors": [],
+      "screenshot": "04_800px_viewport.png",
+      "console_errors": []
+    },
+    {
+      "check_id": "10",
+      "name": "checklist/quote/code/callout Enter 不创建新块",
+      "passed": true,
+      "details": [
+        "初始块数量: 10",
+        "checklist Enter 后块数量: 10 (不变: True)",
+        "quote Enter 后块数量: 10 (不变: True)",
+        "code Enter 后块数量: 10 (不变: True)",
+        "callout Enter 后块数量: 10 (不变: True)"
+      ],
+      "errors": [],
+      "screenshot": null,
+      "console_errors": []
+    },
+    {
+      "check_id": "11",
+      "name": "390x844 视口手柄/菜单无裁剪",
+      "passed": true,
+      "details": [
+        "handle bounding box: {'x': 21, 'y': 378.921875, 'width': 24, 'height': 24}",
+        "handle 在视口内: True",
+        "菜单可见: True",
+        "菜单 bounding box: {'x': 115, 'y': 410.921875, 'width': 160, 'height': 207.78125}",
+        "菜单在视口内: True"
+      ],
+      "errors": [],
+      "screenshot": null,
+      "console_errors": []
+    }
+  ],
+  "all_passed": true
+}

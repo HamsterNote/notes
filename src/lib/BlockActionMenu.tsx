@@ -1,0 +1,326 @@
+import {
+  type CSSProperties,
+  type KeyboardEvent as ReactKeyboardEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState
+} from "react"
+import { createPortal } from "react-dom"
+
+import "./styles.css"
+
+import {
+  type BlockConvertTarget,
+  blockKindLabel,
+  blockMenuItems,
+  blockMenuItemTarget,
+  isCurrentBlockMenuItem,
+  type MenuItem
+} from "./BlockActionMenuTypes"
+import type { NoteBlockKind } from "./types"
+import { PictureUploadMenuItem } from "./PictureUploadMenuItem"
+import { focusEditableBlock } from "./useBlockEditing"
+
+// ===== 类型导出 =====
+
+export type { BlockConvertTarget } from "./BlockActionMenuTypes"
+
+export type PictureUploadPayload = {
+  readonly base64: string
+  readonly filename: string
+  readonly width: number | undefined
+  readonly height: number | undefined
+}
+
+export type BlockActionMenuProps = {
+  /** 菜单是否打开，由父组件统一控制，便于和 SelectionPopover 互斥 */
+  readonly open: boolean
+  /** 受控开闭回调：handle、Escape、外部点击、格式选择都会通过它关闭菜单 */
+  readonly onOpenChange: (open: boolean) => void
+  /** 所属区块 ID（渲染为 data-block-id 供 Wave 4.2 定位） */
+  readonly blockId: string
+  /** 当前区块类型 */
+  readonly kind: NoteBlockKind
+  /** 标题层级，kind === "heading" 时由父组件传入 */
+  readonly headingLevel?: 1 | 2 | 3 | 4 | 5
+  /**
+   * 菜单项选择回调。
+   * convert 模式下用于转换当前块格式，add 模式下用于在当前块下方插入新块。
+   * 返回值是操作完成后需要聚焦的编辑元素 ID。
+   */
+  readonly onSelect: (target: BlockConvertTarget) => string
+  readonly onPictureUpload?: (picture: PictureUploadPayload) => Promise<void>
+  /** 菜单模式：convert（默认）表示转换当前块，add 表示插入新块 */
+  readonly mode?: "convert" | "add"
+}
+
+// ===== 常量 =====
+
+/** 菜单居中断点：视口宽度 <=800px 时菜单水平居中（DESIGN.md 规定的边界） */
+const MENU_CENTER_BREAKPOINT = 800
+/** handle 按钮与菜单之间的间距（px） */
+const HANDLE_MENU_GAP = 8
+/** 菜单层级，与 SelectionPopover 复用同一固定层 */
+const MENU_Z_INDEX = 9999
+
+// ===== 组件 =====
+
+/**
+ * 区块操作菜单：左侧 handle 按钮 + portal 菜单。
+ *
+ * - handle 点击/Enter 切换菜单开闭。
+ * - 菜单通过 createPortal 渲染到 document.body，脱离 overflow 容器。
+ * - 宽屏定位在 handle 右侧；窄屏水平居中。
+ * - 支持 ↑/↓ 键盘导航、Enter/Space 激活、Escape / 外部点击关闭。
+ * - 当前格式标记为 aria-disabled 且显示勾选，禁止重复选择。
+ */
+export const BlockActionMenu = ({
+  open,
+  onOpenChange,
+  blockId,
+  kind,
+  headingLevel,
+  onSelect,
+  onPictureUpload,
+  mode = "convert"
+}: BlockActionMenuProps) => {
+  /** 菜单定位样式（fixed 坐标），打开时由 getBoundingClientRect 计算 */
+  const [menuStyle, setMenuStyle] = useState<CSSProperties>({ display: "none" })
+
+  // handle 按钮内部引用：用于定位计算与焦点归还
+  const handleRef = useRef<HTMLButtonElement | null>(null)
+  // 菜单容器引用：用于点击外部检测
+  const menuRef = useRef<HTMLDivElement | null>(null)
+  // 菜单项按钮引用数组：用于 ↑/↓ 键盘导航时移动焦点
+  const itemRefs = useRef<(HTMLButtonElement | null)[]>([])
+
+  const setHandleNode = useCallback((node: HTMLButtonElement | null) => {
+    handleRef.current = node
+  }, [])
+
+  /** 判断某菜单项是否匹配当前区块格式 */
+  const isCurrentItem = (item: MenuItem): boolean =>
+    isCurrentBlockMenuItem(item, kind, headingLevel)
+
+  /** 根据 handle 按钮位置计算菜单的 fixed 定位坐标 */
+  const computeMenuStyle = (): CSSProperties => {
+    const handle = handleRef.current
+    if (!handle) return { display: "none" }
+
+    const rect = handle.getBoundingClientRect()
+
+    // 宽屏（>800px）：菜单紧贴 handle 右侧，顶部对齐
+    if (window.innerWidth > MENU_CENTER_BREAKPOINT) {
+      return {
+        position: "fixed",
+        top: rect.top,
+        left: rect.right + HANDLE_MENU_GAP,
+        zIndex: MENU_Z_INDEX
+      }
+    }
+
+    // 窄屏（<=800px）：菜单水平居中，位于 handle 下方
+    return {
+      position: "fixed",
+      top: rect.bottom + HANDLE_MENU_GAP,
+      left: "50%",
+      transform: "translateX(-50%)",
+      zIndex: MENU_Z_INDEX
+    }
+  }
+
+  /** handle 点击 / Enter：切换菜单开闭 */
+  const handleToggle = () => {
+    if (open) {
+      onOpenChange(false)
+    } else {
+      setMenuStyle(computeMenuStyle())
+      onOpenChange(true)
+    }
+  }
+
+  const handleSelect = (item: MenuItem) => {
+    // convert 模式下禁止重复选择当前格式；add 模式下始终允许选择
+    if (mode === "convert" && isCurrentItem(item)) return
+
+    const focusId = onSelect(blockMenuItemTarget(item))
+
+    onOpenChange(false)
+    setTimeout(() => focusEditableBlock(focusId, "end"), 0)
+  }
+
+  // 菜单打开时：将焦点移至当前格式项（让用户知道当前位置），找不到则聚焦第一项
+  useEffect(() => {
+    if (!open) return
+
+    const menu = menuRef.current
+    if (menu) {
+      const rect = menu.getBoundingClientRect()
+      const top = Math.min(
+        Math.max(rect.top, HANDLE_MENU_GAP),
+        Math.max(HANDLE_MENU_GAP, window.innerHeight - rect.height - HANDLE_MENU_GAP)
+      )
+      if (top !== rect.top) setMenuStyle((current) => ({ ...current, top }))
+    }
+
+    const currentIndex =
+      mode === "convert"
+        ? blockMenuItems.findIndex((item) =>
+            isCurrentBlockMenuItem(item, kind, headingLevel)
+          )
+        : 0
+    const focusIndex = currentIndex >= 0 ? currentIndex : 0
+    itemRefs.current[focusIndex]?.focus()
+  }, [open, kind, headingLevel, mode])
+
+  // 菜单打开时：监听外部点击 / Escape / 滚动 / 窗口尺寸变化 → 关闭
+  useEffect(() => {
+    if (!open) return
+
+    const handleOutsideClick = (event: MouseEvent) => {
+      const target = event.target as Node | null
+      if (!target) return
+      // 点击 handle 自身：由 handleToggle 处理，不在此关闭
+      if (handleRef.current?.contains(target)) return
+      // 点击菜单内部：不关闭（由菜单项 onClick 处理）
+      if (menuRef.current?.contains(target)) return
+      onOpenChange(false)
+    }
+
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.stopPropagation()
+        onOpenChange(false)
+        handleRef.current?.focus()
+      }
+    }
+
+    // 滚动或窗口尺寸变化时关闭菜单：handle 位置已变，fixed 定位会错位
+    const handleClose = () => onOpenChange(false)
+
+    document.addEventListener("mousedown", handleOutsideClick)
+    document.addEventListener("keydown", handleKeyDown)
+    window.addEventListener("scroll", handleClose, true)
+    window.addEventListener("resize", handleClose)
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick)
+      document.removeEventListener("keydown", handleKeyDown)
+      window.removeEventListener("scroll", handleClose, true)
+      window.removeEventListener("resize", handleClose)
+    }
+  }, [open, onOpenChange])
+
+  /** 菜单容器键盘导航：↑/↓ 在菜单项之间循环移动焦点 */
+  const handleMenuKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return
+
+    event.preventDefault()
+
+    const activeButton =
+      document.activeElement instanceof HTMLButtonElement
+        ? document.activeElement
+        : null
+    const currentIndex = itemRefs.current.indexOf(activeButton)
+    const delta = event.key === "ArrowDown" ? 1 : -1
+    const count = itemRefs.current.length
+    if (count === 0) return
+
+    const nextIndex =
+      currentIndex === -1 ? 0 : (currentIndex + delta + count) % count
+    const nextItem = itemRefs.current[nextIndex]
+    nextItem?.focus()
+  }
+
+  // ===== 渲染 =====
+
+  const currentLabel = blockKindLabel(kind, headingLevel)
+  const handleAriaLabel =
+    mode === "convert"
+      ? `更改区块格式，当前为${currentLabel}`
+      : "在当前区块下方插入新行"
+
+  // 菜单 DOM（仅在 open 时构建，通过 portal 渲染到 document.body）
+  const menu = open ? (
+    <div
+      ref={menuRef}
+      className="hn-note-block-menu"
+      role="menu"
+      aria-label={mode === "convert" ? "区块格式选项" : "插入新区块类型"}
+      style={menuStyle}
+      onKeyDown={handleMenuKeyDown}
+    >
+      {blockMenuItems.map((item, index) => {
+        const isCurrent = mode === "convert" && isCurrentItem(item)
+
+        return (
+          <button
+            key={item.label}
+            ref={(el) => {
+              itemRefs.current[index] = el
+            }}
+            type="button"
+            role="menuitem"
+            className={[
+              "hn-note-block-menu-item",
+              isCurrent ? "hn-note-block-menu-item--active" : ""
+            ]
+              .filter(Boolean)
+              .join(" ")}
+            aria-disabled={isCurrent}
+            aria-current={isCurrent ? "true" : undefined}
+            tabIndex={-1}
+            onClick={() => handleSelect(item)}
+          >
+            {isCurrent ? (
+              <span className="hn-note-block-menu-check" aria-hidden="true">
+                ✓
+              </span>
+            ) : null}
+            <span className="hn-note-block-menu-item-label">{item.label}</span>
+          </button>
+        )
+      })}
+      {mode === "convert" && onPictureUpload ? (
+        <PictureUploadMenuItem
+          buttonRef={(element) => {
+            itemRefs.current[blockMenuItems.length] = element
+          }}
+          onPictureUpload={onPictureUpload}
+        />
+      ) : null}
+    </div>
+  ) : null
+
+  return (
+    <>
+      <button
+        ref={setHandleNode}
+        type="button"
+        className={[
+          "hn-note-block-handle",
+          `hn-note-block-handle--${mode}`,
+          open ? "hn-note-block-handle--open" : ""
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={handleAriaLabel}
+        data-block-id={blockId}
+        data-block-menu-mode={mode}
+        onClick={handleToggle}
+      >
+        <span
+          className={
+            mode === "convert" ? "hn-note-block-handle-glyph" : undefined
+          }
+          aria-hidden="true"
+        >
+          {mode === "convert" ? "⋮⋮" : "+"}
+        </span>
+      </button>
+      {menu ? createPortal(menu, document.body) : null}
+    </>
+  )
+}

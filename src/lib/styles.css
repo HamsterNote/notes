@@ -1,0 +1,1297 @@
+/* ===== @property 注册 ===== */
+/* 注册为 <length> 类型使 1lh 在设置元素（row）上计算为绝对长度，
+   而非在使用元素（handle）上计算（handle 的 line-height 不同会导致值错误） */
+@property --hn-row-leading {
+  syntax: "<length>";
+  initial-value: 0px;
+  inherits: true;
+}
+
+/* ===== 主题变量 ===== */
+/* --hn-theme 由组件 props 注入到根节点，默认蓝色 */
+.hn-note-shell {
+  --hn-theme: #3b82f6;
+
+  /* 从主题色派生的语义色（使用 color-mix 自动计算） */
+  --hn-theme-soft: color-mix(in srgb, var(--hn-theme) 12%, white);
+  --hn-theme-border: color-mix(in srgb, var(--hn-theme) 30%, transparent);
+  --hn-theme-text: color-mix(in srgb, var(--hn-theme) 75%, #1e293b);
+
+  /* 浅色主题中性色 */
+  --hn-bg: #ffffff;
+  --hn-surface: #f8fafc;
+  --hn-surface-hover: #f1f5f9;
+  --hn-border: rgba(15, 23, 42, 0.08);
+  --hn-border-strong: rgba(15, 23, 42, 0.14);
+  --hn-text: #1e293b;
+  --hn-text-muted: rgba(51, 65, 85, 0.65);
+  --hn-text-soft: rgba(51, 65, 85, 0.85);
+  --hn-radius: 24px;
+  --hn-code-font:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+
+  position: relative;
+  color-scheme: light;
+  color: var(--hn-text);
+}
+
+.hn-note-shell--dark {
+  --hn-theme-soft: color-mix(in srgb, var(--hn-theme) 18%, #111827);
+  --hn-theme-border: color-mix(in srgb, var(--hn-theme) 48%, transparent);
+  --hn-theme-text: color-mix(in srgb, var(--hn-theme) 55%, #f8fafc);
+  --hn-bg: #0f172a;
+  --hn-surface: #172033;
+  --hn-surface-hover: #202b3f;
+  --hn-border: rgba(226, 232, 240, 0.12);
+  --hn-border-strong: rgba(226, 232, 240, 0.22);
+  --hn-text: #f1f5f9;
+  --hn-text-muted: rgba(203, 213, 225, 0.72);
+  --hn-text-soft: rgba(226, 232, 240, 0.88);
+  color-scheme: dark;
+}
+
+.hn-note-hero,
+.hn-note-body {
+  position: relative;
+  z-index: 1;
+}
+
+.hn-note-hero {
+  /* 左右 padding 需容纳左侧的加号/转换按钮（handle 最远在内容左边缘外 56px），
+     避免加号按钮被容器边缘裁切 */
+  padding: 2rem 3.5rem 1.25rem;
+  border-bottom: 1px solid var(--hn-border);
+}
+
+.hn-note-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(16rem, 1fr);
+  gap: 1.5rem;
+}
+
+.hn-note-badge,
+.hn-note-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  background: var(--hn-theme-soft);
+  color: var(--hn-theme-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hn-note-chip--strong {
+  background: var(--hn-surface-hover);
+  color: var(--hn-text);
+}
+
+.hn-note-hero h1,
+.hn-note-heading {
+  margin: 0;
+  font-family:
+    "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+}
+
+.hn-note-hero h1 {
+  margin-top: 1rem;
+  font-size: clamp(2.2rem, 4vw, 3.5rem);
+  line-height: 1.02;
+}
+
+.hn-note-summary {
+  max-width: 56ch;
+  margin-top: 1rem;
+  color: var(--hn-text-muted);
+  font-size: 1.04rem;
+  line-height: 1.8;
+}
+
+.hn-note-facts {
+  display: grid;
+  gap: 0.9rem;
+  align-content: start;
+  padding: 1rem;
+  border: 1px solid var(--hn-border);
+  border-radius: var(--hn-radius);
+  background: var(--hn-surface);
+}
+
+.hn-note-facts div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.hn-note-facts dt {
+  color: var(--hn-text-muted);
+}
+
+.hn-note-facts dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.hn-note-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
+  /* 与 .hn-note-hero 保持一致，为左侧 block handle 留出足够 gutter */
+  padding: 1.5rem 3.5rem 2rem;
+}
+
+/* 正文下方可点击空白区域：点击新建空段落，同时为页面底部留出 1/3 屏幕高度 */
+.hn-note-body-tail {
+  width: 100%;
+  min-height: 33vh;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: text;
+  text-align: left;
+}
+
+.hn-note-block,
+.hn-note-paragraph,
+.hn-note-quote,
+.hn-note-code-card,
+.hn-note-callout {
+  margin: 0;
+}
+
+.hn-note-eyebrow {
+  display: inline-block;
+  margin-bottom: 0.65rem;
+  color: var(--hn-theme);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.hn-note-heading--1 {
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+}
+
+.hn-note-heading--2 {
+  font-size: 1.4rem;
+}
+
+.hn-note-heading--3 {
+  font-size: 1.1rem;
+}
+
+.hn-note-heading--4,
+.hn-heading-level-4 {
+  color: var(--hn-text);
+  font-size: 1rem;
+}
+
+.hn-note-heading--5,
+.hn-heading-level-5 {
+  color: var(--hn-text-soft);
+  font-size: 0.9rem;
+}
+
+.hn-note-paragraph {
+  max-width: 66ch;
+  color: var(--hn-text-soft);
+  line-height: 1.85;
+}
+
+.hn-note-paragraph--muted {
+  color: var(--hn-text-muted);
+}
+
+.hn-note-paragraph--accent {
+  color: var(--hn-text);
+  font-size: 1.05rem;
+}
+
+.hn-note-section-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.hn-note-section-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.hn-note-checklist {
+  display: grid;
+  gap: 0.8rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.hn-note-checklist-item {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.95rem 1rem;
+  border: 1px solid var(--hn-border);
+  border-radius: 18px;
+  background: var(--hn-surface);
+}
+
+.hn-note-checkbox {
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 1rem;
+  line-height: 1.5;
+  /* 未勾选圆点：主题色的柔和变体，随主题色变化 */
+  color: color-mix(in srgb, var(--hn-theme) 35%, var(--hn-text-muted));
+  cursor: default;
+  user-select: none;
+}
+
+.hn-note-checkbox--checked {
+  /* 已勾选圆点：完整主题色 */
+  color: var(--hn-theme);
+}
+
+.hn-note-checkbox--editable {
+  cursor: pointer;
+}
+
+.hn-note-checkbox--editable:hover {
+  color: var(--hn-theme);
+}
+
+.hn-note-checkbox--editable.hn-note-checkbox--checked:hover {
+  /* 勾选态 hover：主题色加深，保持可感知的反馈 */
+  color: color-mix(in srgb, var(--hn-theme) 85%, black);
+}
+
+.hn-note-quote {
+  padding: 1.25rem 1.35rem;
+  border-left: 4px solid var(--hn-theme);
+  border-radius: 0 20px 20px 0;
+  background: var(--hn-theme-soft);
+}
+
+.hn-note-quote p {
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.7;
+}
+
+.hn-note-quote footer {
+  margin-top: 0.8rem;
+  color: var(--hn-theme-text);
+  font-weight: 600;
+}
+
+.hn-note-quote p + p {
+  margin-top: 0.5rem;
+}
+
+.hn-note-code-card {
+  border: 1px solid var(--hn-border-strong);
+  border-radius: var(--hn-radius);
+  background: #0f172a;
+}
+
+.hn-note-code-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--hn-theme);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.hn-note-code-lang-select {
+  padding: 0.2rem 0.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hn-note-code-lang-select:focus {
+  outline: 2px solid var(--hn-theme);
+  outline-offset: 0;
+}
+
+.hn-note-code-filename-input {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 12px;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+  font-family: var(--hn-code-font);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: right;
+}
+
+.hn-note-code-filename-input::placeholder {
+  color: rgba(226, 232, 240, 0.4);
+}
+
+.hn-note-code-filename-input:focus {
+  outline: 2px solid var(--hn-theme);
+  outline-offset: 0;
+}
+
+.hn-note-code-card pre,
+.hn-note-code-editor,
+.hn-note-code-preview,
+.hn-note-code-highlight {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  padding: 1rem;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: #e2e8f0;
+  font-family: var(--hn-code-font);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  text-align: left;
+  white-space: pre;
+}
+
+.hn-note-code-card code {
+  font-family: var(--hn-code-font);
+}
+
+.hn-note-code-editing {
+  display: grid;
+}
+
+.hn-note-code-editor,
+.hn-note-code-highlight {
+  grid-area: 1 / 1;
+}
+
+.hn-note-code-highlight {
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hn-note-code-editor {
+  z-index: 1;
+  overflow: auto;
+  color: transparent;
+  caret-color: #e2e8f0;
+}
+
+.hn-note-code-card .hljs-keyword,
+.hn-note-code-card .hljs-selector-tag,
+.hn-note-code-card .hljs-literal {
+  color: #c084fc;
+}
+
+.hn-note-code-card .hljs-string,
+.hn-note-code-card .hljs-attr,
+.hn-note-code-card .hljs-template-tag,
+.hn-note-code-card .hljs-template-variable {
+  color: #86efac;
+}
+
+.hn-note-code-card .hljs-title,
+.hn-note-code-card .hljs-section,
+.hn-note-code-card .hljs-type,
+.hn-note-code-card .hljs-built_in {
+  color: #7dd3fc;
+}
+
+.hn-note-code-card .hljs-number,
+.hn-note-code-card .hljs-symbol,
+.hn-note-code-card .hljs-variable,
+.hn-note-code-card .hljs-params {
+  color: #fbbf24;
+}
+
+.hn-note-code-card .hljs-comment,
+.hn-note-code-card .hljs-quote {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.hn-note-callout {
+  padding: 1.1rem 1.2rem;
+  border-radius: 22px;
+  background: var(--hn-surface);
+}
+
+.hn-note-callout--info {
+  border: 1px solid var(--hn-theme-border);
+}
+
+.hn-note-callout--success {
+  border: 1px solid rgba(22, 163, 74, 0.28);
+}
+
+.hn-note-callout--warning {
+  border: 1px solid rgba(217, 119, 6, 0.28);
+}
+
+.hn-note-callout-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.hn-note-callout p {
+  margin: 0.75rem 0 0;
+  color: var(--hn-text-soft);
+  line-height: 1.7;
+}
+
+/* ===== 可编辑状态样式 ===== */
+.hn-note-editable {
+  display: block;
+  flex: 1 1 auto;
+  max-width: none;
+  border-radius: 6px;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+  outline: none;
+}
+
+.hn-note-editable:empty,
+.hn-note-editable:has(> br:only-child) {
+  min-height: 1lh;
+}
+
+.hn-note-editable:hover {
+  background: color-mix(in srgb, var(--hn-theme) 5%, transparent);
+  outline: 1px solid var(--hn-theme-border);
+  outline-offset: -1px;
+}
+
+.hn-note-editable:focus {
+  background: color-mix(in srgb, var(--hn-theme) 8%, transparent);
+  outline: 2px solid var(--hn-theme);
+  outline-offset: -2px;
+}
+
+.hn-note-code-editor.hn-note-editable:hover {
+  background: rgba(255, 255, 255, 0.05);
+  outline: 1px solid rgba(255, 255, 255, 0.15);
+  outline-offset: -1px;
+}
+
+.hn-note-code-editor.hn-note-editable:focus {
+  background: rgba(255, 255, 255, 0.05);
+  outline: 2px solid rgba(255, 255, 255, 0.25);
+  outline-offset: -2px;
+}
+
+@media (max-width: 840px) {
+  .hn-note-hero,
+  .hn-note-body {
+    /* 移动端同样要露出加号按钮，不能比 handle 外延 56px 更窄 */
+    padding-right: 3.5rem;
+    padding-left: 3.5rem;
+  }
+
+  .hn-note-hero-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== 选区弹出层（SelectionPopover）===== */
+/* position:fixed 相对视口定位，不受 .hn-note-shell 的 overflow:hidden 裁切 */
+.hn-note-popover {
+  position: fixed;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.3rem;
+  border-radius: 10px;
+  background: #1e293b;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
+  animation: hn-popover-in 0.12s ease;
+}
+
+.hn-note-popover-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 0.55rem;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: #e2e8f0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+}
+
+.hn-note-popover-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+/* 复制按钮：文字更紧凑 */
+.hn-note-popover-btn--copy {
+  min-width: auto;
+  font-size: 0.78rem;
+}
+
+.hn-note-popover-glyph {
+  display: inline-block;
+  line-height: 1;
+  font-size: 0.85rem;
+}
+
+.hn-note-popover-glyph--bold {
+  font-weight: 800;
+}
+
+.hn-note-popover-glyph--italic {
+  font-style: italic;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.hn-note-popover-glyph--underline {
+  text-decoration: underline;
+}
+
+/* 仅做淡入，避免与定位 transform 冲突 */
+@keyframes hn-popover-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* 格式按钮与链接按钮之间的分隔线 */
+.hn-note-popover-divider {
+  width: 1px;
+  height: 20px;
+  align-self: center;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* 链接按钮 */
+.hn-note-popover-btn--link {
+  min-width: auto;
+}
+
+.hn-note-popover-glyph--link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 链接配置表单 */
+.hn-note-popover-link-form {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.hn-note-popover-link-input {
+  width: 200px;
+  padding: 0.35rem 0.55rem;
+  border: none;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.55);
+  color: #f1f5f9;
+  font-size: 0.8rem;
+  outline: none;
+  transition:
+    background 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.hn-note-popover-link-input:focus {
+  background: rgba(15, 23, 42, 0.8);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+.hn-note-popover-link-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.hn-note-popover-link-input::placeholder {
+  color: rgba(226, 232, 240, 0.45);
+}
+
+/* 魔法链接按钮：用主题色高亮 */
+.hn-note-popover-btn--magic {
+  white-space: nowrap;
+  background: var(--hn-theme, #3b82f6);
+  color: #ffffff;
+  font-size: 0.78rem;
+}
+
+.hn-note-popover-btn--magic:hover {
+  background: var(--hn-theme, #3b82f6);
+  filter: brightness(1.15);
+  color: #ffffff;
+}
+
+.hn-note-popover-btn--confirm {
+  min-width: auto;
+  color: #86efac;
+  font-size: 0.95rem;
+}
+
+.hn-note-popover-btn--confirm:hover {
+  color: #4ade80;
+}
+
+.hn-note-popover-btn--cancel {
+  min-width: auto;
+  color: #fca5a5;
+  font-size: 0.9rem;
+}
+
+.hn-note-popover-btn--cancel:hover {
+  color: #f87171;
+}
+
+/* 魔法链接：以 hnmagic:// 开头的链接在内容中可视化区分 */
+.hn-note-shell a[href^="hnmagic://"] {
+  color: var(--hn-theme, #3b82f6);
+  text-decoration: underline;
+  text-decoration-style: dashed;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.hn-note-shell a[href^="hnmagic://"]:hover {
+  filter: brightness(1.1);
+}
+
+/* ===== 区块编辑交互（BlockActionMenu / 区块行）===== */
+/* handle 与区块行渲染在 .hn-note-shell 内部，可使用 --hn-* 变量；
+   菜单通过 portal 渲染到 document.body，脱离 shell 作用域，
+   因此菜单样式必须使用字面量颜色（与 SelectionPopover 一致）。 */
+
+/* 区块行：左侧 handle 按钮 + 右侧内容，flex 横向排列 */
+/* align-items 用 flex-start 让 handle 对齐内容顶部；
+   各 block 类型通过 --hn-row-leading 传入首行行高，
+   handle 据此计算 margin-top 精确对齐第一行文本中心 */
+.hn-note-block-row {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+  /* 行高计算值，用于 handle 垂直偏移；默认继承 row 自身的 line-height */
+  --hn-row-leading: 1lh;
+}
+
+/* 区块内容：占满行内剩余宽度，保持正文原有排版不受 handle 影响 */
+.hn-note-block-content {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+/*
+  左侧 hover 感应区：覆盖加号/操作按钮以及它们与正文之间的间隙。
+  它是 row 的一部分，鼠标进入该区域仍然算作 row hover，保证两个按钮
+  在从正文移向按钮或穿越间隙时不会闪烁消失。
+  z-index 低于 handle，所以不会遮挡按钮点击。
+*/
+.hn-note-block-row::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 100%;
+  width: 60px;
+  height: 100%;
+  background: transparent;
+  pointer-events: auto;
+  z-index: 0;
+}
+
+/* handle 按钮：24px 方形，绝对定位在内容左侧的 gutter 中，不占用正文宽度 */
+.hn-note-block-handle {
+  position: absolute;
+  top: 0;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--hn-text-muted);
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  /* 垂直偏移：首行行高的一半减去 handle 高度的一半，使 handle 中心对齐首行文本中心 */
+  margin-top: calc(var(--hn-row-leading, 0px) / 2 - 12px);
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.hn-note-block-handle--convert {
+  right: calc(100% + 4px);
+}
+
+.hn-note-block-handle--add {
+  right: calc(100% + 32px);
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.hn-note-block-handle-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: -0.18em;
+  transform: translateX(-0.03em);
+}
+
+/* 行 hover、行内聚焦、handle 自身 hover/focus 或菜单打开时显现并可交互 */
+.hn-note-block-row:hover > .hn-note-block-handle,
+.hn-note-block-row:focus-within > .hn-note-block-handle,
+.hn-note-block-handle:hover,
+.hn-note-block-handle:focus,
+.hn-note-block-handle--open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* handle hover：浅色背景 + 正文色文字（DESIGN.md §9 Hover） */
+.hn-note-block-handle:hover {
+  background: var(--hn-surface-hover);
+  color: var(--hn-text);
+}
+
+/* handle focus：与可编辑字段一致的 2px 主题色描边（DESIGN.md §9 Focus） */
+.hn-note-block-handle:focus {
+  box-shadow: 0 0 0 2px var(--hn-theme);
+  outline: none;
+}
+
+/* 菜单打开时 handle 保持 active 视觉，标明菜单所属区块（DESIGN.md §9 Open） */
+.hn-note-block-handle--open {
+  background: var(--hn-theme-soft);
+  color: var(--hn-theme-text);
+}
+
+.hn-note-checklist > .hn-note-block-row > .hn-note-block-handle {
+  margin-top: calc(0.95rem + 1px);
+}
+
+.hn-note-block-row:has(.hn-note-callout) > .hn-note-block-handle {
+  margin-top: 1.1rem;
+}
+
+.hn-note-block-row:has(.hn-note-code-card) > .hn-note-block-handle {
+  margin-top: 0.9rem;
+}
+
+.hn-note-block-row:has(.hn-note-quote) > .hn-note-block-handle {
+  margin-top: 1.25rem;
+}
+
+.hn-note-block-row:has(.hn-note-table-wrapper) > .hn-note-block-handle {
+  margin-top: 0.35rem;
+}
+
+.hn-note-block-row:has(.hn-note-formula) > .hn-note-block-handle {
+  margin-top: 0.7rem;
+}
+
+.hn-note-block-row:has(.hn-note-picture) > .hn-note-block-handle {
+  margin-top: 0.35rem;
+}
+
+.hn-note-picture {
+  margin: 0;
+}
+
+.hn-note-picture img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--hn-border);
+  border-radius: 8px;
+}
+
+.hn-note-picture-input {
+  display: none;
+}
+
+/* heading 各级别：row 的 font-size(16px) ≠ heading 的 font-size，
+   1lh 基于 row 而非 heading 计算，需用 :has 覆盖为正确行高（font-size × 1.5） */
+.hn-note-block-row:has(.hn-note-heading--1) {
+  --hn-row-leading: calc(clamp(1.8rem, 3vw, 2.6rem) * 1.5);
+}
+
+.hn-note-block-row:has(.hn-note-heading--2) {
+  --hn-row-leading: calc(1.4rem * 1.5);
+}
+
+.hn-note-block-row:has(.hn-note-heading--3) {
+  --hn-row-leading: calc(1.1rem * 1.5);
+}
+
+.hn-note-block-row:has(.hn-note-heading--4) {
+  --hn-row-leading: calc(1rem * 1.5);
+}
+
+.hn-note-block-row:has(.hn-note-heading--5) {
+  --hn-row-leading: calc(0.9rem * 1.5);
+}
+
+/* ===== 区块菜单（portal 渲染到 document.body）===== */
+/* 复用 SelectionPopover 的暗色浮层外观：字面量颜色，不依赖 shell 变量。
+   定位坐标由组件内联 style 提供，此处仅负责外观。 */
+.hn-note-block-menu {
+  position: fixed;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  width: 160px;
+  padding: 4px;
+  border-radius: 10px;
+  background: #1e293b;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
+  /* 复用已有淡入动画，避免与定位 transform 冲突 */
+  animation: hn-popover-in 0.12s ease;
+}
+
+/* 菜单项：button 行，默认透明背景 + 浅色文字（与 popover 按钮一致） */
+.hn-note-block-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.4rem 0.55rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #e2e8f0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+}
+
+/* 菜单项 hover/focus：半透明白底 + 纯白文字 */
+.hn-note-block-menu-item:hover,
+.hn-note-block-menu-item:focus {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  outline: none;
+}
+
+.hn-note-block-menu-item[aria-disabled="true"] {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.hn-note-block-menu-item[aria-disabled="true"]:hover,
+.hn-note-block-menu-item[aria-disabled="true"]:focus {
+  background: transparent;
+  color: #e2e8f0;
+}
+
+/* 当前格式项（--active）：弱化文字 + 默认光标，禁止重复选择。
+   菜单在 shell 外无法解析 --hn-text-muted，故用浮层基础文字 #e2e8f0 的
+   降透明度变体呈现“muted at reduced opacity”效果（DESIGN.md §9 Disabled）。 */
+.hn-note-block-menu-item--active,
+.hn-note-block-menu-item--active:hover,
+.hn-note-block-menu-item--active:focus {
+  background: transparent;
+  color: rgba(226, 232, 240, 0.5);
+  cursor: default;
+}
+
+/* 勾选标记：仅当前格式项显示 */
+.hn-note-block-menu-check {
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+/* 菜单项文字标签：占满剩余宽度 */
+.hn-note-block-menu-item-label {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+/* ===== 公式块 ===== */
+.hn-note-formula-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 3.25rem;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--hn-text);
+  overflow-x: auto;
+}
+
+.hn-note-formula-preview--editable {
+  font: inherit;
+  cursor: text;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.hn-note-formula-preview--editable:hover {
+  background: color-mix(in srgb, var(--hn-theme) 5%, transparent);
+  box-shadow: 0 0 0 1px var(--hn-theme-border);
+}
+
+.hn-note-formula-preview--editable:focus {
+  background: color-mix(in srgb, var(--hn-theme) 8%, transparent);
+  box-shadow: 0 0 0 2px var(--hn-theme);
+  outline: none;
+}
+
+.hn-note-formula-rendered {
+  max-width: 100%;
+}
+
+.hn-note-formula-rendered .katex-display {
+  margin: 0;
+}
+
+.hn-note-formula-placeholder {
+  color: var(--hn-text-muted);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.1rem;
+  font-style: italic;
+}
+
+/* portal 脱离 .hn-note-shell，沿用既有暗色浮层的字面量色值。 */
+.hn-note-formula-popover {
+  position: fixed;
+  z-index: 9999;
+  padding: 8px;
+  border-radius: 10px;
+  background: #1e293b;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
+  animation: hn-popover-in 0.12s ease;
+}
+
+.hn-note-formula-textarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 8rem;
+  resize: vertical;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(226, 232, 240, 0.16);
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.55);
+  color: #f1f5f9;
+  font-family: var(--hn-code-font, ui-monospace, monospace);
+  font-size: 0.88rem;
+  line-height: 1.55;
+  outline: none;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.hn-note-formula-textarea:focus {
+  border-color: var(--hn-theme);
+  background: rgba(15, 23, 42, 0.8);
+  box-shadow: 0 0 0 2px var(--hn-theme);
+}
+
+.hn-note-formula-textarea::placeholder {
+  color: rgba(226, 232, 240, 0.45);
+}
+
+/* ===== 表格块 ===== */
+.hn-note-table-wrapper {
+  width: 100%;
+  overflow: visible;
+}
+
+.hn-note-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--hn-border-strong);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  overflow: visible;
+}
+
+.hn-note-table td {
+  border: 1px solid var(--hn-border-strong);
+  padding: 0;
+  vertical-align: top;
+  position: relative;
+}
+
+.hn-note-table-header-row .hn-note-table-header-cell {
+  background: var(--hn-surface);
+  font-weight: 600;
+  border-bottom: 2px solid var(--hn-border-strong);
+}
+
+/* 隔行斑马纹：表头以下的偶数行加浅色背景，让行边界更清晰 */
+.hn-note-table tbody tr:not(.hn-note-table-header-row):nth-child(even) {
+  background: color-mix(in srgb, var(--hn-surface) 60%, transparent);
+}
+
+/* 行 hover 高亮 */
+.hn-note-table tbody tr:hover {
+  background: var(--hn-surface-hover);
+}
+
+.hn-note-table-cell {
+  padding: 0.6rem 0.8rem;
+  min-height: 2.2rem;
+  outline: none;
+  word-break: break-word;
+  border-radius: 0;
+}
+
+/* 表格单元格 hover/focus：使用 outline，无 border-radius */
+.hn-note-table-cell.hn-note-editable:hover {
+  background: transparent;
+  outline: 1px solid var(--hn-theme-border);
+  outline-offset: -1px;
+}
+
+.hn-note-table-cell.hn-note-editable:focus {
+  background: var(--hn-theme-soft);
+  outline: 2px solid var(--hn-theme);
+  outline-offset: -2px;
+}
+
+/* ===== 表格行列操作按钮 ===== */
+/* 行操作按钮：中心压在焦点行的左边界上 */
+.hn-note-table-row-op {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: var(--hn-theme);
+  color: #ffffff;
+  font-size: 0.75rem;
+  line-height: 1;
+  cursor: grab;
+  touch-action: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.hn-note-table-row-op--visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hn-note-table-row-op:hover {
+  background: color-mix(in srgb, var(--hn-theme) 85%, black);
+}
+
+/* 列操作按钮：中心压在焦点列的上边界上 */
+.hn-note-table-col-op {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: var(--hn-theme);
+  color: #ffffff;
+  font-size: 0.75rem;
+  line-height: 1;
+  cursor: grab;
+  touch-action: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.hn-note-table-col-op--visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hn-note-table-col-op:hover {
+  background: color-mix(in srgb, var(--hn-theme) 85%, black);
+}
+
+.hn-note-table-drag-handle--dragging {
+  cursor: grabbing;
+  filter: brightness(0.85);
+}
+
+.hn-note-table-drop-preview--row-before::after,
+.hn-note-table-drop-preview--row-after::after,
+.hn-note-table-drop-preview--column-before::after,
+.hn-note-table-drop-preview--column-after::after {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  background: var(--hn-theme);
+  box-shadow: 0 0 0 1px var(--hn-theme-soft);
+  pointer-events: none;
+}
+
+.hn-note-table-drop-preview--row-before::after,
+.hn-note-table-drop-preview--row-after::after {
+  left: -1px;
+  right: -1px;
+  height: 3px;
+}
+
+.hn-note-table-drop-preview--row-before::after {
+  top: -2px;
+}
+
+.hn-note-table-drop-preview--row-after::after {
+  bottom: -2px;
+}
+
+.hn-note-table-drop-preview--column-before::after,
+.hn-note-table-drop-preview--column-after::after {
+  top: -1px;
+  bottom: -1px;
+  width: 3px;
+}
+
+.hn-note-table-drop-preview--column-before::after {
+  left: -2px;
+}
+
+.hn-note-table-drop-preview--column-after::after {
+  right: -2px;
+}
+
+/* 单元格边界操作按钮：中心压在对应边线上 */
+.hn-note-table-edge-btn {
+  position: absolute;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid var(--hn-border-strong);
+  border-radius: 50%;
+  background: var(--hn-bg);
+  color: var(--hn-text-muted);
+  font-size: 0.7rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+/* 左右按钮只添加列，上下按钮只添加行。 */
+.hn-note-table-edge-btn--left {
+  left: 0;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.hn-note-table-edge-btn--right {
+  right: 0;
+  top: 50%;
+  transform: translate(50%, -50%);
+}
+
+.hn-note-table-edge-btn--top {
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.hn-note-table-edge-btn--bottom {
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, 50%);
+}
+
+td:hover > .hn-note-table-edge-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hn-note-table-edge-btn:hover {
+  background: var(--hn-theme);
+  color: #ffffff;
+  border-color: var(--hn-theme);
+}
+
+/* 表格操作菜单复用 .hn-note-block-menu / .hn-note-block-menu-item 样式 */
+.hn-note-block-menu-item--danger {
+  color: #fca5a5;
+}
+
+.hn-note-block-menu-item--danger:hover,
+.hn-note-block-menu-item--danger:focus {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ffffff;
+}
