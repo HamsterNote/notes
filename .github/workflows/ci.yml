@@ -1,14 +1,25 @@
-name: CI
+name: CI (tests & build)
 
 on:
   push:
     branches:
       - main
   pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   verify:
+    name: Test and Build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,14 +38,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint
+      - name: Run lint
         run: pnpm lint
 
-      - name: Test
-        run: pnpm test
-
-      - name: Typecheck
+      - name: Run typecheck
         run: pnpm typecheck
 
-      - name: Build
+      - name: Run unit tests
+        run: pnpm test
+
+      - name: Build library and demo
         run: pnpm build
