@@ -69,7 +69,7 @@ export const useTableOperationMenus = (
         {
           label: "添加行",
           onClick: () =>
-            onBlocksChange?.(insertTableRow(ctx.getBlocks(), block.id, 0))
+            onBlocksChange?.(insertTableRow(ctx.getBlocks(), block.id, row + 1))
         },
         {
           label: "删除行",
@@ -90,7 +90,9 @@ export const useTableOperationMenus = (
         {
           label: "添加列",
           onClick: () =>
-            onBlocksChange?.(insertTableColumn(ctx.getBlocks(), block.id, 0))
+            onBlocksChange?.(
+              insertTableColumn(ctx.getBlocks(), block.id, col + 1)
+            )
         },
         {
           label: "删除列",

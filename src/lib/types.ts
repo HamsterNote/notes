@@ -154,8 +154,8 @@ export type NoteContentProps = {
   readonly onMagicLinkClick?: (url: string) => void
   /** 撤销/重做控制器实例（外部注入模式） */
   readonly undoRedoController?: NoteContentUndoRedoController
-  /** React 19 ref 手柄；运行时同时提供按内容 id 跳转能力。 */
-  readonly ref?: Ref<NoteContentUndoRedoHandle>
+  /** React 19 ref 手柄；同时提供撤销/重做与按内容 id 跳转能力。 */
+  readonly ref?: Ref<NoteContentHandle>
 }
 
 // ── Undo/Redo public types ──────────────────────────────────────────────────

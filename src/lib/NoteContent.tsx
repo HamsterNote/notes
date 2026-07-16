@@ -1,6 +1,8 @@
 import {
   type CSSProperties,
   type FocusEvent,
+  type ReactNode,
+  type Ref,
   useImperativeHandle,
   useRef
 } from "react"
@@ -13,7 +15,10 @@ import { updateText } from "./NoteContentEditing"
 import { DISABLED_CONTROLLER } from "./noteContentUndoRedo"
 import { createNoteId } from "./noteId"
 import { SelectionPopover } from "./SelectionPopover"
-import type { NoteContentProps } from "./types"
+import type {
+  NoteContentProps,
+  NoteContentUndoRedoHandle
+} from "./types"
 import { useBlockEditing } from "./useBlockEditing"
 import { formatUpdatedAt, getReadingMinutes } from "./utils"
 
@@ -34,7 +39,13 @@ const editableProps = (
   }
 })
 
-export const NoteContent = ({
+type LegacyNoteContentProps = Omit<NoteContentProps, "ref"> & {
+  readonly ref?: Ref<NoteContentUndoRedoHandle>
+}
+
+export function NoteContent(props: LegacyNoteContentProps): ReactNode
+export function NoteContent(props: NoteContentProps): ReactNode
+export function NoteContent({
   blocks,
   summary,
   tagLabel,
@@ -51,7 +62,7 @@ export const NoteContent = ({
   onMagicLinkClick,
   ref: undoRedoRef,
   undoRedoController
-}: NoteContentProps) => {
+}: NoteContentProps | LegacyNoteContentProps) {
   const readingMinutes = getReadingMinutes(blocks)
   const shellStyle = themeColor
     ? ({ "--hn-theme": themeColor } as CSSProperties)

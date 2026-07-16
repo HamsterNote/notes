@@ -1,7 +1,9 @@
 /** @vitest-environment jsdom */
 import { act, renderHook } from "@testing-library/react"
+import type { ComponentRef } from "react"
 import { describe, expect, it } from "vitest"
 import type {
+  NoteContent,
   NoteContentHandle,
   NoteContentUndoRedoController,
   NoteContentUndoRedoHandle,
@@ -106,5 +108,8 @@ describe("public API smoke test — src/lib/index.ts exports", () => {
       scrollToBlock: () => true
     }
     expect(contentHandle.scrollToBlock("block-1")).toBe(true)
+
+    const inferredHandle: ComponentRef<typeof NoteContent> = contentHandle
+    expect(inferredHandle.scrollToBlock("block-1")).toBe(true)
   })
 })
