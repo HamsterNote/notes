@@ -114,7 +114,7 @@ export const renderQuoteBlock = (
 
   if (!editable) {
     return (
-      <div className="hn-note-block-row" key={block.id}>
+      <div className="hn-note-block-row" id={block.id} key={block.id}>
         <div className="hn-note-block-content">
           <blockquote className="hn-note-quote">
             <p {...richText(block.text.replaceAll("\n", "<br>"))} />
@@ -126,7 +126,7 @@ export const renderQuoteBlock = (
   }
 
   return (
-    <div className="hn-note-block-row" key={block.id}>
+    <div className="hn-note-block-row" id={block.id} key={block.id}>
       {renderBlockActionMenu(block, ctx)}
       <div className="hn-note-block-content">
         <blockquote className="hn-note-quote">

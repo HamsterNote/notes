@@ -36,6 +36,57 @@ import { NoteContent } from "@hamster-note/notes"
 import "@hamster-note/notes/styles.css"
 ```
 
+如果使用公式块，再按需导入 KaTeX 样式：
+
+```tsx
+import "@hamster-note/notes/formula.css"
+```
+
+## 撤销 / 恢复
+
+`NoteContent` 的撤销/恢复历史由 `use-undo` 驱动，组件本身仍然保持受控语义。消费者可以使用 `useNoteContentUndoRedo` hook 管理标题、摘要和 blocks 的历史，并把控制器与组件 ref 绑定：
+
+```tsx
+import { useRef } from "react"
+import {
+  NoteContent,
+  useNoteContentUndoRedo,
+  type NoteContentUndoRedoHandle,
+} from "@hamster-note/notes"
+
+const undoRedo = useNoteContentUndoRedo({
+  title: "Example",
+  summary: "Editable summary",
+  blocks: initialBlocks,
+})
+
+const noteRef = useRef<NoteContentUndoRedoHandle>(null)
+
+return (
+  <>
+    <button disabled={!undoRedo.canUndo} onClick={() => noteRef.current?.undo()}>
+      Undo
+    </button>
+    <button disabled={!undoRedo.canRedo} onClick={() => noteRef.current?.redo()}>
+      Redo
+    </button>
+    <NoteContent
+      ref={noteRef}
+      undoRedoController={undoRedo.controller}
+      editable
+      title={undoRedo.present.title}
+      summary={undoRedo.present.summary}
+      blocks={undoRedo.present.blocks}
+      onTitleChange={undoRedo.setTitle}
+      onSummaryChange={undoRedo.setSummary}
+      onBlocksChange={undoRedo.setBlocks}
+    />
+  </>
+)
+```
+
+该 hook 只管理 `NoteContent` 负责渲染的内容字段（`title`、`summary`、`blocks`）。Demo 中使用了自定义的全文档控制器，用来把 `tagLabel` 等外层字段也纳入同一份历史。
+
 ## 发布规则
 
 - 推送 `v1.0.0` 这类正式标签时，发布到 npm 的 `latest`

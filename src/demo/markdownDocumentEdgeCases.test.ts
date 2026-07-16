@@ -7,6 +7,9 @@ import {
   serializeMarkdownDocument
 } from "./markdownDocument"
 
+const UUID_V4_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u
+
 const markdownDocument = (body: string): string =>
   [
     "```json",
@@ -134,5 +137,31 @@ describe("markdown document edge cases", () => {
     const serialized = serializeMarkdownDocument(document)
     expect(serialized).toContain("Alpha<br>Bravo")
     expect(parseMarkdownDocument(serialized).blocks).toEqual(document.blocks)
+  })
+
+  it("creates unique UUID fallback ids for blocks and checklist items", () => {
+    const document = parseMarkdownDocument(
+      markdownDocument(
+        [
+          "# Heading without a directive",
+          "",
+          '<!-- hn:checklist id="0e12376c-1685-4703-8c01-6c112357f02c" title="First" -->',
+          "- [ ] First item",
+          "",
+          '<!-- hn:checklist id="9638742e-650b-4fb7-9e7c-c6d6b7557f25" title="Second" -->',
+          "- [ ] Second item",
+        ].join("\n")
+      )
+    )
+
+    const generatedIds = document.blocks.flatMap((block) => {
+      if (block.kind === "heading") return [block.id]
+      if (block.kind === "checklist") return block.items.map((item) => item.id)
+      return []
+    })
+
+    expect(generatedIds).toHaveLength(3)
+    expect(generatedIds.every((id) => UUID_V4_PATTERN.test(id))).toBe(true)
+    expect(new Set(generatedIds).size).toBe(generatedIds.length)
   })
 })

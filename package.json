@@ -8,7 +8,15 @@
     "**/*.css"
   ],
   "files": [
-    "dist"
+    "dist/index.cjs",
+    "dist/index.cjs.map",
+    "dist/index.d.ts",
+    "dist/index.js",
+    "dist/index.js.map",
+    "dist/formula.css",
+    "dist/fonts",
+    "dist/lib",
+    "dist/styles.css"
   ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -19,7 +27,8 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
-    "./styles.css": "./dist/styles.css"
+    "./styles.css": "./dist/styles.css",
+    "./formula.css": "./dist/formula.css"
   },
   "publishConfig": {
     "access": "public",
@@ -48,6 +57,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.31.0",
+    "@testing-library/react": "^16.3.2",
     "@types/mdast": "^4.0.4",
     "@types/node": "^24.0.15",
     "@types/react": "^19.1.8",
@@ -59,20 +69,22 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
+    "jsdom": "^29.1.1",
     "prettier": "^3.6.2",
+    "remark-gfm": "^4.0.1",
+    "remark-parse": "^11.0.0",
+    "remark-stringify": "^11.0.0",
     "typescript": "6.0.0-beta",
     "typescript-eslint": "^8.37.0",
+    "unified": "^11.0.5",
     "vite": "^7.0.4",
     "vite-plugin-dts": "^4.5.4",
     "vitest": "^4.0.10"
   },
   "dependencies": {
+    "@system-ui-js/multi-drag": "^0.4.0",
     "highlight.js": "^11.11.1",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "remark-gfm": "^4.0.1",
-    "remark-parse": "^11.0.0",
-    "remark-stringify": "^11.0.0",
-    "unified": "^11.0.5"
+    "katex": "^0.17.0",
+    "use-undo": "^1.2.0"
   }
 }

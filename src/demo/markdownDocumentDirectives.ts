@@ -2,7 +2,16 @@ import type { Html } from "mdast"
 
 export type ParagraphTone = "default" | "muted" | "accent"
 
-type AttributeName = "empty" | "eyebrow" | "filename" | "id" | "title" | "tone"
+type AttributeName =
+  | "empty"
+  | "eyebrow"
+  | "filename"
+  | "height"
+  | "id"
+  | "kind"
+  | "title"
+  | "tone"
+  | "width"
 
 export type ParsedAttributes = Partial<Record<AttributeName, string>>
 
@@ -11,7 +20,10 @@ export type BlockDirective = {
   readonly id: string
   readonly empty?: true
   readonly eyebrow?: string
+  readonly kind?: "formula"
   readonly tone?: ParagraphTone
+  readonly width?: number
+  readonly height?: number
 }
 
 export type ChecklistDirective = {
@@ -83,14 +95,26 @@ const buildBlockDirective = (
   const eyebrow = attributes.eyebrow
   const empty = attributes.empty === "true" ? true : undefined
   const tone = parseParagraphTone(attributes.tone)
+  const kind = attributes.kind === "formula" ? "formula" : undefined
+  const width = parsePositiveInteger(attributes.width)
+  const height = parsePositiveInteger(attributes.height)
 
   return {
     directive: "block",
     id,
     ...(empty === undefined ? {} : { empty }),
     ...(eyebrow === undefined ? {} : { eyebrow }),
-    ...(tone === undefined ? {} : { tone })
+    ...(kind === undefined ? {} : { kind }),
+    ...(tone === undefined ? {} : { tone }),
+    ...(width === undefined ? {} : { width }),
+    ...(height === undefined ? {} : { height })
   }
+}
+
+const parsePositiveInteger = (value: string | undefined): number | undefined => {
+  if (value === undefined || !/^\d+$/u.test(value)) return undefined
+  const number = Number(value)
+  return Number.isSafeInteger(number) && number > 0 ? number : undefined
 }
 
 const isAttributeName = (value: string | undefined): value is AttributeName => {
@@ -98,9 +122,12 @@ const isAttributeName = (value: string | undefined): value is AttributeName => {
     case "empty":
     case "eyebrow":
     case "filename":
+    case "height":
     case "id":
+    case "kind":
     case "title":
     case "tone":
+    case "width":
       return true
     default:
       return false

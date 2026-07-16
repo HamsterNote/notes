@@ -1,10 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import useUndo from "use-undo"
-import type { NoteBlock, NoteContentUndoRedoController, NoteContentUndoRedoHandle, NoteTheme } from "../lib"
+import type {
+  NoteBlock,
+  NoteContentHandle,
+  NoteContentUndoRedoController,
+  NoteTheme
+} from "../lib"
 import { NoteContent } from "../lib"
+import { DemoNavigationControls } from "./DemoNavigationControls"
 import type { DemoMarkdownDocument } from "./markdownDocument"
 import { parseMarkdownDocument, serializeMarkdownDocument } from "./markdownDocument"
 import { demoMarkdownDocument } from "./noteData"
+import { useDemoPictureUpload } from "./useDemoPictureUpload"
+import "katex/dist/katex.min.css"
 import "./app.css"
 
 // 预设主题色供侧边栏快速切换
@@ -25,9 +33,12 @@ export const App = () => {
   const [documentHistory, documentActions] =
     useUndo<DemoMarkdownDocument>(initialDocument)
   const document = documentHistory.present
-  const noteContentRef = useRef<NoteContentUndoRedoHandle>(null)
+  const documentRef = useRef(document)
+  documentRef.current = document
+  const noteContentRef = useRef<NoteContentHandle>(null)
   const editorScopeRef = useRef<HTMLDivElement>(null)
   const editableRef = useRef(editable)
+  const handlePictureUpload = useDemoPictureUpload()
   const markdownDocument = useMemo(
     () => serializeMarkdownDocument(document),
     [document]
@@ -37,12 +48,18 @@ export const App = () => {
 
   const updateDocument = useCallback(
     (update: (current: DemoMarkdownDocument) => DemoMarkdownDocument) => {
-      const nextDocument = update(document)
-      if (serializeMarkdownDocument(nextDocument) === markdownDocument) return
+      const currentDocument = documentRef.current
+      const nextDocument = update(currentDocument)
+      if (
+        serializeMarkdownDocument(nextDocument) ===
+        serializeMarkdownDocument(currentDocument)
+      )
+        return
 
+      documentRef.current = nextDocument
       documentActions.set(nextDocument)
     },
-    [document, documentActions, markdownDocument]
+    [documentActions]
   )
 
   const demoUndoRedoController = useMemo<NoteContentUndoRedoController>(
@@ -219,31 +236,10 @@ export const App = () => {
           </p>
         </section>
 
-        {/* 撤销 / 恢复：通过 NoteContent 暴露的 ref 方法触发，禁用状态由历史可用性决定 */}
-        <section className="demo-control-group">
-          <span className="demo-control-label">Undo / Redo</span>
-          <div className="demo-undo-redo-row">
-            <button
-              type="button"
-              className="demo-undo-redo-button"
-              disabled={!demoUndoRedoController.canUndo()}
-              onClick={() => noteContentRef.current?.undo()}
-            >
-              Undo
-            </button>
-            <button
-              type="button"
-              className="demo-undo-redo-button"
-              disabled={!demoUndoRedoController.canRedo()}
-              onClick={() => noteContentRef.current?.redo()}
-            >
-              Redo
-            </button>
-          </div>
-          <p className="demo-hint">
-            通过 NoteContent ref 触发撤销/恢复，无历史记录时按钮自动禁用
-          </p>
-        </section>
+        <DemoNavigationControls
+          controller={demoUndoRedoController}
+          noteContentRef={noteContentRef}
+        />
 
         {/* 标题输入 */}
         <section className="demo-control-group">
@@ -343,6 +339,7 @@ export const App = () => {
             onBlocksChange={(nextBlocks) =>
               updateDocument((current) => ({ ...current, blocks: nextBlocks }))
             }
+            onPictureUpload={handlePictureUpload}
             undoRedoController={demoUndoRedoController}
             onMagicLinkConfigure={handleMagicLinkConfigure}
             onMagicLinkClick={handleMagicLinkClick}

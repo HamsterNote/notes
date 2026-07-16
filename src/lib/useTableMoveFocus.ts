@@ -50,14 +50,14 @@ export const useTableMoveFocus = (
       switch (axis) {
         case "row":
           return moveTableRow(
-            ctx.blocks,
+            ctx.getBlocks(),
             block.id,
             move.sourceIndex,
             move.destinationIndex
           )
         case "column":
           return moveTableColumn(
-            ctx.blocks,
+            ctx.getBlocks(),
             block.id,
             move.sourceIndex,
             move.destinationIndex

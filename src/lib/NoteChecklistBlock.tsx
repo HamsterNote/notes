@@ -22,6 +22,7 @@ export const renderChecklistBlock = (
   return (
     <section
       className="hn-note-block hn-note-block--checklist"
+      id={block.id}
       key={block.id}
     >
       {block.title ? (
@@ -32,7 +33,7 @@ export const renderChecklistBlock = (
       ) : null}
       <ul className="hn-note-checklist" aria-label={block.title || "List"}>
         {block.items.map((item) => (
-          <li className="hn-note-block-row" key={item.id}>
+          <li className="hn-note-block-row" id={item.id} key={item.id}>
             {renderBlockActionMenu(block, ctx, {
               kind: "checklist-item",
               blockId: block.id,

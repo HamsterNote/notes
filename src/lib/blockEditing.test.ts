@@ -2,8 +2,8 @@ import { describe, expect, expectTypeOf, it } from "vitest"
 import {
   convertBlockFormat,
   convertTextBlockFormat,
-  createNextBlockId,
   deleteEmptyTextBlock,
+  insertBlockAfter,
   insertSplitBlock,
   isVisibleHtmlEmpty,
   normalizeEditableHtml,
@@ -271,6 +271,7 @@ describe("insertSplitBlock", () => {
       afterHtml: "Beta<div>Gamma</div>",
       beforeHtml: "<div>Alpha</div>",
       blocks,
+      nextId: "intro-line",
       sourceId: "intro"
     })
 
@@ -346,6 +347,7 @@ describe("insertSplitBlock", () => {
       afterHtml: "Beta",
       beforeHtml: "Alpha",
       blocks,
+      nextId: after.id,
       sourceId: block.id
     })
 
@@ -369,6 +371,7 @@ describe("insertSplitBlock", () => {
       afterHtml: "Beta",
       beforeHtml: "Alpha",
       blocks,
+      nextId: "first-line",
       sourceId: "first"
     })
 
@@ -387,19 +390,70 @@ describe("insertSplitBlock", () => {
   })
 })
 
-describe("createNextBlockId", () => {
-  it("generates deterministic collision-free line ids without time or randomness", () => {
-    // Given: existing ids that collide with the base and first suffix.
-    const blocks: readonly NoteBlock[] = [
-      { id: "intro", kind: "paragraph", text: "A" },
-      { id: "intro-line", kind: "paragraph", text: "B" },
-      { id: "intro-line-1", kind: "paragraph", text: "C" },
-      { id: "intro-line-3", kind: "paragraph", text: "D" }
-    ]
+describe("insertBlockAfter", () => {
+  it("inserts an empty block of the selected type after the referenced block", () => {
+    // Given: a single paragraph and a request to add a heading after it.
+    const blocks: readonly NoteBlock[] = [paragraphBlock]
 
-    // When / Then: the first free deterministic suffix is selected.
-    expect(createNextBlockId(blocks, "intro")).toBe("intro-line-2")
-    expect(createNextBlockId(blocks, "other")).toBe("other-line")
+    // When: the new block is inserted.
+    const result = insertBlockAfter({
+      blocks,
+      blockId: "intro",
+      nextId: "intro-line",
+      target: { kind: "heading", level: 2 }
+    })
+
+    // Then: the original block is preserved and a new empty heading follows it.
+    expect(result).toEqual([
+      paragraphBlock,
+      { id: "intro-line", kind: "heading", level: 2, text: "" }
+    ])
+  })
+
+  it("generates a checklist with the correct default item id", () => {
+    // Given: a single paragraph.
+    const blocks: readonly NoteBlock[] = [paragraphBlock]
+
+    // When: inserting a checklist after it.
+    const result = insertBlockAfter({
+      blocks,
+      blockId: "intro",
+      checklistItemId: "32ff2214-ad42-42c1-a50a-a663f4b6d601",
+      nextId: "89430e11-f481-4d80-ab93-6c065784b0a6",
+      target: { kind: "checklist" }
+    })
+
+    // Then: the new checklist has the default title and a single empty item.
+    expect(result).toEqual([
+      paragraphBlock,
+      {
+        id: "89430e11-f481-4d80-ab93-6c065784b0a6",
+        kind: "checklist",
+        title: "List",
+        items: [
+          {
+            id: "32ff2214-ad42-42c1-a50a-a663f4b6d601",
+            checked: false,
+            text: ""
+          }
+        ]
+      }
+    ])
+  })
+
+  it("returns an unchanged copy when the referenced block is missing", () => {
+    // Given: a block list that does not contain the requested id.
+    const blocks: readonly NoteBlock[] = [paragraphBlock]
+
+    // When / Then: insertion is a no-op (but returns a new array for immutability).
+    const result = insertBlockAfter({
+      blocks,
+      blockId: "missing",
+      nextId: "b2643bb7-c68b-4f4d-b9b7-631151c64161",
+      target: { kind: "paragraph" }
+    })
+    expect(result).toEqual(blocks)
+    expect(result).not.toBe(blocks)
   })
 })
 

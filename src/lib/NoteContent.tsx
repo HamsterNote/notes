@@ -1,12 +1,18 @@
-import { type CSSProperties, type FocusEvent, useImperativeHandle, useRef } from "react"
+import {
+  type CSSProperties,
+  type FocusEvent,
+  useImperativeHandle,
+  useRef
+} from "react"
 
 import "./styles.css"
 
-import { createNextBlockId, isVisibleHtmlEmpty } from "./blockEditing"
+import { isVisibleHtmlEmpty } from "./blockEditing"
 import { renderBlock, richText } from "./NoteContentBlocks"
 import { updateText } from "./NoteContentEditing"
-import { SelectionPopover } from "./SelectionPopover"
 import { DISABLED_CONTROLLER } from "./noteContentUndoRedo"
+import { createNoteId } from "./noteId"
+import { SelectionPopover } from "./SelectionPopover"
 import type { NoteContentProps } from "./types"
 import { useBlockEditing } from "./useBlockEditing"
 import { formatUpdatedAt, getReadingMinutes } from "./utils"
@@ -40,6 +46,7 @@ export const NoteContent = ({
   onTitleChange,
   onSummaryChange,
   onBlocksChange,
+  onPictureUpload,
   onMagicLinkConfigure,
   onMagicLinkClick,
   ref: undoRedoRef,
@@ -50,8 +57,30 @@ export const NoteContent = ({
     ? ({ "--hn-theme": themeColor } as CSSProperties)
     : undefined
   const shellRef = useRef<HTMLElement>(null)
+  const blocksRef = useRef(blocks)
+  blocksRef.current = blocks
   const controller = undoRedoController ?? DISABLED_CONTROLLER
-  useImperativeHandle(undoRedoRef, () => controller, [controller])
+  useImperativeHandle(
+    undoRedoRef,
+    () => ({
+      ...controller,
+      scrollToBlock: (blockId: string): boolean => {
+        const shell = shellRef.current
+        if (!shell) return false
+        const target = Array.from(
+          shell.querySelectorAll<HTMLElement>(
+            ".hn-note-block-row, .hn-note-block--checklist"
+          )
+        ).find((element) => element.id === blockId)
+        if (!target) return false
+        target.scrollIntoView({ behavior: "smooth", block: "center" })
+        if (!target.hasAttribute("tabindex")) target.tabIndex = -1
+        target.focus({ preventScroll: true })
+        return true
+      }
+    }),
+    [controller]
+  )
   const { openBlockMenuId, requestFocus, handleBlockMenuOpenChange } =
     useBlockEditing(shellRef)
 
@@ -62,17 +91,18 @@ export const NoteContent = ({
         data-theme={theme}
         ref={shellRef}
         style={shellStyle}
-        onClick={(event) => {
+        onClickCapture={(event) => {
           // 拦截 hnmagic:// 链接点击：禁止原生跳转，交给宿主处理
           const anchor = (event.target as HTMLElement | null)?.closest("a")
           if (!anchor) return
           const href = anchor.getAttribute("href")
           if (href?.startsWith("hnmagic://")) {
             event.preventDefault()
+            event.stopPropagation()
             onMagicLinkClick?.(href)
           }
         }}
-        onKeyDown={(event) => {
+        onKeyDownCapture={(event) => {
           // 键盘等价：Enter/Space 激活 hnmagic:// 链接时同样拦截原生跳转
           if (event.key !== "Enter" && event.key !== " ") return
           const anchor = (event.target as HTMLElement | null)?.closest("a")
@@ -80,6 +110,7 @@ export const NoteContent = ({
           const href = anchor.getAttribute("href")
           if (href?.startsWith("hnmagic://")) {
             event.preventDefault()
+            event.stopPropagation()
             onMagicLinkClick?.(href)
           }
         }}
@@ -140,8 +171,10 @@ export const NoteContent = ({
             renderBlock(block, {
               editable,
               blocks,
+              getBlocks: () => blocksRef.current,
               openBlockMenuId,
               onBlocksChange,
+              onPictureUpload,
               requestFocus,
               onBlockMenuOpenChange: handleBlockMenuOpenChange
             })
@@ -163,10 +196,7 @@ export const NoteContent = ({
                   requestFocus?.(lastBlock.id, "start")
                   return
                 }
-                const newId = createNextBlockId(
-                  blocks,
-                  lastBlock?.id ?? "block"
-                )
+                const newId = createNoteId()
                 onBlocksChange([
                   ...blocks,
                   { id: newId, kind: "paragraph", text: "" }

@@ -182,3 +182,23 @@ Table insertion and operation controls sit on cell boundaries rather than inside
 - Controls reuse `--hn-bg`, `--hn-border-strong`, `--hn-text-muted`, and `--hn-theme`; no table-specific palette is introduced.
 - While dragging a row or column control, a solid `--hn-theme` line previews the insertion boundary. Crossing the target cell's midpoint along the drag axis advances the preview to its next boundary, and releasing must place the row or column at that exact line.
 - Destructive row deletion uses an in-menu two-step state: `删除行` changes to `确认删除行`, and only the second explicit activation deletes the row. Escape, outside click, scroll, or resize cancels the pending state by closing the menu.
+
+---
+
+## 11. Formula Block and Editor
+
+- Formula blocks render centered display math in the original block row and remain unframed in read-only mode.
+- In editable mode the complete preview row is a button with the standard editable hover and focus treatments; activating it opens the formula editor.
+- The editor is a fixed portal popover using the existing dark popover surface, radius, shadow, and fade animation. Its multiline textarea uses the shared monospace stack and a visible theme-color focus ring.
+- Formula source updates the original-row preview immediately. Invalid LaTeX remains editable and renders with KaTeX's non-throwing error treatment.
+- Escape and outside click close the editor. Escape restores focus to the formula preview; scroll and resize close the portal to prevent stale positioning.
+
+---
+
+## 12. Picture Block and Upload
+
+- Picture is a first-class block beside code, table, and formula blocks. It occupies the normal content column and preserves the uploaded asset's intrinsic aspect ratio.
+- The image surface uses the existing `--hn-border` token and an `8px` radius. It does not introduce a card background, caption panel, shadow, or new palette.
+- Editable picture blocks reuse the standard left block handle. The existing block menu exposes a `图片` action only when the host supplies `onPictureUpload` and can accept block changes.
+- Activating `图片` opens the system image picker. While the selected file is being read and uploaded, the menu action is disabled and labelled `上传中…`; a rejected upload remains in place as `上传失败，重试` without replacing the source block.
+- The image `alt` text is the original filename. Uploaded images retain their intrinsic width and height as optional block metadata so read-only and editable rendering reserve the same responsive geometry before decoding.

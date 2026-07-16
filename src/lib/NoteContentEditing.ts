@@ -6,8 +6,12 @@ import type { FocusCaret } from "./useBlockEditing"
 export type EditContext = {
   readonly editable: boolean
   readonly blocks: readonly NoteBlock[]
+  readonly getBlocks: () => readonly NoteBlock[]
   readonly openBlockMenuId: string | null
   readonly onBlocksChange: ((blocks: NoteBlock[]) => void) | undefined
+  readonly onPictureUpload:
+    | ((base64: string, filename: string) => Promise<string>)
+    | undefined
   readonly requestFocus:
     ((blockId: string, caret: FocusCaret) => void) | undefined
   readonly onBlockMenuOpenChange: (blockId: string, open: boolean) => void
@@ -28,7 +32,7 @@ export const editableProps = (
     // 避免 React 因 dangerouslySetInnerHTML 引用变化而替换 DOM 节点，
     // 导致 SelectionPopover 内保存的选区 Range 指向已被销毁的节点
     const related = event.relatedTarget as HTMLElement | null
-    if (related && related.closest?.(".hn-note-popover")) return
+    if (related?.closest(".hn-note-popover")) return
     onBlur(event)
   }
 })
@@ -42,10 +46,15 @@ const richTextCache = new Map<
   string,
   { readonly dangerouslySetInnerHTML: { readonly __html: string } }
 >()
+const richTextCacheLimit = 500
 
 export const richText = (value: string) => {
   let cached = richTextCache.get(value)
   if (!cached) {
+    if (richTextCache.size >= richTextCacheLimit) {
+      const oldestKey = richTextCache.keys().next().value
+      if (oldestKey !== undefined) richTextCache.delete(oldestKey)
+    }
     cached = { dangerouslySetInnerHTML: { __html: value } }
     richTextCache.set(value, cached)
   }
@@ -98,6 +107,16 @@ export const updateCode = (
   blocks.map((block) => {
     if (block.id !== id || block.kind !== "code") return block
     return { ...block, code }
+  })
+
+export const updateFormula = (
+  blocks: readonly NoteBlock[],
+  id: string,
+  formula: string
+): NoteBlock[] =>
+  blocks.map((block) => {
+    if (block.id !== id || block.kind !== "formula") return block
+    return { ...block, formula }
   })
 
 export const updateCodeLanguage = (

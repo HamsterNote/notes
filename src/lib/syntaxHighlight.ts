@@ -23,6 +23,15 @@ const escapeCode = (code: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#x27;")
 
+/**
+ * 获取所有已注册的高亮语言名称（按字母排序）。
+ * 用于代码块左上角语言选择下拉菜单的选项列表。
+ * "text"（Plain Text）不在此列表中，由调用方单独添加，
+ * 因为它不是 highlight.js 注册语言，而是 escapeCode 的回退行为。
+ */
+export const listSupportedLanguages = (): readonly string[] =>
+  [...hljs.listLanguages()].sort()
+
 export const highlightCode = (code: string, language: string): string => {
   const normalizedLanguage = language.trim().toLowerCase()
   if (!normalizedLanguage || !hljs.getLanguage(normalizedLanguage)) {

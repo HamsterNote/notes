@@ -36,11 +36,7 @@ jobs:
         run: |
           OUTPUT=$(pnpm release:prepare)
           printf '%s\n' "$OUTPUT"
-          while IFS= read -r line; do
-            printf '%s\n' "$line" >> "$GITHUB_OUTPUT"
-          done <<EOF
-          $OUTPUT
-          EOF
+          printf '%s\n' "$OUTPUT" >> "$GITHUB_OUTPUT"
 
       - name: Verify package version
         run: test "${{ steps.release.outputs.version }}" = "${GITHUB_REF_NAME#v}"

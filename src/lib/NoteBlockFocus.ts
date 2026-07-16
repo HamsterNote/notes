@@ -24,7 +24,10 @@ const editableIds = (blocks: readonly NoteBlock[]): string[] =>
       case "quote":
       case "code":
       case "callout":
+      case "formula":
         return [block.id]
+      case "picture":
+        return []
       case "table":
         return block.rows.flatMap((row, rowIndex) =>
           row.map((_, colIndex) => `${block.id}-r${rowIndex}-c${colIndex}`)

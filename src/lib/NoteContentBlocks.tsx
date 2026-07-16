@@ -2,6 +2,8 @@ import type { ReactElement } from "react"
 import { renderChecklistBlock } from "./NoteChecklistBlock"
 import { NoteCodeBlock } from "./NoteCodeEditorBlock"
 import type { EditContext } from "./NoteContentEditing"
+import { NoteFormulaBlock } from "./NoteFormulaBlock"
+import { NotePictureBlock } from "./NotePictureBlock"
 import { renderQuoteBlock } from "./NoteQuoteBlock"
 import { renderCalloutBlock } from "./NoteSecondaryBlocks"
 import { renderTableBlock } from "./NoteTableBlock"
@@ -30,6 +32,10 @@ export const renderBlock = (
       return renderCalloutBlock(block, ctx)
     case "table":
       return renderTableBlock(block, ctx)
+    case "formula":
+      return <NoteFormulaBlock key={block.id} block={block} ctx={ctx} />
+    case "picture":
+      return <NotePictureBlock key={block.id} block={block} ctx={ctx} />
     default:
       return assertNever(block)
   }

@@ -1,3 +1,5 @@
+import type { BlockConvertTarget } from "./blockConversion"
+import { convertBlockFormat } from "./blockConversion"
 import type { NoteBlock, NoteHeadingBlock, NoteParagraphBlock } from "./types"
 import { assertNever } from "./utils"
 
@@ -16,6 +18,7 @@ type InsertSplitBlockInput = {
   readonly afterHtml: string
   readonly beforeHtml: string
   readonly blocks: readonly NoteBlock[]
+  readonly nextId: string
   readonly sourceId: string
 }
 
@@ -23,31 +26,6 @@ type DeleteEmptyTextBlockInput = {
   readonly blocks: readonly NoteBlock[]
   readonly currentHtml: string
   readonly sourceId: string
-}
-
-export const createNextBlockId = (
-  blocks: readonly NoteBlock[],
-  sourceId: string
-): string => {
-  const takenIds = new Set(
-    blocks.flatMap((block) =>
-      block.kind === "checklist"
-        ? [block.id, ...block.items.map((item) => item.id)]
-        : [block.id]
-    )
-  )
-  const baseId = `${sourceId}-line`
-
-  if (!takenIds.has(baseId)) {
-    return baseId
-  }
-
-  let suffix = 2
-  while (takenIds.has(`${baseId}-${suffix}`)) {
-    suffix += 1
-  }
-
-  return `${baseId}-${suffix}`
 }
 
 const boundaryBreakPattern = /^(?:\s*<br>\s*)+|(?:\s*<br>\s*)+$/giu
@@ -128,14 +106,42 @@ export const splitTextBlockAtHtml = ({
   return [updatedBlock, insertedBlock]
 }
 
+type InsertBlockAfterInput = {
+  readonly blocks: readonly NoteBlock[]
+  readonly blockId: string
+  readonly checklistItemId?: string | undefined
+  readonly nextId: string
+  readonly target: BlockConvertTarget
+}
+
+export const insertBlockAfter = ({
+  blocks,
+  blockId,
+  checklistItemId,
+  nextId,
+  target
+}: InsertBlockAfterInput): NoteBlock[] => {
+  const index = blocks.findIndex((block) => block.id === blockId)
+  if (index < 0) return [...blocks]
+
+  const newBlock = convertBlockFormat(
+    { id: nextId, kind: "paragraph", text: "" },
+    target,
+    checklistItemId
+  )
+
+  const nextBlocks = [...blocks]
+  nextBlocks.splice(index + 1, 0, newBlock)
+  return nextBlocks
+}
+
 export const insertSplitBlock = ({
   afterHtml,
   beforeHtml,
   blocks,
+  nextId,
   sourceId
 }: InsertSplitBlockInput): NoteBlock[] => {
-  const nextId = createNextBlockId(blocks, sourceId)
-
   return blocks.flatMap<NoteBlock>((block): NoteBlock[] => {
     switch (block.kind) {
       case "heading":
@@ -179,6 +185,8 @@ export const insertSplitBlock = ({
           { ...block, id: nextId, code: afterHtml }
         ]
       case "table":
+      case "formula":
+      case "picture":
         return [block]
       default:
         return assertNever(block)
@@ -245,6 +253,8 @@ export const deleteEmptyTextBlock = ({
         case "checklist":
           return block
         case "table":
+        case "formula":
+        case "picture":
           return block
         default:
           return assertNever(block)

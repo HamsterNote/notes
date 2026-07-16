@@ -6,6 +6,7 @@ import { unified } from "unified"
 
 import type { NoteBlock } from "../lib/types"
 import { parseMarkdownBlocks } from "./markdownDocumentBlocks"
+import { serializePicture } from "./markdownDocumentPhrasing"
 
 type MetadataField = "title" | "summary" | "tagLabel" | "updatedAt"
 
@@ -114,9 +115,10 @@ const serializeBlock = (block: NoteBlock): string => {
     case "code":
       return [
         blockDirective(block.id),
-        `\`\`\`${block.language}${optionalAttribute("filename", block.filename)}`,
-        block.code,
-        "```"
+        ...fencedBlock(
+          `${block.language}${optionalAttribute("filename", block.filename)}`,
+          block.code
+        )
       ].join("\n")
     case "callout":
       return [
@@ -128,6 +130,22 @@ const serializeBlock = (block: NoteBlock): string => {
       return [blockDirective(block.id), ...serializeTableRows(block.rows)].join(
         "\n"
       )
+    case "formula":
+      return [
+        blockDirective(block.id, requiredAttribute("kind", "formula")),
+        ...fencedBlock("math", block.formula)
+      ].join("\n")
+    case "picture":
+      return [
+        blockDirective(
+          block.id,
+          [
+            optionalNumberAttribute("width", block.width),
+            optionalNumberAttribute("height", block.height)
+          ].join("")
+        ),
+        serializePicture(block)
+      ].join("\n")
     default:
       return assertNever(block)
   }
@@ -144,6 +162,15 @@ const quoteTextLines = (text: string): readonly string[] =>
   text.split("\n").map((line) => `> ${line}`)
 
 const paragraphText = (text: string): string => text.replaceAll("\n", "<br>")
+
+const fencedBlock = (info: string, content: string): readonly string[] => {
+  const longestBacktickRun = Array.from(content.matchAll(/`+/gu)).reduce(
+    (longest, match) => Math.max(longest, match[0].length),
+    0
+  )
+  const fence = "`".repeat(Math.max(3, longestBacktickRun + 1))
+  return [`${fence}${info}`, content, fence]
+}
 
 const serializeTableCell = (text: string): string =>
   text.replaceAll("\n", "<br>").replaceAll("|", "\\|")
@@ -170,6 +197,11 @@ const blockDirective = (id: string, attributes = ""): string =>
 
 const optionalAttribute = (name: string, value: string | undefined): string =>
   value === undefined ? "" : requiredAttribute(name, value)
+
+const optionalNumberAttribute = (
+  name: string,
+  value: number | undefined
+): string => (value === undefined ? "" : requiredAttribute(name, String(value)))
 
 const requiredAttribute = (name: string, value: string): string =>
   ` ${name}="${value}"`

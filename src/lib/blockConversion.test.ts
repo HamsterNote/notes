@@ -1,13 +1,20 @@
-import { describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { convertBlockFormat } from "./blockConversion"
 import type { NoteParagraphBlock } from "./types"
+
+const UUID_V4_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u
 
 const paragraph: NoteParagraphBlock = {
   id: "intro",
   kind: "paragraph",
   text: "<strong>Alpha</strong><br>Beta"
 }
+
+afterEach(() => {
+  vi.restoreAllMocks()
+})
 
 describe("convertBlockFormat structural targets", () => {
   it("converts rich text to a one-item checklist", () => {
@@ -16,22 +23,27 @@ describe("convertBlockFormat structural targets", () => {
     const converted = convertBlockFormat(paragraph, { kind: "checklist" })
 
     // Then: its visible content becomes one stable unchecked item.
-    expect(converted).toEqual({
+    expect(converted).toMatchObject({
       id: "intro",
       kind: "checklist",
       title: "List",
       items: [
         {
-          id: "intro-item",
           checked: false,
           text: "<strong>Alpha</strong><br>Beta"
         }
       ]
     })
+    if (converted.kind !== "checklist") {
+      throw new Error("Expected a checklist block.")
+    }
+    expect(converted.items[0]?.id).toMatch(UUID_V4_PATTERN)
   })
 
   it("converts rich text to a quote", () => {
     // Given: a paragraph whose inline formatting should remain visible.
+    const randomUUID = vi.spyOn(globalThis.crypto, "randomUUID")
+
     // When: the Quote target is selected.
     const converted = convertBlockFormat(paragraph, { kind: "quote" })
 
@@ -41,6 +53,7 @@ describe("convertBlockFormat structural targets", () => {
       kind: "quote",
       text: "<strong>Alpha</strong><br>Beta"
     })
+    expect(randomUUID).not.toHaveBeenCalled()
   })
 
   it("converts rich text to escaped plain code", () => {
@@ -54,6 +67,19 @@ describe("convertBlockFormat structural targets", () => {
       kind: "code",
       language: "text",
       code: "Alpha\nBeta"
+    })
+  })
+
+  it("converts rich text to a plain formula source", () => {
+    // Given: rich text whose visible value is valid LaTeX source.
+    // When: the Formula target is selected.
+    const converted = convertBlockFormat(paragraph, { kind: "formula" })
+
+    // Then: formatting markup is removed while line breaks are preserved.
+    expect(converted).toEqual({
+      id: "intro",
+      kind: "formula",
+      formula: "Alpha\nBeta"
     })
   })
 

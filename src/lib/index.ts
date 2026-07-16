@@ -1,5 +1,6 @@
 export { NoteContent } from "./NoteContent"
 export { useNoteContentUndoRedo } from "./noteContentUndoRedo"
+export { createNoteId } from "./noteId"
 export type {
   NoteBlock,
   NoteCalloutBlock,
@@ -7,14 +8,17 @@ export type {
   NoteChecklistBlock,
   NoteChecklistItem,
   NoteCodeBlock,
+  NoteContentHandle,
   NoteContentProps,
-  NoteContentUndoRedoHandle,
   NoteContentUndoRedoController,
+  NoteContentUndoRedoHandle,
   NoteContentUndoRedoSnapshot,
+  NoteFormulaBlock,
   NoteHeadingBlock,
   NoteParagraphBlock,
+  NotePictureBlock,
   NoteQuoteBlock,
   NoteTheme,
-  UseNoteContentUndoRedoResult,
+  UseNoteContentUndoRedoResult
 } from "./types"
 export { noteBlockKinds } from "./types"

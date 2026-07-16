@@ -13,7 +13,8 @@ export default defineConfig({
       include: ["src/lib"],
       outDir: "dist",
       insertTypesEntry: true,
-      exclude: ["src/demo/**/*"]
+      tsconfigPath: "./tsconfig.app.json",
+      exclude: ["src/demo/**/*", "src/lib/**/*.test.*"]
     })
   ],
   build: {

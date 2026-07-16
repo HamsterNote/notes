@@ -2,6 +2,7 @@ import type { ReactElement, KeyboardEvent as ReactKeyboardEvent } from "react"
 
 import type { BlockConvertTarget } from "./BlockActionMenu"
 import { BlockActionMenu } from "./BlockActionMenu"
+import { blockMenuStateKey } from "./NoteBlockEditingControls"
 import { type EditContext, editableProps, richText } from "./NoteContentEditing"
 import type { NoteHeadingBlock, NoteParagraphBlock } from "./types"
 
@@ -16,7 +17,7 @@ type EditableTextLayoutInput = {
 type BlockActionMenuLayoutInput = {
   readonly block: EditTextBlock
   readonly ctx: EditContext
-  readonly onConvert: (target: BlockConvertTarget) => string
+  readonly onSelect: (target: BlockConvertTarget) => string
 }
 
 type HeadingBlockLayoutInput = {
@@ -44,28 +45,37 @@ export const renderEditableTextLayout = ({
 export const renderBlockActionMenuLayout = ({
   block,
   ctx,
-  onConvert
+  onSelect
 }: BlockActionMenuLayoutInput): ReactElement => {
+  const convertMenuId = blockMenuStateKey("convert", {
+    kind: "block",
+    blockId: block.id
+  })
+
   if (block.kind === "heading") {
     return (
       <BlockActionMenu
-        open={ctx.openBlockMenuId === block.id}
-        onOpenChange={(open) => ctx.onBlockMenuOpenChange(block.id, open)}
+        mode="convert"
+        open={ctx.openBlockMenuId === convertMenuId}
+        onOpenChange={(open) =>
+          ctx.onBlockMenuOpenChange(convertMenuId, open)
+        }
         blockId={block.id}
         kind="heading"
         headingLevel={block.level}
-        onConvert={onConvert}
+        onSelect={onSelect}
       />
     )
   }
 
   return (
     <BlockActionMenu
-      open={ctx.openBlockMenuId === block.id}
-      onOpenChange={(open) => ctx.onBlockMenuOpenChange(block.id, open)}
+      mode="convert"
+      open={ctx.openBlockMenuId === convertMenuId}
+      onOpenChange={(open) => ctx.onBlockMenuOpenChange(convertMenuId, open)}
       blockId={block.id}
       kind="paragraph"
-      onConvert={onConvert}
+      onSelect={onSelect}
     />
   )
 }
@@ -83,7 +93,7 @@ export const renderHeadingBlockLayout = ({
       {block.eyebrow ? (
         <span className="hn-note-eyebrow">{block.eyebrow}</span>
       ) : null}
-      <div className="hn-note-block-row">
+      <div className="hn-note-block-row" id={block.id}>
         {actionMenu}
         <div className="hn-note-block-content">
           <HeadingTag

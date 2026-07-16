@@ -1,8 +1,10 @@
 import type { BlockConvertTarget } from "./blockConversion"
 import { convertBlockFormat } from "./blockConversion"
+import { createNoteId } from "./noteId"
 import type {
   NoteBlock,
   NoteChecklistBlock,
+  NotePictureBlock,
   NoteQuoteBlock
 } from "./types"
 import { assertNever } from "./utils"
@@ -23,9 +25,22 @@ export type BlockSource =
 
 type ConvertBlockSourceInput = {
   readonly blocks: readonly NoteBlock[]
+  readonly checklistItemId?: string | undefined
+  readonly replacementId?: string | undefined
   readonly source: BlockSource
   readonly target: BlockConvertTarget
 }
+
+type ReplaceBlockSourceWithPictureInput = {
+  readonly blocks: readonly NoteBlock[]
+  readonly source: BlockSource
+  readonly url: string
+  readonly filename: string
+  readonly width?: number | undefined
+  readonly height?: number | undefined
+}
+
+type ReplaceSourceBlock = (sourceBlock: NoteBlock) => NoteBlock
 
 export const quoteTextLines = (text: string): readonly string[] =>
   text.split(/\n|<br\s*\/?>/giu)
@@ -33,10 +48,10 @@ export const quoteTextLines = (text: string): readonly string[] =>
 export const quoteLineId = (blockId: string, lineIndex: number): string =>
   lineIndex === 0 ? blockId : `${blockId}-line-${lineIndex}`
 
-const convertChecklistItem = (
+const replaceChecklistItem = (
   block: NoteChecklistBlock,
   itemId: string,
-  target: BlockConvertTarget
+  replace: ReplaceSourceBlock
 ): NoteBlock[] => {
   const itemIndex = block.items.findIndex((item) => item.id === itemId)
   const item = block.items[itemIndex]
@@ -50,23 +65,20 @@ const convertChecklistItem = (
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
-  const converted = convertBlockFormat(
-    {
+  const replacement = replace({
       id: item.id,
       kind: "paragraph",
       text: isOnlyItem ? `<strong>${title}</strong><br>${itemText}` : itemText
-    },
-    target
-  )
+  })
 
   return [
     ...(beforeItems.length > 0 ? [{ ...block, items: beforeItems }] : []),
-    converted,
+    replacement,
     ...(afterItems.length > 0
       ? [
           {
             ...block,
-            id: `${block.id}-after-${item.id}`,
+            id: createNoteId(),
             title: beforeItems.length > 0 ? "" : block.title,
             items: afterItems
           }
@@ -86,11 +98,11 @@ const quoteSegment = (
   ...(author === undefined ? {} : { author })
 })
 
-const convertQuoteLine = (
+const replaceQuoteLine = (
   block: NoteQuoteBlock,
-  lineId: string,
   lineIndex: number,
-  target: BlockConvertTarget
+  replacementId: string,
+  replace: ReplaceSourceBlock
 ): NoteBlock[] => {
   const lines = quoteTextLines(block.text)
   const line = lines[lineIndex]
@@ -100,13 +112,12 @@ const convertQuoteLine = (
   const afterLines = lines.slice(lineIndex + 1)
   const authorStaysAfter = afterLines.length > 0
   const isOnlyLine = beforeLines.length === 0 && afterLines.length === 0
-  const converted = convertBlockFormat(
-    isOnlyLine ? { ...block, id: lineId, text: line } : {
-      id: lineId,
+  const replacement = replace(
+    isOnlyLine ? { ...block, id: replacementId, text: line } : {
+      id: replacementId,
       kind: "paragraph",
       text: line
-    },
-    target
+    }
   )
 
   return [
@@ -119,11 +130,11 @@ const convertQuoteLine = (
           )
         ]
       : []),
-    converted,
+    replacement,
     ...(afterLines.length > 0
       ? [
           quoteSegment(
-            `${block.id}-after-${lineId}`,
+            createNoteId(),
             afterLines,
             block.author
           )
@@ -132,26 +143,77 @@ const convertQuoteLine = (
   ]
 }
 
-export const convertBlockSource = ({
+type ReplaceBlockSourceInput = {
+  readonly blocks: readonly NoteBlock[]
+  readonly replacementId?: string | undefined
+  readonly source: BlockSource
+  readonly replace: ReplaceSourceBlock
+}
+
+const replaceBlockSource = ({
   blocks,
+  replacementId,
   source,
-  target
-}: ConvertBlockSourceInput): NoteBlock[] =>
+  replace
+}: ReplaceBlockSourceInput): NoteBlock[] =>
   blocks.flatMap((block) => {
     if (block.id !== source.blockId) return [block]
 
     switch (source.kind) {
       case "block":
-        return [convertBlockFormat(block, target)]
+        return [replace(block)]
       case "checklist-item":
         return block.kind === "checklist"
-          ? convertChecklistItem(block, source.itemId, target)
+          ? replaceChecklistItem(block, source.itemId, replace)
           : [block]
       case "quote-line":
         return block.kind === "quote"
-          ? convertQuoteLine(block, source.lineId, source.lineIndex, target)
+          ? replaceQuoteLine(
+              block,
+              source.lineIndex,
+              source.lineIndex === 0
+                ? block.id
+                : replacementId ?? createNoteId(),
+              replace
+            )
           : [block]
       default:
         return assertNever(source)
     }
+  })
+
+export const convertBlockSource = ({
+  blocks,
+  checklistItemId,
+  replacementId,
+  source,
+  target
+}: ConvertBlockSourceInput): NoteBlock[] =>
+  replaceBlockSource({
+    blocks,
+    replacementId,
+    source,
+    replace: (sourceBlock) =>
+      convertBlockFormat(sourceBlock, target, checklistItemId)
+  })
+
+export const replaceBlockSourceWithPicture = ({
+  blocks,
+  source,
+  url,
+  filename,
+  width,
+  height
+}: ReplaceBlockSourceWithPictureInput): NoteBlock[] =>
+  replaceBlockSource({
+    blocks,
+    source,
+    replace: (sourceBlock): NotePictureBlock => ({
+      id: sourceBlock.id,
+      kind: "picture",
+      url,
+      filename,
+      ...(width === undefined ? {} : { width }),
+      ...(height === undefined ? {} : { height })
+    })
   })

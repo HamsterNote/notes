@@ -19,11 +19,19 @@ import {
   type MenuItem
 } from "./BlockActionMenuTypes"
 import type { NoteBlockKind } from "./types"
+import { PictureUploadMenuItem } from "./PictureUploadMenuItem"
 import { focusEditableBlock } from "./useBlockEditing"
 
 // ===== 类型导出 =====
 
 export type { BlockConvertTarget } from "./BlockActionMenuTypes"
+
+export type PictureUploadPayload = {
+  readonly base64: string
+  readonly filename: string
+  readonly width: number | undefined
+  readonly height: number | undefined
+}
 
 export type BlockActionMenuProps = {
   /** 菜单是否打开，由父组件统一控制，便于和 SelectionPopover 互斥 */
@@ -37,10 +45,14 @@ export type BlockActionMenuProps = {
   /** 标题层级，kind === "heading" 时由父组件传入 */
   readonly headingLevel?: 1 | 2 | 3 | 4 | 5
   /**
-   * 格式转换回调。
-   * 父组件（Wave 4.2）应接入 blockEditing.convertTextBlockFormat 执行不可变更新。
+   * 菜单项选择回调。
+   * convert 模式下用于转换当前块格式，add 模式下用于在当前块下方插入新块。
+   * 返回值是操作完成后需要聚焦的编辑元素 ID。
    */
-  readonly onConvert: (target: BlockConvertTarget) => string
+  readonly onSelect: (target: BlockConvertTarget) => string
+  readonly onPictureUpload?: (picture: PictureUploadPayload) => Promise<void>
+  /** 菜单模式：convert（默认）表示转换当前块，add 表示插入新块 */
+  readonly mode?: "convert" | "add"
 }
 
 // ===== 常量 =====
@@ -69,7 +81,9 @@ export const BlockActionMenu = ({
   blockId,
   kind,
   headingLevel,
-  onConvert
+  onSelect,
+  onPictureUpload,
+  mode = "convert"
 }: BlockActionMenuProps) => {
   /** 菜单定位样式（fixed 坐标），打开时由 getBoundingClientRect 计算 */
   const [menuStyle, setMenuStyle] = useState<CSSProperties>({ display: "none" })
@@ -127,10 +141,10 @@ export const BlockActionMenu = ({
   }
 
   const handleSelect = (item: MenuItem) => {
-    // 当前格式不可重复选择
-    if (isCurrentItem(item)) return
+    // convert 模式下禁止重复选择当前格式；add 模式下始终允许选择
+    if (mode === "convert" && isCurrentItem(item)) return
 
-    const focusId = onConvert(blockMenuItemTarget(item))
+    const focusId = onSelect(blockMenuItemTarget(item))
 
     onOpenChange(false)
     setTimeout(() => focusEditableBlock(focusId, "end"), 0)
@@ -150,13 +164,15 @@ export const BlockActionMenu = ({
       if (top !== rect.top) setMenuStyle((current) => ({ ...current, top }))
     }
 
-    // 内联判断，使依赖项显式化（避免 exhaustive-deps 告警）
-    const currentIndex = blockMenuItems.findIndex((item) =>
-      isCurrentBlockMenuItem(item, kind, headingLevel)
-    )
+    const currentIndex =
+      mode === "convert"
+        ? blockMenuItems.findIndex((item) =>
+            isCurrentBlockMenuItem(item, kind, headingLevel)
+          )
+        : 0
     const focusIndex = currentIndex >= 0 ? currentIndex : 0
     itemRefs.current[focusIndex]?.focus()
-  }, [open, kind, headingLevel])
+  }, [open, kind, headingLevel, mode])
 
   // 菜单打开时：监听外部点击 / Escape / 滚动 / 窗口尺寸变化 → 关闭
   useEffect(() => {
@@ -219,7 +235,10 @@ export const BlockActionMenu = ({
   // ===== 渲染 =====
 
   const currentLabel = blockKindLabel(kind, headingLevel)
-  const handleAriaLabel = `更改区块格式，当前为${currentLabel}`
+  const handleAriaLabel =
+    mode === "convert"
+      ? `更改区块格式，当前为${currentLabel}`
+      : "在当前区块下方插入新行"
 
   // 菜单 DOM（仅在 open 时构建，通过 portal 渲染到 document.body）
   const menu = open ? (
@@ -227,12 +246,12 @@ export const BlockActionMenu = ({
       ref={menuRef}
       className="hn-note-block-menu"
       role="menu"
-      aria-label="区块格式选项"
+      aria-label={mode === "convert" ? "区块格式选项" : "插入新区块类型"}
       style={menuStyle}
       onKeyDown={handleMenuKeyDown}
     >
       {blockMenuItems.map((item, index) => {
-        const isCurrent = isCurrentItem(item)
+        const isCurrent = mode === "convert" && isCurrentItem(item)
 
         return (
           <button
@@ -253,7 +272,6 @@ export const BlockActionMenu = ({
             tabIndex={-1}
             onClick={() => handleSelect(item)}
           >
-            {/* 当前格式显示勾选标记，视觉 + 语义双重指示 */}
             {isCurrent ? (
               <span className="hn-note-block-menu-check" aria-hidden="true">
                 ✓
@@ -263,6 +281,14 @@ export const BlockActionMenu = ({
           </button>
         )
       })}
+      {mode === "convert" && onPictureUpload ? (
+        <PictureUploadMenuItem
+          buttonRef={(element) => {
+            itemRefs.current[blockMenuItems.length] = element
+          }}
+          onPictureUpload={onPictureUpload}
+        />
+      ) : null}
     </div>
   ) : null
 
@@ -273,6 +299,7 @@ export const BlockActionMenu = ({
         type="button"
         className={[
           "hn-note-block-handle",
+          `hn-note-block-handle--${mode}`,
           open ? "hn-note-block-handle--open" : ""
         ]
           .filter(Boolean)
@@ -281,10 +308,16 @@ export const BlockActionMenu = ({
         aria-expanded={open}
         aria-label={handleAriaLabel}
         data-block-id={blockId}
+        data-block-menu-mode={mode}
         onClick={handleToggle}
       >
-        <span className="hn-note-block-handle-glyph" aria-hidden="true">
-          ⋮⋮
+        <span
+          className={
+            mode === "convert" ? "hn-note-block-handle-glyph" : undefined
+          }
+          aria-hidden="true"
+        >
+          {mode === "convert" ? "⋮⋮" : "+"}
         </span>
       </button>
       {menu ? createPortal(menu, document.body) : null}

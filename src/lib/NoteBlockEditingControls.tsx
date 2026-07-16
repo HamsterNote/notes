@@ -1,19 +1,42 @@
 import type { ReactElement, KeyboardEvent as ReactKeyboardEvent } from "react"
 
-import { BlockActionMenu, type BlockConvertTarget } from "./BlockActionMenu"
 import {
-  createNextBlockId,
+  BlockActionMenu,
+  type BlockConvertTarget,
+  type PictureUploadPayload
+} from "./BlockActionMenu"
+import {
   deleteEmptyTextBlock,
+  insertBlockAfter,
   insertSplitBlock,
   isVisibleHtmlEmpty
 } from "./blockEditing"
 import {
   type BlockSource,
-  convertBlockSource
+  convertBlockSource,
+  replaceBlockSourceWithPicture
 } from "./blockSourceConversion"
 import { resolveDeletionFocus } from "./NoteBlockFocus"
 import type { EditContext } from "./NoteContentEditing"
+import { createNoteId } from "./noteId"
 import type { NoteBlock } from "./types"
+
+/**
+ * 生成受控菜单 open 状态使用的稳定 key，避免 source id 与 add 后缀冲突。
+ * 这个 key 只用于 openBlockMenuId 内部状态，不暴露给用户/持久化数据。
+ */
+export const blockMenuStateKey = (
+  mode: "add" | "convert",
+  source: BlockSource
+): string => {
+  const namespace =
+    source.kind === "checklist-item"
+      ? `checklist-item:${source.blockId}:${source.itemId}`
+      : source.kind === "quote-line"
+        ? `quote-line:${source.blockId}:${source.lineId}`
+        : `block:${source.blockId}`
+  return `block-action:${mode}:${namespace}`
+}
 
 type EditableContentMode = "rich-text" | "plain-text"
 
@@ -85,7 +108,7 @@ export const handleEditableBlockKeyDown = ({
     afterRange.setStart(range.endContainer, range.endOffset)
     const afterContainer = document.createElement("div")
     afterContainer.appendChild(afterRange.extractContents())
-    const nextId = createNextBlockId(blocks, sourceId)
+    const nextId = createNoteId()
     const nextBlocks = insertSplitBlock({
       afterHtml:
         mode === "plain-text"
@@ -94,6 +117,7 @@ export const handleEditableBlockKeyDown = ({
       beforeHtml:
         mode === "plain-text" ? element.textContent ?? "" : element.innerHTML,
       blocks,
+      nextId,
       sourceId
     })
     onBlocksChange(nextBlocks)
@@ -140,19 +164,87 @@ export const renderBlockActionMenu = (
         ? source.lineId
         : source.blockId
 
+  const addMenuId = blockMenuStateKey("add", source)
+  const convertMenuId = blockMenuStateKey("convert", source)
+
   const onConvert = (target: BlockConvertTarget) => {
-    ctx.onBlocksChange?.(convertBlockSource({ blocks: ctx.blocks, source, target }))
-    return target.kind === "checklist" ? `${sourceId}-item` : sourceId
+    const replacementId =
+      source.kind === "quote-line" && source.lineIndex > 0
+        ? createNoteId()
+        : sourceId
+    const focusId = target.kind === "checklist" ? createNoteId() : replacementId
+    ctx.onBlocksChange?.(
+      convertBlockSource({
+        blocks: ctx.blocks,
+        ...(target.kind === "checklist" ? { checklistItemId: focusId } : {}),
+        replacementId,
+        source,
+        target
+      })
+    )
+    return focusId
+  }
+  const uploadPicture = ctx.onPictureUpload
+  const updateBlocks = ctx.onBlocksChange
+  const onPictureUpload =
+    uploadPicture && updateBlocks
+      ? async ({
+          base64,
+          filename,
+          width,
+          height
+        }: PictureUploadPayload): Promise<void> => {
+          const url = await uploadPicture(base64, filename)
+          updateBlocks(
+            replaceBlockSourceWithPicture({
+              blocks: ctx.getBlocks(),
+              source,
+              url,
+              filename,
+              width,
+              height
+            })
+          )
+          ctx.onBlockMenuOpenChange(convertMenuId, false)
+        }
+      : undefined
+
+  const onAdd = (target: BlockConvertTarget) => {
+    const nextId = createNoteId()
+    const focusId = target.kind === "checklist" ? createNoteId() : nextId
+    ctx.onBlocksChange?.(
+      insertBlockAfter({
+        blocks: ctx.getBlocks(),
+        blockId: source.blockId,
+        ...(target.kind === "checklist" ? { checklistItemId: focusId } : {}),
+        nextId,
+        target
+      })
+    )
+    return focusId
   }
 
   return (
-    <BlockActionMenu
-      open={ctx.openBlockMenuId === sourceId}
-      onOpenChange={(open) => ctx.onBlockMenuOpenChange(sourceId, open)}
-      blockId={sourceId}
-      kind={block.kind}
-      {...(block.kind === "heading" ? { headingLevel: block.level } : {})}
-      onConvert={onConvert}
-    />
+    <>
+      <BlockActionMenu
+        mode="add"
+        open={ctx.openBlockMenuId === addMenuId}
+        onOpenChange={(open) => ctx.onBlockMenuOpenChange(addMenuId, open)}
+        blockId={sourceId}
+        kind={block.kind}
+        {...(block.kind === "heading" ? { headingLevel: block.level } : {})}
+        onSelect={onAdd}
+      />
+      <BlockActionMenu
+        mode="convert"
+        open={ctx.openBlockMenuId === convertMenuId}
+        onOpenChange={(open) => ctx.onBlockMenuOpenChange(convertMenuId, open)}
+        blockId={sourceId}
+        kind={block.kind}
+        {...(block.kind === "heading" ? { headingLevel: block.level } : {})}
+        onSelect={onConvert}
+        {...(onPictureUpload ? { onPictureUpload } : {})}
+      />
+    </>
   )
 }

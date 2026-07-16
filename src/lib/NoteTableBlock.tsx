@@ -32,7 +32,7 @@ const NoteTableBlock = ({
   block,
   ctx
 }: NoteTableBlockProps): ReactElement => {
-  const { editable, blocks, onBlocksChange } = ctx
+  const { editable, onBlocksChange } = ctx
   const { focusedCell, setFocusedCell, captureDragStartFocus, moveTable } =
     useTableMoveFocus(block, ctx)
   const focusedRow = focusedCell?.row ?? null
@@ -48,7 +48,7 @@ const NoteTableBlock = ({
 
   if (editable) {
     return (
-      <div className="hn-note-block-row" key={block.id}>
+      <div className="hn-note-block-row" id={block.id} key={block.id}>
         {renderBlockActionMenu(block, ctx)}
         <div className="hn-note-block-content">
           <div className="hn-note-table-wrapper">
@@ -176,7 +176,7 @@ const NoteTableBlock = ({
                               if (normalized === cell) return
                               onBlocksChange?.(
                                 updateTableCell(
-                                  blocks,
+                                  ctx.getBlocks(),
                                   block.id,
                                   rowIndex,
                                   colIndex,
@@ -225,7 +225,7 @@ const NoteTableBlock = ({
   }
 
   return (
-    <div className="hn-note-block-row" key={block.id}>
+    <div className="hn-note-block-row" id={block.id} key={block.id}>
       <div className="hn-note-block-content">
         <table className="hn-note-table">
           <tbody>

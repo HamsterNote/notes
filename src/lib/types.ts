@@ -1,4 +1,4 @@
-import { type Ref } from "react"
+import type { Ref } from "react"
 
 export const noteBlockKinds = {
   heading: "heading",
@@ -7,7 +7,9 @@ export const noteBlockKinds = {
   quote: "quote",
   code: "code",
   callout: "callout",
-  table: "table"
+  table: "table",
+  formula: "formula",
+  picture: "picture"
 } as const
 
 export type NoteBlockKind = (typeof noteBlockKinds)[keyof typeof noteBlockKinds]
@@ -75,6 +77,23 @@ export type NoteTableBlock = {
   readonly rows: readonly (readonly string[])[]
 }
 
+/** 公式块。formula 保存原始 LaTeX 源码，由渲染层以 display mode 展示。 */
+export type NoteFormulaBlock = {
+  readonly id: string
+  readonly kind: "formula"
+  readonly formula: string
+}
+
+/** 图片块。url 由宿主上传回调返回，filename 同时作为图片替代文本。 */
+export type NotePictureBlock = {
+  readonly id: string
+  readonly kind: "picture"
+  readonly url: string
+  readonly filename: string
+  readonly width?: number
+  readonly height?: number
+}
+
 export type NoteBlock =
   | NoteHeadingBlock
   | NoteParagraphBlock
@@ -83,6 +102,8 @@ export type NoteBlock =
   | NoteCodeBlock
   | NoteCalloutBlock
   | NoteTableBlock
+  | NoteFormulaBlock
+  | NotePictureBlock
 
 export type NoteTheme = "light" | "dark"
 
@@ -114,6 +135,14 @@ export type NoteContentProps = {
   /** 内容块变更回调，参数为完整的最新 blocks 数组（不可变更新） */
   readonly onBlocksChange?: (blocks: NoteBlock[]) => void
   /**
+   * 图片上传回调。base64 是浏览器 FileReader 生成的完整 data URL，
+   * Promise 成功值应为最终用于展示图片的 URL。
+   */
+  readonly onPictureUpload?: (
+    base64: string,
+    filename: string
+  ) => Promise<string>
+  /**
    * 魔法链接配置回调。在选区弹出层的"链接"配置面板中点击"魔法链接"按钮时调用。
    * 为 async 函数，返回的字符串将作为链接的 URL（建议以 `hnmagic://` 开头以便识别）。
    */
@@ -125,7 +154,7 @@ export type NoteContentProps = {
   readonly onMagicLinkClick?: (url: string) => void
   /** 撤销/重做控制器实例（外部注入模式） */
   readonly undoRedoController?: NoteContentUndoRedoController
-  /** React 19 ref 手柄，暴露 undo/redo 方法（对内编辑模式） */
+  /** React 19 ref 手柄；运行时同时提供按内容 id 跳转能力。 */
   readonly ref?: Ref<NoteContentUndoRedoHandle>
 }
 
@@ -150,6 +179,14 @@ export type NoteContentUndoRedoHandle = {
   readonly canUndo: () => boolean
   readonly canRedo: () => boolean
   readonly resetHistory: () => void
+}
+
+/**
+ * NoteContent 组件对宿主暴露的完整 ref 手柄。
+ * `scrollToBlock` 可定位块 id，也可定位 checklist 条目 id。
+ */
+export type NoteContentHandle = NoteContentUndoRedoHandle & {
+  readonly scrollToBlock: (blockId: string) => boolean
 }
 
 /**

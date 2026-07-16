@@ -94,6 +94,10 @@ export const getReadingMinutes = (blocks: readonly NoteBlock[]): number => {
             0
           )
         )
+      case "formula":
+        return count + Math.max(4, block.formula.split(/\s+/u).length)
+      case "picture":
+        return count
       default:
         return assertNever(block)
     }

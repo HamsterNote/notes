@@ -21,7 +21,7 @@ export const renderCalloutBlock = (
   const { editable, blocks, onBlocksChange } = ctx
 
   return (
-    <div className="hn-note-block-row" key={block.id}>
+    <div className="hn-note-block-row" id={block.id} key={block.id}>
       {renderBlockActionMenu(block, ctx)}
       <div className="hn-note-block-content">
         <aside className={`hn-note-callout hn-note-callout--${block.tone}`}>

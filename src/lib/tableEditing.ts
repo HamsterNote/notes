@@ -19,6 +19,24 @@ const replaceTable = (
     return replacement === null ? [] : [replacement]
   })
 
+const moveItem = <T>(
+  items: readonly T[],
+  sourceIndex: number,
+  destinationIndex: number
+): T[] | null => {
+  if (
+    items[sourceIndex] === undefined ||
+    items[destinationIndex] === undefined
+  ) {
+    return null
+  }
+  const movedItems = [...items]
+  const [movedItem] = movedItems.splice(sourceIndex, 1)
+  if (movedItem === undefined) return null
+  movedItems.splice(destinationIndex, 0, movedItem)
+  return movedItems
+}
+
 /**
  * 更新指定单元格的文本内容。
  * @param row 行索引（0-based）
@@ -121,6 +139,39 @@ export const deleteTableColumn = (
     if (block.rows[0]?.[colIndex] === undefined) return block
     const rows = block.rows.map((row) =>
       row.filter((_, ci) => ci !== colIndex)
+    )
+    return { ...block, rows }
+  })
+
+export const moveTableRow = (
+  blocks: readonly NoteBlock[],
+  blockId: string,
+  sourceIndex: number,
+  destinationIndex: number
+): NoteBlock[] =>
+  replaceTable(blocks, blockId, (block) => {
+    const rows = moveItem(block.rows, sourceIndex, destinationIndex)
+    return rows === null ? block : { ...block, rows }
+  })
+
+export const moveTableColumn = (
+  blocks: readonly NoteBlock[],
+  blockId: string,
+  sourceIndex: number,
+  destinationIndex: number
+): NoteBlock[] =>
+  replaceTable(blocks, blockId, (block) => {
+    const columnCount = block.rows[0]?.length ?? 0
+    if (
+      sourceIndex < 0 ||
+      sourceIndex >= columnCount ||
+      destinationIndex < 0 ||
+      destinationIndex >= columnCount
+    ) {
+      return block
+    }
+    const rows = block.rows.map(
+      (row) => moveItem(row, sourceIndex, destinationIndex) ?? row
     )
     return { ...block, rows }
   })

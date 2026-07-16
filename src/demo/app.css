@@ -206,6 +206,21 @@ select {
   gap: 0.5rem;
 }
 
+.demo-block-jump-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.demo-block-jump-input {
+  min-width: 0;
+  flex: 1;
+}
+
+.demo-block-jump-button.demo-undo-redo-button {
+  flex: 0 0 auto;
+}
+
 .demo-undo-redo-button {
   flex: 1;
   padding: 0.6rem 0.75rem;
@@ -323,7 +338,7 @@ select {
 /* ===== 侧栏底部 Markdown 文档数据面板 ===== */
 /* margin-top:auto 把面板推到侧边栏最底部，同时允许内部 pre 缩放 */
 .demo-markdown-panel {
-  min-height: 0;
+  min-height: 400px;
   margin-top: auto;
 }
 

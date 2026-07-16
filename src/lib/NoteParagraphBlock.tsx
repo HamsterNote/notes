@@ -21,7 +21,7 @@ export const renderParagraphBlockLayout = ({
     className={`hn-note-paragraph hn-note-paragraph--${block.tone ?? "default"}`}
     key={block.id}
   >
-    <div className="hn-note-block-row">
+    <div className="hn-note-block-row" id={block.id}>
       {actionMenu}
       <div className="hn-note-block-content">
         {ctx.editable ? editableText : <span {...richText(block.text)} />}

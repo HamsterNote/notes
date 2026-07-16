@@ -28,7 +28,7 @@ const renderEditableText = (
         sourceId: block.id
       }),
     onTextChange: (text) =>
-      ctx.onBlocksChange?.(updateText(ctx.blocks, block.id, text))
+      ctx.onBlocksChange?.(updateText(ctx.getBlocks(), block.id, text))
   })
 
 export const renderHeadingBlock = (

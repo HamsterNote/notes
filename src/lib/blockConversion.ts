@@ -1,3 +1,4 @@
+import { createNoteId } from "./noteId"
 import type {
   NoteBlock,
   NoteHeadingBlock,
@@ -17,7 +18,13 @@ type ParagraphTarget = {
 }
 
 type StructuralTarget = {
-  readonly kind: "checklist" | "quote" | "code" | "callout" | "table"
+  readonly kind:
+    | "checklist"
+    | "quote"
+    | "code"
+    | "callout"
+    | "table"
+    | "formula"
 }
 
 export type BlockConvertTarget =
@@ -126,6 +133,10 @@ const blockAsRichText = (block: NoteBlock): string => {
       return block.rows
         .flatMap((row) => row.map((cell) => cell))
         .join("<br>")
+    case "formula":
+      return escapeCodeAsRichText(block.formula)
+    case "picture":
+      return escapePlainText(block.filename)
     default:
       return assertNever(block)
   }
@@ -133,7 +144,8 @@ const blockAsRichText = (block: NoteBlock): string => {
 
 export const convertBlockFormat = (
   block: NoteBlock,
-  target: BlockConvertTarget
+  target: BlockConvertTarget,
+  checklistItemId?: string
 ): NoteBlock => {
   if (block.kind === target.kind) {
     if (block.kind !== "heading" || target.kind !== "heading") return block
@@ -151,7 +163,7 @@ export const convertBlockFormat = (
         id: block.id,
         kind: "checklist",
         title: "List",
-        items: [{ id: `${block.id}-item`, checked: false, text }]
+        items: [{ id: checklistItemId ?? createNoteId(), checked: false, text }]
       }
     case "quote":
       return { id: block.id, kind: "quote", text }
@@ -175,6 +187,12 @@ export const convertBlockFormat = (
         id: block.id,
         kind: "table",
         rows: [[text]]
+      }
+    case "formula":
+      return {
+        id: block.id,
+        kind: "formula",
+        formula: richTextToPlainText(text)
       }
     default:
       return assertNever(target)
