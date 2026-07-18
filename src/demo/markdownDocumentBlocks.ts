@@ -14,11 +14,6 @@ import type {
   NoteCalloutTone,
   NoteChecklistItem
 } from "../lib/types"
-import type {
-  BlockDirective,
-  ChecklistDirective
-} from "./markdownDocumentDirectives"
-import { parseAttributes, parseHnDirective } from "./markdownDocumentDirectives"
 import {
   pictureFromParagraph,
   textFromBlockquote,
@@ -27,51 +22,30 @@ import {
 
 export const parseMarkdownBlocks = (tree: Root): readonly NoteBlock[] => {
   const blocks: NoteBlock[] = []
-  let blockDirective: BlockDirective | undefined
-  let checklistDirective: ChecklistDirective | undefined
 
   for (const node of tree.children) {
     switch (node.type) {
-      case "html": {
-        const directive = parseHnDirective(node)
-        if (directive?.directive === "block") {
-          if (directive.empty === true) {
-            blocks.push(parseEmptyParagraph(directive))
-            blockDirective = undefined
-          } else {
-            blockDirective = directive
-          }
-        }
-        if (directive?.directive === "checklist") checklistDirective = directive
-        break
-      }
       case "heading": {
-        const block = parseHeading(node, blockDirective)
-        blockDirective = undefined
+        const block = parseHeading(node)
         if (block !== undefined) blocks.push(block)
         break
       }
       case "paragraph":
-        blocks.push(parseParagraph(node, blockDirective))
-        blockDirective = undefined
+        blocks.push(parseParagraph(node))
         break
       case "blockquote":
-        blocks.push(parseBlockquote(node, blockDirective))
-        blockDirective = undefined
+        blocks.push(parseBlockquote(node))
         break
       case "list":
-        if (checklistDirective !== undefined && isChecklistList(node)) {
-          blocks.push(parseChecklist(node, checklistDirective))
-          checklistDirective = undefined
+        if (isChecklistList(node)) {
+          blocks.push(parseChecklist(node))
         }
         break
       case "code":
-        blocks.push(parseCode(node, blockDirective))
-        blockDirective = undefined
+        blocks.push(parseCode(node))
         break
       case "table":
-        blocks.push(parseTable(node, blockDirective))
-        blockDirective = undefined
+        blocks.push(parseTable(node))
         break
       default:
         break
@@ -81,51 +55,29 @@ export const parseMarkdownBlocks = (tree: Root): readonly NoteBlock[] => {
   return blocks
 }
 
-const parseHeading = (
-  node: Heading,
-  directive: BlockDirective | undefined
-): NoteBlock | undefined => {
+const parseHeading = (node: Heading): NoteBlock | undefined => {
   if (!isHeadingLevel(node.depth)) return undefined
 
   return {
-    id: directive?.id ?? createNoteId(),
+    id: createNoteId(),
     kind: "heading",
     level: node.depth,
-    text: textFromPhrasing(node.children),
-    ...(directive?.eyebrow === undefined ? {} : { eyebrow: directive.eyebrow })
+    text: textFromPhrasing(node.children)
   }
 }
 
-const parseParagraph = (
-  node: Paragraph,
-  directive: BlockDirective | undefined
-): NoteBlock => {
-  const id = directive?.id ?? createNoteId()
-  const picture = pictureFromParagraph(node, {
-    id,
-    width: directive?.width,
-    height: directive?.height
-  })
+const parseParagraph = (node: Paragraph): NoteBlock => {
+  const id = createNoteId()
+  const picture = pictureFromParagraph(node, id)
   return picture ?? {
     id,
     kind: "paragraph",
-    text: textFromPhrasing(node.children),
-    ...(directive?.tone === undefined ? {} : { tone: directive.tone })
+    text: textFromPhrasing(node.children)
   }
 }
 
-const parseEmptyParagraph = (directive: BlockDirective): NoteBlock => ({
-  id: directive.id,
-  kind: "paragraph",
-  text: "",
-  ...(directive.tone === undefined ? {} : { tone: directive.tone })
-})
-
-const parseBlockquote = (
-  node: Blockquote,
-  directive: BlockDirective | undefined
-): NoteBlock => {
-  const id = directive?.id ?? createNoteId()
+const parseBlockquote = (node: Blockquote): NoteBlock => {
+  const id = createNoteId()
   const lines = textFromBlockquote(node).split("\n")
   const header = parseCalloutHeader(lines[0])
 
@@ -152,13 +104,10 @@ const parseBlockquote = (
   }
 }
 
-const parseChecklist = (
-  node: List,
-  directive: ChecklistDirective
-): NoteBlock => ({
-  id: directive.id,
+const parseChecklist = (node: List): NoteBlock => ({
+  id: createNoteId(),
   kind: "checklist",
-  title: directive.title,
+  title: "",
   items: node.children.flatMap(parseChecklistItem)
 })
 
@@ -167,37 +116,28 @@ const parseChecklistItem = (item: ListItem): readonly NoteChecklistItem[] => {
   const paragraph = item.children[0]
   if (paragraph?.type !== "paragraph") return []
 
-  const firstInline = paragraph.children[0]
-  const directive =
-    firstInline?.type === "html" ? parseHnDirective(firstInline) : undefined
-  const hasItemId = directive?.directive === "item"
-  const children = hasItemId ? paragraph.children.slice(1) : paragraph.children
-
   return [
     {
-      id: hasItemId ? directive.id : createNoteId(),
+      id: createNoteId(),
       checked: item.checked,
-      text: textFromPhrasing(children).trim()
+      text: textFromPhrasing(paragraph.children).trim()
     }
   ]
 }
 
-const parseCode = (
-  node: Code,
-  directive: BlockDirective | undefined
-): NoteBlock => {
-  if (directive?.kind === "formula") {
+const parseCode = (node: Code): NoteBlock => {
+  if (node.lang === "math") {
     return {
-      id: directive.id,
+      id: createNoteId(),
       kind: "formula",
       formula: node.value
     }
   }
 
-  const filename = parseAttributes(node.meta ?? "").filename
+  const filename = parseFilename(node.meta)
 
   return {
-    id: directive?.id ?? createNoteId(),
+    id: createNoteId(),
     kind: "code",
     language: node.lang ?? "",
     code: node.value,
@@ -205,11 +145,8 @@ const parseCode = (
   }
 }
 
-const parseTable = (
-  node: Table,
-  directive: BlockDirective | undefined
-): NoteBlock => ({
-  id: directive?.id ?? createNoteId(),
+const parseTable = (node: Table): NoteBlock => ({
+  id: createNoteId(),
   kind: "table",
   rows: node.children.map((row) =>
     row.children.map((cell) => textFromPhrasing(cell.children))
@@ -245,3 +182,8 @@ const isChecklistList = (node: List): boolean =>
 
 const isHeadingLevel = (value: number): value is 1 | 2 | 3 | 4 | 5 =>
   value === 1 || value === 2 || value === 3 || value === 4 || value === 5
+
+const parseFilename = (meta: string | null | undefined): string | undefined => {
+  const match = /(?:^|\s)filename="((?:\\.|[^"\\])*)"(?:\s|$)/u.exec(meta ?? "")
+  return match?.[1]?.replaceAll('\\"', '"').replaceAll("\\\\", "\\")
+}

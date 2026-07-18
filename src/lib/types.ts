@@ -128,6 +128,14 @@ export type NoteContentProps = {
    * 默认值: false（只读展示模式）
    */
   readonly editable?: boolean
+  /**
+   * 是否开启内容块选择模式。
+   * 开启后 selectMode 优先于 editable，所有内容保持只读；点击内容块时高亮该块。
+   * 默认值: false
+   */
+  readonly selectMode?: boolean
+  /** 选择模式下点击内容块时触发，参数为被选块或子条目的 id（如 checklist 单条目）。 */
+  readonly onBlockSelect?: (blockId: string) => void
   /** 标题变更回调（仅 editable=true 时触发） */
   readonly onTitleChange?: (title: string) => void
   /** 摘要变更回调 */

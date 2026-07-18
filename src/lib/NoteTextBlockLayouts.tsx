@@ -1,4 +1,8 @@
-import type { ReactElement, KeyboardEvent as ReactKeyboardEvent } from "react"
+import type {
+  FormEvent,
+  ReactElement,
+  KeyboardEvent as ReactKeyboardEvent
+} from "react"
 
 import type { BlockConvertTarget } from "./BlockActionMenu"
 import { BlockActionMenu } from "./BlockActionMenu"
@@ -10,6 +14,7 @@ type EditTextBlock = NoteHeadingBlock | NoteParagraphBlock
 
 type EditableTextLayoutInput = {
   readonly block: EditTextBlock
+  readonly onInput: (event: FormEvent<HTMLElement>) => void
   readonly onKeyDown: (event: ReactKeyboardEvent<HTMLElement>) => void
   readonly onTextChange: (text: string) => void
 }
@@ -29,11 +34,18 @@ type HeadingBlockLayoutInput = {
 
 export const renderEditableTextLayout = ({
   block,
+  onInput,
   onKeyDown,
   onTextChange
 }: EditableTextLayoutInput): ReactElement => (
   <span
-    {...editableProps((event) => onTextChange(event.currentTarget.innerHTML))}
+    {...editableProps(
+      (event) => onTextChange(event.currentTarget.innerHTML),
+      block.kind === "paragraph"
+        ? `hn-note-text hn-note-text--${block.tone ?? "default"}`
+        : undefined
+    )}
+    onInput={onInput}
     onKeyDown={onKeyDown}
     data-editable-block-id={block.id}
     role="textbox"
@@ -57,9 +69,7 @@ export const renderBlockActionMenuLayout = ({
       <BlockActionMenu
         mode="convert"
         open={ctx.openBlockMenuId === convertMenuId}
-        onOpenChange={(open) =>
-          ctx.onBlockMenuOpenChange(convertMenuId, open)
-        }
+        onOpenChange={(open) => ctx.onBlockMenuOpenChange(convertMenuId, open)}
         blockId={block.id}
         kind="heading"
         headingLevel={block.level}
@@ -89,20 +99,14 @@ export const renderHeadingBlockLayout = ({
   const HeadingTag = `h${block.level}` as const
 
   return (
-    <section className="hn-note-block hn-note-block--heading" key={block.id}>
+    <>
       {block.eyebrow ? (
         <span className="hn-note-eyebrow">{block.eyebrow}</span>
       ) : null}
-      <div className="hn-note-block-row" id={block.id}>
-        {actionMenu}
-        <div className="hn-note-block-content">
-          <HeadingTag
-            className={`hn-note-heading hn-note-heading--${block.level}`}
-          >
-            {ctx.editable ? editableText : <span {...richText(block.text)} />}
-          </HeadingTag>
-        </div>
-      </div>
-    </section>
+      {actionMenu}
+      <HeadingTag className={`hn-note-heading hn-note-heading--${block.level}`}>
+        {ctx.editable ? editableText : <span {...richText(block.text)} />}
+      </HeadingTag>
+    </>
   )
 }

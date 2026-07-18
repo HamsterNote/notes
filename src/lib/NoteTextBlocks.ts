@@ -1,4 +1,4 @@
-import type { ReactElement } from "react"
+import type { FormEvent, ReactElement } from "react"
 
 import {
   handleEditableBlockKeyDown,
@@ -11,15 +11,37 @@ import {
   renderHeadingBlockLayout
 } from "./NoteTextBlockLayouts"
 import type { NoteHeadingBlock, NoteParagraphBlock } from "./types"
+import { assertNever } from "./utils"
 
 type EditTextBlock = NoteHeadingBlock | NoteParagraphBlock
 
-const renderEditableText = (
-  block: EditTextBlock,
-  ctx: EditContext
-): ReactElement =>
-  renderEditableTextLayout({
+type NoteTextBlockProps = {
+  readonly block: EditTextBlock
+  readonly ctx: EditContext
+}
+
+export const NoteTextBlock = ({
+  block,
+  ctx
+}: NoteTextBlockProps): ReactElement => {
+  const handleInput = (event: FormEvent<HTMLElement>): void => {
+    const visibleText = event.currentTarget.textContent?.replaceAll("\u00a0", " ")
+    if (visibleText !== "> " || !ctx.onBlocksChange) return
+
+    event.currentTarget.textContent = ""
+    ctx.onBlocksChange(
+      ctx.getBlocks().map((candidate) =>
+        candidate.id === block.id
+          ? { id: block.id, kind: "quote", text: "" }
+          : candidate
+      )
+    )
+    ctx.requestFocus?.(block.id, "start")
+  }
+
+  const editableText = renderEditableTextLayout({
     block,
+    onInput: handleInput,
     onKeyDown: (event) =>
       handleEditableBlockKeyDown({
         ctx,
@@ -31,24 +53,22 @@ const renderEditableText = (
       ctx.onBlocksChange?.(updateText(ctx.getBlocks(), block.id, text))
   })
 
-export const renderHeadingBlock = (
-  block: NoteHeadingBlock,
-  ctx: EditContext
-): ReactElement =>
-  renderHeadingBlockLayout({
-    block,
-    ctx,
-    actionMenu: renderBlockActionMenu(block, ctx),
-    editableText: renderEditableText(block, ctx)
-  })
-
-export const renderParagraphBlock = (
-  block: NoteParagraphBlock,
-  ctx: EditContext
-): ReactElement =>
-  renderParagraphBlockLayout({
-    block,
-    ctx,
-    actionMenu: renderBlockActionMenu(block, ctx),
-    editableText: renderEditableText(block, ctx)
-  })
+  switch (block.kind) {
+    case "heading":
+      return renderHeadingBlockLayout({
+        block,
+        ctx,
+        actionMenu: renderBlockActionMenu(block, ctx),
+        editableText
+      })
+    case "paragraph":
+      return renderParagraphBlockLayout({
+        block,
+        ctx,
+        actionMenu: renderBlockActionMenu(block, ctx),
+        editableText
+      })
+    default:
+      return assertNever(block)
+  }
+}

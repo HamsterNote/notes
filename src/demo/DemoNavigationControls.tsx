@@ -4,18 +4,19 @@ import type {
   NoteContentHandle,
   NoteContentUndoRedoController,
 } from "../lib"
-import { demoNoteIds } from "./noteData"
 
 type DemoNavigationControlsProps = {
   readonly controller: NoteContentUndoRedoController
+  readonly initialBlockId: string
   readonly noteContentRef: RefObject<NoteContentHandle | null>
 }
 
 export const DemoNavigationControls = ({
   controller,
+  initialBlockId,
   noteContentRef,
 }: DemoNavigationControlsProps) => {
-  const [blockId, setBlockId] = useState<string>(demoNoteIds.table)
+  const [blockId, setBlockId] = useState(initialBlockId)
   const [navigationMessage, setNavigationMessage] = useState("")
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {

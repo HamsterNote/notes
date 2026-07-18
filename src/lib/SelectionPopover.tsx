@@ -14,6 +14,7 @@ import { isRangeInSingleEditableRoot } from "./editableSelection"
 
 type SelectionPopoverProps = {
   readonly containerRef: RefObject<HTMLElement | null>
+  readonly portalContainerRef?: RefObject<HTMLElement | null> | undefined
   readonly onMagicLinkConfigure?: (() => Promise<string>) | undefined
   /**
    * createLink 执行后，将 contentEditable 的 innerHTML 同步回 React 状态。
@@ -51,6 +52,7 @@ const computePosition = (range: Range): PopoverPosition => {
 
 export const SelectionPopover = ({
   containerRef,
+  portalContainerRef,
   onMagicLinkConfigure,
   onContentChange
 }: SelectionPopoverProps) => {
@@ -244,8 +246,8 @@ export const SelectionPopover = ({
 
   const popover = (
     <div
-      className="hn-note-popover hn-note-popover--edit"
-      style={style}
+      className={`hn-note-popover hn-note-popover--edit${portalContainerRef ? " hn-note-popover--docked" : ""}`}
+      style={portalContainerRef ? undefined : style}
       role="toolbar"
       aria-label="文字操作"
       onMouseDown={(event) => {
@@ -350,5 +352,5 @@ export const SelectionPopover = ({
     </div>
   )
 
-  return createPortal(popover, document.body)
+  return createPortal(popover, portalContainerRef?.current ?? document.body)
 }

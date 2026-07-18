@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
-import { useState } from "react"
 import { fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { useState } from "react"
 import { describe, expect, it, vi } from "vitest"
 
 import { NoteContent } from "./NoteContent"
@@ -29,6 +29,7 @@ const mixedBlocks: readonly NoteBlock[] = [
   { id: "pic", kind: "picture", url: "blob:x", filename: "pic.png" },
   { id: "formula", kind: "formula", formula: "x^2" },
   { id: "quote", kind: "quote", text: "Quote" },
+  { id: "quote-multi", kind: "quote", text: "First\nSecond\nThird" },
   { id: "code", kind: "code", language: "text", code: "code" },
   { id: "callout", kind: "callout", tone: "info", title: "Tip", text: "Text" }
 ]
@@ -41,6 +42,12 @@ const findHandle = (
   container.querySelector<HTMLElement>(
     `[data-block-id="${blockId}"][data-block-menu-mode="${mode}"]`
   )
+
+const findBlock = (blockId: string): NoteBlock => {
+  const block = mixedBlocks.find(({ id }) => id === blockId)
+  if (!block) throw new Error(`Expected fixture block ${blockId}.`)
+  return block
+}
 
 describe("NoteContent block action handles", () => {
   it("renders a paired add and convert handle for every actionable block", () => {
@@ -85,6 +92,25 @@ describe("NoteContent block action handles", () => {
     }
   })
 
+  it("renders per-quote-line add and convert handles for multi-line quotes", () => {
+    // Given: a quote with three lines ("First\nSecond\nThird").
+    const view = render(
+      <NoteContent blocks={mixedBlocks} title="Quote handles" editable />
+    )
+
+    // Then: each line exposes its own handle pair.
+    // quoteLineId("quote-multi", 0) === "quote-multi"
+    // quoteLineId("quote-multi", 1) === "quote-multi-line-1"
+    // quoteLineId("quote-multi", 2) === "quote-multi-line-2"
+    const lineIds = ["quote-multi", "quote-multi-line-1", "quote-multi-line-2"]
+    for (const lineId of lineIds) {
+      const add = findHandle(view.container, lineId, "add")
+      const convert = findHandle(view.container, lineId, "convert")
+      expect(add, `add handle for ${lineId}`).not.toBeNull()
+      expect(convert, `convert handle for ${lineId}`).not.toBeNull()
+    }
+  })
+
   it("hides both handle modes when the note is not editable", () => {
     // Given: a read-only note.
     const view = render(
@@ -100,7 +126,7 @@ describe("NoteContent block action handles", () => {
     // Given: a controlled note containing only a table.
     const Harness = () => {
       const [blocks, setBlocks] = useState<readonly NoteBlock[]>([
-        mixedBlocks.find((b) => b.id === "table")!
+        findBlock("table")
       ])
       return (
         <NoteContent
@@ -122,19 +148,21 @@ describe("NoteContent block action handles", () => {
 
     // Then: a new paragraph block appears immediately after the table.
     await waitFor(() => {
-      const rows = view.container.querySelectorAll(".hn-note-block-row")
-      expect(rows.length).toBe(2)
-      const tableRow = rows[0]!
-      const newRow = rows[1]!
-      expect(tableRow.id).toBe("table")
-      expect(newRow.querySelector("[data-editable-block-id]")).not.toBeNull()
+      const blocks = view.container.querySelectorAll(
+        ".hn-note-body > .hn-note-block"
+      )
+      expect(blocks.length).toBe(2)
+      expect(blocks.item(0).id).toBe("table")
+      expect(
+        blocks.item(1).querySelector("[data-editable-block-id]")
+      ).not.toBeNull()
     })
   })
 
   it("inserts a new block after the containing checklist from any item add handle", async () => {
     // Given: a controlled note with a checklist followed by a sentinel block.
     const initialBlocks: readonly NoteBlock[] = [
-      mixedBlocks.find((b) => b.id === "list")!,
+      findBlock("list"),
       { id: "tail", kind: "paragraph", text: "Tail" }
     ]
     const Harness = () => {
@@ -159,11 +187,91 @@ describe("NoteContent block action handles", () => {
 
     // Then: the new paragraph is placed after the whole checklist, before tail.
     await waitFor(() => {
-      const rows = view.container.querySelectorAll(".hn-note-block-row")
-      expect(rows[0]!.id).toBe("item-1")
-      expect(rows[1]!.id).toBe("item-2")
-      expect(rows[2]!.querySelector("[data-editable-block-id]")).not.toBeNull()
-      expect(rows[3]!.id).toBe("tail")
+      const blocks = view.container.querySelectorAll(
+        ".hn-note-body > [data-note-sortable-id]"
+      )
+      expect(blocks).toHaveLength(4)
+      expect(blocks.item(0).id).toBe("item-1")
+      expect(blocks.item(1).id).toBe("item-2")
+      expect(
+        blocks.item(2).querySelector("[data-editable-block-id]")
+      ).not.toBeNull()
+      expect(blocks.item(3).id).toBe("tail")
+    })
+  })
+
+  it("inserts a new checklist item immediately after the source item", async () => {
+    // Given: a controlled checklist with two items.
+    const Harness = () => {
+      const [blocks, setBlocks] = useState<readonly NoteBlock[]>([
+        findBlock("list")
+      ])
+      return (
+        <NoteContent
+          blocks={blocks}
+          title="Insert checklist item"
+          editable
+          onBlocksChange={setBlocks}
+        />
+      )
+    }
+    const view = render(<Harness />)
+
+    // When: List is selected from the first item's add menu.
+    const add = findHandle(view.container, "item-1", "add")
+    if (!add) throw new Error("Expected item-1 add handle.")
+    fireEvent.click(add)
+    fireEvent.click(await screen.findByRole("menuitem", { name: "List" }))
+
+    // Then: one empty item is inserted between the two existing items.
+    await waitFor(() => {
+      const items = Array.from(
+        view.container.querySelectorAll<HTMLElement>(
+          ".hn-note-body > .hn-note-checklist-item"
+        )
+      )
+      expect(items).toHaveLength(3)
+      expect(items[0]?.id).toBe("item-1")
+      expect(items[1]?.textContent).not.toContain("Two")
+      expect(items[2]?.id).toBe("item-2")
+      expect(view.container.querySelector(".hn-note-checklist")).toBeNull()
+    })
+  })
+
+  it("inserts a new quote line immediately after the source line", async () => {
+    // Given: a controlled quote with two lines.
+    const Harness = () => {
+      const [blocks, setBlocks] = useState<readonly NoteBlock[]>([
+        { id: "quote-lines", kind: "quote", text: "First\nSecond" }
+      ])
+      return (
+        <NoteContent
+          blocks={blocks}
+          title="Insert quote line"
+          editable
+          onBlocksChange={setBlocks}
+        />
+      )
+    }
+    const view = render(<Harness />)
+
+    // When: Quote is selected from the first line's add menu.
+    const add = findHandle(view.container, "quote-lines", "add")
+    if (!add) throw new Error("Expected first quote-line add handle.")
+    fireEvent.click(add)
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Quote" }))
+
+    // Then: an empty quote line is inserted before the original second line.
+    await waitFor(() => {
+      const lines = Array.from(
+        view.container.querySelectorAll(".hn-note-quote-line p")
+      ).map((line) => line.textContent)
+      expect(lines).toEqual(["First", "", "Second"])
+      expect(
+        view.container.querySelectorAll(
+          ".hn-note-body > .hn-note-quote-line"
+        )
+      ).toHaveLength(3)
     })
   })
 
@@ -201,11 +309,13 @@ describe("NoteContent block action handles", () => {
     const onBlocksChange = vi.fn()
     const view = render(
       <NoteContent
-        blocks={[{
-          id: "magic",
-          kind: "paragraph",
-          text: '<a href="hnmagic://open">Open</a>'
-        }]}
+        blocks={[
+          {
+            id: "magic",
+            kind: "paragraph",
+            text: '<a href="hnmagic://open">Open</a>'
+          }
+        ]}
         title="Magic link"
         editable
         onBlocksChange={onBlocksChange}

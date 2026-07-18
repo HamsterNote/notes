@@ -46,7 +46,7 @@ The dark theme overrides the neutral palette with slate surfaces and high-contra
 - Shell radius is intentionally unset; the consuming layout owns outer rounding.
 - Inline pills use `999px` (`src/lib/styles.css:72`).
 - Quote uses `0 20px 20px 0` (`src/lib/styles.css:247`).
-- Editable fields use `6px` (`src/lib/styles.css:322`).
+- Editable line content is unframed.
 - Checklist items use `18px` (`src/lib/styles.css:209`).
 - Callouts use `22px` (`src/lib/styles.css:291`).
 - Popover uses `10px` (`src/lib/styles.css:364`).
@@ -54,8 +54,8 @@ The dark theme overrides the neutral palette with slate surfaces and high-contra
 
 ### Spacing Scale (from existing rules)
 
-- `--hn-body-gap: 1.25rem` (`src/lib/styles.css:133`).
-- `--hn-body-padding: 1.5rem 2rem 2rem` (`src/lib/styles.css:134`).
+- `--hn-body-gap: 0.625rem`.
+- Body padding is `1.5rem 4rem 2rem` above 840px and `1.5rem 1.5rem 2rem` at or below 840px.
 - `--hn-hero-padding: 2rem 2rem 1.25rem` (`src/lib/styles.css:56`).
 - `--hn-facts-gap: 0.9rem` (`src/lib/styles.css:108`).
 - `--hn-checklist-gap: 0.8rem` (`src/lib/styles.css:197`).
@@ -90,27 +90,32 @@ Serif headings use `"Iowan Old Style", "Palatino Linotype", "Book Antiqua", Pala
 
 ---
 
-## 5. Editable Hover / Focus States
+## 5. Editable Content States
 
-All editable fields share the same transition and outline reset.
+Editable line content stays visually neutral while the caret or pointer moves between rows.
 
-- Base: `border-radius: 6px`, `transition: background 0.15s ease, box-shadow 0.15s ease`, `outline: none` (`src/lib/styles.css:322-324`).
-- Hover: `background: color-mix(in srgb, var(--hn-theme) 5%, transparent)`, `box-shadow: 0 0 0 1px var(--hn-theme-border)` (`src/lib/styles.css:327-329`).
-- Focus: `background: color-mix(in srgb, var(--hn-theme) 8%, transparent)`, `box-shadow: 0 0 0 2px var(--hn-theme)` (`src/lib/styles.css:332-335`).
+- Base, hover, and focus use transparent backgrounds with no border or outline treatment.
+- Empty editable roots retain `min-height: 1lh` so blank rows remain targetable.
 - Code blocks keep the highlighted preview beneath a transparent plain-text editing layer, preserving the same monospace font, size, line height, and syntax colors while the caret remains visible.
-- Code editors override hover/focus with `background: rgba(255, 255, 255, 0.05)` and `box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15)`.
+
+### Block selection
+
+- `selectMode` takes precedence over `editable`; selectable content never exposes editing controls.
+- Each top-level block is one keyboard-focusable selection boundary. Nested checklist rows select their containing checklist block.
+- Hover uses a 6% `--hn-theme` mix. Keyboard focus and the selected state use `--hn-theme-soft` with a solid `2px --hn-theme` ring.
 
 ---
 
 ## 6. Popover Layer
 
-The selection popover is a fixed-position dark surface.
+The selection popover is a fixed-position dark surface on desktop and docks into the shell bottom bar on mobile devices.
 
 - Positioning: `position: fixed`, `z-index: 9999` (`src/lib/styles.css:357-359`).
 - Background: `#1e293b` (`src/lib/styles.css:365`).
 - Shadow: `0 8px 24px rgba(15, 23, 42, 0.28)` (`src/lib/styles.css:366`).
 - Radius: `10px` (`src/lib/styles.css:364`).
 - Padding: `0.3rem`, internal gap `0.15rem` (`src/lib/styles.css:362-363`).
+- Mobile docking: the portal target is `.hn-note-bottom-bar`, a direct sticky child positioned relative to `.hn-note-shell`.
 
 Popover buttons:
 
@@ -123,12 +128,15 @@ Animation is a pure opacity fade: `@keyframes hn-popover-in` from `opacity: 0` t
 
 ## 7. Responsive Breakpoints
 
-The only responsive breakpoint in the file is `max-width: 840px` (`src/lib/styles.css:343-353`).
+The compact responsive breakpoint is `max-width: 840px` and is inclusive.
 
 At that breakpoint:
 
-- Hero and body horizontal padding reduce to `1.25rem` (`src/lib/styles.css:346-347`).
+- Body horizontal padding is selected from `window.innerWidth`, not the rendered body width.
+- Left-side add and conversion handles, including their hover gutter, are hidden.
 - Hero grid collapses to a single column (`src/lib/styles.css:350-352`).
+
+Mobile-device detection is separate from viewport width. Mobile devices mount a sticky shell-relative bottom bar and portal the text-selection toolbar into it.
 
 ---
 
@@ -136,9 +144,8 @@ At that breakpoint:
 
 - Checkboxes use `cursor: default` in read-only mode and `cursor: pointer` only when editable (`src/lib/styles.css:222`, `src/lib/styles.css:232`).
 - Checkbox hover and checked-hover rely on theme color changes rather than relying on color alone; the cursor also changes (`src/lib/styles.css:235-242`).
-- Editable elements remove the default outline and replace it with a visible `box-shadow` ring on focus (`src/lib/styles.css:324`, `src/lib/styles.css:332-335`).
+- Editable row content intentionally has no hover or focus border, outline, or background; the text caret communicates editing focus.
 - Popover uses a high-contrast dark surface (`#1e293b` on light shell) and a large shadow to separate it from content (`src/lib/styles.css:365-366`).
-- Focus ring for editable fields uses a solid `2px` theme stroke (`src/lib/styles.css:334`).
 
 ---
 
@@ -202,3 +209,13 @@ Table insertion and operation controls sit on cell boundaries rather than inside
 - Editable picture blocks reuse the standard left block handle. The existing block menu exposes a `图片` action only when the host supplies `onPictureUpload` and can accept block changes.
 - Activating `图片` opens the system image picker. While the selected file is being read and uploaded, the menu action is disabled and labelled `上传中…`; a rejected upload remains in place as `上传失败，重试` without replacing the source block.
 - The image `alt` text is the original filename. Uploaded images retain their intrinsic width and height as optional block metadata so read-only and editable rendering reserve the same responsive geometry before decoding.
+
+---
+
+## 13. Block Move Interaction
+
+- Editable controlled notes allow ordinary top-level blocks, checklist items, and quote lines to be reordered within their respective containers without introducing a separate palette or floating drag preview.
+- Above the `840px` compact breakpoint, dragging starts from each row's existing conversion handle. Checklist items and quote lines use their own existing handles and never add a drag-only handle to the composite parent. A click without pointer travel on a conversion handle continues to open its menu.
+- At and below the compact breakpoint, where handles are hidden, a stationary `500ms` touch hold on a row starts the same move interaction. Moving before the hold threshold preserves native scrolling and cancels the pending drag. Once dragging activates, native text selection is cleared for the remainder of the gesture.
+- The source block remains rendered in place throughout the gesture. Crossing another block's vertical midpoint previews the corresponding insertion boundary with a `3px` `--hn-theme` line and `--hn-theme-soft` edge.
+- Reordering is committed through `onBlocksChange` only on pointer release. Pointer cancellation removes all transient drag and insertion states without changing blocks.

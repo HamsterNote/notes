@@ -26,7 +26,7 @@ describe("convertBlockFormat structural targets", () => {
     expect(converted).toMatchObject({
       id: "intro",
       kind: "checklist",
-      title: "List",
+      title: "",
       items: [
         {
           checked: false,

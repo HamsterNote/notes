@@ -423,13 +423,13 @@ describe("insertBlockAfter", () => {
       target: { kind: "checklist" }
     })
 
-    // Then: the new checklist has the default title and a single empty item.
+    // Then: the new checklist has an empty title and a single empty item.
     expect(result).toEqual([
       paragraphBlock,
       {
         id: "89430e11-f481-4d80-ab93-6c065784b0a6",
         kind: "checklist",
-        title: "List",
+        title: "",
         items: [
           {
             id: "32ff2214-ad42-42c1-a50a-a663f4b6d601",
