@@ -162,6 +162,16 @@ export type NoteContentProps = {
   readonly onMagicLinkClick?: (url: string) => void
   /** 撤销/重做控制器实例（外部注入模式） */
   readonly undoRedoController?: NoteContentUndoRedoController
+  /**
+   * 内容顶部额外留白（px）。
+   * 叠加在 hero 默认顶部内边距（2rem）之上，默认值: 0。
+   */
+  readonly topPadding?: number
+  /**
+   * 内容底部额外留白（px）。
+   * 叠加在 body 默认底部内边距（2rem）之上，默认值: 0。
+   */
+  readonly bottomPadding?: number
   /** React 19 ref 手柄；同时提供撤销/重做与按内容 id 跳转能力。 */
   readonly ref?: Ref<NoteContentHandle>
 }

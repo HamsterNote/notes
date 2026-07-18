@@ -213,6 +213,28 @@ select {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
+/* 范围滑块行：滑块 + 数值显示 */
+.demo-range-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.demo-range {
+  flex: 1 1 auto;
+  min-width: 0;
+  accent-color: #3b82f6;
+  cursor: pointer;
+}
+
+.demo-range-value {
+  min-width: 3.5rem;
+  text-align: right;
+  font-family: "SFMono-Regular", "Menlo", monospace;
+  font-size: 0.85rem;
+  color: rgba(51, 65, 85, 0.7);
+}
+
 /* 撤销/恢复按钮行：沿用 demo-text-input 的边框/圆角/聚焦规范，保证视觉一致 */
 .demo-undo-redo-row {
   display: flex;

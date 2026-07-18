@@ -60,7 +60,8 @@
 .hn-note-hero {
   /* 左右 padding 需容纳左侧的加号/转换按钮（handle 最远在内容左边缘外 56px），
      避免加号按钮被容器边缘裁切 */
-  padding: 2rem 3.5rem 1.25rem;
+  /* 顶部 padding 叠加 --hn-top-padding（由 topPadding prop 注入，单位 px） */
+  padding: calc(2rem + var(--hn-top-padding, 0px)) 3.5rem 1.25rem;
   border-bottom: 1px solid var(--hn-border);
 }
 
@@ -109,7 +110,8 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 0.625rem;
-  padding: 1.5rem var(--hn-body-padding-x, 4rem) 2rem;
+  /* 底部 padding 叠加 --hn-bottom-padding（由 bottomPadding prop 注入，单位 px） */
+  padding: 1.5rem var(--hn-body-padding-x, 4rem) calc(2rem + var(--hn-bottom-padding, 0px));
 }
 
 /* 正文下方可点击空白区域：点击新建空段落，同时为页面底部留出 1/3 屏幕高度 */
@@ -123,6 +125,9 @@
   text-align: left;
 }
 
+/* 移动端底部工具栏容器：仅作为 sticky 锚点 + 透明留白托盘。
+   视觉浮层（跑道型胶囊）由内部 .hn-note-popover--docked 承担，
+   这样桌面悬浮版 popover 仍维持深色系，与此处主题化样式互不污染。 */
 .hn-note-bottom-bar {
   position: sticky;
   bottom: 0;
@@ -131,9 +136,12 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 42px;
-  border-top: 1px solid var(--hn-border);
-  background: var(--hn-surface);
+  padding: 0.625rem 1rem 0.75rem;
+  pointer-events: none;
+}
+
+.hn-note-bottom-bar > .hn-note-popover {
+  pointer-events: auto;
 }
 
 .hn-note-block,
@@ -563,14 +571,68 @@
   animation: hn-popover-in 0.12s ease;
 }
 
+/* Docked 模式（移动端底部栏）：浮起、跑道型胶囊，背景跟随主题色
+   （浅色主题用 --hn-bg 浅色，深色主题用 --hn-bg 深色）。
+   基类 .hn-note-popover 的深色配色仅作用于桌面悬浮版 popover，不在此重写。 */
 .hn-note-popover--docked {
-  position: static;
-  width: 100%;
+  position: relative;
+  width: auto;
   max-width: 100%;
   justify-content: center;
-  border-radius: 0;
-  box-shadow: none;
+  padding: 0.35rem 0.45rem;
+  border: 1px solid var(--hn-border);
+  border-radius: 999px;
+  background: var(--hn-bg);
+  color: var(--hn-text);
+  box-shadow:
+    0 4px 14px rgba(15, 23, 42, 0.18),
+    0 1px 3px rgba(15, 23, 42, 0.08);
   transform: none;
+}
+
+/* Docked 模式下按钮文字颜色随主题；hover 用 surface 而不是透明白覆盖 */
+.hn-note-popover--docked .hn-note-popover-btn {
+  color: var(--hn-text);
+}
+
+.hn-note-popover--docked .hn-note-popover-btn:hover {
+  background: var(--hn-surface-hover);
+  color: var(--hn-text);
+}
+
+.hn-note-popover--docked .hn-note-popover-divider {
+  background: var(--hn-border-strong);
+}
+
+.hn-note-popover--docked .hn-note-popover-link-input {
+  background: var(--hn-surface);
+  color: var(--hn-text);
+}
+
+.hn-note-popover--docked .hn-note-popover-link-input:focus {
+  background: var(--hn-surface-hover);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--hn-theme) 45%, transparent);
+}
+
+.hn-note-popover--docked .hn-note-popover-link-input::placeholder {
+  color: var(--hn-text-muted);
+}
+
+/* 确认/取消按钮：在主题化底色上保持可读的绿/红状态色 */
+.hn-note-popover--docked .hn-note-popover-btn--confirm {
+  color: #16a34a;
+}
+
+.hn-note-popover--docked .hn-note-popover-btn--confirm:hover {
+  color: #15803d;
+}
+
+.hn-note-popover--docked .hn-note-popover-btn--cancel {
+  color: #dc2626;
+}
+
+.hn-note-popover--docked .hn-note-popover-btn--cancel:hover {
+  color: #b91c1c;
 }
 
 .hn-note-popover-btn {

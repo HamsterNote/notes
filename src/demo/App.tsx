@@ -33,6 +33,8 @@ export const App = () => {
   const [theme, setTheme] = useState<NoteTheme>("light")
   const [editable, setEditable] = useState(true)
   const [selectMode, setSelectMode] = useState(false)
+  const [topPadding, setTopPadding] = useState(0)
+  const [bottomPadding, setBottomPadding] = useState(0)
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null)
   const [documentHistory, documentActions] =
     useUndo<DemoMarkdownDocument>(initialDocument)
@@ -269,6 +271,46 @@ export const App = () => {
           noteContentRef={noteContentRef}
         />
 
+        {/* 顶部 / 底部留白（px）—— 演示 topPadding / bottomPadding props */}
+        <section className="demo-control-group">
+          <label className="demo-control-label" htmlFor="top-padding">
+            Top Padding
+          </label>
+          <div className="demo-range-row">
+            <input
+              id="top-padding"
+              type="range"
+              className="demo-range"
+              min={0}
+              max={120}
+              step={1}
+              value={topPadding}
+              onChange={(event) => setTopPadding(Number(event.target.value))}
+            />
+            <span className="demo-range-value">{topPadding}px</span>
+          </div>
+
+          <label className="demo-control-label" htmlFor="bottom-padding">
+            Bottom Padding
+          </label>
+          <div className="demo-range-row">
+            <input
+              id="bottom-padding"
+              type="range"
+              className="demo-range"
+              min={0}
+              max={120}
+              step={1}
+              value={bottomPadding}
+              onChange={(event) => setBottomPadding(Number(event.target.value))}
+            />
+            <span className="demo-range-value">{bottomPadding}px</span>
+          </div>
+          <p className="demo-hint">
+            体现 NoteContent 的 topPadding / bottomPadding props（单位 px）
+          </p>
+        </section>
+
         {/* 标题输入 */}
         <section className="demo-control-group">
           <label className="demo-control-label" htmlFor="title-input">
@@ -359,6 +401,8 @@ export const App = () => {
             themeColor={themeColor}
             editable={editable}
             selectMode={selectMode}
+            topPadding={topPadding}
+            bottomPadding={bottomPadding}
             onTitleChange={(nextTitle) =>
               updateDocument((current) => ({ ...current, title: nextTitle }))
             }

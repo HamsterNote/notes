@@ -46,7 +46,9 @@ export function NoteContent({
   onMagicLinkConfigure,
   onMagicLinkClick,
   ref: undoRedoRef,
-  undoRedoController
+  undoRedoController,
+  topPadding,
+  bottomPadding
 }: NoteContentProps | LegacyNoteContentProps) {
 const shellRef = useRef<HTMLElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
@@ -73,9 +75,14 @@ const shellRef = useRef<HTMLElement>(null)
   const blockDragEnabled = contentEditable && onBlocksChange !== undefined
   // 底部工具栏触发条件：移动设备 或 视口宽度 <= 840px（窄屏布局）
   const useBottomBar = isMobileDevice || viewportWidth <= 840
-  const shellStyle = themeColor
-    ? ({ "--hn-theme": themeColor } as CSSProperties)
-    : undefined
+  // shellStyle：注入主题色与可选的顶部/底部额外留白（px）。
+  // 不直接写 padding，而是用 CSS 变量，使 .hn-note-hero/.hn-note-body
+  // 能以 calc 叠加在各自默认内边距之上，保持原有视觉节奏。
+  const shellStyle = {
+    ...(themeColor ? { "--hn-theme": themeColor } : {}),
+    ...(topPadding ? { "--hn-top-padding": `${topPadding}px` } : {}),
+    ...(bottomPadding ? { "--hn-bottom-padding": `${bottomPadding}px` } : {})
+  } as CSSProperties
   const controller = undoRedoController ?? DISABLED_CONTROLLER
   useImperativeHandle(
     undoRedoRef,

@@ -109,7 +109,11 @@ export const SelectionPopover = ({
     return () => document.removeEventListener("selectionchange", sync)
   }, [containerRef])
 
-  // popover 展示期间：任意滚动或 Escape 关闭（含链接模式状态重置）
+  // popover 展示期间：滚动或 Escape 关闭（含链接模式状态重置）。
+  // 注意 Docked 模式（移动端底部栏内）跳过 scroll 关闭：
+  // 移动端触摸滚动时浏览器通常保留选区高亮，但不会触发 selectionchange，
+  // 若仍按 scroll 关闭会导致“选区高亮还在、底部工具栏却消失”的体验割裂。
+  // Escape 等键盘事件在两种模式下都关闭。
   useEffect(() => {
     if (!position) return
 
@@ -124,13 +128,16 @@ export const SelectionPopover = ({
       if (event.key === "Escape") close()
     }
 
-    window.addEventListener("scroll", close, true)
+    const isDocked = Boolean(portalContainerRef?.current)
+    if (!isDocked) {
+      window.addEventListener("scroll", close, true)
+    }
     document.addEventListener("keydown", onKeyDown)
     return () => {
       window.removeEventListener("scroll", close, true)
       document.removeEventListener("keydown", onKeyDown)
     }
-  }, [position])
+  }, [position, portalContainerRef])
 
   // 进入链接配置模式：聚焦输入框
   useEffect(() => {
