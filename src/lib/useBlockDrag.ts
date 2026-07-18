@@ -18,7 +18,7 @@ import {
   moveBlockSourceToBoundary
 } from "./blockSourceMove"
 import type { NoteBlock } from "./types"
-import { useDraggedTouchClickSuppression } from "./useDraggedTouchClickSuppression"
+import { useDraggedClickSuppression } from "./useDraggedTouchClickSuppression"
 
 type UseBlockDragInput = {
   readonly bodyRef: RefObject<HTMLDivElement | null>
@@ -44,7 +44,7 @@ export const useBlockDrag = ({
 }: UseBlockDragInput): void => {
   const blocksRef = useRef(blocks)
   const onBlocksChangeRef = useRef(onBlocksChange)
-  const suppressNextTouchClick = useDraggedTouchClickSuppression()
+  const suppressNextClick = useDraggedClickSuppression(bodyRef)
   blocksRef.current = blocks
   onBlocksChangeRef.current = onBlocksChange
   const blockBindingKey = blocks
@@ -211,7 +211,8 @@ export const useBlockDrag = ({
       controls: {
         begin: beginDrag,
         finish: finishDrag,
-        preview: previewAt
+        preview: previewAt,
+        suppressClick: suppressNextClick
       }
     })
 
@@ -268,7 +269,7 @@ export const useBlockDrag = ({
       }
       if (event.pointerId !== activePointerId || sourceElement === null) return
       event.preventDefault()
-      if (event.type === "pointerup") suppressNextTouchClick()
+      if (event.type === "pointerup") suppressNextClick()
       finishDrag(event.type === "pointerup")
     }
     const preventActiveContextMenu = (event: MouseEvent): void => {
@@ -300,7 +301,7 @@ export const useBlockDrag = ({
     blockBindingKey,
     bodyRef,
     enabled,
-    suppressNextTouchClick,
+    suppressNextClick,
     touchEnabled
   ])
 }

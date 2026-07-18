@@ -21,7 +21,6 @@ import { SelectionPopover } from "./SelectionPopover"
 import type { NoteContentProps, NoteContentUndoRedoHandle } from "./types"
 import { useBlockDrag } from "./useBlockDrag"
 import { useBlockEditing } from "./useBlockEditing"
-import { formatUpdatedAt, getReadingMinutes } from "./utils"
 
 type LegacyNoteContentProps = Omit<NoteContentProps, "ref"> & {
   readonly ref?: Ref<NoteContentUndoRedoHandle>
@@ -49,8 +48,7 @@ export function NoteContent({
   ref: undoRedoRef,
   undoRedoController
 }: NoteContentProps | LegacyNoteContentProps) {
-  const readingMinutes = getReadingMinutes(blocks)
-  const shellRef = useRef<HTMLElement>(null)
+const shellRef = useRef<HTMLElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
   const bottomBarRef = useRef<HTMLDivElement>(null)
   const [viewportWidth, setViewportWidth] = useState(() =>
@@ -195,52 +193,31 @@ export function NoteContent({
         }}
       >
         <header className="hn-note-hero">
-          <div className="hn-note-hero-grid">
-            <div>
-              {tagLabel ? <span className="hn-note-badge">{tagLabel}</span> : null}
-              {contentEditable ? (
-                <h1
-                  {...editableProps((event) =>
-                    onTitleChange?.(event.currentTarget.innerHTML)
-                  )}
-                  {...richText(title)}
-                />
-              ) : (
-                <h1 {...richText(title)} />
+          {tagLabel ? <span className="hn-note-badge">{tagLabel}</span> : null}
+          {contentEditable ? (
+            <h1
+              {...editableProps((event) =>
+                onTitleChange?.(event.currentTarget.innerHTML)
               )}
-              {summary ? (
-                contentEditable ? (
-                  <p
-                    {...editableProps(
-                      (event) =>
-                        onSummaryChange?.(event.currentTarget.innerHTML),
-                      "hn-note-summary"
-                    )}
-                    {...richText(summary)}
-                  />
-                ) : (
-                  <p className="hn-note-summary" {...richText(summary)} />
-                )
-              ) : null}
-            </div>
-
-            <dl className="hn-note-facts" aria-label="Note metadata">
-              <div>
-                <dt>Reading</dt>
-                <dd>{readingMinutes} min</dd>
-              </div>
-              <div>
-                <dt>Blocks</dt>
-                <dd>{blocks.length}</dd>
-              </div>
-              {updatedAt ? (
-                <div>
-                  <dt>Updated</dt>
-                  <dd>{formatUpdatedAt(updatedAt)}</dd>
-                </div>
-              ) : null}
-            </dl>
-          </div>
+              {...richText(title)}
+            />
+          ) : (
+            <h1 {...richText(title)} />
+          )}
+          {summary ? (
+            contentEditable ? (
+              <p
+                {...editableProps(
+                  (event) =>
+                    onSummaryChange?.(event.currentTarget.innerHTML),
+                  "hn-note-summary"
+                )}
+                {...richText(summary)}
+              />
+            ) : (
+              <p className="hn-note-summary" {...richText(summary)} />
+            )
+          ) : null}
         </header>
 
         <div

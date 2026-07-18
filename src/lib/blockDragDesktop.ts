@@ -16,6 +16,7 @@ type DesktopBlockDragControls = {
   readonly begin: (sourceElement: HTMLElement, pointerId: number) => void
   readonly finish: (commit: boolean) => void
   readonly preview: (clientY: number) => void
+  readonly suppressClick: () => void
 }
 
 type BindDesktopBlockDragInput = {
@@ -29,7 +30,6 @@ export const bindDesktopBlockDrag = ({
 }: BindDesktopBlockDragInput): (() => void) => {
   const drags: Drag[] = []
   const cleanups: (() => void)[] = []
-  const clickTimers: number[] = []
 
   getDraggableElements(body).forEach((element) => {
     const handle = Array.from(
@@ -45,7 +45,6 @@ export const bindDesktopBlockDrag = ({
     let pointerId: number | null = null
     let dragged = false
     let cancelled = false
-    let suppressClick = false
     const drag = new Drag(handle, {
       getPose: getStaticBlockPose,
       setPose: () => undefined,
@@ -73,22 +72,11 @@ export const bindDesktopBlockDrag = ({
     }
     const handleEnd = (): void => {
       if (dragged && !cancelled) {
-        suppressClick = true
-        clickTimers.push(
-          window.setTimeout(() => {
-            suppressClick = false
-          }, 0)
-        )
+        controls.suppressClick()
       }
       if (dragged) controls.finish(!cancelled)
       startPoint = null
       pointerId = null
-    }
-    const suppressDraggedClick = (event: MouseEvent): void => {
-      if (!suppressClick) return
-      suppressClick = false
-      event.preventDefault()
-      event.stopPropagation()
     }
     const handleCancel = (event: PointerEvent): void => {
       if (event.pointerId !== pointerId) return
@@ -96,14 +84,12 @@ export const bindDesktopBlockDrag = ({
       if (dragged) controls.finish(false)
     }
 
-    handle.addEventListener("click", suppressDraggedClick, true)
     document.addEventListener("pointercancel", handleCancel, true)
     drag.addEventListener(DragOperationType.Start, handleStart)
     drag.addEventListener(DragOperationType.Move, handleMove)
     drag.addEventListener(DragOperationType.End, handleEnd)
     drags.push(drag)
     cleanups.push(() => {
-      handle.removeEventListener("click", suppressDraggedClick, true)
       document.removeEventListener("pointercancel", handleCancel, true)
     })
   })
@@ -114,9 +100,6 @@ export const bindDesktopBlockDrag = ({
     })
     drags.forEach((drag) => {
       drag.destroy()
-    })
-    clickTimers.forEach((timer) => {
-      window.clearTimeout(timer)
     })
   }
 }

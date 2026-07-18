@@ -237,6 +237,77 @@ describe("NoteContent block dragging", () => {
     ).toEqual(["beta", "gamma", "alpha"])
   })
 
+  it("does not append a paragraph from the click generated after dragging", () => {
+    // Given: an editable note whose body tail can append a new paragraph.
+    const onBlocksChange = vi.fn()
+    const view = render(
+      <NoteContent
+        blocks={initialBlocks}
+        title="Block drag"
+        editable
+        onBlocksChange={onBlocksChange}
+      />
+    )
+    setBlockRects(view.container)
+    const handle = view.container.querySelector<HTMLElement>(
+      '[data-block-id="alpha"][data-block-menu-mode="convert"]'
+    )
+    const body = view.container.querySelector<HTMLElement>(".hn-note-body")
+    if (!handle || !body) throw new Error("Expected drag handle and note body.")
+
+    // When: the handle is dragged and the browser emits the trailing click on the body.
+    fireEvent.pointerDown(handle, {
+      button: 0,
+      clientX: 20,
+      clientY: 20,
+      pointerId: 1,
+      pointerType: "mouse"
+    })
+    fireEvent.pointerMove(document, {
+      clientX: 20,
+      clientY: 155,
+      pointerId: 1,
+      pointerType: "mouse"
+    })
+    fireEvent.pointerUp(document, {
+      clientX: 20,
+      clientY: 155,
+      pointerId: 1,
+      pointerType: "mouse"
+    })
+    fireEvent.click(body)
+
+    // Then: the drag reorders blocks, but the trailing click does not append a row.
+    expect(onBlocksChange).toHaveBeenCalledTimes(1)
+    expect(onBlocksChange.mock.calls[0]?.[0]).toEqual([
+      initialBlocks[1],
+      initialBlocks[2],
+      initialBlocks[0]
+    ])
+  })
+
+  it("still appends a paragraph for a normal blank-body click", () => {
+    // Given: an editable note with no active drag gesture.
+    const onBlocksChange = vi.fn()
+    const view = render(
+      <NoteContent
+        blocks={initialBlocks}
+        title="Block drag"
+        editable
+        onBlocksChange={onBlocksChange}
+      />
+    )
+    const body = view.container.querySelector<HTMLElement>(".hn-note-body")
+    if (!body) throw new Error("Expected note body.")
+
+    // When: the user clicks the blank body tail.
+    fireEvent.click(body)
+
+    // Then: the existing append-row behavior remains available.
+    expect(onBlocksChange).toHaveBeenCalledTimes(1)
+    expect(onBlocksChange.mock.calls[0]?.[0]).toHaveLength(initialBlocks.length + 1)
+  })
+
   it("starts touch dragging only after a long press on a block", async () => {
     vi.useFakeTimers()
     try {
