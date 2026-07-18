@@ -65,6 +65,12 @@
   border-bottom: 1px solid var(--hn-border);
 }
 
+.hn-note-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(16rem, 1fr);
+  gap: 1.5rem;
+}
+
 .hn-note-badge,
 .hn-note-chip {
   display: inline-flex;
@@ -104,6 +110,31 @@
   color: var(--hn-text-muted);
   font-size: 1.04rem;
   line-height: 1.8;
+}
+
+.hn-note-facts {
+  display: grid;
+  gap: 0.9rem;
+  align-content: start;
+  padding: 1rem;
+  border: 1px solid var(--hn-border);
+  border-radius: var(--hn-radius);
+  background: var(--hn-surface);
+}
+
+.hn-note-facts div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.hn-note-facts dt {
+  color: var(--hn-text-muted);
+}
+
+.hn-note-facts dd {
+  margin: 0;
+  font-weight: 700;
 }
 
 .hn-note-body {
@@ -553,6 +584,10 @@
   .hn-note-hero {
     padding-right: 3.5rem;
     padding-left: 3.5rem;
+  }
+
+  .hn-note-hero-grid {
+    grid-template-columns: 1fr;
   }
 }
 
