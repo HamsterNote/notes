@@ -7,7 +7,6 @@ import {
 } from "./BlockActionMenu"
 import {
   deleteEmptyTextBlock,
-  insertBlockAfter,
   insertSplitBlock,
   isVisibleHtmlEmpty
 } from "./blockEditing"
@@ -16,6 +15,7 @@ import {
   convertBlockSource,
   replaceBlockSourceWithPicture
 } from "./blockSourceConversion"
+import { insertBlockAfterSource } from "./blockSourceInsertion"
 import { resolveDeletionFocus } from "./NoteBlockFocus"
 import type { EditContext } from "./NoteContentEditing"
 import { createNoteId } from "./noteId"
@@ -212,16 +212,15 @@ export const renderBlockActionMenu = (
   const onAdd = (target: BlockConvertTarget) => {
     const nextId = createNoteId()
     const focusId = target.kind === "checklist" ? createNoteId() : nextId
-    ctx.onBlocksChange?.(
-      insertBlockAfter({
-        blocks: ctx.getBlocks(),
-        blockId: source.blockId,
-        ...(target.kind === "checklist" ? { checklistItemId: focusId } : {}),
-        nextId,
-        target
-      })
-    )
-    return focusId
+    const result = insertBlockAfterSource({
+      blocks: ctx.getBlocks(),
+      focusId,
+      nextId,
+      source,
+      target
+    })
+    ctx.onBlocksChange?.(result.blocks)
+    return result.focusId
   }
 
   return (

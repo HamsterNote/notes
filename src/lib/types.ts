@@ -128,6 +128,14 @@ export type NoteContentProps = {
    * 默认值: false（只读展示模式）
    */
   readonly editable?: boolean
+  /**
+   * 是否开启内容块选择模式。
+   * 开启后 selectMode 优先于 editable，所有内容保持只读；点击内容块时高亮该块。
+   * 默认值: false
+   */
+  readonly selectMode?: boolean
+  /** 选择模式下点击内容块时触发，参数为被选块或子条目的 id（如 checklist 单条目）。 */
+  readonly onBlockSelect?: (blockId: string) => void
   /** 标题变更回调（仅 editable=true 时触发） */
   readonly onTitleChange?: (title: string) => void
   /** 摘要变更回调 */
@@ -154,6 +162,16 @@ export type NoteContentProps = {
   readonly onMagicLinkClick?: (url: string) => void
   /** 撤销/重做控制器实例（外部注入模式） */
   readonly undoRedoController?: NoteContentUndoRedoController
+  /**
+   * 内容顶部额外留白（px）。
+   * 叠加在 hero 默认顶部内边距（2rem）之上，默认值: 0。
+   */
+  readonly topPadding?: number
+  /**
+   * 内容底部额外留白（px）。
+   * 叠加在 body 默认底部内边距（2rem）之上，默认值: 0。
+   */
+  readonly bottomPadding?: number
   /** React 19 ref 手柄；同时提供撤销/重做与按内容 id 跳转能力。 */
   readonly ref?: Ref<NoteContentHandle>
 }

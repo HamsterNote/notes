@@ -71,10 +71,10 @@ export const serializeMarkdownDocument = (
 const serializeBlocks = (blocks: readonly NoteBlock[]): string => {
   const tree = {
     type: "root",
-    children: blocks.map((block) => ({
-      type: "html",
-      value: serializeBlock(block)
-    }))
+    children: blocks
+      .map(serializeBlock)
+      .filter((value) => value !== "")
+      .map((value) => ({ type: "html", value }))
   } satisfies Root
 
   return unified().use(remarkGfm).use(remarkStringify).stringify(tree).trimEnd()
@@ -83,69 +83,33 @@ const serializeBlocks = (blocks: readonly NoteBlock[]): string => {
 const serializeBlock = (block: NoteBlock): string => {
   switch (block.kind) {
     case "heading":
-      return [
-        blockDirective(block.id, optionalAttribute("eyebrow", block.eyebrow)),
-        block.text === ""
-          ? "#".repeat(block.level)
-          : `${"#".repeat(block.level)} ${block.text}`
-      ].join("\n")
+      return block.text === ""
+        ? "#".repeat(block.level)
+        : `${"#".repeat(block.level)} ${block.text}`
     case "paragraph":
-      return [
-        blockDirective(
-          block.id,
-          [
-            block.text === "" ? requiredAttribute("empty", "true") : "",
-            block.tone === undefined || block.tone === "default"
-              ? ""
-              : requiredAttribute("tone", block.tone)
-          ].join("")
-        ),
-        paragraphText(block.text)
-      ].join("\n")
+      return paragraphText(block.text)
     case "quote":
-      return [blockDirective(block.id), ...quoteLines(block)].join("\n")
+      return quoteLines(block).join("\n")
     case "checklist":
-      return [
-        `<!-- hn:checklist id="${block.id}" title="${block.title}" -->`,
-        ...block.items.map(
-          (item) =>
-            `- [${item.checked ? "x" : " "}] <!-- hn:item id="${item.id}" --> ${item.text}`
-        )
-      ].join("\n")
+      return block.items
+        .map((item) => `- [${item.checked ? "x" : " "}] ${item.text}`)
+        .join("\n")
     case "code":
-      return [
-        blockDirective(block.id),
-        ...fencedBlock(
-          `${block.language}${optionalAttribute("filename", block.filename)}`,
-          block.code
-        )
-      ].join("\n")
+      return fencedBlock(
+        `${block.language}${filenameAttribute(block.filename)}`,
+        block.code
+      ).join("\n")
     case "callout":
       return [
-        blockDirective(block.id),
         `> [!${block.tone}] ${block.title}`,
         ...quoteTextLines(block.text)
       ].join("\n")
     case "table":
-      return [blockDirective(block.id), ...serializeTableRows(block.rows)].join(
-        "\n"
-      )
+      return serializeTableRows(block.rows).join("\n")
     case "formula":
-      return [
-        blockDirective(block.id, requiredAttribute("kind", "formula")),
-        ...fencedBlock("math", block.formula)
-      ].join("\n")
+      return fencedBlock("math", block.formula).join("\n")
     case "picture":
-      return [
-        blockDirective(
-          block.id,
-          [
-            optionalNumberAttribute("width", block.width),
-            optionalNumberAttribute("height", block.height)
-          ].join("")
-        ),
-        serializePicture(block)
-      ].join("\n")
+      return serializePicture(block)
     default:
       return assertNever(block)
   }
@@ -192,19 +156,10 @@ const serializeTableRows = (
   ]
 }
 
-const blockDirective = (id: string, attributes = ""): string =>
-  `<!-- hn:block id="${id}"${attributes} -->`
-
-const optionalAttribute = (name: string, value: string | undefined): string =>
-  value === undefined ? "" : requiredAttribute(name, value)
-
-const optionalNumberAttribute = (
-  name: string,
-  value: number | undefined
-): string => (value === undefined ? "" : requiredAttribute(name, String(value)))
-
-const requiredAttribute = (name: string, value: string): string =>
-  ` ${name}="${value}"`
+const filenameAttribute = (filename: string | undefined): string =>
+  filename === undefined
+    ? ""
+    : ` filename="${filename.replaceAll("\\", "\\\\").replaceAll('"', '\\"')}"`
 
 const assertNever = (value: never): never => {
   throw new Error(`Unsupported note block: ${JSON.stringify(value)}`)

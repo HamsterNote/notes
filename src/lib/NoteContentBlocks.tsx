@@ -1,13 +1,13 @@
 import type { ReactElement } from "react"
-import { renderChecklistBlock } from "./NoteChecklistBlock"
+import { NoteCalloutBlock } from "./NoteCalloutBlock"
+import { NoteChecklistBlock } from "./NoteChecklistBlock"
 import { NoteCodeBlock } from "./NoteCodeEditorBlock"
 import type { EditContext } from "./NoteContentEditing"
 import { NoteFormulaBlock } from "./NoteFormulaBlock"
 import { NotePictureBlock } from "./NotePictureBlock"
-import { renderQuoteBlock } from "./NoteQuoteBlock"
-import { renderCalloutBlock } from "./NoteSecondaryBlocks"
+import { NoteQuoteBlock } from "./NoteQuoteBlock"
 import { renderTableBlock } from "./NoteTableBlock"
-import { renderHeadingBlock, renderParagraphBlock } from "./NoteTextBlocks"
+import { NoteTextBlock } from "./NoteTextBlocks"
 import type { NoteBlock } from "./types"
 import { assertNever } from "./utils"
 
@@ -19,17 +19,17 @@ export const renderBlock = (
 ): ReactElement => {
   switch (block.kind) {
     case "heading":
-      return renderHeadingBlock(block, ctx)
+      return <NoteTextBlock block={block} ctx={ctx} />
     case "paragraph":
-      return renderParagraphBlock(block, ctx)
+      return <NoteTextBlock block={block} ctx={ctx} />
     case "checklist":
-      return renderChecklistBlock(block, ctx)
+      return <NoteChecklistBlock block={block} ctx={ctx} />
     case "quote":
-      return renderQuoteBlock(block, ctx)
+      return <NoteQuoteBlock block={block} ctx={ctx} />
     case "code":
       return <NoteCodeBlock key={block.id} block={block} ctx={ctx} />
     case "callout":
-      return renderCalloutBlock(block, ctx)
+      return <NoteCalloutBlock block={block} ctx={ctx} />
     case "table":
       return renderTableBlock(block, ctx)
     case "formula":

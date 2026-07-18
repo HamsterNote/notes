@@ -1,16 +1,7 @@
-import type {
-  ReactElement,
-  KeyboardEvent as ReactKeyboardEvent
-} from "react"
+import type { ReactElement, KeyboardEvent as ReactKeyboardEvent } from "react"
 
-import {
-  isVisibleHtmlEmpty,
-  normalizeEditableHtml
-} from "./blockEditing"
-import {
-  quoteLineId,
-  quoteTextLines
-} from "./blockSourceConversion"
+import { isVisibleHtmlEmpty, normalizeEditableHtml } from "./blockEditing"
+import { quoteLineId, quoteTextLines } from "./blockSourceConversion"
 import {
   handleEditableBlockKeyDown,
   renderBlockActionMenu
@@ -26,10 +17,11 @@ import {
   splitQuoteLine,
   updateQuoteLine
 } from "./quoteLineEditing"
-import type { NoteQuoteBlock } from "./types"
+import type { NoteQuoteBlock as NoteQuoteBlockData } from "./types"
 
+// ── Quote 行键盘事件处理工具函数 ─────────────────────────────────────────────
 type QuoteLineKeyDownInput = {
-  readonly block: NoteQuoteBlock
+  readonly block: NoteQuoteBlockData
   readonly ctx: EditContext
   readonly event: ReactKeyboardEvent<HTMLElement>
   readonly lineIndex: number
@@ -105,55 +97,102 @@ const handleQuoteLineKeyDown = ({
   )
 }
 
-export const renderQuoteBlock = (
-  block: NoteQuoteBlock,
-  ctx: EditContext
-): ReactElement => {
-  const { editable, blocks, onBlocksChange } = ctx
-  const lines = quoteTextLines(block.text)
+// ── Quote 单行组件 ──────────────────────────────────────────────────────────
+// 每条 quote line 独立成一个组件，不搞聚合包装
+type NoteQuoteLineProps = {
+  readonly block: NoteQuoteBlockData
+  readonly line: string
+  readonly lineIndex: number
+  readonly ctx: EditContext
+  readonly showAuthor: boolean
+}
 
-  if (!editable) {
-    return (
-      <div className="hn-note-block-row" id={block.id} key={block.id}>
-        <div className="hn-note-block-content">
-          <blockquote className="hn-note-quote">
-            <p {...richText(block.text.replaceAll("\n", "<br>"))} />
-            {block.author ? <footer {...richText(block.author)} /> : null}
-          </blockquote>
-        </div>
-      </div>
-    )
-  }
+const NoteQuoteLine = ({
+  block,
+  line,
+  lineIndex,
+  ctx,
+  showAuthor
+}: NoteQuoteLineProps): ReactElement => {
+  const { editable, blocks, onBlocksChange, selectMode, selectedBlockId } = ctx
+  const lineId = quoteLineId(block.id, lineIndex)
+  const sortable = editable && onBlocksChange !== undefined
 
   return (
-    <div className="hn-note-block-row" id={block.id} key={block.id}>
-      {renderBlockActionMenu(block, ctx)}
-      <div className="hn-note-block-content">
-        <blockquote className="hn-note-quote">
-          {lines.map((line, lineIndex) => {
-            const lineId = quoteLineId(block.id, lineIndex)
-            return (
-              <p
-                key={lineId}
-                {...editableProps((event) =>
-                  onBlocksChange?.(
-                    updateQuoteLine(
-                      blocks,
-                      block.id,
-                      lineIndex,
-                      normalizeEditableHtml(event.currentTarget.innerHTML)
-                    )
-                  )
-                )}
-                onKeyDown={(event) =>
-                  handleQuoteLineKeyDown({ block, ctx, event, lineIndex })
-                }
-                data-editable-block-id={lineId}
-                {...richText(line)}
-              />
-            )
-          })}
-          {block.author ? (
+    <div
+      className={[
+        "hn-note-block",
+        "hn-note-quote hn-note-quote-line",
+        sortable ? "hn-note-sortable-block" : "",
+        selectMode ? "hn-note-selectable-block" : ""
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      id={lineId}
+      key={lineId}
+      {...(sortable
+        ? {
+            "data-note-sortable-id": lineId,
+            "data-note-block-id": block.id
+          }
+        : {})}
+      {...(editable
+        ? {
+            "data-note-drag-kind": "quote-line",
+            "data-note-drag-parent-id": block.id
+          }
+        : {})}
+      {...(selectMode
+        ? {
+            "data-note-select-id": lineId,
+            role: "option" as const,
+            "aria-selected": selectedBlockId === lineId,
+            tabIndex: 0
+          }
+        : {})}
+    >
+      {editable
+        ? renderBlockActionMenu(block, ctx, {
+            kind: "quote-line",
+            blockId: block.id,
+            lineId,
+            lineIndex
+          })
+        : null}
+      <div
+        className={[
+          "hn-note-quote-content",
+          "hn-note-quote",
+          "hn-note-quote-line",
+          lineIndex > 0 ? "hn-note-quote-line--continuation" : "",
+          showAuthor ? "hn-note-quote-line--final" : ""
+        ]
+          .filter(Boolean)
+          .join(" ")}
+      >
+        {editable ? (
+          <p
+            {...editableProps((event) =>
+              onBlocksChange?.(
+                updateQuoteLine(
+                  blocks,
+                  block.id,
+                  lineIndex,
+                  normalizeEditableHtml(event.currentTarget.innerHTML)
+                )
+              )
+            )}
+            onKeyDown={(event) =>
+              handleQuoteLineKeyDown({ block, ctx, event, lineIndex })
+            }
+            data-editable-block-id={lineId}
+            {...richText(line)}
+          />
+        ) : (
+          <p {...richText(line)} />
+        )}
+        {showAuthor && block.author ? (
+          editable ? (
             <footer
               {...editableProps((event) =>
                 onBlocksChange?.(
@@ -166,9 +205,39 @@ export const renderQuoteBlock = (
               )}
               {...richText(block.author)}
             />
-          ) : null}
-        </blockquote>
+          ) : (
+            <footer {...richText(block.author)} />
+          )
+        ) : null}
       </div>
     </div>
+  )
+}
+
+// ── Quote 块组件 ────────────────────────────────────────────────────────────
+type NoteQuoteBlockProps = {
+  readonly block: NoteQuoteBlockData
+  readonly ctx: EditContext
+}
+
+export const NoteQuoteBlock = ({
+  block,
+  ctx
+}: NoteQuoteBlockProps): ReactElement => {
+  const lines = quoteTextLines(block.text)
+
+  return (
+    <>
+      {lines.map((line, lineIndex) => (
+        <NoteQuoteLine
+          key={quoteLineId(block.id, lineIndex)}
+          block={block}
+          line={line}
+          lineIndex={lineIndex}
+          ctx={ctx}
+          showAuthor={lineIndex === lines.length - 1}
+        />
+      ))}
+    </>
   )
 }

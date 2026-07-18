@@ -24,12 +24,18 @@ const presetColors = [
 
 // 解析一次 markdown 文档作为初始状态（避免每次渲染重新解析）
 const initialDocument = parseMarkdownDocument(demoMarkdownDocument)
+const initialTableBlockId =
+  initialDocument.blocks.find((block) => block.kind === "table")?.id ?? ""
 
 export const App = () => {
   // ===== 受控状态：由侧边栏面板驱动 NoteContent 的全部可调参数 =====
   const [themeColor, setThemeColor] = useState("#3b82f6")
   const [theme, setTheme] = useState<NoteTheme>("light")
   const [editable, setEditable] = useState(true)
+  const [selectMode, setSelectMode] = useState(false)
+  const [topPadding, setTopPadding] = useState(0)
+  const [bottomPadding, setBottomPadding] = useState(0)
+  const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null)
   const [documentHistory, documentActions] =
     useUndo<DemoMarkdownDocument>(initialDocument)
   const document = documentHistory.present
@@ -52,7 +58,8 @@ export const App = () => {
       const nextDocument = update(currentDocument)
       if (
         serializeMarkdownDocument(nextDocument) ===
-        serializeMarkdownDocument(currentDocument)
+          serializeMarkdownDocument(currentDocument) &&
+        nextDocument.blocks === currentDocument.blocks
       )
         return
 
@@ -236,10 +243,73 @@ export const App = () => {
           </p>
         </section>
 
+        <section className="demo-control-group">
+          <label className="demo-toggle-row">
+            <span className="demo-control-label">Select Mode</span>
+            <button
+              type="button"
+              role="switch"
+              aria-label="Select mode"
+              aria-checked={selectMode}
+              className={`demo-switch ${selectMode ? "demo-switch--on" : ""}`}
+              onClick={() => setSelectMode((current) => !current)}
+            >
+              <span className="demo-switch-thumb" />
+            </button>
+          </label>
+          <p className="demo-hint">
+            开启后内容只读，点击任意 block 可查看 onBlockSelect 回调结果
+          </p>
+          <output className="demo-select-result" aria-live="polite">
+            {selectedBlockId ?? "尚未选择 block"}
+          </output>
+        </section>
+
         <DemoNavigationControls
           controller={demoUndoRedoController}
+          initialBlockId={initialTableBlockId}
           noteContentRef={noteContentRef}
         />
+
+        {/* 顶部 / 底部留白（px）—— 演示 topPadding / bottomPadding props */}
+        <section className="demo-control-group">
+          <label className="demo-control-label" htmlFor="top-padding">
+            Top Padding
+          </label>
+          <div className="demo-range-row">
+            <input
+              id="top-padding"
+              type="range"
+              className="demo-range"
+              min={0}
+              max={120}
+              step={1}
+              value={topPadding}
+              onChange={(event) => setTopPadding(Number(event.target.value))}
+            />
+            <span className="demo-range-value">{topPadding}px</span>
+          </div>
+
+          <label className="demo-control-label" htmlFor="bottom-padding">
+            Bottom Padding
+          </label>
+          <div className="demo-range-row">
+            <input
+              id="bottom-padding"
+              type="range"
+              className="demo-range"
+              min={0}
+              max={120}
+              step={1}
+              value={bottomPadding}
+              onChange={(event) => setBottomPadding(Number(event.target.value))}
+            />
+            <span className="demo-range-value">{bottomPadding}px</span>
+          </div>
+          <p className="demo-hint">
+            体现 NoteContent 的 topPadding / bottomPadding props（单位 px）
+          </p>
+        </section>
 
         {/* 标题输入 */}
         <section className="demo-control-group">
@@ -330,6 +400,9 @@ export const App = () => {
             theme={theme}
             themeColor={themeColor}
             editable={editable}
+            selectMode={selectMode}
+            topPadding={topPadding}
+            bottomPadding={bottomPadding}
             onTitleChange={(nextTitle) =>
               updateDocument((current) => ({ ...current, title: nextTitle }))
             }
@@ -343,6 +416,7 @@ export const App = () => {
             undoRedoController={demoUndoRedoController}
             onMagicLinkConfigure={handleMagicLinkConfigure}
             onMagicLinkClick={handleMagicLinkClick}
+            onBlockSelect={setSelectedBlockId}
           />
         </div>
       </main>

@@ -5,9 +5,25 @@ import { readFileSync } from "node:fs"
 import { describe, expect, it } from "vitest"
 
 describe("editable text styles", () => {
+  it("preserves the documented body-copy line height", () => {
+    // Given: DESIGN.md defines the note body rhythm as 1.85.
+    const styles = readFileSync(
+      new URL("./styles.css", import.meta.url),
+      "utf8"
+    )
+
+    // Then: the shared text primitive keeps that established rhythm.
+    expect(styles).toMatch(
+      /\.hn-note-text\s*\{[^}]*line-height:\s*1\.85;[^}]*\}/
+    )
+  })
+
   it("lets every editable line fill the available row width", () => {
     // Given: the stylesheet used by every contentEditable text surface.
-    const styles = readFileSync(new URL("./styles.css", import.meta.url), "utf8")
+    const styles = readFileSync(
+      new URL("./styles.css", import.meta.url),
+      "utf8"
+    )
 
     // When: the shared editable layout rule is inspected.
     // Then: non-empty and empty lines both create an unconstrained block/flex item.
@@ -18,7 +34,10 @@ describe("editable text styles", () => {
 
   it("keeps an empty editable line tall enough to receive pointer focus", () => {
     // Given: browsers represent an empty contentEditable as empty DOM or one <br>.
-    const styles = readFileSync(new URL("./styles.css", import.meta.url), "utf8")
+    const styles = readFileSync(
+      new URL("./styles.css", import.meta.url),
+      "utf8"
+    )
 
     // When: the empty-state rule is inspected.
     // Then: either representation retains one clickable line of height.
@@ -26,16 +45,47 @@ describe("editable text styles", () => {
       /\.hn-note-editable:empty,\s*\.hn-note-editable:has\(> br:only-child\)\s*\{[^}]*min-height:\s*1lh;[^}]*\}/
     )
   })
+
+  it("keeps editable content visually neutral on hover and focus", () => {
+    // Given: row content must not gain a border, outline, or background while editing.
+    const styles = readFileSync(
+      new URL("./styles.css", import.meta.url),
+      "utf8"
+    )
+
+    // Then: the shared editable surface defines no hover/focus visual override.
+    expect(styles).not.toMatch(/\.hn-note-editable:hover\s*\{/)
+    expect(styles).not.toMatch(/\.hn-note-editable:focus\s*\{/)
+    expect(styles).not.toMatch(
+      /\.hn-note-code-editor\.hn-note-editable:(hover|focus)\s*\{/
+    )
+    expect(styles).not.toMatch(
+      /\.hn-note-table-cell\.hn-note-editable:(hover|focus)\s*\{/
+    )
+  })
 })
 
 describe("block action handle layout", () => {
+  it("visually joins independently sortable quote lines", () => {
+    const styles = readFileSync(
+      new URL("./styles.css", import.meta.url),
+      "utf8"
+    )
+
+    expect(styles).toMatch(/\.hn-note-quote-line--continuation\s*\{/)
+    expect(styles).toMatch(/\.hn-note-quote-line--final\s*\{/)
+  })
+
   it("positions handles absolutely so they do not consume row width", () => {
     // Given: the stylesheet that renders the left gutter controls.
-    const styles = readFileSync(new URL("./styles.css", import.meta.url), "utf8")
+    const styles = readFileSync(
+      new URL("./styles.css", import.meta.url),
+      "utf8"
+    )
 
-    // Then: the row establishes positioning context and handles sit outside flow.
+    // Then: the unified block establishes positioning context and handles sit outside flow.
     expect(styles).toMatch(
-      /\.hn-note-block-row\s*\{[^}]*position:\s*relative;[^}]*\}/
+      /\.hn-note-block\s*\{[^}]*position:\s*relative;[^}]*min-width:\s*0;[^}]*\}/
     )
     expect(styles).toMatch(
       /\.hn-note-block-handle\s*\{[^}]*position:\s*absolute;[^}]*\}/
@@ -43,7 +93,10 @@ describe("block action handle layout", () => {
   })
 
   it("places add and convert handles side-by-side in the left gutter", () => {
-    const styles = readFileSync(new URL("./styles.css", import.meta.url), "utf8")
+    const styles = readFileSync(
+      new URL("./styles.css", import.meta.url),
+      "utf8"
+    )
 
     // Then: the two handle variants have distinct horizontal offsets and share size.
     expect(styles).toMatch(
@@ -57,13 +110,15 @@ describe("block action handle layout", () => {
     )
   })
 
-  it("keeps the content area as the sole in-flow flex child", () => {
-    const styles = readFileSync(new URL("./styles.css", import.meta.url), "utf8")
-
-    // Then: content still stretches to fill the row without being pushed by handles.
-    expect(styles).toMatch(
-      /\.hn-note-block-content\s*\{[^}]*flex:\s*1 1 0%;[^}]*min-width:\s*0;[^}]*\}/
+  it("does not retain generic row or content wrapper styles", () => {
+    const styles = readFileSync(
+      new URL("./styles.css", import.meta.url),
+      "utf8"
     )
+
+    // Then: layout belongs to the unified block and semantic content itself.
+    expect(styles).not.toMatch(/\.hn-note-block-row(?:\s|\{|:)/)
+    expect(styles).not.toMatch(/\.hn-note-block-content(?:\s|\{|:)/)
   })
 })
 
@@ -83,7 +138,10 @@ describe("editable code styles", () => {
 
   it("uses one typography contract for preview, highlight, and editor layers", () => {
     // Given: every code surface must occupy the same pixels when editing starts.
-    const styles = readFileSync(new URL("./styles.css", import.meta.url), "utf8")
+    const styles = readFileSync(
+      new URL("./styles.css", import.meta.url),
+      "utf8"
+    )
 
     // When: the shared code surface styles are inspected.
     // Then: all layers use the same explicit monospace token, size, and line height.

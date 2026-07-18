@@ -17,15 +17,15 @@ export const renderParagraphBlockLayout = ({
   actionMenu,
   editableText
 }: RenderParagraphBlockInput): ReactElement => (
-  <div
-    className={`hn-note-paragraph hn-note-paragraph--${block.tone ?? "default"}`}
-    key={block.id}
-  >
-    <div className="hn-note-block-row" id={block.id}>
-      {actionMenu}
-      <div className="hn-note-block-content">
-        {ctx.editable ? editableText : <span {...richText(block.text)} />}
-      </div>
-    </div>
-  </div>
+  <>
+    {actionMenu}
+    {ctx.editable ? (
+      editableText
+    ) : (
+      <span
+        className={`hn-note-text hn-note-text--${block.tone ?? "default"}`}
+        {...richText(block.text)}
+      />
+    )}
+  </>
 )

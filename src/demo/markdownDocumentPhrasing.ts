@@ -2,26 +2,18 @@ import type { Blockquote, Paragraph, PhrasingContent } from "mdast"
 
 import type { NotePictureBlock } from "../lib/types"
 
-type PictureBlockMetadata = {
-  readonly id: string
-  readonly width: number | undefined
-  readonly height: number | undefined
-}
-
 export const pictureFromParagraph = (
   node: Paragraph,
-  metadata: PictureBlockMetadata
+  id: string
 ): NotePictureBlock | undefined => {
   const image = node.children.length === 1 ? node.children[0] : undefined
   if (image?.type !== "image") return undefined
 
   return {
-    id: metadata.id,
+    id,
     kind: "picture",
     url: image.url,
-    filename: image.alt ?? "",
-    ...(metadata.width === undefined ? {} : { width: metadata.width }),
-    ...(metadata.height === undefined ? {} : { height: metadata.height })
+    filename: image.alt ?? ""
   }
 }
 

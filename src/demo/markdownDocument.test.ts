@@ -1,16 +1,12 @@
 import { describe, expect, it } from "vitest"
-import type {
-  NoteBlock,
-  NoteChecklistBlock,
-  NoteChecklistItem
-} from "../lib/types"
+import type { NoteBlock, NoteChecklistItem } from "../lib/types"
 import type { DemoMarkdownDocument } from "./markdownDocument"
 import {
   DemoMarkdownParseError,
   parseMarkdownDocument,
   serializeMarkdownDocument
 } from "./markdownDocument"
-import { demoMarkdownDocument, demoNoteIds } from "./noteData"
+import { demoMarkdownDocument } from "./noteData"
 
 const UUID_V4_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u
@@ -19,36 +15,8 @@ const UUID_V4_PATTERN =
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
 
-const expectBlock = (document: DemoMarkdownDocument, id: string): NoteBlock => {
-  const block = document.blocks.find((candidate) => candidate.id === id)
-  if (block === undefined) throw new Error(`Expected block ${id} to exist.`)
-  return block
-}
-
-const expectChecklistBlock = (
-  document: DemoMarkdownDocument,
-  id: string
-): NoteChecklistBlock => {
-  const block = expectBlock(document, id)
-  if (block.kind !== "checklist") {
-    throw new Error(`Expected block ${id} to be a checklist.`)
-  }
-  return block
-}
-
-const expectChecklistItem = (
-  block: NoteChecklistBlock,
-  id: string
-): NoteChecklistItem => {
-  const item = block.items.find((candidate) => candidate.id === id)
-  if (item === undefined) {
-    throw new Error(`Expected checklist item ${id} to exist.`)
-  }
-  return item
-}
-
 const expectFirstChecklistItem = (
-  block: NoteChecklistBlock
+  block: Extract<NoteBlock, { readonly kind: "checklist" }>
 ): NoteChecklistItem => {
   const item = block.items[0]
   if (item === undefined) {
@@ -66,6 +34,52 @@ const expectBlockAtIndex = (
     throw new Error(`Expected block at index ${index} to exist.`)
   }
   return block
+}
+
+const markdownBlockValue = (block: NoteBlock): unknown => {
+  switch (block.kind) {
+    case "heading":
+      return { kind: block.kind, level: block.level, text: block.text }
+    case "paragraph":
+      return { kind: block.kind, text: block.text }
+    case "quote":
+      return { author: block.author, kind: block.kind, text: block.text }
+    case "checklist":
+      return {
+        items: block.items.map(({ checked, text }) => ({ checked, text })),
+        kind: block.kind
+      }
+    case "code":
+      return {
+        code: block.code,
+        filename: block.filename,
+        kind: block.kind,
+        language: block.language
+      }
+    case "callout":
+      return {
+        kind: block.kind,
+        text: block.text,
+        title: block.title,
+        tone: block.tone
+      }
+    case "table":
+      return { kind: block.kind, rows: block.rows }
+    case "formula":
+      return { formula: block.formula, kind: block.kind }
+    case "picture":
+      return {
+        filename: block.filename,
+        kind: block.kind,
+        url: block.url
+      }
+    default:
+      return assertNever(block)
+  }
+}
+
+const assertNever = (value: never): never => {
+  throw new Error(`Unsupported note block: ${JSON.stringify(value)}`)
 }
 
 const documentParts = (
@@ -106,7 +120,7 @@ describe("markdown document parsing", () => {
     // Given: the Markdown document rendered by the demo.
     const document = parseMarkdownDocument(demoMarkdownDocument)
 
-    // When: all persisted block and checklist item IDs are collected.
+    // When: all runtime block and checklist item IDs are collected.
     const ids = document.blocks.flatMap((block) =>
       block.kind === "checklist"
         ? [block.id, ...block.items.map((item) => item.id)]
@@ -131,30 +145,28 @@ describe("markdown document parsing", () => {
     const document = parseMarkdownDocument(demoMarkdownDocument)
 
     expect(document.blocks).toHaveLength(11)
-    const hero = expectBlock(document, demoNoteIds.hero)
+    const hero = expectBlockAtIndex(document, 0)
     expect(hero).toMatchObject({
-      eyebrow: "Hamster Note",
       kind: "heading",
       level: 1
     })
     if (hero.kind !== "heading") throw new Error("Expected heading block.")
     expect(hero.text).toContain("Ship a note component")
-    expect(expectBlock(document, demoNoteIds.intro)).toMatchObject({
-      kind: "paragraph",
-      tone: "accent"
-    })
-    const principle = expectBlock(document, demoNoteIds.principle)
+    expect(expectBlockAtIndex(document, 1)).toMatchObject({ kind: "paragraph" })
+    const principle = expectBlockAtIndex(document, 2)
     expect(principle).toMatchObject({ kind: "quote" })
     if (principle.kind !== "quote") throw new Error("Expected quote block.")
     expect(principle.text).toContain("Readable note surfaces")
-    expect(expectBlock(document, demoNoteIds.subheading)).toMatchObject({
-      eyebrow: "Launch checklist",
+    expect(expectBlockAtIndex(document, 3)).toMatchObject({
       kind: "heading",
       level: 2
     })
 
-    const checklist = expectChecklistBlock(document, demoNoteIds.checklist)
-    expect(checklist.title).toBe("Release readiness")
+    const checklist = expectBlockAtIndex(document, 4)
+    if (checklist.kind !== "checklist") {
+      throw new Error("Expected checklist block.")
+    }
+    expect(checklist.title).toBe("")
     expect(checklist.items).toHaveLength(3)
     expect(checklist.items.some((item) => item.checked)).toBe(true)
     expect(checklist.items.every((item) => item.checked)).toBe(true)
@@ -164,7 +176,7 @@ describe("markdown document parsing", () => {
       expect(typeof item.checked).toBe("boolean")
     }
 
-    const callout = expectBlock(document, demoNoteIds.callout)
+    const callout = expectBlockAtIndex(document, 5)
     expect(callout).toMatchObject({
       kind: "callout",
       title: "Structured input, flexible visuals",
@@ -172,12 +184,12 @@ describe("markdown document parsing", () => {
     })
     if (callout.kind !== "callout") throw new Error("Expected callout block.")
     expect(callout.text).toContain("typed block array")
-    expect(expectBlock(document, demoNoteIds.codeHeading)).toMatchObject({
+    expect(expectBlockAtIndex(document, 6)).toMatchObject({
       kind: "heading",
       level: 3
     })
 
-    const code = expectBlock(document, demoNoteIds.code)
+    const code = expectBlockAtIndex(document, 7)
     expect(code).toMatchObject({
       filename: "App.tsx",
       kind: "code",
@@ -186,16 +198,13 @@ describe("markdown document parsing", () => {
     if (code.kind !== "code") throw new Error("Expected code block.")
     expect(code.code.trim()).not.toBe("")
 
-    expect(expectBlock(document, demoNoteIds.ending)).toMatchObject({
-      kind: "paragraph",
-      tone: "muted"
-    })
-    expect(expectBlock(document, demoNoteIds.warning)).toMatchObject({
+    expect(expectBlockAtIndex(document, 8)).toMatchObject({ kind: "paragraph" })
+    expect(expectBlockAtIndex(document, 9)).toMatchObject({
       kind: "callout",
       title: "Versioning rule",
       tone: "warning"
     })
-    const table = expectBlock(document, demoNoteIds.table)
+    const table = expectBlockAtIndex(document, 10)
     expect(table).toMatchObject({
       kind: "table"
     })
@@ -208,7 +217,7 @@ describe("markdown document parsing", () => {
   it("parses quote author from the author line", () => {
     const document = parseMarkdownDocument(demoMarkdownDocument)
 
-    expect(expectBlock(document, demoNoteIds.principle)).toMatchObject({
+    expect(expectBlockAtIndex(document, 2)).toMatchObject({
       author: "Design note",
       kind: "quote"
     })
@@ -233,6 +242,17 @@ describe("markdown document parsing", () => {
 /* ------------------------------------------------------------------ */
 
 describe("markdown document serialization", () => {
+  it("keeps Markdown data free of internal block directives", () => {
+    // Given: the demo document contains runtime-only ids and presentation fields.
+    const document = parseMarkdownDocument(demoMarkdownDocument)
+
+    // When: the document is exposed as Markdown data.
+    const serialized = serializeMarkdownDocument(document)
+
+    // Then: internal editor metadata never leaks into user content.
+    expect(serialized).not.toContain("<!-- hn:")
+  })
+
   it("round-trips parsed documents through serialization", () => {
     const document = parseMarkdownDocument(demoMarkdownDocument)
     const reparsed = parseMarkdownDocument(serializeMarkdownDocument(document))
@@ -243,13 +263,12 @@ describe("markdown document serialization", () => {
     expect(reparsed.updatedAt).toBe(document.updatedAt)
     expect(reparsed.blocks).toHaveLength(document.blocks.length)
 
-    for (let index = 0; index < document.blocks.length; index += 1) {
-      const originalBlock = expectBlockAtIndex(document, index)
-      const reparsedBlock = expectBlockAtIndex(reparsed, index)
-      expect(reparsedBlock.id).toBe(originalBlock.id)
-      expect(reparsedBlock.kind).toBe(originalBlock.kind)
-      expect(reparsedBlock).toEqual(originalBlock)
-    }
+    expect(reparsed.blocks.map(markdownBlockValue)).toEqual(
+      document.blocks.map(markdownBlockValue)
+    )
+    expect(reparsed.blocks.map(({ id }) => id)).not.toEqual(
+      document.blocks.map(({ id }) => id)
+    )
   })
 
   it("reflects metadata edits only in the JSON fence while preserving updatedAt", () => {
@@ -276,7 +295,10 @@ describe("markdown document serialization", () => {
 
   it("persists checklist block edits through serialization without changing updatedAt", () => {
     const document = parseMarkdownDocument(demoMarkdownDocument)
-    const checklist = expectChecklistBlock(document, demoNoteIds.checklist)
+    const checklist = expectBlockAtIndex(document, 4)
+    if (checklist.kind !== "checklist") {
+      throw new Error("Expected checklist block.")
+    }
     const firstItem = expectFirstChecklistItem(checklist)
     const editedItemText = "Confirm edited checklist persistence."
     const editedBlocks: readonly NoteBlock[] = document.blocks.map((block) => {
@@ -297,29 +319,26 @@ describe("markdown document serialization", () => {
     const reparsed = parseMarkdownDocument(
       serializeMarkdownDocument(editedDocument)
     )
-    const reparsedChecklist = expectChecklistBlock(reparsed, checklist.id)
-    const reparsedItem = expectChecklistItem(reparsedChecklist, firstItem.id)
+    const reparsedChecklist = expectBlockAtIndex(reparsed, 4)
+    if (reparsedChecklist.kind !== "checklist") {
+      throw new Error("Expected reparsed checklist block.")
+    }
+    const reparsedItem = expectFirstChecklistItem(reparsedChecklist)
 
     expect(reparsedItem.checked).toBe(!firstItem.checked)
     expect(reparsedItem.text).toBe(editedItemText)
     expect(reparsed.updatedAt).toBe(document.updatedAt)
   })
 
-  it("round-trips a formula block without treating ordinary math code as a formula", () => {
-    // Given: a formula block and a regular code block that also uses the math language.
+  it("round-trips a formula block through a standard math fence", () => {
+    // Given: a runtime formula block.
     const document = parseMarkdownDocument(demoMarkdownDocument)
     const formulaSource = String.raw`\int_0^1 x^2\,dx = \frac{1}{3}`
     const editedDocument: DemoMarkdownDocument = {
       ...document,
       blocks: [
         ...document.blocks,
-        { id: "formula", kind: "formula", formula: formulaSource },
-        {
-          id: "math-code",
-          kind: "code",
-          language: "math",
-          code: "not a formula block"
-        }
+        { id: "formula", kind: "formula", formula: formulaSource }
       ]
     }
 
@@ -328,17 +347,10 @@ describe("markdown document serialization", () => {
       serializeMarkdownDocument(editedDocument)
     )
 
-    // Then: the explicit formula marker preserves the distinction and source.
-    expect(expectBlock(reparsed, "formula")).toEqual({
-      id: "formula",
+    // Then: the math fence preserves the formula source without internal metadata.
+    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 11))).toEqual({
       kind: "formula",
       formula: formulaSource
-    })
-    expect(expectBlock(reparsed, "math-code")).toEqual({
-      id: "math-code",
-      kind: "code",
-      language: "math",
-      code: "not a formula block"
     })
   })
 
@@ -349,7 +361,6 @@ describe("markdown document serialization", () => {
       '{"title":"T","summary":"S","tagLabel":"L","updatedAt":"2026-07-15"}',
       "```",
       "",
-      '<!-- hn:block id="launch-picture" width="765" height="3055" -->',
       "![launch\\]preview.png](blob:http://localhost/preview)"
     ].join("\n")
 
@@ -358,13 +369,10 @@ describe("markdown document serialization", () => {
     const reparsed = parseMarkdownDocument(serializeMarkdownDocument(parsed))
 
     // Then: the picture remains a first-class block with its URL and filename.
-    expect(expectBlock(reparsed, "launch-picture")).toEqual({
-      id: "launch-picture",
+    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 0))).toEqual({
       kind: "picture",
       url: "blob:http://localhost/preview",
-      filename: "launch]preview.png",
-      width: 765,
-      height: 3055
+      filename: "launch]preview.png"
     })
   })
 
@@ -389,8 +397,7 @@ describe("markdown document serialization", () => {
     expect(serialized).toContain(
       "![my picture.png](<https://example.com/my picture.png>)"
     )
-    expect(expectBlock(reparsed, "spaced-picture")).toEqual({
-      id: "spaced-picture",
+    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 11))).toEqual({
       kind: "picture",
       url: "https://example.com/my picture.png",
       filename: "my picture.png"
@@ -445,13 +452,11 @@ describe("markdown document serialization", () => {
     )
 
     // Then: dynamic outer fences preserve both source strings exactly.
-    expect(expectBlock(reparsed, "fenced-formula")).toEqual({
-      id: "fenced-formula",
+    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 11))).toEqual({
       kind: "formula",
       formula: formulaSource
     })
-    expect(expectBlock(reparsed, "fenced-code")).toEqual({
-      id: "fenced-code",
+    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 12))).toEqual({
       kind: "code",
       language: "ts",
       code: codeSource

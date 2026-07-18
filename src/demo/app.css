@@ -181,6 +181,19 @@ select {
   line-height: 1.5;
 }
 
+.demo-select-result {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 8px;
+  background: #f8fafc;
+  color: rgba(51, 65, 85, 0.85);
+  font-family: "SFMono-Regular", "Menlo", monospace;
+  font-size: 0.78rem;
+}
+
 /* 文本输入 */
 .demo-text-input {
   padding: 0.6rem 0.75rem;
@@ -198,6 +211,28 @@ select {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* 范围滑块行：滑块 + 数值显示 */
+.demo-range-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.demo-range {
+  flex: 1 1 auto;
+  min-width: 0;
+  accent-color: #3b82f6;
+  cursor: pointer;
+}
+
+.demo-range-value {
+  min-width: 3.5rem;
+  text-align: right;
+  font-family: "SFMono-Regular", "Menlo", monospace;
+  font-size: 0.85rem;
+  color: rgba(51, 65, 85, 0.7);
 }
 
 /* 撤销/恢复按钮行：沿用 demo-text-input 的边框/圆角/聚焦规范，保证视觉一致 */
@@ -257,8 +292,13 @@ select {
 
 /* ===== 主内容区 ===== */
 .demo-main {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  min-width: 0;
+  min-height: 0;
   padding: 3rem 2rem;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .demo-header {
@@ -293,6 +333,10 @@ select {
 
 /* 宿主包装层决定 NoteContent 的尺寸、背景与容器装饰。 */
 .demo-note-preview {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
   max-width: 60rem;
   margin: 0 auto;
   border: 1px solid rgba(15, 23, 42, 0.08);
@@ -302,6 +346,11 @@ select {
     0 1px 3px rgba(15, 23, 42, 0.04),
     0 12px 40px rgba(15, 23, 42, 0.06);
   overflow: hidden;
+}
+
+.demo-note-preview > .hn-note-shell {
+  width: 100%;
+  overflow: scroll;
 }
 
 .demo-note-preview--dark {

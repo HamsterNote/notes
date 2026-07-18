@@ -15,6 +15,14 @@ export type EditContext = {
   readonly requestFocus:
     ((blockId: string, caret: FocusCaret) => void) | undefined
   readonly onBlockMenuOpenChange: (blockId: string, open: boolean) => void
+  /**
+   * 是否处于内容块选择模式。
+   * 选择模式下各块渲染为只读，子块渲染器可据此在自身边界上
+   * 标记 data-note-select-id 等选择属性（如 checklist 的每个条目）。
+   */
+  readonly selectMode?: boolean
+  /** 当前被选中的内容块/条目 id，用于驱动 aria-selected 高亮。 */
+  readonly selectedBlockId?: string | null
 }
 
 export const editableProps = (

@@ -174,9 +174,9 @@ export const NoteFormulaBlock = ({
     : undefined
 
   return (
-    <div className="hn-note-block-row" id={block.id}>
+    <>
       {renderBlockActionMenu(block, ctx)}
-      <div className="hn-note-block-content hn-note-formula">
+      <div className="hn-note-formula">
         {ctx.editable ? (
           <button
             ref={previewRef}
@@ -188,7 +188,10 @@ export const NoteFormulaBlock = ({
             aria-haspopup="dialog"
             onClick={(event) => {
               ctx.onBlockMenuOpenChange(
-                blockMenuStateKey("convert", { kind: "block", blockId: block.id }),
+                blockMenuStateKey("convert", {
+                  kind: "block",
+                  blockId: block.id
+                }),
                 false
               )
               setPosition(positionPopover(event.currentTarget))
@@ -229,6 +232,6 @@ export const NoteFormulaBlock = ({
             document.body
           )
         : null}
-    </div>
+    </>
   )
 }

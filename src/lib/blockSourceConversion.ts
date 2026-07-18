@@ -26,6 +26,7 @@ export type BlockSource =
 type ConvertBlockSourceInput = {
   readonly blocks: readonly NoteBlock[]
   readonly checklistItemId?: string | undefined
+  readonly preserveMarkdownMarker?: boolean | undefined
   readonly replacementId?: string | undefined
   readonly source: BlockSource
   readonly target: BlockConvertTarget
@@ -48,11 +49,19 @@ export const quoteTextLines = (text: string): readonly string[] =>
 export const quoteLineId = (blockId: string, lineIndex: number): string =>
   lineIndex === 0 ? blockId : `${blockId}-line-${lineIndex}`
 
-const replaceChecklistItem = (
-  block: NoteChecklistBlock,
-  itemId: string,
-  replace: ReplaceSourceBlock
-): NoteBlock[] => {
+type ReplaceChecklistItemInput = {
+  readonly block: NoteChecklistBlock
+  readonly itemId: string
+  readonly preserveMarkdownMarker: boolean
+  readonly replace: ReplaceSourceBlock
+}
+
+const replaceChecklistItem = ({
+  block,
+  itemId,
+  preserveMarkdownMarker,
+  replace
+}: ReplaceChecklistItemInput): NoteBlock[] => {
   const itemIndex = block.items.findIndex((item) => item.id === itemId)
   const item = block.items[itemIndex]
   if (itemIndex < 0 || item === undefined) return [block]
@@ -60,15 +69,15 @@ const replaceChecklistItem = (
   const beforeItems = block.items.slice(0, itemIndex)
   const afterItems = block.items.slice(itemIndex + 1)
   const isOnlyItem = beforeItems.length === 0 && afterItems.length === 0
-  const itemText = `${item.checked ? "[x]" : "[ ]"} ${item.text}`
+  const itemText = `${preserveMarkdownMarker ? "- " : ""}${item.checked ? "[x]" : "[ ]"} ${item.text}`
   const title = block.title
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
   const replacement = replace({
-      id: item.id,
-      kind: "paragraph",
-      text: isOnlyItem ? `<strong>${title}</strong><br>${itemText}` : itemText
+    id: item.id,
+    kind: "paragraph",
+    text: isOnlyItem ? `<strong>${title}</strong><br>${itemText}` : itemText
   })
 
   return [
@@ -98,12 +107,21 @@ const quoteSegment = (
   ...(author === undefined ? {} : { author })
 })
 
-const replaceQuoteLine = (
-  block: NoteQuoteBlock,
-  lineIndex: number,
-  replacementId: string,
-  replace: ReplaceSourceBlock
-): NoteBlock[] => {
+type ReplaceQuoteLineInput = {
+  readonly block: NoteQuoteBlock
+  readonly lineIndex: number
+  readonly preserveMarkdownMarker: boolean
+  readonly replacementId: string
+  readonly replace: ReplaceSourceBlock
+}
+
+const replaceQuoteLine = ({
+  block,
+  lineIndex,
+  preserveMarkdownMarker,
+  replacementId,
+  replace
+}: ReplaceQuoteLineInput): NoteBlock[] => {
   const lines = quoteTextLines(block.text)
   const line = lines[lineIndex]
   if (line === undefined) return [block]
@@ -112,12 +130,15 @@ const replaceQuoteLine = (
   const afterLines = lines.slice(lineIndex + 1)
   const authorStaysAfter = afterLines.length > 0
   const isOnlyLine = beforeLines.length === 0 && afterLines.length === 0
+  const replacementText = `${preserveMarkdownMarker ? "> " : ""}${line}`
   const replacement = replace(
-    isOnlyLine ? { ...block, id: replacementId, text: line } : {
-      id: replacementId,
-      kind: "paragraph",
-      text: line
-    }
+    isOnlyLine
+      ? { ...block, id: replacementId, text: replacementText }
+      : {
+          id: replacementId,
+          kind: "paragraph",
+          text: replacementText
+        }
   )
 
   return [
@@ -145,6 +166,7 @@ const replaceQuoteLine = (
 
 type ReplaceBlockSourceInput = {
   readonly blocks: readonly NoteBlock[]
+  readonly preserveMarkdownMarker?: boolean | undefined
   readonly replacementId?: string | undefined
   readonly source: BlockSource
   readonly replace: ReplaceSourceBlock
@@ -152,6 +174,7 @@ type ReplaceBlockSourceInput = {
 
 const replaceBlockSource = ({
   blocks,
+  preserveMarkdownMarker = false,
   replacementId,
   source,
   replace
@@ -164,18 +187,25 @@ const replaceBlockSource = ({
         return [replace(block)]
       case "checklist-item":
         return block.kind === "checklist"
-          ? replaceChecklistItem(block, source.itemId, replace)
+          ? replaceChecklistItem({
+              block,
+              itemId: source.itemId,
+              preserveMarkdownMarker,
+              replace
+            })
           : [block]
       case "quote-line":
         return block.kind === "quote"
-          ? replaceQuoteLine(
+          ? replaceQuoteLine({
               block,
-              source.lineIndex,
-              source.lineIndex === 0
-                ? block.id
-                : replacementId ?? createNoteId(),
-              replace
-            )
+              lineIndex: source.lineIndex,
+              preserveMarkdownMarker,
+              replace,
+              replacementId:
+                source.lineIndex === 0
+                  ? block.id
+                  : replacementId ?? createNoteId()
+            })
           : [block]
       default:
         return assertNever(source)
@@ -185,12 +215,14 @@ const replaceBlockSource = ({
 export const convertBlockSource = ({
   blocks,
   checklistItemId,
+  preserveMarkdownMarker,
   replacementId,
   source,
   target
 }: ConvertBlockSourceInput): NoteBlock[] =>
   replaceBlockSource({
     blocks,
+    preserveMarkdownMarker,
     replacementId,
     source,
     replace: (sourceBlock) =>

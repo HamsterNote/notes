@@ -39,27 +39,17 @@ describe("markdown document edge cases", () => {
   it("round-trips H4 and H5 heading blocks", () => {
     const document = parseMarkdownDocument(
       markdownDocument(
-        [
-          '<!-- hn:block id="h4" eyebrow="Depth" -->',
-          "#### Fourth level",
-          "",
-          '<!-- hn:block id="h5" eyebrow="Detail" -->',
-          "##### Fifth level"
-        ].join("\n")
+        ["#### Fourth level", "", "##### Fifth level"].join("\n")
       )
     )
 
     expect(document.blocks).toHaveLength(2)
     expect(expectBlockAtIndex(document, 0)).toMatchObject({
-      eyebrow: "Depth",
-      id: "h4",
       kind: "heading",
       level: 4,
       text: "Fourth level"
     })
     expect(expectBlockAtIndex(document, 1)).toMatchObject({
-      eyebrow: "Detail",
-      id: "h5",
       kind: "heading",
       level: 5,
       text: "Fifth level"
@@ -68,43 +58,28 @@ describe("markdown document edge cases", () => {
     const serialized = serializeMarkdownDocument(document)
     expect(serialized).toContain("#### Fourth level")
     expect(serialized).toContain("##### Fifth level")
-    expect(parseMarkdownDocument(serialized).blocks).toEqual(document.blocks)
-  })
-
-  it("round-trips an empty paragraph block directive", () => {
-    const document = parseMarkdownDocument(
-      markdownDocument('<!-- hn:block id="empty-paragraph" empty="true" -->')
+    const reparsed = parseMarkdownDocument(serialized)
+    expect(reparsed.blocks.map(({ id }) => id)).not.toEqual(
+      document.blocks.map(({ id }) => id)
     )
-
-    expect(document.blocks).toEqual([
-      {
-        id: "empty-paragraph",
-        kind: "paragraph",
-        text: ""
-      }
+    expect(reparsed.blocks).toMatchObject([
+      { kind: "heading", level: 4, text: "Fourth level" },
+      { kind: "heading", level: 5, text: "Fifth level" }
     ])
-
-    const serialized = serializeMarkdownDocument(document)
-    expect(serialized).toContain(
-      '<!-- hn:block id="empty-paragraph" empty="true" -->'
-    )
-    expect(parseMarkdownDocument(serialized).blocks).toEqual(document.blocks)
   })
 
-  it("round-trips an empty heading marker with its block directive", () => {
-    const document = parseMarkdownDocument(
-      markdownDocument(
-        ['<!-- hn:block id="empty-heading" -->', "##"].join("\n")
-      )
-    )
+  it("ignores standalone HTML comments in Markdown data", () => {
+    const document = parseMarkdownDocument(markdownDocument("<!-- note -->"))
 
-    expect(document.blocks).toEqual([
-      {
-        id: "empty-heading",
-        kind: "heading",
-        level: 2,
-        text: ""
-      }
+    expect(document.blocks).toEqual([])
+    expect(serializeMarkdownDocument(document)).not.toContain("<!-- note -->")
+  })
+
+  it("round-trips an empty heading marker with a regenerated id", () => {
+    const document = parseMarkdownDocument(markdownDocument("##"))
+
+    expect(document.blocks).toMatchObject([
+      { kind: "heading", level: 2, text: "" }
     ])
 
     const serialized = serializeMarkdownDocument(document)
@@ -113,54 +88,51 @@ describe("markdown document edge cases", () => {
     if (bodyStart === -1) {
       throw new Error("Expected serialized markdown to contain a body.")
     }
-    expect(serialized.slice(bodyStart + splitToken.length)).toBe(
-      ['<!-- hn:block id="empty-heading" -->', "##"].join("\n")
-    )
-    expect(parseMarkdownDocument(serialized).blocks).toEqual(document.blocks)
+    expect(serialized.slice(bodyStart + splitToken.length)).toBe("##")
+    expect(parseMarkdownDocument(serialized).blocks).toMatchObject([
+      { kind: "heading", level: 2, text: "" }
+    ])
   })
 
   it("parses serialized inline br tags as canonical soft breaks", () => {
     const document = parseMarkdownDocument(
-      markdownDocument(
-        ['<!-- hn:block id="soft-break" -->', "Alpha<br>Bravo"].join("\n")
-      )
+      markdownDocument("Alpha<br>Bravo")
     )
 
-    expect(document.blocks).toEqual([
-      {
-        id: "soft-break",
-        kind: "paragraph",
-        text: "Alpha\nBravo"
-      }
+    expect(document.blocks).toMatchObject([
+      { kind: "paragraph", text: "Alpha\nBravo" }
     ])
 
     const serialized = serializeMarkdownDocument(document)
     expect(serialized).toContain("Alpha<br>Bravo")
-    expect(parseMarkdownDocument(serialized).blocks).toEqual(document.blocks)
+    expect(parseMarkdownDocument(serialized).blocks).toMatchObject([
+      { kind: "paragraph", text: "Alpha\nBravo" }
+    ])
   })
 
   it("creates unique UUID fallback ids for blocks and checklist items", () => {
     const document = parseMarkdownDocument(
       markdownDocument(
         [
-          "# Heading without a directive",
+          "# Heading",
           "",
-          '<!-- hn:checklist id="0e12376c-1685-4703-8c01-6c112357f02c" title="First" -->',
           "- [ ] First item",
           "",
-          '<!-- hn:checklist id="9638742e-650b-4fb7-9e7c-c6d6b7557f25" title="Second" -->',
-          "- [ ] Second item",
+          "A paragraph",
+          "",
+          "- [ ] Second item"
         ].join("\n")
       )
     )
 
     const generatedIds = document.blocks.flatMap((block) => {
-      if (block.kind === "heading") return [block.id]
-      if (block.kind === "checklist") return block.items.map((item) => item.id)
-      return []
+      if (block.kind === "checklist") {
+        return [block.id, ...block.items.map((item) => item.id)]
+      }
+      return [block.id]
     })
 
-    expect(generatedIds).toHaveLength(3)
+    expect(generatedIds).toHaveLength(6)
     expect(generatedIds.every((id) => UUID_V4_PATTERN.test(id))).toBe(true)
     expect(new Set(generatedIds).size).toBe(generatedIds.length)
   })

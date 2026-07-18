@@ -63,168 +63,173 @@ export const NoteCodeBlock = ({
   }, [editing])
 
   return (
-    <div className="hn-note-block-row" id={block.id}>
+    <>
       {renderBlockActionMenu(block, ctx)}
-      <div className="hn-note-block-content">
-        <section className="hn-note-code-card">
-          <div className="hn-note-code-meta">
-            {editable ? (
-              <>
-                <select
-                  className="hn-note-code-lang-select"
-                  value={block.language}
-                  aria-label="选择代码语言"
-                  onChange={(event: ChangeEvent<HTMLSelectElement>) =>
-                    onBlocksChange?.(
-                      updateCodeLanguage(blocks, block.id, event.target.value)
-                    )
-                  }
-                >
-                  {languageOptions.map((lang) => (
-                    <option key={lang} value={lang}>
-                      {lang === "text" ? "Plain Text" : lang}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  className="hn-note-code-filename-input"
-                  type="text"
-                  value={block.filename ?? ""}
-                  size={Math.max(1, (block.filename ?? "").length)}
-                  placeholder="filename..."
-                  aria-label="编辑文件名"
-                  onChange={(event) =>
-                    onBlocksChange?.(
-                      updateCodeFilename(blocks, block.id, event.target.value)
-                    )
-                  }
-                />
-              </>
-            ) : (
-              <>
-                <span>{block.language === "text" ? "Plain Text" : block.language}</span>
-                {block.filename ? <span>{block.filename}</span> : null}
-              </>
-            )}
-          </div>
+      <section className="hn-note-code-card">
+        <div className="hn-note-code-meta">
           {editable ? (
-            editing ? (
-              <div className="hn-note-code-editing">
-                <code
-                  ref={highlightRef}
-                  aria-hidden="true"
-                  className={`${codeClassName} hn-note-code-highlight`}
-                  {...richText(highlightedCode)}
-                />
-                <div
-                  ref={editorRef}
-                  aria-label={
-                    block.filename ? `编辑代码：${block.filename}` : "编辑代码"
-                  }
-                  aria-multiline="true"
-                  role="textbox"
-                  tabIndex={0}
-                  {...editableProps(
-                    (event) => {
-                      const code = normalizeLineEndings(
-                        event.currentTarget.innerText
-                      )
-                      setEditing(false)
-                      onBlocksChange?.(updateCode(blocks, block.id, code))
-                    },
-                    "hn-note-code-editor"
-                  )}
-                  onInput={(event) =>
-                    setDraftCode(normalizeLineEndings(event.currentTarget.innerText))
-                  }
-                  onKeyDown={(event) => {
-                    if (event.nativeEvent.isComposing) return
-                    // 代码块内回车：插入换行符 \n，不拆分代码块
-                    // white-space: pre 会将 \n 正确渲染为换行
-                    if (event.key === "Enter") {
-                      event.preventDefault()
-                      const selection = window.getSelection()
-                      if (!selection || selection.rangeCount === 0) return
-                      const range = selection.getRangeAt(0)
-                      if (!event.currentTarget.contains(range.commonAncestorContainer))
-                        return
-                      if (!range.collapsed) range.deleteContents()
-                      // 插入换行符文本节点（而非 <br> 或 <div>），
-                      // 配合 white-space: pre 保持纯文本格式
-                      const newlineNode = document.createTextNode("\n")
-                      range.insertNode(newlineNode)
-                      // 将光标移到换行符之后
-                      range.setStartAfter(newlineNode)
-                      range.collapse(true)
-                      selection.removeAllRanges()
-                      selection.addRange(range)
-                      // 同步草稿代码状态，驱动高亮层更新
-                      setDraftCode(
-                        normalizeLineEndings(event.currentTarget.innerText)
-                      )
-                      return
-                    }
-                    handleEditableBlockKeyDown({
-                      ctx,
-                      event,
-                      mode: "plain-text",
-                      sourceId: block.id
-                    })
-                  }}
-                  onPaste={(event) => {
+            <>
+              <select
+                className="hn-note-code-lang-select"
+                value={block.language}
+                aria-label="选择代码语言"
+                onChange={(event: ChangeEvent<HTMLSelectElement>) =>
+                  onBlocksChange?.(
+                    updateCodeLanguage(blocks, block.id, event.target.value)
+                  )
+                }
+              >
+                {languageOptions.map((lang) => (
+                  <option key={lang} value={lang}>
+                    {lang === "text" ? "Plain Text" : lang}
+                  </option>
+                ))}
+              </select>
+              <input
+                className="hn-note-code-filename-input"
+                type="text"
+                value={block.filename ?? ""}
+                size={Math.max(1, (block.filename ?? "").length)}
+                placeholder="filename..."
+                aria-label="编辑文件名"
+                onChange={(event) =>
+                  onBlocksChange?.(
+                    updateCodeFilename(blocks, block.id, event.target.value)
+                  )
+                }
+              />
+            </>
+          ) : (
+            <>
+              <span>
+                {block.language === "text" ? "Plain Text" : block.language}
+              </span>
+              {block.filename ? <span>{block.filename}</span> : null}
+            </>
+          )}
+        </div>
+        {editable ? (
+          editing ? (
+            <div className="hn-note-code-editing">
+              <code
+                ref={highlightRef}
+                aria-hidden="true"
+                className={`${codeClassName} hn-note-code-highlight`}
+                {...richText(highlightedCode)}
+              />
+              <div
+                ref={editorRef}
+                aria-label={
+                  block.filename ? `编辑代码：${block.filename}` : "编辑代码"
+                }
+                aria-multiline="true"
+                role="textbox"
+                tabIndex={0}
+                {...editableProps((event) => {
+                  const code = normalizeLineEndings(
+                    event.currentTarget.innerText
+                  )
+                  setEditing(false)
+                  onBlocksChange?.(updateCode(blocks, block.id, code))
+                }, "hn-note-code-editor")}
+                onInput={(event) =>
+                  setDraftCode(
+                    normalizeLineEndings(event.currentTarget.innerText)
+                  )
+                }
+                onKeyDown={(event) => {
+                  if (event.nativeEvent.isComposing) return
+                  // 代码块内回车：插入换行符 \n，不拆分代码块
+                  // white-space: pre 会将 \n 正确渲染为换行
+                  if (event.key === "Enter") {
                     event.preventDefault()
                     const selection = window.getSelection()
                     if (!selection || selection.rangeCount === 0) return
                     const range = selection.getRangeAt(0)
-                    if (!event.currentTarget.contains(range.commonAncestorContainer))
-                      return
-                    range.deleteContents()
-                    const textNode = document.createTextNode(
-                      normalizeLineEndings(
-                        event.clipboardData.getData("text/plain")
+                    if (
+                      !event.currentTarget.contains(
+                        range.commonAncestorContainer
                       )
                     )
-                    range.insertNode(textNode)
-                    range.setStartAfter(textNode)
+                      return
+                    if (!range.collapsed) range.deleteContents()
+                    // 插入换行符文本节点（而非 <br> 或 <div>），
+                    // 配合 white-space: pre 保持纯文本格式
+                    const newlineNode = document.createTextNode("\n")
+                    range.insertNode(newlineNode)
+                    // 将光标移到换行符之后
+                    range.setStartAfter(newlineNode)
                     range.collapse(true)
                     selection.removeAllRanges()
                     selection.addRange(range)
+                    // 同步草稿代码状态，驱动高亮层更新
                     setDraftCode(
                       normalizeLineEndings(event.currentTarget.innerText)
                     )
-                  }}
-                  onScroll={(event) => {
-                    const highlight = highlightRef.current
-                    if (!highlight) return
-                    highlight.scrollLeft = event.currentTarget.scrollLeft
-                    highlight.scrollTop = event.currentTarget.scrollTop
-                  }}
-                  data-editable-block-id={block.id}
-                >
-                  {block.code}
-                </div>
-              </div>
-            ) : (
-              <button
-                aria-label="编辑代码"
-                className="hn-note-code-preview"
-                data-editable-block-id={block.id}
-                onFocus={() => {
-                  setDraftCode(block.code)
-                  setEditing(true)
+                    return
+                  }
+                  handleEditableBlockKeyDown({
+                    ctx,
+                    event,
+                    mode: "plain-text",
+                    sourceId: block.id
+                  })
                 }}
-                type="button"
+                onPaste={(event) => {
+                  event.preventDefault()
+                  const selection = window.getSelection()
+                  if (!selection || selection.rangeCount === 0) return
+                  const range = selection.getRangeAt(0)
+                  if (
+                    !event.currentTarget.contains(range.commonAncestorContainer)
+                  )
+                    return
+                  range.deleteContents()
+                  const textNode = document.createTextNode(
+                    normalizeLineEndings(
+                      event.clipboardData.getData("text/plain")
+                    )
+                  )
+                  range.insertNode(textNode)
+                  range.setStartAfter(textNode)
+                  range.collapse(true)
+                  selection.removeAllRanges()
+                  selection.addRange(range)
+                  setDraftCode(
+                    normalizeLineEndings(event.currentTarget.innerText)
+                  )
+                }}
+                onScroll={(event) => {
+                  const highlight = highlightRef.current
+                  if (!highlight) return
+                  highlight.scrollLeft = event.currentTarget.scrollLeft
+                  highlight.scrollTop = event.currentTarget.scrollTop
+                }}
+                data-editable-block-id={block.id}
               >
-                <code className={codeClassName} {...richText(highlightedCode)} />
-              </button>
-            )
+                {block.code}
+              </div>
+            </div>
           ) : (
-            <pre>
+            <button
+              aria-label="编辑代码"
+              className="hn-note-code-preview"
+              data-editable-block-id={block.id}
+              onFocus={() => {
+                setDraftCode(block.code)
+                setEditing(true)
+              }}
+              type="button"
+            >
               <code className={codeClassName} {...richText(highlightedCode)} />
-            </pre>
-          )}
-        </section>
-      </div>
-    </div>
+            </button>
+          )
+        ) : (
+          <pre>
+            <code className={codeClassName} {...richText(highlightedCode)} />
+          </pre>
+        )}
+      </section>
+    </>
   )
 }

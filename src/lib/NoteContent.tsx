@@ -1,43 +1,27 @@
 import {
   type CSSProperties,
-  type FocusEvent,
   type ReactNode,
   type Ref,
+  useEffect,
   useImperativeHandle,
-  useRef
+  useRef,
+  useState
 } from "react"
 
 import "./styles.css"
 
 import { isVisibleHtmlEmpty } from "./blockEditing"
+import { NoteChecklistBlock } from "./NoteChecklistBlock"
 import { renderBlock, richText } from "./NoteContentBlocks"
-import { updateText } from "./NoteContentEditing"
+import { editableProps, updateText } from "./NoteContentEditing"
+import { NoteQuoteBlock } from "./NoteQuoteBlock"
 import { DISABLED_CONTROLLER } from "./noteContentUndoRedo"
 import { createNoteId } from "./noteId"
 import { SelectionPopover } from "./SelectionPopover"
-import type {
-  NoteContentProps,
-  NoteContentUndoRedoHandle
-} from "./types"
+import type { NoteContentProps, NoteContentUndoRedoHandle } from "./types"
+import { useBlockDrag } from "./useBlockDrag"
 import { useBlockEditing } from "./useBlockEditing"
 import { formatUpdatedAt, getReadingMinutes } from "./utils"
-
-const editableProps = (
-  onBlur: (event: FocusEvent<HTMLElement>) => void,
-  baseClassName?: string
-) => ({
-  contentEditable: true,
-  suppressContentEditableWarning: true,
-  className: baseClassName
-    ? `${baseClassName} hn-note-editable`
-    : "hn-note-editable",
-  spellCheck: false,
-  onBlur: (event: FocusEvent<HTMLElement>) => {
-    const related = event.relatedTarget as HTMLElement | null
-    if (related?.closest?.(".hn-note-popover")) return
-    onBlur(event)
-  }
-})
 
 type LegacyNoteContentProps = Omit<NoteContentProps, "ref"> & {
   readonly ref?: Ref<NoteContentUndoRedoHandle>
@@ -54,35 +38,68 @@ export function NoteContent({
   theme = "light",
   themeColor,
   editable = false,
+  selectMode = false,
   onTitleChange,
   onSummaryChange,
   onBlocksChange,
+  onBlockSelect,
   onPictureUpload,
   onMagicLinkConfigure,
   onMagicLinkClick,
   ref: undoRedoRef,
-  undoRedoController
+  undoRedoController,
+  topPadding,
+  bottomPadding
 }: NoteContentProps | LegacyNoteContentProps) {
-  const readingMinutes = getReadingMinutes(blocks)
-  const shellStyle = themeColor
-    ? ({ "--hn-theme": themeColor } as CSSProperties)
-    : undefined
-  const shellRef = useRef<HTMLElement>(null)
+const shellRef = useRef<HTMLElement>(null)
+  const bodyRef = useRef<HTMLDivElement>(null)
+  const bottomBarRef = useRef<HTMLDivElement>(null)
+  const [viewportWidth, setViewportWidth] = useState(() =>
+    typeof window === "undefined" ? 841 : window.innerWidth
+  )
+  const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null)
   const blocksRef = useRef(blocks)
+  const isMobileDevice =
+    typeof navigator !== "undefined" &&
+    (/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ||
+      (/Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1))
+
+  useEffect(() => {
+    const syncViewportWidth = () => setViewportWidth(window.innerWidth)
+    window.addEventListener("resize", syncViewportWidth)
+    return () => window.removeEventListener("resize", syncViewportWidth)
+  }, [])
+
   blocksRef.current = blocks
+  const bodyPaddingX = viewportWidth > 840 ? "4rem" : "1.5rem"
+  const contentEditable = editable && !selectMode
+  const blockDragEnabled = contentEditable && onBlocksChange !== undefined
+  // 底部工具栏触发条件：移动设备 或 视口宽度 <= 840px（窄屏布局）
+  const useBottomBar = isMobileDevice || viewportWidth <= 840
+  // shellStyle：注入主题色与可选的顶部/底部额外留白（px）。
+  // 不直接写 padding，而是用 CSS 变量，使 .hn-note-hero/.hn-note-body
+  // 能以 calc 叠加在各自默认内边距之上，保持原有视觉节奏。
+  const shellStyle = {
+    ...(themeColor ? { "--hn-theme": themeColor } : {}),
+    ...(topPadding ? { "--hn-top-padding": `${topPadding}px` } : {}),
+    ...(bottomPadding ? { "--hn-bottom-padding": `${bottomPadding}px` } : {})
+  } as CSSProperties
+  const readingMinutes = getReadingMinutes(blocks)
   const controller = undoRedoController ?? DISABLED_CONTROLLER
   useImperativeHandle(
     undoRedoRef,
     () => ({
       ...controller,
       scrollToBlock: (blockId: string): boolean => {
-        const shell = shellRef.current
-        if (!shell) return false
-        const target = Array.from(
-          shell.querySelectorAll<HTMLElement>(
-            ".hn-note-block-row, .hn-note-block--checklist"
-          )
-        ).find((element) => element.id === blockId)
+        const body = bodyRef.current
+        if (!body) return false
+        const target = Array.from(body.children).find(
+          (element): element is HTMLElement =>
+            element instanceof HTMLElement &&
+            (element.id === blockId ||
+              element.getAttribute("data-note-sortable-id") === blockId ||
+              element.getAttribute("data-note-block-id") === blockId)
+        )
         if (!target) return false
         target.scrollIntoView({ behavior: "smooth", block: "center" })
         if (!target.hasAttribute("tabindex")) target.tabIndex = -1
@@ -94,17 +111,69 @@ export function NoteContent({
   )
   const { openBlockMenuId, requestFocus, handleBlockMenuOpenChange } =
     useBlockEditing(shellRef)
+  const appendParagraphAtTail = () => {
+    const lastBlock = blocks[blocks.length - 1]
+    if (
+      lastBlock &&
+      (lastBlock.kind === "paragraph" || lastBlock.kind === "heading") &&
+      isVisibleHtmlEmpty(lastBlock.text)
+    ) {
+      requestFocus(lastBlock.id, "start")
+      return
+    }
+    if (!onBlocksChange) return
+    const newId = createNoteId()
+    onBlocksChange([...blocks, { id: newId, kind: "paragraph", text: "" }])
+    requestFocus(newId, "start")
+  }
+  useBlockDrag({
+    bodyRef,
+    blocks,
+    onBlocksChange: blockDragEnabled ? onBlocksChange : undefined,
+    touchEnabled: viewportWidth <= 840
+  })
+  const selectBlockFromTarget = (target: EventTarget | null): boolean => {
+    if (!(target instanceof Element)) return false
+    const body = bodyRef.current
+    if (!body) return false
+    const boundary = Array.from(body.children).find(
+      (element): element is HTMLElement =>
+        element instanceof HTMLElement &&
+        element.hasAttribute("data-note-select-id") &&
+        (element === target || element.contains(target))
+    )
+    if (!boundary) return false
+    const blockId = boundary.getAttribute("data-note-select-id")
+    if (!blockId) return false
+
+    setSelectedBlockId(blockId)
+    onBlockSelect?.(blockId)
+    boundary.focus({ preventScroll: true })
+    return true
+  }
 
   return (
     <>
       <article
-        className={`hn-note-shell hn-note-shell--${theme}`}
+        className={`hn-note-shell hn-note-shell--${theme}${isMobileDevice ? " hn-note-shell--mobile" : ""}`}
         data-theme={theme}
+        role={selectMode ? "listbox" : undefined}
+        aria-label={selectMode ? "Note blocks" : undefined}
         ref={shellRef}
         style={shellStyle}
         onClickCapture={(event) => {
+          if (contentEditable && event.target === bodyRef.current) {
+            appendParagraphAtTail()
+            return
+          }
+          if (selectMode && selectBlockFromTarget(event.target)) {
+            event.preventDefault()
+            event.stopPropagation()
+            return
+          }
           // 拦截 hnmagic:// 链接点击：禁止原生跳转，交给宿主处理
-          const anchor = (event.target as HTMLElement | null)?.closest("a")
+          if (!(event.target instanceof Element)) return
+          const anchor = event.target.closest("a")
           if (!anchor) return
           const href = anchor.getAttribute("href")
           if (href?.startsWith("hnmagic://")) {
@@ -116,7 +185,13 @@ export function NoteContent({
         onKeyDownCapture={(event) => {
           // 键盘等价：Enter/Space 激活 hnmagic:// 链接时同样拦截原生跳转
           if (event.key !== "Enter" && event.key !== " ") return
-          const anchor = (event.target as HTMLElement | null)?.closest("a")
+          if (selectMode && selectBlockFromTarget(event.target)) {
+            event.preventDefault()
+            event.stopPropagation()
+            return
+          }
+          if (!(event.target instanceof Element)) return
+          const anchor = event.target.closest("a")
           if (!anchor) return
           const href = anchor.getAttribute("href")
           if (href?.startsWith("hnmagic://")) {
@@ -129,10 +204,8 @@ export function NoteContent({
         <header className="hn-note-hero">
           <div className="hn-note-hero-grid">
             <div>
-              {tagLabel ? (
-                <span className="hn-note-badge">{tagLabel}</span>
-              ) : null}
-              {editable ? (
+              {tagLabel ? <span className="hn-note-badge">{tagLabel}</span> : null}
+              {contentEditable ? (
                 <h1
                   {...editableProps((event) =>
                     onTitleChange?.(event.currentTarget.innerHTML)
@@ -143,7 +216,7 @@ export function NoteContent({
                 <h1 {...richText(title)} />
               )}
               {summary ? (
-                editable ? (
+                contentEditable ? (
                   <p
                     {...editableProps(
                       (event) =>
@@ -177,50 +250,96 @@ export function NoteContent({
           </div>
         </header>
 
-        <div className="hn-note-body">
-          {blocks.map((block) =>
-            renderBlock(block, {
-              editable,
+        <div
+          ref={bodyRef}
+          className="hn-note-body"
+          style={{ "--hn-body-padding-x": bodyPaddingX } as CSSProperties}
+        >
+          {blocks.map((block) => {
+            const editContext = {
+              editable: contentEditable,
               blocks,
               getBlocks: () => blocksRef.current,
               openBlockMenuId,
               onBlocksChange,
               onPictureUpload,
               requestFocus,
-              onBlockMenuOpenChange: handleBlockMenuOpenChange
-            })
-          )}
+              onBlockMenuOpenChange: handleBlockMenuOpenChange,
+              selectMode,
+              selectedBlockId
+            }
+
+            if (block.kind === "checklist") {
+              return (
+                <NoteChecklistBlock
+                  key={block.id}
+                  block={block}
+                  ctx={editContext}
+                />
+              )
+            }
+
+            if (block.kind === "quote") {
+              return (
+                <NoteQuoteBlock
+                  key={block.id}
+                  block={block}
+                  ctx={editContext}
+                />
+              )
+            }
+
+            const renderedBlock = renderBlock(block, editContext)
+
+            return (
+              <div
+                className={[
+                  "hn-note-block",
+                  blockDragEnabled ? "hn-note-sortable-block" : "",
+                  selectMode ? "hn-note-selectable-block" : ""
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+                id={block.id}
+                key={block.id}
+                {...(blockDragEnabled
+                  ? {
+                      "data-note-sortable-id": block.id,
+                      "data-note-block-id": block.id,
+                      "data-note-drag-kind": "block"
+                    }
+                  : {})}
+                {...(selectMode
+                  ? {
+                      "data-note-select-id": block.id,
+                      role: "option" as const,
+                      "aria-selected": selectedBlockId === block.id,
+                      tabIndex: 0
+                    }
+                  : {})}
+              >
+                {renderedBlock}
+              </div>
+            )
+          })}
           {/* 可编辑模式下，点击正文下方空白区域新建空段落 */}
-          {editable && onBlocksChange ? (
+          {contentEditable && onBlocksChange ? (
             <button
               type="button"
               aria-label="新建一行"
               className="hn-note-body-tail"
-              onClick={() => {
-                const lastBlock = blocks[blocks.length - 1]
-                if (
-                  lastBlock &&
-                  (lastBlock.kind === "paragraph" ||
-                    lastBlock.kind === "heading") &&
-                  isVisibleHtmlEmpty(lastBlock.text)
-                ) {
-                  requestFocus?.(lastBlock.id, "start")
-                  return
-                }
-                const newId = createNoteId()
-                onBlocksChange([
-                  ...blocks,
-                  { id: newId, kind: "paragraph", text: "" }
-                ])
-                requestFocus?.(newId, "start")
-              }}
+              onClick={appendParagraphAtTail}
             />
           ) : null}
         </div>
+        {contentEditable && useBottomBar ? (
+          <div ref={bottomBarRef} className="hn-note-bottom-bar" />
+        ) : null}
       </article>
-      {editable && openBlockMenuId === null ? (
+      {contentEditable && openBlockMenuId === null ? (
         <SelectionPopover
           containerRef={shellRef}
+          portalContainerRef={useBottomBar ? bottomBarRef : undefined}
           onMagicLinkConfigure={onMagicLinkConfigure}
           onContentChange={(blockId, innerHtml) => {
             onBlocksChange?.(updateText(blocks, blockId, innerHtml))

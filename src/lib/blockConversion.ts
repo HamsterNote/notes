@@ -162,7 +162,7 @@ export const convertBlockFormat = (
       return {
         id: block.id,
         kind: "checklist",
-        title: "List",
+        title: "",
         items: [{ id: checklistItemId ?? createNoteId(), checked: false, text }]
       }
     case "quote":

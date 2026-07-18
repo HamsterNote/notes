@@ -139,17 +139,17 @@ describe("NoteContent block navigation ref bridge", () => {
     }
   ]
 
-  it("maps each rendered block row to its data id", () => {
+  it("maps each body-level render unit to its data id", () => {
     const { container } = render(
       <NoteContent blocks={blocks} title="Block ids" />
     )
 
-    const rowIds = Array.from(
-      container.querySelectorAll<HTMLElement>(".hn-note-block-row"),
-      (row) => row.id
+    const blockIds = Array.from(
+      container.querySelectorAll<HTMLElement>(".hn-note-body > [id]"),
+      (block) => block.id
     )
 
-    expect(rowIds).toEqual([
+    expect(blockIds).toEqual([
       ids.title,
       ids.intro,
       ids.taskFirst,
@@ -161,9 +161,7 @@ describe("NoteContent block navigation ref bridge", () => {
       ids.equation,
       ids.illustration
     ])
-    expect(container.querySelector(".hn-note-block--checklist")?.id).toBe(
-      ids.tasks
-    )
+    expect(container.querySelector(".hn-note-checklist")).toBeNull()
   })
 
   it("scrolls the matching block id into view", () => {
@@ -171,9 +169,9 @@ describe("NoteContent block navigation ref bridge", () => {
     const { container } = render(
       <NoteContent ref={noteRef} blocks={blocks} title="Block ids" />
     )
-    const target = Array.from(
-      container.querySelectorAll<HTMLElement>(".hn-note-block-row")
-    ).find((row) => row.id === ids.taskSecond)
+    const target = container.querySelector<HTMLElement>(
+      `[id="${ids.taskSecond}"]`
+    )
     if (!target) throw new Error("Expected checklist item target")
     const scrollIntoView = vi.fn()
     const focus = vi.fn()
@@ -189,6 +187,48 @@ describe("NoteContent block navigation ref bridge", () => {
     })
     expect(target.tabIndex).toBe(-1)
     expect(focus).toHaveBeenCalledWith({ preventScroll: true })
+  })
+
+  it("scrolls a persisted checklist block id to its first rendered item", () => {
+    // Given: a checklist whose persisted id differs from its direct item ids.
+    const noteRef = createRef<NoteContentHandle>()
+    const { container } = render(
+      <NoteContent ref={noteRef} blocks={blocks} title="Block ids" />
+    )
+    const target = container.querySelector<HTMLElement>(
+      `[id="${ids.taskFirst}"]`
+    )
+    if (!target) throw new Error("Expected first checklist item target")
+    const scrollIntoView = vi.fn()
+    target.scrollIntoView = scrollIntoView
+    target.focus = vi.fn()
+
+    // When: the public navigation API receives the persisted checklist id.
+    const didScroll = noteRef.current?.scrollToBlock(ids.tasks)
+
+    // Then: navigation resolves the flattened checklist to its first item.
+    expect(didScroll).toBe(true)
+    expect(scrollIntoView).toHaveBeenCalledOnce()
+  })
+
+  it("keeps an empty checklist visible without an aggregate wrapper", () => {
+    // Given: a persisted checklist with a title and no items.
+    const emptyChecklist: readonly NoteBlock[] = [
+      { id: ids.tasks, kind: "checklist", title: "Empty tasks", items: [] }
+    ]
+
+    // When: the note renders in read-only mode.
+    const { container } = render(
+      <NoteContent blocks={emptyChecklist} title="Block ids" />
+    )
+
+    // Then: one direct empty-state block preserves the checklist title and id.
+    const emptyBlock = container.querySelector<HTMLElement>(
+      `.hn-note-body > [id="${ids.tasks}"]`
+    )
+    expect(emptyBlock?.classList.contains("hn-note-checklist-empty")).toBe(true)
+    expect(emptyBlock?.textContent).toContain("Empty tasks")
+    expect(container.querySelector(".hn-note-checklist")).toBeNull()
   })
 
   it("returns false when the block id is not rendered", () => {

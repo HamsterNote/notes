@@ -110,7 +110,7 @@ describe("destructive and trailing-row table interactions", () => {
     // When: its click handler sees an existing empty paragraph or heading.
     // Then: it focuses that line and returns before creating a new block id.
     expect(source).toMatch(
-      /isVisibleHtmlEmpty\(lastBlock\.text\)[\s\S]*?requestFocus\?\.\(lastBlock\.id, "start"\)[\s\S]*?return/
+      /isVisibleHtmlEmpty\(lastBlock\.text\)[\s\S]*?requestFocus\(lastBlock\.id, "start"\)[\s\S]*?return/
     )
   })
 })
