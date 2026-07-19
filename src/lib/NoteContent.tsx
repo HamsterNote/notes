@@ -11,6 +11,7 @@ import {
 import "./styles.css"
 
 import { isVisibleHtmlEmpty } from "./blockEditing"
+import { useInlineFormulaRendering } from "./inlineFormulaRendering"
 import { NoteChecklistBlock } from "./NoteChecklistBlock"
 import { renderBlock, richText } from "./NoteContentBlocks"
 import { editableProps, updateText } from "./NoteContentEditing"
@@ -131,6 +132,14 @@ const shellRef = useRef<HTMLElement>(null)
     blocks,
     onBlocksChange: blockDragEnabled ? onBlocksChange : undefined,
     touchEnabled: viewportWidth <= 840
+  })
+  // 只读模式下渲染富文本中嵌入的内联公式占位 span。可编辑模式下传 null
+  // 禁用渲染——contentEditable 需保留原始 LaTeX 文本供用户直接编辑，
+  // KaTeX 渲染产物会破坏选区与编辑语义。renderKey 仍随 blocks 变化，
+  // 在只读模式下任何内容更新都会重新扫描并渲染公式。
+  useInlineFormulaRendering({
+    root: bodyRef,
+    renderKey: contentEditable ? null : blocks
   })
   const selectBlockFromTarget = (target: EventTarget | null): boolean => {
     if (!(target instanceof Element)) return false

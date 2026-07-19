@@ -168,3 +168,51 @@ describe("editable code styles", () => {
     expect(source).toMatch(/ref=\{editorRef\}\s*aria-label=\{.*编辑代码/s)
   })
 })
+
+// CSS 合约测试：选区弹出层（SelectionPopover）的格式化按钮与行内样式。
+// 这些断言确保 styles.css 暴露计划中新增的 BEM 类名，便于在实现阶段
+// 通过测试失败而非人工评审来发现遗漏的样式。仅基于文件内容做确定性检查，
+// 不渲染组件、不依赖 DOM。
+describe("popover toolbar formatting styles", () => {
+  // 共享读取一次 styles.css，保持与既有测试一致的文件级合约形式。
+  const styles = readFileSync(
+    new URL("./styles.css", import.meta.url),
+    "utf8"
+  )
+
+  it("exposes an active state for the popover formatting buttons", () => {
+    // Given: 粗体/斜体/下划线等格式按钮在被激活时需要持续高亮。
+    // Then: 样式表包含 .hn-note-popover-btn--active 选择器规则。
+    expect(styles).toMatch(/\.hn-note-popover-btn--active\s*\{/)
+  })
+
+  it("ships glyph variants for strikethrough, code, formula, and clear", () => {
+    // Given: 新增的删除线、行内代码、行内公式与清除格式按钮均需各自的字形样式。
+    // Then: 四个 BEM 修饰符同时存在于样式表中。
+    expect(styles).toMatch(/\.hn-note-popover-glyph--strikethrough\s*\{/)
+    expect(styles).toMatch(/\.hn-note-popover-glyph--code\s*\{/)
+    expect(styles).toMatch(/\.hn-note-popover-glyph--formula\s*\{/)
+    expect(styles).toMatch(/\.hn-note-popover-glyph--clear\s*\{/)
+  })
+
+  it("renders inline formula spans with base and rendered states", () => {
+    // Given: 行内公式走与块级公式不同的 BEM 表面，渲染态需要独立修饰符。
+    // Then: 基类与 --rendered 修饰符同时存在。
+    expect(styles).toMatch(/\.hn-note-inline-formula\s*\{/)
+    expect(styles).toMatch(/\.hn-note-inline-formula--rendered\s*\{/)
+  })
+
+  it("styles inline code via a dedicated BEM surface alongside inline formula", () => {
+    // Given: 行内代码需与行内公式保持平行的命名约定，避免依赖章节级 code 样式。
+    // Then: 样式表提供 .hn-note-inline-code 选择器作为行内代码的基础渲染契约。
+    expect(styles).toMatch(/\.hn-note-inline-code\s*\{/)
+  })
+
+  it("supports the docked active state for the mobile bottom toolbar", () => {
+    // Given: docked 模式下按钮主题色不同，--active 高亮需在该作用域内重写。
+    // Then: 样式表存在 .hn-note-popover--docked .hn-note-popover-btn--active 复合选择器。
+    expect(styles).toMatch(
+      /\.hn-note-popover--docked\s+\.hn-note-popover-btn--active\s*\{/
+    )
+  })
+})
