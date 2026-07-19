@@ -20,16 +20,6 @@ import { assertNever } from "./utils"
 
 type EditTextBlock = NoteHeadingBlock | NoteParagraphBlock
 
-const orderedListPrefixPattern = /^\d+\. $/u
-
-type TextListKind = "unorderedList" | "orderedList"
-
-const listKindFromShortcut = (text: string): TextListKind | undefined => {
-  if (text === "- ") return "unorderedList"
-  if (orderedListPrefixPattern.test(text)) return "orderedList"
-  return undefined
-}
-
 type NoteTextBlockProps = {
   readonly block: EditTextBlock
   readonly ctx: EditContext

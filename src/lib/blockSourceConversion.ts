@@ -3,7 +3,6 @@ import { convertBlockFormatToBlocks } from "./blockConversion"
 import { createNoteId } from "./noteId"
 import type {
   NoteBlock,
-  NoteChecklistBlock,
   NoteTodoBlock,
   NotePictureBlock,
   NoteQuoteBlock

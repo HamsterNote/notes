@@ -278,6 +278,16 @@ export function NoteContent({
               )
             }
 
+            if (block.kind === "checklist") {
+              return (
+                <NoteChecklistBlock
+                  key={block.id}
+                  block={block}
+                  ctx={editContext}
+                />
+              )
+            }
+
             if (
               block.kind === "unorderedList" ||
               block.kind === "orderedList"
