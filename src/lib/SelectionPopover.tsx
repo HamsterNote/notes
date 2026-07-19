@@ -35,6 +35,29 @@ type PopoverPosition = {
 
 type PopoverMode = "format" | "link"
 
+// 已知可被按钮触发/清除的格式名集合，复用于 queryActiveFormats 与高亮判断
+type FormatCommand = "bold" | "italic" | "underline"
+
+// 当前选区已生效的格式状态，用于在对应按钮上高亮显示。
+// jsdom 未实现 queryCommandState，需做空值与异常兜底，避免测试与 SSR 崩溃。
+const queryActiveFormats = (): Record<FormatCommand, boolean> => {
+  const empty: Record<FormatCommand, boolean> = {
+    bold: false,
+    italic: false,
+    underline: false
+  }
+  if (typeof document.queryCommandState !== "function") return empty
+  try {
+    return {
+      bold: document.queryCommandState("bold") === true,
+      italic: document.queryCommandState("italic") === true,
+      underline: document.queryCommandState("underline") === true
+    }
+  } catch {
+    return empty
+  }
+}
+
 // 选区距视口顶部小于该阈值时，popover 翻转到选区下方，避免被裁切
 const FLIP_THRESHOLD = 88
 // popover 与选区之间的间距
@@ -85,6 +108,12 @@ export const SelectionPopover = ({
   // 当前选区文字颜色（由 queryCommandValue("foreColor") 读取），
   // 用于在对应色块上高亮；jsdom 下为空字符串，不会命中任何预设色块
   const [activeColor, setActiveColor] = useState<string>("")
+  // 当前选区已生效的格式（bold/italic/underline），用于在对应按钮上高亮
+  const [activeFormats, setActiveFormats] = useState<Record<FormatCommand, boolean>>({
+    bold: false,
+    italic: false,
+    underline: false
+  })
 
   // 保存进入链接配置时的选区 Range，用于恢复选区后执行 createLink
   const savedRangeRef = useRef<Range | null>(null)
@@ -128,6 +157,7 @@ export const SelectionPopover = ({
       }
 
       setActiveColor(queryActiveColor())
+      setActiveFormats(queryActiveFormats())
       setPosition(computePosition(range))
     }
 
@@ -176,8 +206,36 @@ export const SelectionPopover = ({
 
   // 执行格式化命令并重新定位；execCommand 虽已废弃，
   // 但仍是 contentEditable 富文本选区操作的最简且兼容性最好的方案
-  const format = (command: "bold" | "italic" | "underline") => {
+  const format = (command: FormatCommand) => {
     document.execCommand(command)
+
+    const selection = window.getSelection()
+    const container = containerRef.current
+
+    if (
+      selection &&
+      selection.rangeCount > 0 &&
+      !selection.isCollapsed &&
+      container &&
+      isRangeInSingleEditableRoot(selection.getRangeAt(0), container)
+    ) {
+      // 切换格式后立即读取最新状态，使按钮高亮反映 toggle 结果
+      setActiveColor(queryActiveColor())
+      setActiveFormats(queryActiveFormats())
+      setPosition(computePosition(selection.getRangeAt(0)))
+    } else {
+      setPosition(null)
+    }
+  }
+
+  // 应用文字颜色：与 format 一致的选区校验与重定位逻辑，
+  // 仅 command 改为 foreColor 并带上颜色 hex 作为第三参数
+  const applyColor = (colorHex: string) => {
+    document.execCommand("foreColor", false, colorHex)
+    setActiveColor(colorHex)
+    // 应用颜色不改变 bold/italic/underline 状态，但仍刷新一次以规避
+    // 浏览器在跨节点选择时可能产生的格式漂移
+    setActiveFormats(queryActiveFormats())
 
     const selection = window.getSelection()
     const container = containerRef.current
@@ -195,11 +253,11 @@ export const SelectionPopover = ({
     }
   }
 
-  // 应用文字颜色：与 format 一致的选区校验与重定位逻辑，
-  // 仅 command 改为 foreColor 并带上颜色 hex 作为第三参数
-  const applyColor = (colorHex: string) => {
-    document.execCommand("foreColor", false, colorHex)
-    setActiveColor(colorHex)
+  // 清除选区内全部内联样式：removeFormat 会剥离 <b>/<i>/<u>/<font>/<span style> 等
+  // 加粗、斜体、下划线与文字颜色等富文本标签。链接不在 removeFormat 处理范围，
+  // 当前 popover 未集成 unlink 路径，故不在此处理。
+  const clearFormatting = () => {
+    document.execCommand("removeFormat")
 
     const selection = window.getSelection()
     const container = containerRef.current
@@ -211,6 +269,8 @@ export const SelectionPopover = ({
       container &&
       isRangeInSingleEditableRoot(selection.getRangeAt(0), container)
     ) {
+      setActiveColor(queryActiveColor())
+      setActiveFormats(queryActiveFormats())
       setPosition(computePosition(selection.getRangeAt(0)))
     } else {
       setPosition(null)
@@ -315,10 +375,11 @@ export const SelectionPopover = ({
         <>
           <button
             type="button"
-            className="hn-note-popover-btn"
+            className={`hn-note-popover-btn${activeFormats.bold ? " hn-note-popover-btn--active" : ""}`}
             onClick={() => format("bold")}
             title="粗体"
             aria-label="粗体"
+            aria-pressed={activeFormats.bold}
           >
             <span className="hn-note-popover-glyph hn-note-popover-glyph--bold">
               B
@@ -326,10 +387,11 @@ export const SelectionPopover = ({
           </button>
           <button
             type="button"
-            className="hn-note-popover-btn"
+            className={`hn-note-popover-btn${activeFormats.italic ? " hn-note-popover-btn--active" : ""}`}
             onClick={() => format("italic")}
             title="斜体"
             aria-label="斜体"
+            aria-pressed={activeFormats.italic}
           >
             <span className="hn-note-popover-glyph hn-note-popover-glyph--italic">
               I
@@ -337,10 +399,11 @@ export const SelectionPopover = ({
           </button>
           <button
             type="button"
-            className="hn-note-popover-btn"
+            className={`hn-note-popover-btn${activeFormats.underline ? " hn-note-popover-btn--active" : ""}`}
             onClick={() => format("underline")}
             title="下划线"
             aria-label="下划线"
+            aria-pressed={activeFormats.underline}
           >
             <span className="hn-note-popover-glyph hn-note-popover-glyph--underline">
               U
@@ -361,6 +424,24 @@ export const SelectionPopover = ({
               data-active={activeColor === color.hex}
             />
           ))}
+          <span className="hn-note-popover-divider" />
+          <button
+            type="button"
+            className="hn-note-popover-btn hn-note-popover-btn--clear"
+            onClick={clearFormatting}
+            title="清除样式"
+            aria-label="清除样式"
+          >
+            <span className="hn-note-popover-glyph hn-note-popover-glyph--clear" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M4 7h16" />
+                <path d="M9 7l1 13" />
+                <path d="M15 7l-1 13" />
+                <path d="M5 7l1 13a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-13" />
+                <path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3" />
+              </svg>
+            </span>
+          </button>
           <span className="hn-note-popover-divider" />
           <button
             type="button"

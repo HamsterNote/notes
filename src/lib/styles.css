@@ -881,6 +881,15 @@
   color: #b91c1c;
 }
 
+/* Docked 模式：清除按钮在浅色底栏上以红色维持可视化破坏性提示 */
+.hn-note-popover--docked .hn-note-popover-btn--clear {
+  color: #dc2626;
+}
+
+.hn-note-popover--docked .hn-note-popover-btn--clear:hover {
+  color: #b91c1c;
+}
+
 .hn-note-popover-btn {
   display: inline-flex;
   align-items: center;
@@ -903,6 +912,29 @@
 .hn-note-popover-btn:hover {
   background: rgba(255, 255, 255, 0.14);
   color: #ffffff;
+}
+
+/* 按钮在当前选区已生效时的激活态：主题色背景 + 高对比文字，
+   让用户一眼看出当前选区已经应用了哪些格式 */
+.hn-note-popover-btn--active {
+  background: rgba(59, 130, 246, 0.32);
+  color: #ffffff;
+}
+
+.hn-note-popover-btn--active:hover {
+  background: rgba(59, 130, 246, 0.45);
+  color: #ffffff;
+}
+
+/* Docked 模式：跟随主题色，并以更明显的实心背景突出激活态 */
+.hn-note-popover--docked .hn-note-popover-btn--active {
+  background: color-mix(in srgb, var(--hn-theme) 22%, transparent);
+  color: var(--hn-theme);
+}
+
+.hn-note-popover--docked .hn-note-popover-btn--active:hover {
+  background: color-mix(in srgb, var(--hn-theme) 35%, transparent);
+  color: var(--hn-theme);
 }
 
 /* 复制按钮：文字更紧凑 */
@@ -928,6 +960,22 @@
 
 .hn-note-popover-glyph--underline {
   text-decoration: underline;
+}
+
+/* 清除样式按钮的 SVG glyph：与链接 glyph 一致的 inline-flex 居中容器 */
+.hn-note-popover-glyph--clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 清除样式按钮：略红色调暗示破坏性操作，但不变更 primary 色板 */
+.hn-note-popover-btn--clear {
+  color: #fca5a5;
+}
+
+.hn-note-popover-btn--clear:hover {
+  color: #f87171;
 }
 
 /* 仅做淡入，避免与定位 transform 冲突 */

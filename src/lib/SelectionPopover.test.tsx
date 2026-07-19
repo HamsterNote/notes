@@ -135,4 +135,64 @@ describe("SelectionPopover text color", () => {
       expect(execCommandSpy).toHaveBeenCalledWith("bold")
     })
   })
+
+  it("highlights the bold button when queryCommandState reports bold active and clears styles via removeFormat", async () => {
+    // Given: an editable paragraph with selected text and a popover already open,
+    // simulating the browser reporting bold active for the current selection.
+    const block = { id: "p3", kind: "paragraph", text: "Already bold" } as const
+    const view = render(<TextHarness initialBlock={block} />)
+    const editable = view.container.querySelector<HTMLElement>(
+      '[data-editable-block-id="p3"]'
+    )
+    if (!editable) throw new Error("Expected editable paragraph.")
+
+    const execCommandSpy = vi
+      .spyOn(document, "execCommand")
+      .mockReturnValue(true)
+    // jsdom 未实现 queryCommandState，先注入 stub 再 mock 实现，
+    // 让 popover 在选区同步时把 bold 按钮视为已生效。
+    if (typeof document.queryCommandState !== "function") {
+      Object.defineProperty(document, "queryCommandState", {
+        value: vi.fn(),
+        configurable: true,
+        writable: true
+      })
+    }
+    vi
+      .spyOn(document, "queryCommandState")
+      .mockImplementation((command: string) => command === "bold")
+
+    editable.focus()
+    const range = document.createRange()
+    range.setStart(editable.firstChild ?? editable, 0)
+    range.setEnd(editable.firstChild ?? editable, 5)
+    const selection = window.getSelection()
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+
+    dispatchSelectionChange()
+
+    // Then: the bold button carries the active modifier class and aria-pressed=true.
+    await waitFor(() => {
+      const boldBtn = document.body.querySelector<HTMLElement>(
+        '[aria-label="粗体"]'
+      )
+      expect(boldBtn).not.toBeNull()
+      expect(boldBtn?.classList.contains("hn-note-popover-btn--active")).toBe(
+        true
+      )
+      expect(boldBtn?.getAttribute("aria-pressed")).toBe("true")
+    })
+
+    // And: clicking the clear-styles button calls execCommand("removeFormat").
+    const clearButton = document.body.querySelector<HTMLElement>(
+      '[aria-label="清除样式"]'
+    )
+    if (!clearButton) throw new Error("Expected clear styles button.")
+    fireEvent.click(clearButton)
+
+    await waitFor(() => {
+      expect(execCommandSpy).toHaveBeenCalledWith("removeFormat")
+    })
+  })
 })
