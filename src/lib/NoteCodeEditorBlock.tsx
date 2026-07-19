@@ -29,8 +29,10 @@ type NoteCodeBlockProps = {
   readonly ctx: EditContext
 }
 
-const normalizeLineEndings = (value: string): string =>
-  value.replaceAll("\r\n", "\n").replaceAll("\r", "\n")
+// 防御：在 jsdom 或极端 blur 时机下 innerText 可能为 undefined，
+// 这里做容错，避免 replaceAll 抛错影响行为。
+const normalizeLineEndings = (value: string | undefined | null): string =>
+  (value ?? "").replaceAll("\r\n", "\n").replaceAll("\r", "\n")
 
 export const NoteCodeBlock = ({
   block,

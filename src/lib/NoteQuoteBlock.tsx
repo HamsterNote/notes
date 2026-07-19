@@ -3,6 +3,10 @@ import type { ReactElement, KeyboardEvent as ReactKeyboardEvent } from "react"
 import { isVisibleHtmlEmpty, normalizeEditableHtml } from "./blockEditing"
 import { quoteLineId, quoteTextLines } from "./blockSourceConversion"
 import {
+  downgradeEmptySpecialBlockToParagraph
+} from "./blockDowngrade"
+import { type BlockSource } from "./blockSourceConversion"
+import {
   handleEditableBlockKeyDown,
   renderBlockActionMenu
 } from "./NoteBlockEditingControls"
@@ -13,7 +17,6 @@ import {
   updateQuoteAuthor
 } from "./NoteContentEditing"
 import {
-  deleteQuoteLine,
   splitQuoteLine,
   updateQuoteLine
 } from "./quoteLineEditing"
@@ -89,12 +92,21 @@ const handleQuoteLineKeyDown = ({
     return
   }
 
+  // 空白 quote line：把当前行拆出独立空 paragraph，保留 focusId 为新 paragraph。
+  // lineIndex=0 时新 paragraph 共用 block.id；lineIndex>0 时新 paragraph 用 createNoteId。
+  // 此时若用户立即再按一次 Backspace，将走到 NoteBlockEditingControls 的 paragraph 分支，
+  // 即常规 deleteEmptyTextBlock 把这一空 paragraph 文本块真正删除。
   event.preventDefault()
-  onBlocksChange(deleteQuoteLine(blocks, block.id, lineIndex))
-  requestFocus?.(
-    lineIndex === 0 ? block.id : quoteLineId(block.id, lineIndex - 1),
-    "end"
-  )
+  const source: BlockSource = {
+    kind: "quote-line",
+    blockId: block.id,
+    lineId: quoteLineId(block.id, lineIndex),
+    lineIndex
+  }
+  const { blocks: nextBlocks, focusId } =
+    downgradeEmptySpecialBlockToParagraph({ blocks, source })
+  onBlocksChange(nextBlocks)
+  requestFocus?.(focusId, "start")
 }
 
 // ── Quote 单行组件 ──────────────────────────────────────────────────────────

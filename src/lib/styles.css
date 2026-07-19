@@ -670,6 +670,13 @@
   color: #b91c1c;
 }
 
+/* docked 模式下的 active 状态：底色为主题化背景，需用主题色 soft 变体重写，
+   而非悬浮版的白色覆盖层（在浅色底上不可见）。 */
+.hn-note-popover--docked .hn-note-popover-btn--active {
+  background: var(--hn-theme-soft);
+  color: var(--hn-theme-text);
+}
+
 .hn-note-popover-btn {
   display: inline-flex;
   align-items: center;
@@ -691,6 +698,13 @@
 
 .hn-note-popover-btn:hover {
   background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+/* active 状态：比 hover 更强的白色覆盖层，标识当前已应用的格式（粗体/斜体等）。
+   延续悬浮 popover 的暗色主题字面量色值，不依赖 shell 变量。 */
+.hn-note-popover-btn--active {
+  background: rgba(255, 255, 255, 0.22);
   color: #ffffff;
 }
 
@@ -717,6 +731,29 @@
 
 .hn-note-popover-glyph--underline {
   text-decoration: underline;
+}
+
+/* 删除线字形：仅追加 text-decoration，复用基类的 sizing/line-height */
+.hn-note-popover-glyph--strikethrough {
+  text-decoration: line-through;
+}
+
+/* 行内代码字形：等宽字体区分，不覆盖 font-size/line-height */
+.hn-note-popover-glyph--code {
+  font-family: var(--hn-code-font, ui-monospace, monospace);
+}
+
+/* 行内公式字形：衬线斜体，呼应数学排版习惯 */
+.hn-note-popover-glyph--formula {
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+}
+
+/* 清除格式字形：加粗删除线 + 轻微降透明度，区别于 --strikethrough */
+.hn-note-popover-glyph--clear {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  opacity: 0.85;
 }
 
 /* 仅做淡入，避免与定位 transform 冲突 */
@@ -1186,6 +1223,35 @@
 
 .hn-note-formula-textarea::placeholder {
   color: rgba(226, 232, 240, 0.45);
+}
+
+/* ===== 行内公式与行内代码 ===== */
+/* 行内公式基础态：富文本 HTML 中存储的未渲染占位，衬线斜体以区别于正文。
+   与块级 .hn-note-formula-* 系列平行，但走独立的 BEM 命名。 */
+.hn-note-inline-formula {
+  display: inline-block;
+  padding: 0 0.2em;
+  color: var(--hn-text);
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+}
+
+/* 行内公式渲染态：KaTeX 已替换内容，重置 padding/字体为正常排版 */
+.hn-note-inline-formula--rendered {
+  padding: 0;
+  font-family: inherit;
+  font-style: normal;
+}
+
+/* 行内代码：浅色背景胶囊 + 等宽字体，与块级 .hn-note-code-card 的深色卡片独立。
+   作用域为正文内 <code class="hn-note-inline-code">，不与 .hn-note-code-card code 冲突。 */
+.hn-note-inline-code {
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+  background: var(--hn-surface);
+  color: var(--hn-text);
+  font-family: var(--hn-code-font);
+  font-size: 0.88em;
 }
 
 /* ===== 表格块 ===== */
