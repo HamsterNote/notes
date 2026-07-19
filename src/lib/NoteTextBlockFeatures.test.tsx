@@ -180,8 +180,8 @@ describe("NoteContent markdown shortcuts", () => {
 
       typeIntoEditable(view, "p", "[] ")
 
-      // 渲染出 checklist item 与未勾选空心圆 ○
-      const item = await waitForBlock(view, ".hn-note-checklist-item")
+      // 渲染出 todo item 与未勾选空心圆 ○
+      const item = await waitForBlock(view, ".hn-note-todo-item")
       const checkbox = item?.querySelector(".hn-note-checkbox")
       expect(checkbox?.textContent).toBe("○")
     })
@@ -195,7 +195,7 @@ describe("NoteContent markdown shortcuts", () => {
 
       typeIntoEditable(view, "p", "[x] ")
 
-      const item = await waitForBlock(view, ".hn-note-checklist-item")
+      const item = await waitForBlock(view, ".hn-note-todo-item")
       const checkbox = item?.querySelector(".hn-note-checkbox")
       expect(checkbox?.textContent).toBe("●")
     })
@@ -210,7 +210,7 @@ describe("NoteContent markdown shortcuts", () => {
       typeIntoEditable(view, "p", "[X] ")
 
       await new Promise((resolve) => setTimeout(resolve, 0))
-      expect(view.container.querySelector(".hn-note-checklist-item")).toBeNull()
+      expect(view.container.querySelector(".hn-note-todo-item")).toBeNull()
       // 仍是段落
       expect(
         view.container

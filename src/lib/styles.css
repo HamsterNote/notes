@@ -523,6 +523,9 @@
 .hn-note-code-editor {
   z-index: 1;
   overflow: auto;
+  box-sizing: border-box;
+  min-height: calc(1.7em + 2rem);
+  resize: none;
   color: transparent;
   caret-color: #e2e8f0;
 }

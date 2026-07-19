@@ -6,6 +6,10 @@ import {
   type PictureUploadPayload
 } from "./BlockActionMenu"
 import {
+  downgradeEmptySpecialBlockToParagraph,
+  resolveSpecialBlockSourceForBackspace
+} from "./blockDowngrade"
+import {
   deleteEmptyTextBlock,
   insertSplitBlock,
   isVisibleHtmlEmpty
@@ -15,16 +19,12 @@ import {
   convertBlockSource,
   replaceBlockSourceWithPicture
 } from "./blockSourceConversion"
+import { insertBlockAfterSource } from "./blockSourceInsertion"
 import {
   deleteBlockSource,
   duplicateBlockSource
 } from "./blockSourceOperations"
-import {
-  downgradeEmptySpecialBlockToParagraph,
-  resolveSpecialBlockSourceForBackspace
-} from "./blockDowngrade"
-import { insertBlockAfterSource } from "./blockSourceInsertion"
-import { resolveDeletionFocus } from "./NoteBlockFocus"
+import { resolveBackspaceFocus } from "./NoteBlockFocus"
 import type { EditContext } from "./NoteContentEditing"
 import { createNoteId } from "./noteId"
 import type { NoteBlock } from "./types"
@@ -76,8 +76,14 @@ export const handleEditableBlockKeyDown = ({
   const element = event.currentTarget
   const selection = window.getSelection()
 
-  if (event.key === "Enter" && event.shiftKey && mode === "rich-text") {
-    // shift + 回车：在 block 内插入软换行 <br>，不拆分 block
+  const keepsEnterInsideBlock = blocks.some(
+    (block) => block.id === sourceId && block.kind === "callout"
+  )
+  if (
+    event.key === "Enter" &&
+    mode === "rich-text" &&
+    (event.shiftKey || keepsEnterInsideBlock)
+  ) {
     event.preventDefault()
     const selection = window.getSelection()
     if (!selection || selection.rangeCount === 0) return
@@ -165,7 +171,7 @@ export const handleEditableBlockKeyDown = ({
       mode === "plain-text" ? element.textContent ?? "" : element.innerHTML,
     sourceId
   })
-  const focusTarget = resolveDeletionFocus({
+  const focusTarget = resolveBackspaceFocus({
     after: nextBlocks,
     before: blocks,
     sourceId

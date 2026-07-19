@@ -2,6 +2,7 @@ import type { BlockConvertTarget } from "./blockConversion"
 import { convertBlockFormat } from "./blockConversion"
 import type {
   NoteBlock,
+  NoteChecklistItem,
   NoteHeadingBlock,
   NoteOrderedListBlock,
   NoteParagraphBlock,
@@ -125,20 +126,28 @@ export const splitTextBlockAtHtml = ({
   return [updatedBlock, insertedBlock]
 }
 
-const splitTodoListItem = (
-  block: NoteTodoBlock,
-  sourceId: string,
-  nextId: string,
-  beforeHtml: string,
-  afterHtml: string
-): NoteTodoBlock => {
-  const itemIndex = block.items.findIndex((item) => item.id === sourceId)
-  if (itemIndex < 0) return block
+type SplitListItemsInput = {
+  readonly afterHtml: string
+  readonly beforeHtml: string
+  readonly items: readonly NoteChecklistItem[]
+  readonly nextId: string
+  readonly sourceId: string
+}
 
-  const item = block.items[itemIndex]
-  if (item === undefined) return block
-  const items = block.items.slice()
-  items.splice(
+const splitListItems = ({
+  afterHtml,
+  beforeHtml,
+  items,
+  nextId,
+  sourceId
+}: SplitListItemsInput): readonly NoteChecklistItem[] => {
+  const itemIndex = items.findIndex((item) => item.id === sourceId)
+  if (itemIndex < 0) return items
+
+  const item = items[itemIndex]
+  if (item === undefined) return items
+  const nextItems = items.slice()
+  nextItems.splice(
     itemIndex,
     1,
     { ...item, text: normalizeEditableHtml(beforeHtml) },
@@ -148,7 +157,7 @@ const splitTodoListItem = (
       text: normalizeEditableHtml(afterHtml)
     }
   )
-  return { ...block, items }
+  return nextItems
 }
 
 const findTodoItemBlock = (
@@ -218,14 +227,23 @@ export const insertSplitBlock = ({
   return blocks.flatMap<NoteBlock>((block): NoteBlock[] => {
     switch (block.kind) {
       case "heading":
-      case "paragraph":
+      case "paragraph": {
         if (block.id !== sourceId) return [block]
-        return splitTextBlockAtHtml({
+        const [sourceBlock, insertedBlock] = splitTextBlockAtHtml({
           afterHtml,
           beforeHtml,
           block,
           nextId
-        }).map((textBlock) => toPlainStoredTextBlock(textBlock, textBlock.text))
+        })
+        return [
+          toPlainStoredTextBlock(sourceBlock, sourceBlock.text),
+          {
+            id: insertedBlock.id,
+            kind: "paragraph",
+            text: insertedBlock.text
+          }
+        ]
+      }
       case "unorderedList":
       case "orderedList":
         if (block.id !== sourceId) return [block]
@@ -234,27 +252,33 @@ export const insertSplitBlock = ({
           { ...block, id: nextId, text: normalizeEditableHtml(afterHtml) }
         ]
       case "todo":
-        return [splitTodoListItem(block, sourceId, nextId, beforeHtml, afterHtml)]
+      case "checklist":
+        return [
+          {
+            ...block,
+            items: splitListItems({
+              afterHtml,
+              beforeHtml,
+              items: block.items,
+              nextId,
+              sourceId
+            })
+          }
+        ]
       case "quote":
-      case "callout":
         if (block.id !== sourceId) return [block]
         return [
           { ...block, text: normalizeEditableHtml(beforeHtml) },
           { ...block, id: nextId, text: normalizeEditableHtml(afterHtml) }
         ]
+      case "callout":
       case "code":
-        if (block.id !== sourceId) return [block]
-        return [
-          { ...block, code: beforeHtml },
-          { ...block, id: nextId, code: afterHtml }
-        ]
       case "table":
       case "formula":
       case "picture":
       case "directory":
         return [block]
       case "collapsible":
-      case "checklist":
         // 标题行不参与 Enter 拆分，保持块不变
         return [block]
       default:
@@ -286,10 +310,12 @@ export const deleteEmptyTextBlock = ({
           : block
       )
     }
-    if (blocks.length === 1) {
-      return [{ id: todoItemBlock.id, kind: "paragraph", text: "" }]
-    }
-    return blocks.filter((block) => block.id !== todoItemBlock.id)
+    // 单 item 空内容时：整块降级为 paragraph，保留原 block.id（与列表行为一致）
+    return blocks.map((block) =>
+      block.id === todoItemBlock.id
+        ? { id: todoItemBlock.id, kind: "paragraph", text: "" }
+        : block
+    )
   }
 
   if (!isVisibleHtmlEmpty(normalizedText)) {
@@ -326,6 +352,16 @@ export const deleteEmptyTextBlock = ({
   }
 
   const sourceBlock = blocks.find((block) => block.id === sourceId)
+  if (
+    sourceBlock?.kind === "unorderedList" ||
+    sourceBlock?.kind === "orderedList"
+  ) {
+    return blocks.map((block) =>
+      block.id === sourceId
+        ? { id: sourceId, kind: "paragraph", text: "" }
+        : block
+    )
+  }
   if (
     (sourceBlock?.kind === "quote" && sourceBlock.author?.trim()) ||
     (sourceBlock?.kind === "callout" && sourceBlock.title.trim()) ||

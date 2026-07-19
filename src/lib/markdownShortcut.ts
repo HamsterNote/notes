@@ -120,7 +120,7 @@ export const buildReplacementFromShortcut = (
       const itemId = createNoteId()
       return {
         id: blockId,
-        kind: "checklist",
+        kind: "todo",
         title: "",
         items: [{ id: itemId, checked: match.checked, text: "" }]
       }
@@ -144,7 +144,7 @@ export const focusTargetIdFromShortcut = (
   match: MarkdownShortcutMatch,
   replacement: NoteBlock
 ): string => {
-  if (match.kind === "checklist" && replacement.kind === "checklist") {
+  if (match.kind === "checklist" && replacement.kind === "todo") {
     const item = replacement.items[0]
     return item ? item.id : replacement.id
   }

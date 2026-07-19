@@ -6,13 +6,9 @@ import {
   useState
 } from "react"
 
-import {
-  handleEditableBlockKeyDown,
-  renderBlockActionMenu
-} from "./NoteBlockEditingControls"
+import { renderBlockActionMenu } from "./NoteBlockEditingControls"
 import {
   type EditContext,
-  editableProps,
   richText,
   updateCode,
   updateCodeFilename,
@@ -41,7 +37,7 @@ export const NoteCodeBlock = ({
   const { editable, blocks, onBlocksChange } = ctx
   const [editing, setEditing] = useState(false)
   const [draftCode, setDraftCode] = useState(block.code)
-  const editorRef = useRef<HTMLDivElement | null>(null)
+  const editorRef = useRef<HTMLTextAreaElement | null>(null)
   const highlightRef = useRef<HTMLElement | null>(null)
   const highlightedCode = highlightCode(
     editing ? draftCode : block.code,
@@ -54,14 +50,9 @@ export const NoteCodeBlock = ({
   useEffect(() => {
     if (!editing) return
     const editor = editorRef.current
-    editor?.focus()
-    const selection = window.getSelection()
-    if (!editor || !selection) return
-    const range = document.createRange()
-    range.selectNodeContents(editor)
-    range.collapse(false)
-    selection.removeAllRanges()
-    selection.addRange(range)
+    if (!editor) return
+    editor.focus()
+    editor.setSelectionRange(editor.value.length, editor.value.length)
   }, [editing])
 
   return (
@@ -119,88 +110,23 @@ export const NoteCodeBlock = ({
                 className={`${codeClassName} hn-note-code-highlight`}
                 {...richText(highlightedCode)}
               />
-              <div
+              <textarea
                 ref={editorRef}
                 aria-label={
                   block.filename ? `编辑代码：${block.filename}` : "编辑代码"
                 }
-                aria-multiline="true"
-                role="textbox"
-                tabIndex={0}
-                {...editableProps((event) => {
-                  const code = normalizeLineEndings(
-                    event.currentTarget.innerText
-                  )
+                className="hn-note-code-editor hn-note-editable"
+                rows={Math.max(1, draftCode.split("\n").length)}
+                spellCheck={false}
+                value={draftCode}
+                onBlur={(event) => {
+                  const code = normalizeLineEndings(event.currentTarget.value)
                   setEditing(false)
-                  onBlocksChange?.(updateCode(blocks, block.id, code))
-                }, "hn-note-code-editor")}
-                onInput={(event) =>
-                  setDraftCode(
-                    normalizeLineEndings(event.currentTarget.innerText)
-                  )
+                  onBlocksChange?.(updateCode(ctx.getBlocks(), block.id, code))
+                }}
+                onChange={(event) =>
+                  setDraftCode(normalizeLineEndings(event.currentTarget.value))
                 }
-                onKeyDown={(event) => {
-                  if (event.nativeEvent.isComposing) return
-                  // 代码块内回车：插入换行符 \n，不拆分代码块
-                  // white-space: pre 会将 \n 正确渲染为换行
-                  if (event.key === "Enter") {
-                    event.preventDefault()
-                    const selection = window.getSelection()
-                    if (!selection || selection.rangeCount === 0) return
-                    const range = selection.getRangeAt(0)
-                    if (
-                      !event.currentTarget.contains(
-                        range.commonAncestorContainer
-                      )
-                    )
-                      return
-                    if (!range.collapsed) range.deleteContents()
-                    // 插入换行符文本节点（而非 <br> 或 <div>），
-                    // 配合 white-space: pre 保持纯文本格式
-                    const newlineNode = document.createTextNode("\n")
-                    range.insertNode(newlineNode)
-                    // 将光标移到换行符之后
-                    range.setStartAfter(newlineNode)
-                    range.collapse(true)
-                    selection.removeAllRanges()
-                    selection.addRange(range)
-                    // 同步草稿代码状态，驱动高亮层更新
-                    setDraftCode(
-                      normalizeLineEndings(event.currentTarget.innerText)
-                    )
-                    return
-                  }
-                  handleEditableBlockKeyDown({
-                    ctx,
-                    event,
-                    mode: "plain-text",
-                    sourceId: block.id
-                  })
-                }}
-                onPaste={(event) => {
-                  event.preventDefault()
-                  const selection = window.getSelection()
-                  if (!selection || selection.rangeCount === 0) return
-                  const range = selection.getRangeAt(0)
-                  if (
-                    !event.currentTarget.contains(range.commonAncestorContainer)
-                  )
-                    return
-                  range.deleteContents()
-                  const textNode = document.createTextNode(
-                    normalizeLineEndings(
-                      event.clipboardData.getData("text/plain")
-                    )
-                  )
-                  range.insertNode(textNode)
-                  range.setStartAfter(textNode)
-                  range.collapse(true)
-                  selection.removeAllRanges()
-                  selection.addRange(range)
-                  setDraftCode(
-                    normalizeLineEndings(event.currentTarget.innerText)
-                  )
-                }}
                 onScroll={(event) => {
                   const highlight = highlightRef.current
                   if (!highlight) return
@@ -208,9 +134,7 @@ export const NoteCodeBlock = ({
                   highlight.scrollTop = event.currentTarget.scrollTop
                 }}
                 data-editable-block-id={block.id}
-              >
-                {block.code}
-              </div>
+              />
             </div>
           ) : (
             <button

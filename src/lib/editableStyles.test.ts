@@ -133,7 +133,7 @@ describe("editable code styles", () => {
     // When: the editing branch is inspected.
     // Then: it renders a live highlight layer and updates it from editor input.
     expect(source).toMatch(/className=.*hn-note-code-highlight/)
-    expect(source).toMatch(/onInput=.*setDraftCode/s)
+    expect(source).toMatch(/onChange=.*setDraftCode/s)
   })
 
   it("uses one typography contract for preview, highlight, and editor layers", () => {
@@ -160,11 +160,11 @@ describe("editable code styles", () => {
       "utf8"
     )
 
-    // When: paste and keyboard input handlers are inspected.
-    // Then: rich paste is flattened, composition keys bypass block splitting,
-    // and the active textbox retains the preview action's accessible name.
-    expect(source).toMatch(/onPaste=.*clipboardData\.getData\("text\/plain"\)/s)
-    expect(source).toMatch(/if \(event\.nativeEvent\.isComposing\) return/)
+    // When: the native multiline editor is inspected.
+    // Then: textarea semantics keep paste plain-text and IME handling native,
+    // while the active textbox retains the preview action's accessible name.
+    expect(source).toMatch(/<textarea/)
+    expect(source).not.toMatch(/handleEditableBlockKeyDown/)
     expect(source).toMatch(/ref=\{editorRef\}\s*aria-label=\{.*编辑代码/s)
   })
 })

@@ -1,4 +1,4 @@
-import type { NoteBlock } from "./types"
+import type { NoteBlock, NoteTodoBlock } from "./types"
 import { assertNever } from "./utils"
 
 type FocusPosition = "start" | "end"
@@ -60,4 +60,26 @@ export const resolveDeletionFocus = ({
   const nextId = sourceIndex >= 0 ? beforeIds[sourceIndex + 1] : undefined
   const fallbackId = nextId ?? afterIds[0]
   return fallbackId ? { id: fallbackId, position: "start" } : undefined
+}
+
+// Backspace 专用焦点解析：单 item todo 在空 item 上按 Backspace 会原地降级为
+// paragraph（保留 block.id）。此时 sourceId（item.id）虽已消失，但语义并非
+// 「删除块」——焦点必须留在新 paragraph 起点，而非按删除兜底跳到前一个块末尾。
+// 其余情形（真删除、多 item 移除一个等）沿用 resolveDeletionFocus。
+export const resolveBackspaceFocus = ({
+  after,
+  before,
+  sourceId
+}: DeletionFocusInput): DeletionFocusTarget | undefined => {
+  const todoHost = before.find(
+    (block): block is NoteTodoBlock =>
+      block.kind === "todo" && block.items.some((item) => item.id === sourceId)
+  )
+  if (
+    todoHost &&
+    after.some((block) => block.id === todoHost.id && block.kind === "paragraph")
+  ) {
+    return { id: todoHost.id, position: "start" }
+  }
+  return resolveDeletionFocus({ after, before, sourceId })
 }
