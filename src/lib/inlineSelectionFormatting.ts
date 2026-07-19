@@ -361,3 +361,126 @@ export const applyInlineFormula = (): void => {
   if (formula === "") return
   wrapSelectionWithInlineFormula(formula)
 }
+
+// ============================================================
+// 跨块（cross-block）格式化助手
+// ------------------------------------------------------------
+// 用于 SelectionPopover 在选区跨多个 contenteditable=true 根时的格式化操作。
+// 设计：
+//  - 每个 editable root 单独处理：构造 outer range 与该 root 的交集 sub-range，
+//    把全局 selection 临时切到该 sub-range 后执行原生命令 / 手动 DOM 操作。
+//  - 处理完毕后恢复 outer range 作为最终 selection，便于用户继续操作。
+//  - 同步语义：`syncEditableBlocksFromRange` 遍历每个受影响的 root，按
+//    `[data-editable-block-id]` 取 blockId + innerHTML 多次回调 onContentChange，
+//    与 SelectionPopover 既有 onContentChange 签名保持一致。
+// ============================================================
+
+import { forEachEditableRootInRange } from "./editableSelection"
+
+/**
+ * 跨块执行原生格式命令（bold / italic / underline / strikeThrough / removeFormat）。
+ * 对每个 editable root 临时把 selection 切到该 root 的交集 sub-range，
+ * 再执行 `document.execCommand(command)`；全部 root 处理完后恢复 outer range。
+ */
+export const runCrossBlockFormatCommand = (
+  container: HTMLElement,
+  command: NativeFormatCommand
+): void => {
+  const selection = window.getSelection()
+  if (selection === null || selection.rangeCount === 0 || selection.isCollapsed) {
+    return
+  }
+  const outerRange = selection.getRangeAt(0).cloneRange()
+  forEachEditableRootInRange(outerRange, container, (sub) => {
+    selection.removeAllRanges()
+    selection.addRange(sub.cloneRange())
+    runNativeFormatCommand(command)
+  })
+  selection.removeAllRanges()
+  selection.addRange(outerRange)
+}
+
+/**
+ * 跨块切换行内代码。每个 root 独立判定：
+ *  - sub.startContainer 在 <code> 内 -> 解包该 root 内 sub 范围中的所有 <code>；
+ *  - 否则把 sub 内容抽取包进新建 <code>。
+ * 完成后恢复 outer range。注意：跨块 toggle 不保证「全部包裹或全部解包」的全局一致性，
+ * 而是按 root 局部状态决定（与单块版本语义一致：起点决定行为）。
+ */
+export const crossBlockToggleInlineCode = (container: HTMLElement): void => {
+  const selection = window.getSelection()
+  if (selection === null || selection.rangeCount === 0 || selection.isCollapsed) {
+    return
+  }
+  const outerRange = selection.getRangeAt(0).cloneRange()
+  forEachEditableRootInRange(outerRange, container, (sub, root) => {
+    const startEl = elementEndpoint(sub.startContainer)
+    const codeAncestor = startEl?.closest("code") ?? null
+    if (codeAncestor !== null) {
+      const codes = Array.from(root.querySelectorAll("code"))
+      // 用 intersectsNode 判断交集，避免 jsdom comparePoint 对 Element offset 0
+      // 与 Element 子节点 offset 0 的位置计算偏差。
+      for (const code of codes) {
+        if (!sub.intersectsNode(code)) continue
+        unwrapElement(code)
+      }
+      return
+    }
+    const fragment = sub.extractContents()
+    const code = document.createElement("code")
+    code.appendChild(fragment)
+    sub.insertNode(code)
+  })
+  selection.removeAllRanges()
+  selection.addRange(outerRange)
+}
+
+/**
+ * 跨块清除格式。每个 root 内独立扫描 strong/b/em/i/u/s/strike/del/code/
+ * [data-hn-inline-formula]，凡落在该 root 的 sub 范围内则解包 / 移除。
+ * 最后再对全 selection 调用一次 `removeFormat` 作为浏览器原生兜底。
+ */
+export const crossBlockClearFormatting = (container: HTMLElement): void => {
+  const selection = window.getSelection()
+  if (selection === null || selection.rangeCount === 0 || selection.isCollapsed) {
+    return
+  }
+  const outerRange = selection.getRangeAt(0).cloneRange()
+  forEachEditableRootInRange(outerRange, container, (sub, root) => {
+    const candidates = Array.from(
+      root.querySelectorAll<HTMLElement>(
+        "strong,b,em,i,u,s,strike,del,code," + INLINE_FORMULA_SELECTOR
+      )
+    )
+    for (const el of candidates) {
+      // 用 intersectsNode 判断交集，避免 jsdom comparePoint 对 Element offset 0
+      // 与 Element 子节点 offset 0 的位置计算偏差。
+      if (!sub.intersectsNode(el)) continue
+      if (el.hasAttribute(INLINE_FORMULA_ATTR)) {
+        el.remove()
+      } else {
+        unwrapElement(el)
+      }
+    }
+  })
+  selection.removeAllRanges()
+  selection.addRange(outerRange)
+  runNativeFormatCommand("removeFormat")
+}
+
+/**
+ * 跨块同步：遍历 outer range 涵盖的每个 editable root，按
+ * `[data-editable-block-id]` 取 blockId + innerHTML 多次回调 onContentChange。
+ * 与单块 `syncEditableBlockFromRange` 保持同一回调签名，便于 SelectionPopover 复用。
+ */
+export const syncEditableBlocksFromRange = (
+  range: Range,
+  container: HTMLElement,
+  onContentChange: (blockId: string, innerHtml: string) => void
+): void => {
+  forEachEditableRootInRange(range, container, (_sub, root) => {
+    const blockId = root.getAttribute("data-editable-block-id")
+    if (blockId === null) return
+    onContentChange(blockId, root.innerHTML)
+  })
+}

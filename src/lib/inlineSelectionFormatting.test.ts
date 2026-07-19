@@ -30,8 +30,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import {
   clearSelectionFormatting,
+  crossBlockClearFormatting,
+  crossBlockToggleInlineCode,
   getSelectionFormatState,
+  runCrossBlockFormatCommand,
   syncEditableBlockFromRange,
+  syncEditableBlocksFromRange,
   toggleInlineCode,
   wrapSelectionWithInlineFormula
 } from "./inlineSelectionFormatting"
@@ -376,5 +380,164 @@ describe("syncEditableBlockFromRange", () => {
     // Then: the helper reports no synchronization and the host is left untouched.
     expect(called).toBe(false)
     expect(onContentChange).not.toHaveBeenCalled()
+  })
+})
+
+// ============================================================
+// 跨块（cross-block）格式化助手测试
+// ------------------------------------------------------------
+// 验证 Phase 3 新增的 crossBlock* helpers：
+//  - mount 两个 contenteditable=true 子块，构造跨块 Range
+//  - 调 crossBlockToggleInlineCode / crossBlockClearFormatting / runCrossBlockFormatCommand
+//  - 断言每个 root 都被独立处理；syncEditableBlocksFromRange 多次回调 onContentChange
+// ============================================================
+
+const mountTwoEditables = (): {
+  container: HTMLElement
+  block1: HTMLElement
+  block2: HTMLElement
+} => {
+  document.body.innerHTML = ""
+  const container = document.createElement("div")
+  const block1 = document.createElement("div")
+  block1.setAttribute("contenteditable", "true")
+  block1.setAttribute("data-editable-block-id", "b1")
+  block1.innerHTML = "alpha beta"
+  const block2 = document.createElement("div")
+  block2.setAttribute("contenteditable", "true")
+  block2.setAttribute("data-editable-block-id", "b2")
+  block2.innerHTML = "gamma delta"
+  container.appendChild(block1)
+  container.appendChild(block2)
+  document.body.appendChild(container)
+  return { container, block1, block2 }
+}
+
+const findTextIn = (root: HTMLElement, target: string): Text => {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
+  let node = walker.nextNode()
+  while (node !== null) {
+    if (node.nodeValue?.includes(target) === true) return node as Text
+    node = walker.nextNode()
+  }
+  throw new Error(`findTextIn: "${target}" 未找到`)
+}
+
+const selectCrossBlockRange = (
+  startNode: Node,
+  startOffset: number,
+  endNode: Node,
+  endOffset: number
+): Range => {
+  const selection = window.getSelection()
+  if (!selection) throw new Error("Selection API 不可用")
+  selection.removeAllRanges()
+  const range = document.createRange()
+  range.setStart(startNode, startOffset)
+  range.setEnd(endNode, endOffset)
+  selection.addRange(range)
+  return range
+}
+
+describe("inlineSelectionFormatting - 跨块 helpers", () => {
+  it("crossBlockToggleInlineCode 把两个 root 的选区文本各自包进 <code>", () => {
+    // Given: 跨块选区覆盖 block1 'alpha' + block2 'gamma'
+    const { container, block1, block2 } = mountTwoEditables()
+    const t1 = findTextIn(block1, "alpha beta")
+    const t2 = findTextIn(block2, "gamma delta")
+    selectCrossBlockRange(t1, 0, t2, 5)
+
+    // When: 跨块切换行内代码
+    crossBlockToggleInlineCode(container)
+
+    // Then: block1 整段被包进 <code>，block2 的 'gamma' 被包进 <code>
+    expect(block1.querySelector("code")?.textContent).toBe("alpha beta")
+    expect(block2.querySelector("code")?.textContent).toBe("gamma")
+  })
+
+  it("crossBlockToggleInlineCode 起点已在 <code> 内 -> 仅解包该 root 的 <code>", () => {
+    // Given: block1 已经在 <code> 内；block2 不在
+    const { container, block1, block2 } = mountTwoEditables()
+    block1.innerHTML = "<code>alpha beta</code>"
+    block2.innerHTML = "gamma delta"
+    const t1 = findTextIn(block1, "alpha beta")
+    const t2 = findTextIn(block2, "gamma delta")
+    selectCrossBlockRange(t1, 0, t2, 5)
+
+    // When: 跨块切换行内代码
+    crossBlockToggleInlineCode(container)
+
+    // Then: block1 的 <code> 被解包（无 code），block2 的 'gamma' 被新包进 <code>
+    expect(block1.querySelector("code")).toBeNull()
+    expect(block2.querySelector("code")?.textContent).toBe("gamma")
+  })
+
+  it("crossBlockClearFormatting 清除两个 root 内的自定义包裹", () => {
+    // Given: 两个块都有 <strong> 和 <code>
+    const { container, block1, block2 } = mountTwoEditables()
+    block1.innerHTML = "<strong>alpha</strong> <code>beta</code>"
+    block2.innerHTML = "<em>gamma</em> <code>delta</code>"
+    const t1 = findTextIn(block1, "alpha")
+    const t2 = findTextIn(block2, "delta")
+    selectCrossBlockRange(t1, 0, t2, 5)
+
+    // When: 跨块清除格式
+    crossBlockClearFormatting(container)
+
+    // Then: 两个块内的 strong/em/code 全部被解包或移除
+    expect(block1.querySelector("strong")).toBeNull()
+    expect(block1.querySelector("code")).toBeNull()
+    expect(block2.querySelector("em")).toBeNull()
+    expect(block2.querySelector("code")).toBeNull()
+  })
+
+  it("syncEditableBlocksFromRange 对每个受影响 root 各回调一次", () => {
+    // Given: 跨块选区覆盖两个 block
+    const { container, block1, block2 } = mountTwoEditables()
+    const t1 = findTextIn(block1, "alpha beta")
+    const t2 = findTextIn(block2, "gamma delta")
+    const range = selectCrossBlockRange(t1, 0, t2, 5)
+
+    // When: 同步
+    const onContentChange = vi.fn()
+    syncEditableBlocksFromRange(range, container, onContentChange)
+
+    // Then: 两个块各回调一次，参数 (blockId, innerHtml) 正确
+    expect(onContentChange).toHaveBeenCalledTimes(2)
+    expect(onContentChange).toHaveBeenCalledWith("b1", block1.innerHTML)
+    expect(onContentChange).toHaveBeenCalledWith("b2", block2.innerHTML)
+  })
+
+  it("runCrossBlockFormatCommand 对每个 root 切换 selection 后执行命令", () => {
+    // Given: 跨块选区
+    const { container, block1, block2 } = mountTwoEditables()
+    const t1 = findTextIn(block1, "alpha beta")
+    const t2 = findTextIn(block2, "gamma delta")
+    selectCrossBlockRange(t1, 0, t2, 5)
+    // jsdom 默认未定义 document.execCommand，需先定义后再 spyOn
+    if (typeof document.execCommand !== "function") {
+      Object.defineProperty(document, "execCommand", {
+        value: () => true,
+        configurable: true,
+        writable: true
+      })
+    }
+    const execSpy = vi
+      .spyOn(document, "execCommand")
+      .mockImplementation(() => true)
+
+    // When: 跨块执行 bold
+    runCrossBlockFormatCommand(container, "bold")
+
+    // Then: execCommand 被调用 2 次（每个 root 一次）
+    expect(execSpy).toHaveBeenCalledTimes(2)
+    expect(execSpy).toHaveBeenNthCalledWith(1, "bold")
+    expect(execSpy).toHaveBeenNthCalledWith(2, "bold")
+
+    // 最终 selection 恢复为 outer range（覆盖两个块）
+    const sel = window.getSelection()
+    expect(sel).not.toBeNull()
+    expect(sel?.rangeCount).toBe(1)
+    execSpy.mockRestore()
   })
 })

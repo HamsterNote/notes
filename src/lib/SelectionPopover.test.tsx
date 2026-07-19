@@ -339,3 +339,108 @@ describe("SelectionPopover 新增格式化按钮与行为", () => {
     expect(onContentChange).toHaveBeenCalledWith("block-1", expect.any(String))
   })
 })
+
+// ============================================================
+// 跨块（cross-block）选区场景
+// ------------------------------------------------------------
+// Phase 3：选区跨多个 contenteditable=true 根时，行内公式与链接按钮应 disabled，
+// 其余格式化按钮仍可用（走 crossBlock* helpers）。
+// ============================================================
+
+const mountCrossBlockPopover = async (): Promise<MountResult> => {
+  const containerRef: RefObject<HTMLElement | null> = { current: null }
+  const onContentChange = vi.fn()
+
+  render(
+    <div
+      ref={(el) => {
+        containerRef.current = el
+      }}
+    >
+      <div contentEditable="true" data-editable-block-id="block-1">
+        hello
+      </div>
+      <div contentEditable="true" data-editable-block-id="block-2">
+        world
+      </div>
+      <SelectionPopover
+        containerRef={containerRef}
+        onContentChange={onContentChange}
+      />
+    </div>
+  )
+
+  documentCommands.execCommand.mockClear()
+  documentCommands.queryCommandState.mockClear()
+  documentCommands.execCommand.mockImplementation(() => true)
+  documentCommands.queryCommandState.mockImplementation(() => false)
+  Object.defineProperty(document, "execCommand", {
+    value: documentCommands.execCommand,
+    writable: true,
+    configurable: true
+  })
+  Object.defineProperty(document, "queryCommandState", {
+    value: documentCommands.queryCommandState,
+    writable: true,
+    configurable: true
+  })
+
+  const block1 = containerRef.current?.querySelector<HTMLElement>(
+    '[data-editable-block-id="block-1"]'
+  )
+  const block2 = containerRef.current?.querySelector<HTMLElement>(
+    '[data-editable-block-id="block-2"]'
+  )
+  if (!block1 || !block2) {
+    throw new Error("mountCrossBlockPopover: 两个 editable 块未渲染")
+  }
+
+  // 跨块 fakeRange：start 在 block1，end 在 block2
+  // isRangeCrossMultipleEditableRoots 会通过 closest('[contenteditable]') 检测到不同根
+  const fakeRange: FakeRange = {
+    startContainer: block1,
+    endContainer: block2,
+    commonAncestorContainer: containerRef.current as HTMLElement,
+    getBoundingClientRect: () => RECT_ABOVE_FLIP_THRESHOLD,
+    cloneRange: () => ({ ...fakeRange })
+  }
+
+  const selection = buildFakeSelection(fakeRange)
+  vi.spyOn(window, "getSelection").mockImplementation(() =>
+    selection as unknown as Selection
+  )
+
+  document.dispatchEvent(new Event("selectionchange"))
+
+  return { containerRef, onContentChange }
+}
+
+describe("SelectionPopover 跨块选区", () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it("跨块选区时行内公式按钮 disabled", async () => {
+    // Given: 选区跨 block-1 与 block-2
+    await mountCrossBlockPopover()
+
+    // Then: 行内公式按钮被禁用
+    expect(findButton("行内公式").disabled).toBe(true)
+  })
+
+  it("跨块选区时链接按钮 disabled", async () => {
+    // Given: 选区跨 block-1 与 block-2
+    await mountCrossBlockPopover()
+
+    // Then: 链接按钮被禁用
+    expect(findButton("为选中文字添加链接").disabled).toBe(true)
+  })
+
+  it("跨块选区时粗体按钮仍可用", async () => {
+    // Given: 选区跨 block-1 与 block-2
+    await mountCrossBlockPopover()
+
+    // Then: 粗体按钮未禁用（走 crossBlock 格式化路径）
+    expect(findButton("粗体").disabled).toBe(false)
+  })
+})
