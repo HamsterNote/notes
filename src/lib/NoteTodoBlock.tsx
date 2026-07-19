@@ -8,27 +8,29 @@ import {
   type EditContext,
   editableProps,
   richText,
-  toggleChecklistItem,
-  updateChecklistItemText
+  toggleTodoItem,
+  updateTodoItemText
 } from "./NoteContentEditing"
 import type {
-  NoteChecklistBlock as NoteChecklistBlockData,
-  NoteChecklistItem as NoteChecklistItemData
+  NoteTodoBlock as NoteTodoBlockData,
+  NoteTodoItem as NoteTodoItemData
 } from "./types"
 
-type NoteChecklistItemProps = {
-  readonly block: NoteChecklistBlockData
-  readonly item: NoteChecklistItemData
+type NoteTodoItemProps = {
+  readonly block: NoteTodoBlockData
+  readonly item: NoteTodoItemData
   readonly ctx: EditContext
   readonly showTitle: boolean
+  readonly containerId: string | undefined
 }
 
-const NoteChecklistItem = ({
+const NoteTodoItem = ({
   block,
   item,
   ctx,
-  showTitle
-}: NoteChecklistItemProps): ReactElement => {
+  showTitle,
+  containerId
+}: NoteTodoItemProps): ReactElement => {
   const { editable, blocks, onBlocksChange, selectMode, selectedBlockId } = ctx
   const sortable = editable && onBlocksChange !== undefined
 
@@ -36,7 +38,7 @@ const NoteChecklistItem = ({
     <div
       className={[
         "hn-note-block",
-        "hn-note-checklist-item",
+        "hn-note-todo-item",
         sortable ? "hn-note-sortable-block" : "",
         selectMode ? "hn-note-selectable-block" : ""
       ]
@@ -45,6 +47,7 @@ const NoteChecklistItem = ({
       id={item.id}
       key={item.id}
       data-note-block-id={block.id}
+      data-note-drag-container-id={containerId}
       {...(sortable
         ? {
             "data-note-sortable-id": item.id
@@ -52,7 +55,7 @@ const NoteChecklistItem = ({
         : {})}
       {...(editable
         ? {
-            "data-note-drag-kind": "checklist-item",
+            "data-note-drag-kind": "todo-item",
             "data-note-drag-parent-id": block.id
           }
         : {})}
@@ -66,17 +69,17 @@ const NoteChecklistItem = ({
         : {})}
     >
       {showTitle && block.title ? (
-        <div className="hn-note-section-header hn-note-structured-header hn-note-checklist-title">
-          <span className="hn-note-chip">Checklist</span>
+        <div className="hn-note-section-header hn-note-structured-header hn-note-todo-title">
+          <span className="hn-note-chip">Todo</span>
           <h3>{block.title}</h3>
         </div>
       ) : null}
       {renderBlockActionMenu(block, ctx, {
-        kind: "checklist-item",
+        kind: "todo-item",
         blockId: block.id,
         itemId: item.id
       })}
-      <div className="hn-note-checklist-content hn-note-checklist-item">
+      <div className="hn-note-todo-content hn-note-todo-item">
         {editable ? (
           <button
             type="button"
@@ -89,7 +92,7 @@ const NoteChecklistItem = ({
               .filter(Boolean)
               .join(" ")}
             onClick={() =>
-              onBlocksChange?.(toggleChecklistItem(blocks, block.id, item.id))
+              onBlocksChange?.(toggleTodoItem(blocks, block.id, item.id))
             }
           >
             {item.checked ? "●" : "○"}
@@ -106,7 +109,7 @@ const NoteChecklistItem = ({
           <span
             {...editableProps((event) =>
               onBlocksChange?.(
-                updateChecklistItemText(
+                updateTodoItemText(
                   blocks,
                   block.id,
                   item.id,
@@ -135,15 +138,17 @@ const NoteChecklistItem = ({
   )
 }
 
-type NoteChecklistBlockProps = {
-  readonly block: NoteChecklistBlockData
+type NoteTodoBlockProps = {
+  readonly block: NoteTodoBlockData
   readonly ctx: EditContext
+  readonly containerId?: string
 }
 
-export const NoteChecklistBlock = ({
+export const NoteTodoBlock = ({
   block,
-  ctx
-}: NoteChecklistBlockProps): ReactElement => {
+  ctx,
+  containerId
+}: NoteTodoBlockProps): ReactElement => {
   const { editable, onBlocksChange, selectMode, selectedBlockId } = ctx
   const sortable = editable && onBlocksChange !== undefined
 
@@ -151,7 +156,7 @@ export const NoteChecklistBlock = ({
     return (
       <div
         className={[
-          "hn-note-block hn-note-checklist-empty",
+          "hn-note-block hn-note-todo-empty",
           sortable ? "hn-note-sortable-block" : "",
           selectMode ? "hn-note-selectable-block" : ""
         ]
@@ -159,6 +164,7 @@ export const NoteChecklistBlock = ({
           .join(" ")}
         id={block.id}
         data-note-block-id={block.id}
+        data-note-drag-container-id={containerId}
         {...(sortable
           ? {
               "data-note-sortable-id": block.id,
@@ -174,9 +180,10 @@ export const NoteChecklistBlock = ({
             }
           : {})}
       >
+        {editable ? renderBlockActionMenu(block, ctx) : null}
         {block.title ? (
-          <div className="hn-note-section-header hn-note-structured-header hn-note-checklist-title">
-            <span className="hn-note-chip">Checklist</span>
+          <div className="hn-note-section-header hn-note-structured-header hn-note-todo-title">
+            <span className="hn-note-chip">Todo</span>
             <h3>{block.title}</h3>
           </div>
         ) : null}
@@ -187,9 +194,10 @@ export const NoteChecklistBlock = ({
   return (
     <>
       {block.items.map((item, index) => (
-        <NoteChecklistItem
+        <NoteTodoItem
           key={item.id}
           block={block}
+          containerId={containerId}
           item={item}
           ctx={ctx}
           showTitle={index === 0}

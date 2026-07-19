@@ -8,11 +8,14 @@ import type {
   Root,
   Table
 } from "mdast"
+import remarkGfm from "remark-gfm"
+import remarkParse from "remark-parse"
+import { unified } from "unified"
 import { createNoteId } from "../lib/noteId"
 import type {
   NoteBlock,
   NoteCalloutTone,
-  NoteChecklistItem
+  NoteTodoItem
 } from "../lib/types"
 import {
   pictureFromParagraph,
@@ -37,8 +40,12 @@ export const parseMarkdownBlocks = (tree: Root): readonly NoteBlock[] => {
         blocks.push(parseBlockquote(node))
         break
       case "list":
-        if (isChecklistList(node)) {
-          blocks.push(parseChecklist(node))
+        if (isTodoList(node)) {
+          blocks.push(parseTodo(node))
+        } else if (node.ordered) {
+          blocks.push(...parseOrderedList(node))
+        } else {
+          blocks.push(...parseUnorderedList(node))
         }
         break
       case "code":
@@ -104,14 +111,14 @@ const parseBlockquote = (node: Blockquote): NoteBlock => {
   }
 }
 
-const parseChecklist = (node: List): NoteBlock => ({
+const parseTodo = (node: List): NoteBlock => ({
   id: createNoteId(),
-  kind: "checklist",
+  kind: "todo",
   title: "",
-  items: node.children.flatMap(parseChecklistItem)
+  items: node.children.flatMap(parseTodoItem)
 })
 
-const parseChecklistItem = (item: ListItem): readonly NoteChecklistItem[] => {
+const parseTodoItem = (item: ListItem): readonly NoteTodoItem[] => {
   if (typeof item.checked !== "boolean") return []
   const paragraph = item.children[0]
   if (paragraph?.type !== "paragraph") return []
@@ -125,6 +132,28 @@ const parseChecklistItem = (item: ListItem): readonly NoteChecklistItem[] => {
   ]
 }
 
+const parseUnorderedList = (node: List): readonly NoteBlock[] =>
+  node.children.flatMap(parseListItem).map((text) => ({
+    id: createNoteId(),
+    kind: "unorderedList",
+    text
+  }))
+
+const parseOrderedList = (node: List): readonly NoteBlock[] =>
+  node.children.flatMap(parseListItem).map((text) => ({
+    id: createNoteId(),
+    kind: "orderedList",
+    text
+  }))
+
+const parseListItem = (item: ListItem): readonly string[] => {
+  if (typeof item.checked === "boolean") return []
+  const paragraph = item.children[0]
+  if (paragraph?.type !== "paragraph") return []
+
+  return [textFromPhrasing(paragraph.children).trim()]
+}
+
 const parseCode = (node: Code): NoteBlock => {
   if (node.lang === "math") {
     return {
@@ -132,6 +161,17 @@ const parseCode = (node: Code): NoteBlock => {
       kind: "formula",
       formula: node.value
     }
+  }
+
+  if (node.lang === "directory") {
+    return {
+      id: createNoteId(),
+      kind: "directory"
+    }
+  }
+
+  if (node.lang === "collapsible") {
+    return parseCollapsibleCode(node.value)
   }
 
   const filename = parseFilename(node.meta)
@@ -142,6 +182,29 @@ const parseCode = (node: Code): NoteBlock => {
     language: node.lang ?? "",
     code: node.value,
     ...(filename === undefined ? {} : { filename })
+  }
+}
+
+// 解析 collapsible fenced 块：首行 JSON 元数据（title + collapsed），空行后是内部 markdown，递归解析为子 blocks
+const parseCollapsibleCode = (value: string): NoteBlock => {
+  const separator = value.indexOf("\n\n")
+  const metadataJson = separator === -1 ? value : value.slice(0, separator)
+  const body = separator === -1 ? "" : value.slice(separator + 2)
+
+  const metadata = JSON.parse(metadataJson) as {
+    readonly title: string
+    readonly collapsed: boolean
+  }
+
+  const tree: Root = unified().use(remarkParse).use(remarkGfm).parse(body)
+  const blocks = parseMarkdownBlocks(tree)
+
+  return {
+    id: createNoteId(),
+    kind: "collapsible",
+    title: metadata.title,
+    collapsed: metadata.collapsed,
+    blocks
   }
 }
 
@@ -176,7 +239,7 @@ const parseCalloutTone = (
   }
 }
 
-const isChecklistList = (node: List): boolean =>
+const isTodoList = (node: List): boolean =>
   node.children.length > 0 &&
   node.children.every((item) => typeof item.checked === "boolean")
 

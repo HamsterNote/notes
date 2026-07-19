@@ -1,7 +1,19 @@
 /** @vitest-environment jsdom */
 import { useState } from "react"
-import { act, fireEvent, render, waitFor } from "@testing-library/react"
-import { describe, expect, it, vi } from "vitest"
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor
+} from "@testing-library/react"
+import { afterEach, describe, expect, it, vi } from "vitest"
+
+// 该测试文件含两个用例，且菜单通过 portal 渲染到 document.body，
+// RTL 在 vitest 环境下未自动 cleanup，导致 test1 的菜单残留到 test2，
+// 造成 getByRole 重复匹配。显式 afterEach cleanup 保证 document.body 干净。
+afterEach(cleanup)
 
 import { NoteContent } from "./NoteContent"
 import type { NoteBlock } from "./types"
@@ -31,9 +43,12 @@ describe("NoteContent picture upload", () => {
     if (!handle) throw new Error("Expected picture block handle.")
     fireEvent.click(handle)
 
-    // Then: keyboard focus falls back to the first conversion action.
+    // Then: 主菜单首项 "转换成" 拿到焦点（新结构：picture 块也走主菜单+子菜单，
+    // 不再有指向 H1 的默认焦点回退）。
     await waitFor(() =>
-      expect(document.activeElement?.textContent?.trim()).toBe("H1")
+      expect(document.activeElement?.textContent?.startsWith("转换成")).toBe(
+        true
+      )
     )
   })
 
@@ -83,8 +98,21 @@ describe("NoteContent picture upload", () => {
       '[data-block-id="intro"][data-block-menu-mode="convert"]'
     )
     if (!introHandle) throw new Error("Expected intro block handle.")
+    // 新结构：先点开 convert handle 显示主菜单（"转换成/删除/创建副本"），
+    // 再点击主菜单的 "转换成" 项展开右侧子菜单（含 H1..图片 等格式选项）
     fireEvent.click(introHandle)
-    fireEvent.click(view.getByRole("menuitem", { name: "图片" }))
+    // 主菜单的 "转换成" 出现后再点击展开右侧子菜单
+    // （主菜单项包含 › 箭头，accessible name 是 "转换成›"，用正则匹配）
+    // 菜单通过 portal 渲染到 document.body，必须使用 screen 而非 view.container。
+    await waitFor(() =>
+      expect(screen.getByRole("menuitem", { name: /转换成/ })).toBeDefined()
+    )
+    fireEvent.click(screen.getByRole("menuitem", { name: /转换成/ }))
+    // 子菜单渲染出来后，"图片" menuitem 才存在
+    await waitFor(() =>
+      expect(screen.getByRole("menuitem", { name: "图片" })).toBeDefined()
+    )
+    fireEvent.click(screen.getByRole("menuitem", { name: "图片" }))
     const input = document.querySelector<HTMLInputElement>(
       ".hn-note-picture-input"
     )

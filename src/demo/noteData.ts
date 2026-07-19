@@ -47,4 +47,15 @@ The current component intentionally focuses on note reading, not editing. That k
 | Theme color | Done | Customizable via themeColor prop |
 | Inline editing | Done | Title, summary, blocks all editable |
 | Table operations | In Progress | Row/column add/delete via edge buttons |
-| Code highlight | Done | highlight.js with language selector |`
+| Code highlight | Done | highlight.js with language selector |
+
+\`\`\`collapsible
+{"title":"Roadmap","collapsed":false}
+
+### Next up
+
+- [ ] Add drag-and-drop for nested blocks
+- [ ] Export collapsible state to markdown
+
+Collapsible blocks can hold any combination of notes, lists, and callouts.
+\`\`\``

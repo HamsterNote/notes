@@ -1,13 +1,16 @@
 import type { ReactElement } from "react"
 import { NoteCalloutBlock } from "./NoteCalloutBlock"
-import { NoteChecklistBlock } from "./NoteChecklistBlock"
 import { NoteCodeBlock } from "./NoteCodeEditorBlock"
+import { NoteCollapsibleBlock } from "./NoteCollapsibleBlock"
 import type { EditContext } from "./NoteContentEditing"
+import { NoteDirectoryBlock } from "./NoteDirectoryBlock"
 import { NoteFormulaBlock } from "./NoteFormulaBlock"
+import { NoteListBlock } from "./NoteListBlock"
 import { NotePictureBlock } from "./NotePictureBlock"
 import { NoteQuoteBlock } from "./NoteQuoteBlock"
 import { renderTableBlock } from "./NoteTableBlock"
 import { NoteTextBlock } from "./NoteTextBlocks"
+import { NoteTodoBlock } from "./NoteTodoBlock"
 import type { NoteBlock } from "./types"
 import { assertNever } from "./utils"
 
@@ -22,8 +25,12 @@ export const renderBlock = (
       return <NoteTextBlock block={block} ctx={ctx} />
     case "paragraph":
       return <NoteTextBlock block={block} ctx={ctx} />
-    case "checklist":
-      return <NoteChecklistBlock block={block} ctx={ctx} />
+    case "todo":
+      return <NoteTodoBlock block={block} ctx={ctx} />
+    case "unorderedList":
+      return <NoteListBlock block={block} ctx={ctx} />
+    case "orderedList":
+      return <NoteListBlock block={block} ctx={ctx} />
     case "quote":
       return <NoteQuoteBlock block={block} ctx={ctx} />
     case "code":
@@ -36,6 +43,10 @@ export const renderBlock = (
       return <NoteFormulaBlock key={block.id} block={block} ctx={ctx} />
     case "picture":
       return <NotePictureBlock key={block.id} block={block} ctx={ctx} />
+    case "directory":
+      return <NoteDirectoryBlock block={block} ctx={ctx} />
+    case "collapsible":
+      return <NoteCollapsibleBlock block={block} ctx={ctx} />
     default:
       return assertNever(block)
   }

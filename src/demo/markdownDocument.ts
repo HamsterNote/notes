@@ -1,7 +1,6 @@
 import type { Root } from "mdast"
 import remarkGfm from "remark-gfm"
 import remarkParse from "remark-parse"
-import remarkStringify from "remark-stringify"
 import { unified } from "unified"
 
 import type { NoteBlock } from "../lib/types"
@@ -69,15 +68,42 @@ export const serializeMarkdownDocument = (
 }
 
 const serializeBlocks = (blocks: readonly NoteBlock[]): string => {
-  const tree = {
-    type: "root",
-    children: blocks
-      .map(serializeBlock)
-      .filter((value) => value !== "")
-      .map((value) => ({ type: "html", value }))
-  } satisfies Root
+  const chunks: string[] = []
+  let pendingListKind: "unorderedList" | "orderedList" | null = null
+  let pendingListLines: string[] = []
 
-  return unified().use(remarkGfm).use(remarkStringify).stringify(tree).trimEnd()
+  const flushList = () => {
+    if (pendingListKind === null) return
+    if (pendingListKind === "unorderedList") {
+      chunks.push(pendingListLines.map((text) => `- ${text}`).join("\n"))
+    } else {
+      chunks.push(
+        pendingListLines
+          .map((text, index) => `${index + 1}. ${text}`)
+          .join("\n")
+      )
+    }
+    pendingListKind = null
+    pendingListLines = []
+  }
+
+  for (const block of blocks) {
+    if (block.kind === "unorderedList" || block.kind === "orderedList") {
+      if (pendingListKind !== null && pendingListKind !== block.kind) {
+        flushList()
+      }
+      pendingListKind = block.kind
+      pendingListLines.push(block.text)
+      continue
+    }
+
+    flushList()
+    const value = serializeBlock(block)
+    if (value !== "") chunks.push(value)
+  }
+
+  flushList()
+  return chunks.join("\n\n").trimEnd()
 }
 
 const serializeBlock = (block: NoteBlock): string => {
@@ -90,7 +116,10 @@ const serializeBlock = (block: NoteBlock): string => {
       return paragraphText(block.text)
     case "quote":
       return quoteLines(block).join("\n")
-    case "checklist":
+    case "unorderedList":
+    case "orderedList":
+      return ""
+    case "todo":
       return block.items
         .map((item) => `- [${item.checked ? "x" : " "}] ${item.text}`)
         .join("\n")
@@ -110,6 +139,17 @@ const serializeBlock = (block: NoteBlock): string => {
       return fencedBlock("math", block.formula).join("\n")
     case "picture":
       return serializePicture(block)
+    case "directory":
+      return fencedBlock("directory", "").join("\n")
+    case "collapsible": {
+      // 用 fenced code 块表示 collapsible：首行 JSON 元数据（title + collapsed），空行后递归序列化内部子块
+      const metadata = JSON.stringify({
+        title: block.title,
+        collapsed: block.collapsed
+      })
+      const body = serializeBlocks(block.blocks)
+      return fencedBlock("collapsible", `${metadata}\n\n${body}`).join("\n")
+    }
     default:
       return assertNever(block)
   }

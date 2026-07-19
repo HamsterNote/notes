@@ -3,13 +3,17 @@ import type { Ref } from "react"
 export const noteBlockKinds = {
   heading: "heading",
   paragraph: "paragraph",
-  checklist: "checklist",
+  todo: "todo",
+  unorderedList: "unorderedList",
+  orderedList: "orderedList",
   quote: "quote",
   code: "code",
   callout: "callout",
   table: "table",
   formula: "formula",
-  picture: "picture"
+  picture: "picture",
+  directory: "directory",
+  collapsible: "collapsible"
 } as const
 
 export type NoteBlockKind = (typeof noteBlockKinds)[keyof typeof noteBlockKinds]
@@ -29,17 +33,29 @@ export type NoteParagraphBlock = {
   readonly tone?: "default" | "muted" | "accent"
 }
 
-export type NoteChecklistItem = {
+export type NoteTodoItem = {
   readonly id: string
   readonly checked: boolean
   readonly text: string
 }
 
-export type NoteChecklistBlock = {
+export type NoteTodoBlock = {
   readonly id: string
-  readonly kind: "checklist"
+  readonly kind: "todo"
   readonly title: string
-  readonly items: readonly NoteChecklistItem[]
+  readonly items: readonly NoteTodoItem[]
+}
+
+export type NoteUnorderedListBlock = {
+  readonly id: string
+  readonly kind: "unorderedList"
+  readonly text: string
+}
+
+export type NoteOrderedListBlock = {
+  readonly id: string
+  readonly kind: "orderedList"
+  readonly text: string
 }
 
 export type NoteQuoteBlock = {
@@ -94,21 +110,63 @@ export type NotePictureBlock = {
   readonly height?: number
 }
 
+export type NoteDirectoryBlock = {
+  readonly id: string
+  readonly kind: "directory"
+}
+
+/**
+ * 收缩块。可折叠/展开的容器型块，内部 blocks 可嵌套任意 NoteBlock（含 collapsible 自身）。
+ * 展开后，内部完整内容块可通过拖拽手柄在容器内排序，也可在正文与折叠块之间移动。
+ */
+export type NoteCollapsibleBlock = {
+  readonly id: string
+  readonly kind: "collapsible"
+  readonly title: string
+  readonly collapsed: boolean
+  readonly blocks: readonly NoteBlock[]
+}
+
 export type NoteBlock =
   | NoteHeadingBlock
   | NoteParagraphBlock
-  | NoteChecklistBlock
+  | NoteTodoBlock
+  | NoteUnorderedListBlock
+  | NoteOrderedListBlock
   | NoteQuoteBlock
   | NoteCodeBlock
   | NoteCalloutBlock
   | NoteTableBlock
   | NoteFormulaBlock
   | NotePictureBlock
+  | NoteDirectoryBlock
+  | NoteCollapsibleBlock
+
+export const noteListLikeBlockKinds = [
+  "todo",
+  "unorderedList",
+  "orderedList"
+] as const
+
+export type NoteListLikeBlockKind = (typeof noteListLikeBlockKinds)[number]
+
+export const isListLikeBlockKind = (
+  kind: NoteBlock["kind"]
+): kind is NoteListLikeBlockKind =>
+  kind === "todo" || kind === "unorderedList" || kind === "orderedList"
 
 export type NoteTheme = "light" | "dark"
 
+/** 可在编辑区通过 @ 选择并插入的链接对象。 */
+export interface NoteLink {
+  readonly id: string
+  readonly name: string
+}
+
 export type NoteContentProps = {
   readonly blocks: readonly NoteBlock[]
+  /** 输入 @ 时展示的可选链接列表。 */
+  readonly links?: readonly NoteLink[]
   readonly title: string
   readonly summary?: string
   readonly updatedAt?: string
@@ -124,7 +182,7 @@ export type NoteContentProps = {
   /**
    * 是否开启内联编辑。
    * 开启后标题、摘要、各文本字段变为 contentEditable，
-   * checklist 复选框可点击切换，callout/quote/code 等文本均可直接编辑。
+   * todo 复选框可点击切换，callout/quote/code 等文本均可直接编辑。
    * 默认值: false（只读展示模式）
    */
   readonly editable?: boolean
@@ -134,7 +192,7 @@ export type NoteContentProps = {
    * 默认值: false
    */
   readonly selectMode?: boolean
-  /** 选择模式下点击内容块时触发，参数为被选块或子条目的 id（如 checklist 单条目）。 */
+  /** 选择模式下点击内容块时触发，参数为被选块或子条目的 id（如 todo 单条目）。 */
   readonly onBlockSelect?: (blockId: string) => void
   /** 标题变更回调（仅 editable=true 时触发） */
   readonly onTitleChange?: (title: string) => void
@@ -160,6 +218,11 @@ export type NoteContentProps = {
    * 同时会禁止原生链接跳转能力，将控制权交给宿主。
    */
   readonly onMagicLinkClick?: (url: string) => void
+  /**
+   * @ 链接点击回调。当用户点击正文里已插入的 @ mention pill 时触发，
+   * 参数为该 mention 对应的 NoteLink.id，由宿主决定后续跳转或展示逻辑。
+   */
+  readonly onLinkClick?: (id: string) => void
   /** 撤销/重做控制器实例（外部注入模式） */
   readonly undoRedoController?: NoteContentUndoRedoController
   /**
@@ -201,7 +264,7 @@ export type NoteContentUndoRedoHandle = {
 
 /**
  * NoteContent 组件对宿主暴露的完整 ref 手柄。
- * `scrollToBlock` 可定位块 id，也可定位 checklist 条目 id。
+ * `scrollToBlock` 可定位块 id，也可定位 todo 条目 id。
  */
 export type NoteContentHandle = NoteContentUndoRedoHandle & {
   readonly scrollToBlock: (blockId: string) => boolean

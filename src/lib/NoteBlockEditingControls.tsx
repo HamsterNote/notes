@@ -15,6 +15,10 @@ import {
   convertBlockSource,
   replaceBlockSourceWithPicture
 } from "./blockSourceConversion"
+import {
+  deleteBlockSource,
+  duplicateBlockSource
+} from "./blockSourceOperations"
 import { insertBlockAfterSource } from "./blockSourceInsertion"
 import { resolveDeletionFocus } from "./NoteBlockFocus"
 import type { EditContext } from "./NoteContentEditing"
@@ -30,8 +34,8 @@ export const blockMenuStateKey = (
   source: BlockSource
 ): string => {
   const namespace =
-    source.kind === "checklist-item"
-      ? `checklist-item:${source.blockId}:${source.itemId}`
+    source.kind === "todo-item"
+      ? `todo-item:${source.blockId}:${source.itemId}`
       : source.kind === "quote-line"
         ? `quote-line:${source.blockId}:${source.lineId}`
         : `block:${source.blockId}`
@@ -158,7 +162,7 @@ export const renderBlockActionMenu = (
 ): ReactElement | null => {
   if (!ctx.editable) return null
   const sourceId =
-    source.kind === "checklist-item"
+    source.kind === "todo-item"
       ? source.itemId
       : source.kind === "quote-line"
         ? source.lineId
@@ -167,16 +171,19 @@ export const renderBlockActionMenu = (
   const addMenuId = blockMenuStateKey("add", source)
   const convertMenuId = blockMenuStateKey("convert", source)
 
+  const isTodoTarget = (target: BlockConvertTarget): boolean =>
+    target.kind === "todo"
+
   const onConvert = (target: BlockConvertTarget) => {
     const replacementId =
       source.kind === "quote-line" && source.lineIndex > 0
         ? createNoteId()
         : sourceId
-    const focusId = target.kind === "checklist" ? createNoteId() : replacementId
+    const focusId = isTodoTarget(target) ? createNoteId() : replacementId
     ctx.onBlocksChange?.(
       convertBlockSource({
         blocks: ctx.blocks,
-        ...(target.kind === "checklist" ? { checklistItemId: focusId } : {}),
+        ...(isTodoTarget(target) ? { todoItemId: focusId } : {}),
         replacementId,
         source,
         target
@@ -211,7 +218,7 @@ export const renderBlockActionMenu = (
 
   const onAdd = (target: BlockConvertTarget) => {
     const nextId = createNoteId()
-    const focusId = target.kind === "checklist" ? createNoteId() : nextId
+    const focusId = isTodoTarget(target) ? createNoteId() : nextId
     const result = insertBlockAfterSource({
       blocks: ctx.getBlocks(),
       focusId,
@@ -221,6 +228,21 @@ export const renderBlockActionMenu = (
     })
     ctx.onBlocksChange?.(result.blocks)
     return result.focusId
+  }
+
+  // convert 模式专用：删除当前承载块，复用 NoteBlockFocus 解析焦点
+  const onDelete = (): string | undefined => {
+    const result = deleteBlockSource({ blocks: ctx.getBlocks(), source })
+    ctx.onBlocksChange?.(result.blocks)
+    // 删除后焦点：若存在目标，由 BlockActionMenu 通过 focusEditableBlock 调度
+    return result.focusTarget?.id
+  }
+
+  // convert 模式专用：在当前承载块下方插入深拷贝（新 id），返回新块 id 供聚焦
+  const onDuplicate = (): string | undefined => {
+    const result = duplicateBlockSource({ blocks: ctx.getBlocks(), source })
+    ctx.onBlocksChange?.(result.blocks)
+    return result.focusBlockId
   }
 
   return (
@@ -243,6 +265,8 @@ export const renderBlockActionMenu = (
         {...(block.kind === "heading" ? { headingLevel: block.level } : {})}
         onSelect={onConvert}
         {...(onPictureUpload ? { onPictureUpload } : {})}
+        onDelete={onDelete}
+        onDuplicate={onDuplicate}
       />
     </>
   )

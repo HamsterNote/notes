@@ -11,7 +11,7 @@ describe("createNoteId", () => {
   })
 
   it("creates unique UUID v4 identifiers for persisted note data", () => {
-    // Given: a batch representing newly created blocks and checklist items.
+  // Given: a batch representing newly created blocks and todo items.
     // When: each record receives an ID through the public generator.
     const ids = Array.from({ length: 32 }, createNoteId)
 

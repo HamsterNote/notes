@@ -110,7 +110,7 @@ describe("markdown document edge cases", () => {
     ])
   })
 
-  it("creates unique UUID fallback ids for blocks and checklist items", () => {
+  it("creates unique UUID fallback ids for blocks and todo items", () => {
     const document = parseMarkdownDocument(
       markdownDocument(
         [
@@ -126,7 +126,7 @@ describe("markdown document edge cases", () => {
     )
 
     const generatedIds = document.blocks.flatMap((block) => {
-      if (block.kind === "checklist") {
+      if (block.kind === "todo") {
         return [block.id, ...block.items.map((item) => item.id)]
       }
       return [block.id]

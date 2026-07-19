@@ -1,5 +1,10 @@
 import type { Pose } from "@system-ui-js/multi-drag"
 
+import {
+  getBlockContainerId,
+  getContainerRepresentatives,
+  isRendererOwnedDragElement
+} from "./blockContainerDom"
 import type {
   BlockBoundaryDestination,
   BlockDragSource
@@ -33,25 +38,13 @@ export const getSortableBlocks = (body: HTMLElement): HTMLElement[] =>
   )
 
 export const getDraggableElements = (body: HTMLElement): HTMLElement[] =>
-  Array.from(body.children).filter(
-    (element): element is HTMLElement =>
-      element instanceof HTMLElement &&
-      element.hasAttribute("data-note-drag-kind")
+  Array.from(body.querySelectorAll<HTMLElement>("[data-note-drag-kind]")).filter(
+    (element) => isRendererOwnedDragElement(body, element)
   )
 
 const getPersistedBlockId = (element: HTMLElement): string | null =>
   element.getAttribute("data-note-block-id") ??
   element.getAttribute("data-note-sortable-id")
-
-const getBlockRepresentatives = (body: HTMLElement): HTMLElement[] => {
-  const blockIds = new Set<string>()
-  return getSortableBlocks(body).filter((element) => {
-    const blockId = getPersistedBlockId(element)
-    if (blockId === null || blockIds.has(blockId)) return false
-    blockIds.add(blockId)
-    return true
-  })
-}
 
 const getPersistedBlockGroups = (body: HTMLElement): HTMLElement[][] => {
   const groups = new Map<string, HTMLElement[]>()
@@ -70,7 +63,7 @@ export const getDragGroup = (
   sourceElement: HTMLElement
 ): HTMLElement[] => {
   if (sourceElement.getAttribute("data-note-drag-kind") === "block") {
-    return getBlockRepresentatives(body)
+    return getContainerRepresentatives(body, getBlockContainerId(sourceElement))
   }
   const parent = sourceElement.parentElement
   if (parent === null) return []
@@ -88,11 +81,21 @@ export const getBlockDragSource = (
   element: HTMLElement
 ): BlockDragSource | null => {
   const kind = element.getAttribute("data-note-drag-kind")
-  if (kind === "block") return { kind }
+  if (kind === "block") {
+    const blockId = getPersistedBlockId(element)
+    return blockId === null
+      ? null
+      : { kind, blockId, containerId: getBlockContainerId(element) }
+  }
   const blockId = element.getAttribute("data-note-drag-parent-id")
   if (blockId === null) return null
-  if (kind === "checklist-item" || kind === "quote-line") {
-    return { kind, blockId, sourceId: element.id }
+  if (kind === "todo-item" || kind === "quote-line") {
+    return {
+      kind,
+      blockId,
+      containerId: getBlockContainerId(element),
+      sourceId: element.id
+    }
   }
   return null
 }
@@ -109,10 +112,8 @@ export const getBlockBoundaryTarget = (
 ): BlockBoundaryTarget | null => {
   const sourceWrapper = sourceElement.closest<HTMLElement>("[data-note-sortable-id]")
   if (sourceWrapper === null) return null
-  const sourceGroup =
-    sourceElement.parentElement === body
-      ? getDragGroup(body, sourceElement)
-      : [sourceWrapper]
+  const dragGroup = getDragGroup(body, sourceElement)
+  const sourceGroup = dragGroup.length > 0 ? dragGroup : [sourceWrapper]
   const sourceRects = sourceGroup.map((element) => element.getBoundingClientRect())
   const sourceTop = Math.min(...sourceRects.map((rect) => rect.top))
   const sourceBottom = Math.max(...sourceRects.map((rect) => rect.bottom))

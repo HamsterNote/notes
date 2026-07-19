@@ -17,12 +17,12 @@ const allBlockKinds: readonly NoteBlock[] = [
   { id: "heading", kind: "heading", level: 2, text: "Heading" },
   { id: "paragraph", kind: "paragraph", text: "Paragraph" },
   {
-    id: "checklist",
-    kind: "checklist",
-    title: "Checklist",
+    id: "todo",
+    kind: "todo",
+    title: "Todo",
     items: [
-      { id: "checklist-item-1", checked: false, text: "First item" },
-      { id: "checklist-item-2", checked: true, text: "Second item" }
+      { id: "todo-item-1", checked: false, text: "First item" },
+      { id: "todo-item-2", checked: true, text: "Second item" }
     ]
   },
   { id: "quote", kind: "quote", text: "First quote line\nSecond quote line" },
@@ -107,7 +107,7 @@ describe("NoteContent block dragging", () => {
     )
   })
 
-  it("renders checklist items as direct body-level sortable siblings", () => {
+  it("renders todo items as direct body-level sortable siblings", () => {
     // Given: an editable note containing every supported block kind.
     const view = render(
       <NoteContent
@@ -125,27 +125,27 @@ describe("NoteContent block dragging", () => {
       (element): element is HTMLElement => element instanceof HTMLElement
     )
 
-    // Then: checklist rows sit beside heading/table and retain their semantic class.
-    const firstItem = blocks.find((block) => block.id === "checklist-item-1")
-    const secondItem = blocks.find((block) => block.id === "checklist-item-2")
+    // Then: todo rows sit beside heading/table and retain their semantic class.
+    const firstItem = blocks.find((block) => block.id === "todo-item-1")
+    const secondItem = blocks.find((block) => block.id === "todo-item-2")
     expect(firstItem?.parentElement).toBe(body)
     expect(secondItem?.parentElement).toBe(body)
     expect(firstItem?.classList.contains("hn-note-block")).toBe(true)
-    expect(firstItem?.classList.contains("hn-note-checklist-item")).toBe(true)
+    expect(firstItem?.classList.contains("hn-note-todo-item")).toBe(true)
     expect(
       firstItem?.querySelector(
-        ":scope > .hn-note-checklist-content.hn-note-checklist-item"
+        ":scope > .hn-note-todo-content.hn-note-todo-item"
       )
     ).not.toBeNull()
     expect(secondItem?.classList.contains("hn-note-block")).toBe(true)
-    expect(secondItem?.classList.contains("hn-note-checklist-item")).toBe(true)
+    expect(secondItem?.classList.contains("hn-note-todo-item")).toBe(true)
     expect(
       secondItem?.querySelector(
-        ":scope > .hn-note-checklist-content.hn-note-checklist-item"
+        ":scope > .hn-note-todo-content.hn-note-todo-item"
       )
     ).not.toBeNull()
-    expect(blocks.some((block) => block.id === "checklist")).toBe(false)
-    expect(view.container.querySelector(".hn-note-checklist")).toBeNull()
+    expect(blocks.some((block) => block.id === "todo")).toBe(false)
+    expect(view.container.querySelector(".hn-note-todo")).toBeNull()
     expect(
       view.container.querySelector(
         ".hn-note-paragraph, .hn-note-block-row, .hn-note-block-content"
@@ -367,7 +367,7 @@ describe("NoteContent block dragging", () => {
   it("ignores touch drag metadata injected inside rich text", async () => {
     vi.useFakeTimers()
     try {
-      // Given: rich text that impersonates a persisted checklist item on mobile.
+      // Given: rich text that impersonates a persisted todo item on mobile.
       Object.defineProperty(window, "innerWidth", {
         configurable: true,
         value: 390
@@ -378,14 +378,14 @@ describe("NoteContent block dragging", () => {
           blocks={[
             {
               id: "tasks",
-              kind: "checklist",
+              kind: "todo",
               title: "Tasks",
               items: [{ id: "task-1", checked: false, text: "Real task" }]
             },
             {
               id: "paragraph",
               kind: "paragraph",
-              text: '<span id="task-1" data-note-drag-kind="checklist-item" data-note-drag-parent-id="tasks">Injected</span>'
+              text: '<span id="task-1" data-note-sortable-id="task-1" data-note-drag-kind="todo-item" data-note-drag-parent-id="tasks">Injected</span>'
             }
           ]}
           title="Touch drag trust boundary"
@@ -398,7 +398,7 @@ describe("NoteContent block dragging", () => {
       if (!body) throw new Error("Expected note body.")
       const injected = Array.from(
         view.container.querySelectorAll<HTMLElement>(
-          '[data-note-drag-kind="checklist-item"]'
+          '[data-note-drag-kind="todo-item"]'
         )
       ).find((element) => element.parentElement !== body)
       if (!injected) throw new Error("Expected injected drag metadata.")

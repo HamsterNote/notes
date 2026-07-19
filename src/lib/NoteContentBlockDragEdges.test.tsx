@@ -132,14 +132,14 @@ describe("NoteContent block drag boundaries", () => {
     expect(addedParentHandle).toBeNull()
   })
 
-  it("reorders checklist items from their existing conversion handles", () => {
-    // Given: a checklist with two independently actionable items.
-    const ControlledChecklist = () => {
+  it("reorders todo items from their existing conversion handles", () => {
+    // Given: a todo with two independently actionable items.
+    const ControlledTodo = () => {
       const [blocks, setBlocks] = useState<readonly NoteBlock[]>([
         {
           id: "list",
-          kind: "checklist",
-          title: "List",
+          kind: "todo",
+          title: "Todo",
           items: [
             { id: "first", checked: false, text: "First" },
             { id: "second", checked: true, text: "Second" }
@@ -149,47 +149,47 @@ describe("NoteContent block drag boundaries", () => {
       return (
         <NoteContent
           blocks={blocks}
-          title="Checklist drag"
+          title="Todo drag"
           editable
           onBlocksChange={setBlocks}
         />
       )
     }
-    const view = render(<ControlledChecklist />)
+    const view = render(<ControlledTodo />)
     const items = Array.from(
       view.container.querySelectorAll<HTMLElement>(
-        '.hn-note-body > [data-note-drag-kind="checklist-item"]'
+        '.hn-note-body > [data-note-drag-kind="todo-item"]'
       )
     )
     setRowRects(items)
     const handle = view.container.querySelector(
       '[data-block-id="first"][data-block-menu-mode="convert"]'
     )
-    if (!handle) throw new Error("Expected checklist item handle.")
+    if (!handle) throw new Error("Expected todo item handle.")
 
     // When: the first item's existing conversion handle is dragged downward.
     dragMouse(handle)
 
-    // Then: only the items within the checklist are reordered.
+    // Then: only the items within the todo are reordered.
     expect(
       Array.from(
         view.container.querySelectorAll<HTMLElement>(
-          '.hn-note-body > [data-note-drag-kind="checklist-item"]'
+        '.hn-note-body > [data-note-drag-kind="todo-item"]'
         )
       ).map((item) => item.id)
     ).toEqual(["second", "first"])
     expect(
       Array.from(
         view.container.querySelectorAll<HTMLElement>(
-          '.hn-note-body > [data-note-drag-kind="checklist-item"]'
+        '.hn-note-body > [data-note-drag-kind="todo-item"]'
         )
       ).every((item) => {
         const content = item.querySelector<HTMLElement>(
-          ":scope > .hn-note-checklist-content"
+          ":scope > .hn-note-todo-content"
         )
         return (
-          item.classList.contains("hn-note-checklist-item") &&
-          content?.classList.contains("hn-note-checklist-item") === true
+          item.classList.contains("hn-note-todo-item") &&
+          content?.classList.contains("hn-note-todo-item") === true
         )
       })
     ).toBe(true)

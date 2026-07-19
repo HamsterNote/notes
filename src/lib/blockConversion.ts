@@ -1,9 +1,5 @@
 import { createNoteId } from "./noteId"
-import type {
-  NoteBlock,
-  NoteHeadingBlock,
-  NoteParagraphBlock
-} from "./types"
+import type { NoteBlock, NoteHeadingBlock, NoteParagraphBlock } from "./types"
 import { assertNever } from "./utils"
 
 type TextBlock = NoteHeadingBlock | NoteParagraphBlock
@@ -17,15 +13,28 @@ type ParagraphTarget = {
   readonly kind: "paragraph"
 }
 
-type StructuralTarget = {
-  readonly kind:
-    | "checklist"
-    | "quote"
-    | "code"
-    | "callout"
-    | "table"
-    | "formula"
-}
+type TodoTarget = { readonly kind: "todo" }
+type UnorderedListTarget = { readonly kind: "unorderedList" }
+type OrderedListTarget = { readonly kind: "orderedList" }
+type QuoteTarget = { readonly kind: "quote" }
+type CodeTarget = { readonly kind: "code" }
+type CalloutTarget = { readonly kind: "callout" }
+type TableTarget = { readonly kind: "table" }
+type FormulaTarget = { readonly kind: "formula" }
+type DirectoryTarget = { readonly kind: "directory" }
+type CollapsibleTarget = { readonly kind: "collapsible" }
+
+type StructuralTarget =
+  | TodoTarget
+  | UnorderedListTarget
+  | OrderedListTarget
+  | QuoteTarget
+  | CodeTarget
+  | CalloutTarget
+  | TableTarget
+  | FormulaTarget
+  | DirectoryTarget
+  | CollapsibleTarget
 
 export type BlockConvertTarget =
   | HeadingTarget
@@ -39,6 +48,73 @@ type ConvertedHeadingBlock = Omit<NoteHeadingBlock, "level"> & {
 }
 
 type ConvertedTextBlock = ConvertedHeadingBlock | NoteParagraphBlock
+
+type ListConvertTarget = {
+  readonly kind: "todo" | "unorderedList" | "orderedList"
+}
+
+const convertToListBlock = (
+  block: NoteBlock,
+  target: ListConvertTarget,
+  todoItemId: string | undefined,
+  text: string
+): NoteBlock => {
+  switch (block.kind) {
+    case "todo": {
+      if (target.kind === "todo") return block
+      const item = block.items[0]
+      return {
+        id: block.id,
+        kind: target.kind,
+        text: item?.text ?? ""
+      }
+    }
+    case "unorderedList":
+    case "orderedList": {
+      if (target.kind === block.kind) return block
+      if (target.kind === "todo") {
+        return {
+          id: block.id,
+          kind: "todo",
+          title: "",
+          items: [
+            {
+              id: todoItemId ?? createNoteId(),
+              checked: false,
+              text: block.text
+            }
+          ]
+        }
+      }
+      return { id: block.id, kind: target.kind, text: block.text }
+    }
+    default:
+      if (target.kind === "todo") {
+        return {
+          id: block.id,
+          kind: "todo",
+          title: "",
+          items: [{ id: todoItemId ?? createNoteId(), checked: false, text }]
+        }
+      }
+      return { id: block.id, kind: target.kind, text }
+  }
+}
+
+export const convertBlockFormatToBlocks = (
+  block: NoteBlock,
+  target: BlockConvertTarget,
+  todoItemId?: string
+): readonly NoteBlock[] => {
+  if (block.kind === "todo" && (target.kind === "unorderedList" || target.kind === "orderedList")) {
+    return block.items.map((item, index) => ({
+      id: index === 0 ? block.id : item.id,
+      kind: target.kind,
+      text: item.text
+    }))
+  }
+  return [convertBlockFormat(block, target, todoItemId)]
+}
 
 export const convertTextBlockFormat = (
   block: TextBlock,
@@ -109,13 +185,16 @@ const blockAsRichText = (block: NoteBlock): string => {
     case "heading":
     case "paragraph":
       return block.text
-    case "checklist":
+    case "todo":
       return [
         `<strong>${escapePlainText(block.title)}</strong>`,
         ...block.items.map(
           (item) => `${item.checked ? "[x]" : "[ ]"} ${item.text}`
         )
       ].join("<br>")
+    case "unorderedList":
+    case "orderedList":
+      return block.text
     case "quote": {
       const author = block.author?.trim()
       return author ? `${block.text}<br>${escapePlainText(author)}` : block.text
@@ -137,6 +216,10 @@ const blockAsRichText = (block: NoteBlock): string => {
       return escapeCodeAsRichText(block.formula)
     case "picture":
       return escapePlainText(block.filename)
+    case "collapsible":
+      return block.title
+    case "directory":
+      return ""
     default:
       return assertNever(block)
   }
@@ -145,7 +228,7 @@ const blockAsRichText = (block: NoteBlock): string => {
 export const convertBlockFormat = (
   block: NoteBlock,
   target: BlockConvertTarget,
-  checklistItemId?: string
+  todoItemId?: string
 ): NoteBlock => {
   if (block.kind === target.kind) {
     if (block.kind !== "heading" || target.kind !== "heading") return block
@@ -158,13 +241,10 @@ export const convertBlockFormat = (
       return { id: block.id, kind: "heading", level: target.level, text }
     case "paragraph":
       return { id: block.id, kind: "paragraph", text }
-    case "checklist":
-      return {
-        id: block.id,
-        kind: "checklist",
-        title: "",
-        items: [{ id: checklistItemId ?? createNoteId(), checked: false, text }]
-      }
+    case "todo":
+    case "unorderedList":
+    case "orderedList":
+      return convertToListBlock(block, target, todoItemId, text)
     case "quote":
       return { id: block.id, kind: "quote", text }
     case "code":
@@ -193,6 +273,16 @@ export const convertBlockFormat = (
         id: block.id,
         kind: "formula",
         formula: richTextToPlainText(text)
+      }
+    case "directory":
+      return { id: block.id, kind: "directory" }
+    case "collapsible":
+      return {
+        id: block.id,
+        kind: "collapsible",
+        title: text,
+        collapsed: false,
+        blocks: []
       }
     default:
       return assertNever(target)

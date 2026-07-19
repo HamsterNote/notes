@@ -1,4 +1,4 @@
-/** 为新建的持久化块或 checklist 条目生成标准 UUID v4。 */
+/** 为新建的持久化块或 todo 条目生成标准 UUID v4。 */
 export const createNoteId = (): string => {
   const crypto = globalThis.crypto
 

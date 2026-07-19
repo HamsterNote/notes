@@ -1,16 +1,19 @@
 import { type RefObject, useEffect, useRef } from "react"
-
+import { getBlockContainerTarget } from "./blockContainerDom"
+import {
+  type BlockContainerDestination,
+  moveBlockToContainer
+} from "./blockContainerMove"
+import { getBlockBindingKey } from "./blockDragBindingKey"
 import { bindDesktopBlockDrag } from "./blockDragDesktop"
 import {
   blockDragClasses,
-  blockDragInteractiveSelector,
-  blockLongPressDelay,
-  blockTouchMoveTolerance,
   getBlockBoundaryTarget,
   getBlockDragSource,
   getDragGroup
 } from "./blockDragDom"
 import { getBlockDragTarget } from "./blockDragTarget"
+import { bindTouchBlockDrag } from "./blockDragTouch"
 import {
   type BlockBoundaryDestination,
   type BlockDragSource,
@@ -27,15 +30,6 @@ type UseBlockDragInput = {
   readonly touchEnabled: boolean
 }
 
-type PointerPoint = Readonly<{ x: number; y: number }>
-
-type PendingTouch = {
-  readonly pointerId: number
-  readonly sourceElement: HTMLElement
-  readonly start: PointerPoint
-  readonly timer: number
-}
-
 export const useBlockDrag = ({
   bodyRef,
   blocks,
@@ -47,17 +41,7 @@ export const useBlockDrag = ({
   const suppressNextClick = useDraggedClickSuppression(bodyRef)
   blocksRef.current = blocks
   onBlocksChangeRef.current = onBlocksChange
-  const blockBindingKey = blocks
-    .map((block) => {
-      if (block.kind === "checklist") {
-        return `${block.id}:${block.kind}:${block.items.map((item) => item.id).join(",")}`
-      }
-      if (block.kind === "quote") {
-        return `${block.id}:${block.kind}:${block.text}`
-      }
-      return `${block.id}:${block.kind}`
-    })
-    .join("\u0000")
+  const blockBindingKey = getBlockBindingKey(blocks)
   const enabled = onBlocksChange !== undefined
 
   useEffect(() => {
@@ -71,9 +55,9 @@ export const useBlockDrag = ({
     let sourceElement: HTMLElement | null = null
     let source: BlockDragSource | null = null
     let boundaryDestination: BlockBoundaryDestination | null = null
+    let containerDestination: BlockContainerDestination | null = null
     let dragElements: HTMLElement[] = []
     let previewElement: HTMLElement | null = null
-    let pendingTouch: PendingTouch | null = null
 
     const clearPreview = (): void => {
       previewElement?.classList.remove(
@@ -81,12 +65,6 @@ export const useBlockDrag = ({
         blockDragClasses.after
       )
       previewElement = null
-    }
-
-    const clearPendingTouch = (): void => {
-      if (pendingTouch === null) return
-      window.clearTimeout(pendingTouch.timer)
-      pendingTouch = null
     }
 
     const clearActiveSelection = (): void => {
@@ -109,6 +87,7 @@ export const useBlockDrag = ({
       sourceElement = nextSource
       source = nextSourceDescriptor
       boundaryDestination = null
+      containerDestination = null
       dragElements = elements
       activePointerId = pointerId
       nextSource.classList.add(blockDragClasses.dragging)
@@ -117,20 +96,34 @@ export const useBlockDrag = ({
 
     const previewAt = (clientY: number): void => {
       if (sourceElement === null) return
-      const boundaryTarget =
-        source?.kind === "block"
-          ? null
-          : getBlockBoundaryTarget(body, sourceElement, clientY)
-      if (boundaryTarget !== null) {
-        clearPreview()
-        boundaryDestination = boundaryTarget.destination
-        previewElement = boundaryTarget.element
-        boundaryTarget.element.classList.add(
-          boundaryTarget.destination.placement === "after"
-            ? blockDragClasses.after
-            : blockDragClasses.before
-        )
-        return
+      if (source?.kind === "block") {
+        const target = getBlockContainerTarget(body, sourceElement, clientY)
+        if (target !== null) {
+          clearPreview()
+          containerDestination = target.destination
+          boundaryDestination = null
+          previewElement = target.element
+          target.element.classList.add(
+            target.destination.placement === "after"
+              ? blockDragClasses.after
+              : blockDragClasses.before
+          )
+          return
+        }
+      } else {
+        const target = getBlockBoundaryTarget(body, sourceElement, clientY)
+        if (target !== null) {
+          clearPreview()
+          boundaryDestination = target.destination
+          containerDestination = null
+          previewElement = target.element
+          target.element.classList.add(
+            target.destination.placement === "after"
+              ? blockDragClasses.after
+              : blockDragClasses.before
+          )
+          return
+        }
       }
 
       const elements = dragElements
@@ -154,6 +147,7 @@ export const useBlockDrag = ({
 
       clearPreview()
       boundaryDestination = null
+      containerDestination = null
       destinationIndex = target.destinationIndex
       previewElement = targetElement
       targetElement.classList.add(
@@ -165,15 +159,16 @@ export const useBlockDrag = ({
 
     const finishDrag = (commit: boolean): void => {
       clearPreview()
-      clearPendingTouch()
       sourceElement?.classList.remove(blockDragClasses.dragging)
       const completedSourceIndex = sourceIndex
       const completedDestinationIndex = destinationIndex
       const completedSource = source
       const completedBoundaryDestination = boundaryDestination
+      const completedContainerDestination = containerDestination
       sourceElement = null
       source = null
       boundaryDestination = null
+      containerDestination = null
       dragElements = []
       sourceIndex = -1
       destinationIndex = -1
@@ -186,7 +181,15 @@ export const useBlockDrag = ({
         return
       const currentBlocks = blocksRef.current
       const nextBlocks =
-        completedBoundaryDestination !== null && completedSource.kind !== "block"
+        completedContainerDestination !== null && completedSource.kind === "block"
+          ? moveBlockToContainer({
+              blocks: currentBlocks,
+              destination: completedContainerDestination,
+              sourceBlockId: completedSource.blockId,
+              sourceContainerId: completedSource.containerId
+            })
+          : completedBoundaryDestination !== null &&
+              completedSource.kind !== "block"
           ? moveBlockSourceToBoundary({
               blocks: currentBlocks,
               destination: completedBoundaryDestination,
@@ -215,87 +218,25 @@ export const useBlockDrag = ({
         suppressClick: suppressNextClick
       }
     })
-
-    const handleTouchStart = (event: PointerEvent): void => {
-      if (
-        !touchEnabled ||
-        event.pointerType !== "touch" ||
-        pendingTouch !== null ||
-        activePointerId !== null
-      )
-        return
-      if (!(event.target instanceof Element)) return
-      if (event.target.closest(blockDragInteractiveSelector) !== null) return
-      const element = event.target.closest<HTMLElement>("[data-note-drag-kind]")
-      if (element === null || element.parentElement !== body) return
-
-      const start = { x: event.clientX, y: event.clientY }
-      const timer = window.setTimeout(() => {
-        const pending = pendingTouch
-        if (pending === null || pending.pointerId !== event.pointerId) return
-        pendingTouch = null
-        beginDrag(pending.sourceElement, pending.pointerId)
-      }, blockLongPressDelay)
-      pendingTouch = {
-        pointerId: event.pointerId,
-        sourceElement: element,
-        start,
-        timer
+    const unbindTouchDrag = bindTouchBlockDrag({
+      body,
+      enabled: touchEnabled,
+      controls: {
+        begin: beginDrag,
+        clearSelection: clearActiveSelection,
+        finish: finishDrag,
+        isDragging: () => sourceElement !== null,
+        isPointerActive: (pointerId) => pointerId === activePointerId,
+        preview: previewAt,
+        suppressClick: suppressNextClick
       }
-    }
-    const handleTouchMove = (event: PointerEvent): void => {
-      if (event.pointerType !== "touch") return
-      if (pendingTouch?.pointerId === event.pointerId) {
-        const distance = Math.hypot(
-          event.clientX - pendingTouch.start.x,
-          event.clientY - pendingTouch.start.y
-        )
-        if (distance > blockTouchMoveTolerance) clearPendingTouch()
-        return
-      }
-      if (event.pointerId !== activePointerId || sourceElement === null) return
-      event.preventDefault()
-      clearActiveSelection()
-      previewAt(event.clientY)
-    }
-    const preventActiveTouchPan = (event: TouchEvent): void => {
-      if (sourceElement !== null) event.preventDefault()
-    }
-    const handleTouchEnd = (event: PointerEvent): void => {
-      if (event.pointerType !== "touch") return
-      if (pendingTouch?.pointerId === event.pointerId) {
-        clearPendingTouch()
-        return
-      }
-      if (event.pointerId !== activePointerId || sourceElement === null) return
-      event.preventDefault()
-      if (event.type === "pointerup") suppressNextClick()
-      finishDrag(event.type === "pointerup")
-    }
-    const preventActiveContextMenu = (event: MouseEvent): void => {
-      if (sourceElement !== null) event.preventDefault()
-    }
-
-    body.addEventListener("pointerdown", handleTouchStart)
-    document.addEventListener("pointermove", handleTouchMove, { passive: false })
-    document.addEventListener("touchmove", preventActiveTouchPan, {
-      capture: true,
-      passive: false
     })
-    document.addEventListener("pointerup", handleTouchEnd)
-    document.addEventListener("pointercancel", handleTouchEnd)
     document.addEventListener("selectionchange", clearActiveSelection)
-    body.addEventListener("contextmenu", preventActiveContextMenu)
     return () => {
       finishDrag(false)
       unbindDesktopDrag()
-      body.removeEventListener("pointerdown", handleTouchStart)
-      document.removeEventListener("pointermove", handleTouchMove)
-      document.removeEventListener("touchmove", preventActiveTouchPan, true)
-      document.removeEventListener("pointerup", handleTouchEnd)
-      document.removeEventListener("pointercancel", handleTouchEnd)
+      unbindTouchDrag()
       document.removeEventListener("selectionchange", clearActiveSelection)
-      body.removeEventListener("contextmenu", preventActiveContextMenu)
     }
   }, [
     blockBindingKey,

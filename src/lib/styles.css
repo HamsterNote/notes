@@ -65,12 +65,6 @@
   border-bottom: 1px solid var(--hn-border);
 }
 
-.hn-note-hero-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(16rem, 1fr);
-  gap: 1.5rem;
-}
-
 .hn-note-badge,
 .hn-note-chip {
   display: inline-flex;
@@ -110,31 +104,6 @@
   color: var(--hn-text-muted);
   font-size: 1.04rem;
   line-height: 1.8;
-}
-
-.hn-note-facts {
-  display: grid;
-  gap: 0.9rem;
-  align-content: start;
-  padding: 1rem;
-  border: 1px solid var(--hn-border);
-  border-radius: var(--hn-radius);
-  background: var(--hn-surface);
-}
-
-.hn-note-facts div {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.hn-note-facts dt {
-  color: var(--hn-text-muted);
-}
-
-.hn-note-facts dd {
-  margin: 0;
-  font-weight: 700;
 }
 
 .hn-note-body {
@@ -188,7 +157,7 @@
   --hn-row-leading: 1lh;
 }
 
-/* 嵌套块（checklist/quote）外层 wrapper 不带 hn-note-block，
+/* 嵌套块（todo/quote）外层 wrapper 不带 hn-note-block，
    但仍需 position:relative 作为 drop indicator（::after absolute）的定位上下文 */
 .hn-note-sortable-block {
   position: relative;
@@ -307,11 +276,11 @@
   font-size: 1.1rem;
 }
 
-.hn-note-checklist-item {
+.hn-note-todo-item {
   position: relative;
 }
 
-.hn-note-checklist-content {
+.hn-note-todo-content {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   column-gap: 0.75rem;
@@ -323,11 +292,11 @@
   background: var(--hn-surface);
 }
 
-.hn-note-checklist-title {
+.hn-note-todo-title {
   margin-bottom: 0.5rem;
 }
 
-.hn-note-checklist-empty {
+.hn-note-todo-empty {
   min-height: 3rem;
 }
 
@@ -360,6 +329,61 @@
 .hn-note-checkbox--editable.hn-note-checkbox--checked:hover {
   /* 勾选态 hover：主题色加深，保持可感知的反馈 */
   color: color-mix(in srgb, var(--hn-theme) 85%, black);
+}
+
+/* ── 无序/有序列表块 ──────────────────────────────────────────────────────
+ * 列表块整体容器：与 todo-content 保持一致的卡片化视觉，
+ * 但使用原生 <ul>/<ol> + <li> 语义结构，浏览器自动渲染列表标记。
+ */
+.hn-note-unordered-list,
+.hn-note-ordered-list {
+  margin: 0;
+  padding: 0.6rem 1rem 0.6rem 2.2rem;
+  border: 1px solid var(--hn-border);
+  border-radius: 18px;
+  background: var(--hn-surface);
+  list-style-position: outside;
+}
+
+/* 无序列表使用圆点标记 */
+.hn-note-unordered-list {
+  list-style-type: disc;
+}
+
+/* 有序列表使用数字标记 */
+.hn-note-ordered-list {
+  list-style-type: decimal;
+}
+
+/* 列表项：每个块只包含一行，留出舒适垂直间距 */
+.hn-note-list-item {
+  position: relative;
+  padding: 0.35rem 0;
+  line-height: 1.6;
+}
+
+.hn-note-list-item-content {
+  display: block;
+  min-height: 1.5rem;
+}
+
+/* 标记颜色随主题色，与 todo 圆点视觉协调 */
+.hn-note-unordered-list .hn-note-list-item::marker,
+.hn-note-ordered-list .hn-note-list-item::marker {
+  color: color-mix(in srgb, var(--hn-theme) 70%, var(--hn-text-muted));
+}
+
+/* 空列表占位：保持最小高度便于点击落点 */
+.hn-note-list-empty {
+  min-height: 3rem;
+}
+
+/* 列表块 wrapper：handle 需要与第一个列表项文本中心对齐。
+ * 列表顶部有 0.6rem padding，第一项还有 0.35rem padding，
+ * 用 --hn-row-offset 把 handle 中心推到首行文本中心。
+ */
+.hn-note-list-block {
+  --hn-row-offset: calc(0.6rem + 0.35rem);
 }
 
 .hn-note-quote {
@@ -567,6 +591,143 @@
   line-height: 1.7;
 }
 
+/* ===== Collapsible 块（可收缩/展开的容器型块，内部嵌套任意子块） ===== */
+.hn-note-collapsible {
+  border: 1px solid var(--hn-border);
+  border-radius: 14px;
+  background: var(--hn-surface);
+  overflow: hidden;
+}
+
+.hn-note-collapsible-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+}
+
+.hn-note-collapsible-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--hn-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.hn-note-collapsible-toggle:hover {
+  color: var(--hn-text);
+}
+
+.hn-note-collapsible-caret {
+  display: inline-block;
+  font-size: 0.7em;
+  line-height: 1;
+  transition: transform 0.15s ease;
+}
+
+/* 展开时 caret 旋转 90deg（▶ 变为 ↓ 方向） */
+.hn-note-collapsible:not(.hn-note-collapsible--collapsed) .hn-note-collapsible-caret {
+  transform: rotate(90deg);
+}
+
+.hn-note-collapsible-title {
+  flex: 1;
+  min-width: 0;
+  color: var(--hn-text);
+  font-weight: 500;
+  line-height: 1.5;
+  outline: none;
+  word-break: break-word;
+}
+
+.hn-note-collapsible-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.625rem;
+  /* 左侧留白 3.5rem(56px)：为子块的 handle(⋮⋮, 距左边 4~28px) 和加号(+, 距左边 32~56px)
+     留出完整空间，避免被 .hn-note-collapsible 的 overflow:hidden 裁剪；
+     同时形成嵌套缩进，视觉上区分 collapsible 内部子块与顶层块 */
+  padding: 0 1rem 0.75rem 3.5rem;
+}
+
+.hn-note-directory {
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--hn-border);
+  border-radius: 14px;
+  background: var(--hn-surface);
+}
+
+.hn-note-directory-title {
+  display: block;
+  color: var(--hn-text);
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+}
+
+.hn-note-directory-list {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hn-note-directory-item a {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  color: var(--hn-text-soft);
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+
+.hn-note-directory-item a > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.hn-note-directory-item a:hover {
+  color: var(--hn-theme-text);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.hn-note-directory-item a:focus-visible {
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px var(--hn-theme-soft);
+  outline: 2px solid var(--hn-theme);
+  outline-offset: 2px;
+}
+
+.hn-note-directory-item--2 {
+  padding-inline-start: 1rem;
+}
+
+.hn-note-directory-item--3 {
+  padding-inline-start: 2rem;
+}
+
+.hn-note-directory-item--4 {
+  padding-inline-start: 3rem;
+}
+
+.hn-note-directory-item--5 {
+  padding-inline-start: 4rem;
+}
+
+.hn-note-directory-empty {
+  margin: 0.65rem 0 0;
+  color: var(--hn-text-soft);
+  font-size: 0.9rem;
+}
+
 /* ===== 可编辑状态样式 ===== */
 .hn-note-editable {
   display: block;
@@ -580,14 +741,64 @@
   min-height: 1lh;
 }
 
+.hn-note-mention-menu {
+  position: fixed;
+  z-index: 10000;
+  display: grid;
+  width: min(260px, calc(100vw - 24px));
+  max-height: min(18rem, calc(100vh - 24px));
+  gap: 0.15rem;
+  padding: 0.3rem;
+  overflow-y: auto;
+  border-radius: 10px;
+  background: #1e293b;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
+  animation: hn-popover-in 0.12s ease;
+}
+
+.hn-note-mention-option {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 0.65rem;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #e2e8f0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.hn-note-mention-option:hover,
+.hn-note-mention-option[aria-selected="true"] {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.hn-note-mention-option:focus-visible {
+  outline: 2px solid var(--hn-theme);
+  outline-offset: -2px;
+}
+
+.hn-note-mention-mark {
+  font-weight: 700;
+}
+
+.hn-note-link-mention {
+  padding: 0 0.2em;
+  border-radius: 999px;
+  background: var(--hn-theme-soft);
+  color: var(--hn-theme-text);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
 @media (max-width: 840px) {
   .hn-note-hero {
     padding-right: 3.5rem;
     padding-left: 3.5rem;
-  }
-
-  .hn-note-hero-grid {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -736,6 +947,42 @@
   height: 20px;
   align-self: center;
   background: rgba(255, 255, 255, 0.18);
+}
+
+/* 文字颜色色块按钮：圆形小色块，背景色由内联 style 注入，此处仅控制外形与描边 */
+.hn-note-popover-color {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.hn-note-popover-color:hover {
+  transform: scale(1.12);
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
+/* 当前选区颜色匹配的色块：纯白描边高亮 */
+.hn-note-popover-color--active {
+  border-color: #ffffff;
+}
+
+/* Docked 模式（移动端浅色底栏）：色块描边切换为深色，避免在浅色背景上不可见 */
+.hn-note-popover--docked .hn-note-popover-color {
+  border-color: var(--hn-border-strong);
+}
+
+.hn-note-popover--docked .hn-note-popover-color:hover {
+  border-color: var(--hn-text-soft);
+}
+
+.hn-note-popover--docked .hn-note-popover-color--active {
+  border-color: var(--hn-theme);
 }
 
 /* 链接按钮 */
@@ -942,7 +1189,7 @@
   color: var(--hn-theme-text);
 }
 
-.hn-note-checklist-item > .hn-note-block-handle {
+.hn-note-todo-item > .hn-note-block-handle {
   margin-top: calc(0.95rem + 1px);
 }
 
@@ -950,12 +1197,24 @@
   margin-top: 1.1rem;
 }
 
+.hn-note-block:has(> .hn-note-collapsible) > .hn-note-block-handle {
+  margin-top: 0.75rem;
+}
+
 .hn-note-block:has(> .hn-note-code-card) > .hn-note-block-handle {
   margin-top: 0.9rem;
 }
 
-.hn-note-quote-line > .hn-note-block-handle {
-  margin-top: 1.25rem;
+.hn-note-quote-line {
+  --hn-row-leading: 1.7rem;
+}
+
+.hn-note-quote-line:has(> .hn-note-quote-content:not(.hn-note-quote-line--continuation)) {
+  --hn-row-offset: 1.25rem;
+}
+
+.hn-note-quote-line:has(> .hn-note-quote-line--continuation) {
+  --hn-row-offset: calc(-0.625rem + 0.5rem);
 }
 
 .hn-note-block:has(> .hn-note-table-wrapper) > .hn-note-block-handle {
@@ -974,6 +1233,10 @@
   .hn-note-block:has(> .hn-note-block-handle)::before,
   .hn-note-block-handle {
     display: none;
+  }
+  /* 窄屏下 handle 隐藏，collapsible-body 不需要为它留 3.5rem 空间 */
+  .hn-note-collapsible-body {
+    padding-left: 1.5rem;
   }
 }
 
@@ -1095,6 +1358,41 @@
 .hn-note-block-menu-item-label {
   flex: 1 1 0%;
   min-width: 0;
+}
+
+/* ===== convert 模式主菜单 + 子菜单样式扩展 ===== */
+/* 子菜单沿用 .hn-note-block-menu 复合类，外观与主菜单一致；
+   这里仅覆盖小细节：宽度对齐主菜单、内嵌动画与暗色风格统一。 */
+.hn-note-block-menu-submenu {
+  /* 子菜单与主菜单宽度一致，保持视觉对齐 */
+  width: 160px;
+}
+
+/* "转换成"主菜单项：右侧带一个 › 箭头提示有子菜单 */
+.hn-note-block-menu-item--has-submenu {
+  /* 复用基础 menu-item 样式，仅扩展箭头列布局 */
+  position: relative;
+}
+
+/* 子菜单指示箭头：靠右排列，符号 › 用纯字符即可，无需 SVG */
+.hn-note-block-menu-submenu-arrow {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-left: auto;
+  padding-left: 0.25rem;
+  color: rgba(226, 232, 240, 0.6);
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+/* 展开子菜单时，主菜单"转换成"项保持 hover 风格的半透明白底+白字，
+   用以表示"当前所在分支"；鼠标 hover/focus 上去不再叠加更深一层变化
+   （子菜单本身的存在已说明分支，主菜单项维持稳定视觉反馈即可）。 */
+.hn-note-block-menu-item--has-submenu[aria-expanded="true"],
+.hn-note-block-menu-item--has-submenu[aria-expanded="true"]:hover,
+.hn-note-block-menu-item--has-submenu[aria-expanded="true"]:focus {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
 }
 
 /* ===== 公式块 ===== */

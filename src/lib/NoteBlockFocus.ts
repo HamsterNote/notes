@@ -17,16 +17,21 @@ export type DeletionFocusTarget = {
 const editableIds = (blocks: readonly NoteBlock[]): string[] =>
   blocks.flatMap((block) => {
     switch (block.kind) {
-      case "checklist":
+      case "todo":
         return block.items.map((item) => item.id)
+      case "unorderedList":
+      case "orderedList":
+        return [block.id]
       case "heading":
       case "paragraph":
       case "quote":
       case "code":
       case "callout":
       case "formula":
+      case "collapsible":
         return [block.id]
       case "picture":
+      case "directory":
         return []
       case "table":
         return block.rows.flatMap((row, rowIndex) =>

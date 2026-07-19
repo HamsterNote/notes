@@ -4,13 +4,13 @@ import { moveBlockSourceToBoundary } from "./blockSourceMove"
 import type { NoteBlock } from "./types"
 
 describe("moveBlockSourceToBoundary", () => {
-  it("places a middle checklist item after every residual segment of its final parent", () => {
-    // Given: extracting the middle item splits the final checklist into two blocks.
+  it("places a middle todo item after every residual segment of its final parent", () => {
+    // Given: extracting the middle item splits the final todo into two blocks.
     const blocks: readonly NoteBlock[] = [
       { id: "intro", kind: "paragraph", text: "Intro" },
       {
         id: "list",
-        kind: "checklist",
+        kind: "todo",
         title: "Final list",
         items: [
           { id: "first", checked: false, text: "First" },
@@ -25,19 +25,20 @@ describe("moveBlockSourceToBoundary", () => {
       blocks,
       destination: { placement: "after", targetBlockId: "list" },
       source: {
-        kind: "checklist-item",
+        kind: "todo-item",
         blockId: "list",
+        containerId: null,
         sourceId: "middle"
       },
       sourceIndex: 1
     })
 
-    // Then: both surviving checklist segments precede the extracted checklist.
+    // Then: both surviving todo segments precede the extracted todo.
     expect(moved.map((block) => block.kind)).toEqual([
       "paragraph",
-      "checklist",
-      "checklist",
-      "checklist"
+      "todo",
+      "todo",
+      "todo"
     ])
     expect(moved.map((block) => block.id)).toEqual([
       "intro",
@@ -47,7 +48,7 @@ describe("moveBlockSourceToBoundary", () => {
     ])
     expect(moved.at(-1)).toMatchObject({
       id: "middle",
-      kind: "checklist",
+      kind: "todo",
       title: "",
       items: [{ id: "middle", checked: true, text: "Middle" }]
     })
@@ -72,6 +73,7 @@ describe("moveBlockSourceToBoundary", () => {
       source: {
         kind: "quote-line",
         blockId: "quote",
+        containerId: null,
         sourceId: "quote-line-1"
       },
       sourceIndex: 1
@@ -83,6 +85,61 @@ describe("moveBlockSourceToBoundary", () => {
       kind: "quote",
       text: "Second",
       author: "Author"
+    })
+  })
+
+  it("extracts a todo item from a nested collapsible to a body boundary", () => {
+    // Given: a todo block lives inside an expanded collapsible container.
+    const blocks: readonly NoteBlock[] = [
+      { id: "intro", kind: "paragraph", text: "Intro" },
+      {
+        id: "fold",
+        kind: "collapsible",
+        title: "Fold",
+        collapsed: false,
+        blocks: [
+          {
+            id: "nested-list",
+            kind: "todo",
+            title: "Nested",
+            items: [
+              { id: "nested-first", checked: false, text: "First" },
+              { id: "nested-second", checked: true, text: "Second" }
+            ]
+          }
+        ]
+      }
+    ]
+
+    // When: the second nested item moves after a top-level paragraph.
+    const moved = moveBlockSourceToBoundary({
+      blocks,
+      destination: { placement: "after", targetBlockId: "intro" },
+      source: {
+        kind: "todo-item",
+        blockId: "nested-list",
+        containerId: "fold",
+        sourceId: "nested-second"
+      },
+      sourceIndex: 1
+    })
+
+    // Then: the extracted item becomes top-level and the parent retains its first item.
+    expect(moved[1]).toMatchObject({
+      id: "nested-second",
+      kind: "todo",
+      items: [{ id: "nested-second", checked: true, text: "Second" }]
+    })
+    expect(moved[2]).toMatchObject({
+      id: "fold",
+      kind: "collapsible",
+      blocks: [
+        {
+          id: "nested-list",
+          kind: "todo",
+          items: [{ id: "nested-first", checked: false, text: "First" }]
+        }
+      ]
     })
   })
 })

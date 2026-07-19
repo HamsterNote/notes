@@ -80,10 +80,10 @@ describe("convertTextBlockFormat", () => {
 describe("convertBlockFormat", () => {
   it.each([
     [
-      "checklist",
+      "todo",
       {
         id: "tasks",
-        kind: "checklist",
+        kind: "todo",
         title: "Tasks & notes",
         items: [
           { id: "done", checked: true, text: "Done" },
@@ -355,12 +355,12 @@ describe("insertSplitBlock", () => {
     expect(result).toEqual([before, after])
   })
 
-  it("inserts a checklist item after the edited item", () => {
-    // Given: a checklist with an item being split in the middle.
+  it("inserts a todo item after the edited item", () => {
+    // Given: a todo with an item being split in the middle.
     const blocks: readonly NoteBlock[] = [
       {
         id: "tasks",
-        kind: "checklist",
+        kind: "todo",
         title: "Tasks",
         items: [{ id: "first", checked: true, text: "AlphaBeta" }]
       }
@@ -375,11 +375,11 @@ describe("insertSplitBlock", () => {
       sourceId: "first"
     })
 
-    // Then: a new unchecked checklist item follows the edited item.
+    // Then: a new unchecked todo item follows the edited item.
     expect(result).toEqual([
       {
         id: "tasks",
-        kind: "checklist",
+        kind: "todo",
         title: "Tasks",
         items: [
           { id: "first", checked: true, text: "Alpha" },
@@ -410,25 +410,25 @@ describe("insertBlockAfter", () => {
     ])
   })
 
-  it("generates a checklist with the correct default item id", () => {
+  it("generates a todo with the correct default item id", () => {
     // Given: a single paragraph.
     const blocks: readonly NoteBlock[] = [paragraphBlock]
 
-    // When: inserting a checklist after it.
+    // When: inserting a todo after it.
     const result = insertBlockAfter({
       blocks,
       blockId: "intro",
-      checklistItemId: "32ff2214-ad42-42c1-a50a-a663f4b6d601",
+      todoItemId: "32ff2214-ad42-42c1-a50a-a663f4b6d601",
       nextId: "89430e11-f481-4d80-ab93-6c065784b0a6",
-      target: { kind: "checklist" }
+      target: { kind: "todo" }
     })
 
-    // Then: the new checklist has an empty title and a single empty item.
+    // Then: the new todo has an empty title and a single empty item.
     expect(result).toEqual([
       paragraphBlock,
       {
         id: "89430e11-f481-4d80-ab93-6c065784b0a6",
-        kind: "checklist",
+        kind: "todo",
         title: "",
         items: [
           {
@@ -510,12 +510,12 @@ describe("deleteEmptyTextBlock", () => {
     expect(result).toEqual([{ id: "solo", kind: "paragraph", text: "" }])
   })
 
-  it("deletes an empty checklist item while preserving its checklist", () => {
-    // Given: a checklist containing one empty item and one remaining item.
+  it("deletes an empty todo item while preserving its todo", () => {
+    // Given: a todo containing one empty item and one remaining item.
     const blocks: readonly NoteBlock[] = [
       {
         id: "tasks",
-        kind: "checklist",
+        kind: "todo",
         title: "Tasks",
         items: [
           { id: "empty", checked: false, text: "Old" },
@@ -531,11 +531,11 @@ describe("deleteEmptyTextBlock", () => {
       sourceId: "empty"
     })
 
-    // Then: only that item is removed, not the whole checklist block.
+    // Then: only that item is removed, not the whole todo block.
     expect(result).toEqual([
       {
         id: "tasks",
-        kind: "checklist",
+        kind: "todo",
         title: "Tasks",
         items: [{ id: "after", checked: false, text: "After" }]
       }
@@ -608,12 +608,12 @@ describe("deleteEmptyTextBlock", () => {
 })
 
 describe("resolveDeletionFocus", () => {
-  it("focuses the replacement paragraph after deleting the only checklist item", () => {
-    // Given: a one-item checklist is replaced by a stable empty paragraph.
+  it("focuses the replacement paragraph after deleting the only todo item", () => {
+    // Given: a one-item todo is replaced by a stable empty paragraph.
     const before: readonly NoteBlock[] = [
       {
         id: "tasks",
-        kind: "checklist",
+        kind: "todo",
         title: "Tasks",
         items: [{ id: "only", checked: false, text: "" }]
       }

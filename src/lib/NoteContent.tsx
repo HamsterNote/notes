@@ -11,17 +11,18 @@ import {
 import "./styles.css"
 
 import { isVisibleHtmlEmpty } from "./blockEditing"
-import { NoteChecklistBlock } from "./NoteChecklistBlock"
+import { LinkMentionMenu } from "./LinkMentionMenu"
 import { renderBlock, richText } from "./NoteContentBlocks"
 import { editableProps, updateText } from "./NoteContentEditing"
+import { NoteListBlock } from "./NoteListBlock"
 import { NoteQuoteBlock } from "./NoteQuoteBlock"
+import { NoteTodoBlock } from "./NoteTodoBlock"
 import { DISABLED_CONTROLLER } from "./noteContentUndoRedo"
 import { createNoteId } from "./noteId"
 import { SelectionPopover } from "./SelectionPopover"
 import type { NoteContentProps, NoteContentUndoRedoHandle } from "./types"
-import { useBlockDrag } from "./useBlockDrag"
 import { useBlockEditing } from "./useBlockEditing"
-import { formatUpdatedAt, getReadingMinutes } from "./utils"
+import { useBlockDrag } from "./useBlockDrag"
 
 type LegacyNoteContentProps = Omit<NoteContentProps, "ref"> & {
   readonly ref?: Ref<NoteContentUndoRedoHandle>
@@ -31,10 +32,10 @@ export function NoteContent(props: LegacyNoteContentProps): ReactNode
 export function NoteContent(props: NoteContentProps): ReactNode
 export function NoteContent({
   blocks,
+  links = [],
   summary,
   tagLabel,
   title,
-  updatedAt,
   theme = "light",
   themeColor,
   editable = false,
@@ -46,12 +47,13 @@ export function NoteContent({
   onPictureUpload,
   onMagicLinkConfigure,
   onMagicLinkClick,
+  onLinkClick,
   ref: undoRedoRef,
   undoRedoController,
   topPadding,
   bottomPadding
 }: NoteContentProps | LegacyNoteContentProps) {
-const shellRef = useRef<HTMLElement>(null)
+  const shellRef = useRef<HTMLElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
   const bottomBarRef = useRef<HTMLDivElement>(null)
   const [viewportWidth, setViewportWidth] = useState(() =>
@@ -84,7 +86,6 @@ const shellRef = useRef<HTMLElement>(null)
     ...(topPadding ? { "--hn-top-padding": `${topPadding}px` } : {}),
     ...(bottomPadding ? { "--hn-bottom-padding": `${bottomPadding}px` } : {})
   } as CSSProperties
-  const readingMinutes = getReadingMinutes(blocks)
   const controller = undoRedoController ?? DISABLED_CONTROLLER
   useImperativeHandle(
     undoRedoRef,
@@ -174,12 +175,20 @@ const shellRef = useRef<HTMLElement>(null)
           // 拦截 hnmagic:// 链接点击：禁止原生跳转，交给宿主处理
           if (!(event.target instanceof Element)) return
           const anchor = event.target.closest("a")
-          if (!anchor) return
-          const href = anchor.getAttribute("href")
-          if (href?.startsWith("hnmagic://")) {
-            event.preventDefault()
-            event.stopPropagation()
-            onMagicLinkClick?.(href)
+          if (anchor) {
+            const href = anchor.getAttribute("href")
+            if (href?.startsWith("hnmagic://")) {
+              event.preventDefault()
+              event.stopPropagation()
+              onMagicLinkClick?.(href)
+            }
+            return
+          }
+          // 已插入的 @ mention pill 点击：交给宿主处理
+          const mention = event.target.closest<HTMLElement>("[data-note-link-id]")
+          if (mention) {
+            const id = mention.getAttribute("data-note-link-id")
+            if (id) onLinkClick?.(id)
           }
         }}
         onKeyDownCapture={(event) => {
@@ -192,62 +201,42 @@ const shellRef = useRef<HTMLElement>(null)
           }
           if (!(event.target instanceof Element)) return
           const anchor = event.target.closest("a")
-          if (!anchor) return
-          const href = anchor.getAttribute("href")
-          if (href?.startsWith("hnmagic://")) {
-            event.preventDefault()
-            event.stopPropagation()
-            onMagicLinkClick?.(href)
+          if (anchor) {
+            const href = anchor.getAttribute("href")
+            if (href?.startsWith("hnmagic://")) {
+              event.preventDefault()
+              event.stopPropagation()
+              onMagicLinkClick?.(href)
+            }
           }
         }}
       >
         <header className="hn-note-hero">
-          <div className="hn-note-hero-grid">
-            <div>
-              {tagLabel ? <span className="hn-note-badge">{tagLabel}</span> : null}
-              {contentEditable ? (
-                <h1
-                  {...editableProps((event) =>
-                    onTitleChange?.(event.currentTarget.innerHTML)
-                  )}
-                  {...richText(title)}
-                />
-              ) : (
-                <h1 {...richText(title)} />
+          {tagLabel ? <span className="hn-note-badge">{tagLabel}</span> : null}
+          {contentEditable ? (
+            <h1
+              {...editableProps((event) =>
+                onTitleChange?.(event.currentTarget.innerHTML)
               )}
-              {summary ? (
-                contentEditable ? (
-                  <p
-                    {...editableProps(
-                      (event) =>
-                        onSummaryChange?.(event.currentTarget.innerHTML),
-                      "hn-note-summary"
-                    )}
-                    {...richText(summary)}
-                  />
-                ) : (
-                  <p className="hn-note-summary" {...richText(summary)} />
-                )
-              ) : null}
-            </div>
-
-            <dl className="hn-note-facts" aria-label="Note metadata">
-              <div>
-                <dt>Reading</dt>
-                <dd>{readingMinutes} min</dd>
-              </div>
-              <div>
-                <dt>Blocks</dt>
-                <dd>{blocks.length}</dd>
-              </div>
-              {updatedAt ? (
-                <div>
-                  <dt>Updated</dt>
-                  <dd>{formatUpdatedAt(updatedAt)}</dd>
-                </div>
-              ) : null}
-            </dl>
-          </div>
+              {...richText(title)}
+            />
+          ) : (
+            <h1 {...richText(title)} />
+          )}
+          {summary ? (
+            contentEditable ? (
+              <p
+                {...editableProps(
+                  (event) =>
+                    onSummaryChange?.(event.currentTarget.innerHTML),
+                  "hn-note-summary"
+                )}
+                {...richText(summary)}
+              />
+            ) : (
+              <p className="hn-note-summary" {...richText(summary)} />
+            )
+          ) : null}
         </header>
 
         <div
@@ -269,9 +258,22 @@ const shellRef = useRef<HTMLElement>(null)
               selectedBlockId
             }
 
-            if (block.kind === "checklist") {
+            if (block.kind === "todo") {
               return (
-                <NoteChecklistBlock
+                <NoteTodoBlock
+                  key={block.id}
+                  block={block}
+                  ctx={editContext}
+                />
+              )
+            }
+
+            if (
+              block.kind === "unorderedList" ||
+              block.kind === "orderedList"
+            ) {
+              return (
+                <NoteListBlock
                   key={block.id}
                   block={block}
                   ctx={editContext}
@@ -336,6 +338,9 @@ const shellRef = useRef<HTMLElement>(null)
           <div ref={bottomBarRef} className="hn-note-bottom-bar" />
         ) : null}
       </article>
+      {contentEditable ? (
+        <LinkMentionMenu containerRef={shellRef} links={links} />
+      ) : null}
       {contentEditable && openBlockMenuId === null ? (
         <SelectionPopover
           containerRef={shellRef}

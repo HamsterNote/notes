@@ -10,10 +10,23 @@ import {
   renderEditableTextLayout,
   renderHeadingBlockLayout
 } from "./NoteTextBlockLayouts"
-import type { NoteHeadingBlock, NoteParagraphBlock } from "./types"
+import type {
+  NoteHeadingBlock,
+  NoteParagraphBlock
+} from "./types"
 import { assertNever } from "./utils"
 
 type EditTextBlock = NoteHeadingBlock | NoteParagraphBlock
+
+const orderedListPrefixPattern = /^\d+\. $/u
+
+type TextListKind = "unorderedList" | "orderedList"
+
+const listKindFromShortcut = (text: string): TextListKind | undefined => {
+  if (text === "- ") return "unorderedList"
+  if (orderedListPrefixPattern.test(text)) return "orderedList"
+  return undefined
+}
 
 type NoteTextBlockProps = {
   readonly block: EditTextBlock
@@ -26,13 +39,29 @@ export const NoteTextBlock = ({
 }: NoteTextBlockProps): ReactElement => {
   const handleInput = (event: FormEvent<HTMLElement>): void => {
     const visibleText = event.currentTarget.textContent?.replaceAll("\u00a0", " ")
-    if (visibleText !== "> " || !ctx.onBlocksChange) return
+    if (!ctx.onBlocksChange) return
+
+    if (visibleText === "> ") {
+      event.currentTarget.textContent = ""
+      ctx.onBlocksChange(
+        ctx.getBlocks().map((candidate) =>
+          candidate.id === block.id
+            ? { id: block.id, kind: "quote", text: "" }
+            : candidate
+        )
+      )
+      ctx.requestFocus?.(block.id, "start")
+      return
+    }
+
+    const listKind = visibleText ? listKindFromShortcut(visibleText) : undefined
+    if (!listKind) return
 
     event.currentTarget.textContent = ""
     ctx.onBlocksChange(
       ctx.getBlocks().map((candidate) =>
         candidate.id === block.id
-          ? { id: block.id, kind: "quote", text: "" }
+          ? { id: block.id, kind: listKind, text: "" }
           : candidate
       )
     )

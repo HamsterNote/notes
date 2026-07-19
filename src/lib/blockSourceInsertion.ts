@@ -6,6 +6,23 @@ import {
   quoteTextLines
 } from "./blockSourceConversion"
 import type { NoteBlock } from "./types"
+import { assertNever } from "./utils"
+
+type ListItemSource = Extract<BlockSource, { readonly kind: "todo-item" }>
+
+type ListItemSourceKind = ListItemSource["kind"]
+
+const targetKindForItemSource = (kind: ListItemSourceKind): "todo" => {
+  switch (kind) {
+    case "todo-item":
+      return "todo"
+    default:
+      return assertNever(kind)
+  }
+}
+
+const isListItemSource = (source: BlockSource): source is ListItemSource =>
+  source.kind === "todo-item"
 
 type InsertBlockAfterSourceInput = {
   readonly blocks: readonly NoteBlock[]
@@ -27,20 +44,28 @@ export const insertBlockAfterSource = ({
   source,
   target
 }: InsertBlockAfterSourceInput): InsertBlockAfterSourceResult => {
-  if (source.kind === "checklist-item" && target.kind === "checklist") {
+  if (isListItemSource(source) && target.kind === targetKindForItemSource(source.kind)) {
     const nextBlocks = blocks.map((block) => {
-      if (block.kind !== "checklist" || block.id !== source.blockId) return block
-      const sourceIndex = block.items.findIndex(
-        (item) => item.id === source.itemId
-      )
-      if (sourceIndex < 0) return block
-      const items = block.items.slice()
-      items.splice(sourceIndex + 1, 0, {
-        id: focusId,
-        checked: false,
-        text: ""
-      })
-      return { ...block, items }
+      if (block.id !== source.blockId) return block
+
+      switch (block.kind) {
+        case "todo": {
+          if (target.kind !== "todo") return block
+          const sourceIndex = block.items.findIndex(
+            (item) => item.id === source.itemId
+          )
+          if (sourceIndex < 0) return block
+          const items = block.items.slice()
+          items.splice(sourceIndex + 1, 0, {
+            id: focusId,
+            checked: false,
+            text: ""
+          })
+          return { ...block, items }
+        }
+        default:
+          return block
+      }
     })
     return { blocks: nextBlocks, focusId }
   }
@@ -63,7 +88,7 @@ export const insertBlockAfterSource = ({
     blocks: insertBlockAfter({
       blocks,
       blockId: source.blockId,
-      ...(target.kind === "checklist" ? { checklistItemId: focusId } : {}),
+      ...(target.kind === "todo" ? { todoItemId: focusId } : {}),
       nextId,
       target
     }),

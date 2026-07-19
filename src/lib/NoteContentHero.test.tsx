@@ -21,9 +21,6 @@ describe("NoteContent hero", () => {
     expect(view.getByRole("heading", { name: "Release notes" })).toBeTruthy()
     expect(view.getByText("What changed")).toBeTruthy()
     expect(view.getByText("Product")).toBeTruthy()
-    expect(view.getByText("Reading")).toBeTruthy()
-    expect(view.getByText("Blocks")).toBeTruthy()
-    expect(view.getByText("Updated")).toBeTruthy()
   })
 
   it("keeps title and summary editable through their public callbacks", () => {

@@ -9,7 +9,7 @@ const selectableBlocks: readonly NoteBlock[] = [
   { id: "intro", kind: "paragraph", text: "Introduction" },
   {
     id: "tasks",
-    kind: "checklist",
+    kind: "todo",
     title: "Tasks",
     items: [
       { id: "task-1", checked: false, text: "First task" },
@@ -42,7 +42,7 @@ describe("NoteContent select mode", () => {
     expect(view.container.querySelector(".hn-note-body-tail")).toBeNull()
   })
 
-  it("selects the individual checklist item when nested content is clicked", () => {
+  it("selects the individual todo item when nested content is clicked", () => {
     // Given: a selectable note and a callback owned by the host.
     const onBlockSelect = vi.fn()
     const view = render(
@@ -53,13 +53,13 @@ describe("NoteContent select mode", () => {
         onBlockSelect={onBlockSelect}
       />
     )
-    const checklistItem = Array.from(view.container.querySelectorAll("span")).find(
+    const todoItem = Array.from(view.container.querySelectorAll("span")).find(
       (element) => element.textContent === "First task"
     )
-    if (!checklistItem) throw new Error("Expected checklist item.")
+    if (!todoItem) throw new Error("Expected todo item.")
 
-    // When: content nested inside a checklist item is clicked.
-    fireEvent.click(checklistItem)
+    // When: content nested inside a todo item is clicked.
+    fireEvent.click(todoItem)
 
     // Then: the host receives the item id (not the block id) and the item boundary is highlighted.
     const itemBoundary = view.container.querySelector<HTMLElement>(
@@ -70,8 +70,8 @@ describe("NoteContent select mode", () => {
     expect(itemBoundary?.getAttribute("aria-selected")).toBe("true")
   })
 
-  it("selects the second checklist item independently from the first", () => {
-    // Given: a selectable checklist with two items.
+  it("selects the second todo item independently from the first", () => {
+    // Given: a selectable todo with two items.
     const onBlockSelect = vi.fn()
     const view = render(
       <NoteContent
@@ -89,7 +89,7 @@ describe("NoteContent select mode", () => {
       '[data-note-select-id="task-2"]'
     )
     if (!firstItem || !secondItem) {
-      throw new Error("Expected two selectable checklist items.")
+      throw new Error("Expected two selectable todo items.")
     }
 
     // When: selection moves from the first item to the second.
@@ -102,28 +102,28 @@ describe("NoteContent select mode", () => {
     expect(onBlockSelect).toHaveBeenLastCalledWith("task-2")
   })
 
-  it("moves the highlight between a paragraph and a checklist item", () => {
-    // Given: a paragraph block and a checklist block.
+  it("moves the highlight between a paragraph and a todo item", () => {
+    // Given: a paragraph block and a todo block.
     const view = render(
       <NoteContent blocks={selectableBlocks} title="Selectable note" selectMode />
     )
     const paragraph = view.container.querySelector<HTMLElement>(
       '[data-note-select-id="intro"]'
     )
-    const checklistItem = view.container.querySelector<HTMLElement>(
+    const todoItem = view.container.querySelector<HTMLElement>(
       '[data-note-select-id="task-1"]'
     )
-    if (!paragraph || !checklistItem) {
+    if (!paragraph || !todoItem) {
       throw new Error("Expected selectable boundaries.")
     }
 
-    // When: selection moves from the paragraph to a checklist item.
+    // When: selection moves from the paragraph to a todo item.
     fireEvent.click(paragraph)
-    fireEvent.click(checklistItem)
+    fireEvent.click(todoItem)
 
     // Then: only the latest target remains selected.
     expect(paragraph.getAttribute("aria-selected")).toBe("false")
-    expect(checklistItem.getAttribute("aria-selected")).toBe("true")
+    expect(todoItem.getAttribute("aria-selected")).toBe("true")
   })
 
   it("selects individual quote lines independently", () => {
@@ -158,27 +158,27 @@ describe("NoteContent select mode", () => {
     expect(onBlockSelect).toHaveBeenLastCalledWith("quote-line-1")
   })
 
-  it("moves the highlight from a checklist item to a quote line", () => {
-    // Given: a checklist item and a quote line.
+  it("moves the highlight from a todo item to a quote line", () => {
+    // Given: a todo item and a quote line.
     const view = render(
       <NoteContent blocks={selectableBlocks} title="Selectable note" selectMode />
     )
-    const checklistItem = view.container.querySelector<HTMLElement>(
+    const todoItem = view.container.querySelector<HTMLElement>(
       '[data-note-select-id="task-2"]'
     )
     const quoteLine = view.container.querySelector<HTMLElement>(
       '[data-note-select-id="quote"]'
     )
-    if (!checklistItem || !quoteLine) {
+    if (!todoItem || !quoteLine) {
       throw new Error("Expected selectable boundaries.")
     }
 
-    // When: selection moves from the checklist item to the first quote line.
-    fireEvent.click(checklistItem)
+    // When: selection moves from the todo item to the first quote line.
+    fireEvent.click(todoItem)
     fireEvent.click(quoteLine)
 
     // Then: only the quote line remains selected.
-    expect(checklistItem.getAttribute("aria-selected")).toBe("false")
+    expect(todoItem.getAttribute("aria-selected")).toBe("false")
     expect(quoteLine.getAttribute("aria-selected")).toBe("true")
   })
 

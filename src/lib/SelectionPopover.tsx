@@ -50,6 +50,28 @@ const computePosition = (range: Range): PopoverPosition => {
   }
 }
 
+// 预设文字颜色：与 popover 中的色块按钮一一对应，
+// 点击调用 document.execCommand("foreColor", false, hex) 将颜色作为内联样式写入选区
+const TEXT_COLORS = [
+  { name: "红色", hex: "#ef4444" },
+  { name: "蓝色", hex: "#3b82f6" },
+  { name: "绿色", hex: "#22c55e" },
+  { name: "黑色", hex: "#000000" },
+  { name: "灰色", hex: "#6b7280" }
+] as const
+
+// 读取当前选区的文字颜色，用于在对应色块上高亮。
+// jsdom 未实现 queryCommandValue，需做空值与异常兜底，避免测试与 SSR 崩溃。
+const queryActiveColor = (): string => {
+  if (typeof document.queryCommandValue !== "function") return ""
+  try {
+    const value = document.queryCommandValue("foreColor")
+    return typeof value === "string" ? value : ""
+  } catch {
+    return ""
+  }
+}
+
 export const SelectionPopover = ({
   containerRef,
   portalContainerRef,
@@ -60,6 +82,9 @@ export const SelectionPopover = ({
   const [mode, setMode] = useState<PopoverMode>("format")
   const [linkUrl, setLinkUrl] = useState("")
   const [configuring, setConfiguring] = useState(false)
+  // 当前选区文字颜色（由 queryCommandValue("foreColor") 读取），
+  // 用于在对应色块上高亮；jsdom 下为空字符串，不会命中任何预设色块
+  const [activeColor, setActiveColor] = useState<string>("")
 
   // 保存进入链接配置时的选区 Range，用于恢复选区后执行 createLink
   const savedRangeRef = useRef<Range | null>(null)
@@ -102,6 +127,7 @@ export const SelectionPopover = ({
         return
       }
 
+      setActiveColor(queryActiveColor())
       setPosition(computePosition(range))
     }
 
@@ -152,6 +178,28 @@ export const SelectionPopover = ({
   // 但仍是 contentEditable 富文本选区操作的最简且兼容性最好的方案
   const format = (command: "bold" | "italic" | "underline") => {
     document.execCommand(command)
+
+    const selection = window.getSelection()
+    const container = containerRef.current
+
+    if (
+      selection &&
+      selection.rangeCount > 0 &&
+      !selection.isCollapsed &&
+      container &&
+      isRangeInSingleEditableRoot(selection.getRangeAt(0), container)
+    ) {
+      setPosition(computePosition(selection.getRangeAt(0)))
+    } else {
+      setPosition(null)
+    }
+  }
+
+  // 应用文字颜色：与 format 一致的选区校验与重定位逻辑，
+  // 仅 command 改为 foreColor 并带上颜色 hex 作为第三参数
+  const applyColor = (colorHex: string) => {
+    document.execCommand("foreColor", false, colorHex)
+    setActiveColor(colorHex)
 
     const selection = window.getSelection()
     const container = containerRef.current
@@ -298,6 +346,21 @@ export const SelectionPopover = ({
               U
             </span>
           </button>
+          <span className="hn-note-popover-divider" />
+          {TEXT_COLORS.map((color) => (
+            <button
+              key={color.hex}
+              type="button"
+              className={`hn-note-popover-color${
+                activeColor === color.hex ? " hn-note-popover-color--active" : ""
+              }`}
+              style={{ backgroundColor: color.hex }}
+              onClick={() => applyColor(color.hex)}
+              title={`文字颜色：${color.name}`}
+              aria-label={`文字颜色：${color.name}`}
+              data-active={activeColor === color.hex}
+            />
+          ))}
           <span className="hn-note-popover-divider" />
           <button
             type="button"

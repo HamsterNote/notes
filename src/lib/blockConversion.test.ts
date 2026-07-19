@@ -17,15 +17,15 @@ afterEach(() => {
 })
 
 describe("convertBlockFormat structural targets", () => {
-  it("converts rich text to a one-item checklist", () => {
-    // Given: a rich paragraph that becomes a Markdown list.
-    // When: the List target is selected from the block menu.
-    const converted = convertBlockFormat(paragraph, { kind: "checklist" })
+  it("converts rich text to a one-item todo", () => {
+    // Given: a rich paragraph that becomes a Markdown task list.
+    // When: the Todo target is selected from the block menu.
+    const converted = convertBlockFormat(paragraph, { kind: "todo" })
 
     // Then: its visible content becomes one stable unchecked item.
     expect(converted).toMatchObject({
       id: "intro",
-      kind: "checklist",
+      kind: "todo",
       title: "",
       items: [
         {
@@ -34,10 +34,32 @@ describe("convertBlockFormat structural targets", () => {
         }
       ]
     })
-    if (converted.kind !== "checklist") {
-      throw new Error("Expected a checklist block.")
+    if (converted.kind !== "todo") {
+      throw new Error("Expected a todo block.")
     }
     expect(converted.items[0]?.id).toMatch(UUID_V4_PATTERN)
+  })
+
+  it("converts rich text to a one-item unordered list", () => {
+    // Given: a rich paragraph that becomes a Markdown bullet list.
+    const converted = convertBlockFormat(paragraph, { kind: "unorderedList" })
+
+    expect(converted).toEqual({
+      id: "intro",
+      kind: "unorderedList",
+      text: "<strong>Alpha</strong><br>Beta"
+    })
+  })
+
+  it("converts rich text to a one-item ordered list", () => {
+    // Given: a rich paragraph that becomes a Markdown numbered list.
+    const converted = convertBlockFormat(paragraph, { kind: "orderedList" })
+
+    expect(converted).toEqual({
+      id: "intro",
+      kind: "orderedList",
+      text: "<strong>Alpha</strong><br>Beta"
+    })
   })
 
   it("converts rich text to a quote", () => {
@@ -95,6 +117,33 @@ describe("convertBlockFormat structural targets", () => {
       tone: "info",
       title: "Note",
       text: "<strong>Alpha</strong><br>Beta"
+    })
+  })
+
+  it("converts rich text to an expanded collapsible with empty children", () => {
+    // Given: a paragraph whose rich text should become the collapsible title.
+    // When: the Collapsible target is selected.
+    const converted = convertBlockFormat(paragraph, { kind: "collapsible" })
+
+    // Then: title preserves rich text, children start empty, collapsed=false.
+    expect(converted).toEqual({
+      id: "intro",
+      kind: "collapsible",
+      title: "<strong>Alpha</strong><br>Beta",
+      collapsed: false,
+      blocks: []
+    })
+  })
+
+  it("discards all source content when converting to a directory", () => {
+    // Given: a rich paragraph whose content must not become directory data.
+    // When: the Directory target is selected.
+    const converted = convertBlockFormat(paragraph, { kind: "directory" })
+
+    // Then: only the stable block identity and directory marker remain.
+    expect(converted).toEqual({
+      id: "intro",
+      kind: "directory"
     })
   })
 })
