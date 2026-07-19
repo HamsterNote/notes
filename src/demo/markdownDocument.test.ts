@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import type { NoteBlock, NoteChecklistItem } from "../lib/types"
+import type { NoteBlock, NoteTodoItem } from "../lib/types"
 import type { DemoMarkdownDocument } from "./markdownDocument"
 import {
   DemoMarkdownParseError,
@@ -15,12 +15,12 @@ const UUID_V4_PATTERN =
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
 
-const expectFirstChecklistItem = (
-  block: Extract<NoteBlock, { readonly kind: "checklist" }>
-): NoteChecklistItem => {
+const expectFirstTodoItem = (
+  block: Extract<NoteBlock, { readonly kind: "todo" }>
+): NoteTodoItem => {
   const item = block.items[0]
   if (item === undefined) {
-    throw new Error("Expected checklist to contain at least one item.")
+    throw new Error("Expected todo to contain at least one item.")
   }
   return item
 }
@@ -44,10 +44,18 @@ const markdownBlockValue = (block: NoteBlock): unknown => {
       return { kind: block.kind, text: block.text }
     case "quote":
       return { author: block.author, kind: block.kind, text: block.text }
+    case "todo":
     case "checklist":
       return {
         items: block.items.map(({ checked, text }) => ({ checked, text })),
-        kind: block.kind
+        kind: block.kind,
+        title: block.title
+      }
+    case "unorderedList":
+    case "orderedList":
+      return {
+        kind: block.kind,
+        text: block.text
       }
     case "code":
       return {
@@ -72,6 +80,15 @@ const markdownBlockValue = (block: NoteBlock): unknown => {
         filename: block.filename,
         kind: block.kind,
         url: block.url
+      }
+    case "directory":
+      return { kind: block.kind }
+    case "collapsible":
+      return {
+        kind: block.kind,
+        title: block.title,
+        collapsed: block.collapsed,
+        blocks: block.blocks.map(markdownBlockValue)
       }
     default:
       return assertNever(block)
@@ -116,13 +133,13 @@ const expectParseErrorCode = (markdown: string, code: string): void => {
 /* ------------------------------------------------------------------ */
 
 describe("markdown document parsing", () => {
-  it("uses unique UUIDs for every block and checklist item in the default document", () => {
+  it("uses unique UUIDs for every block and todo item in the default document", () => {
     // Given: the Markdown document rendered by the demo.
     const document = parseMarkdownDocument(demoMarkdownDocument)
 
-    // When: all runtime block and checklist item IDs are collected.
+    // When: all runtime block and todo item IDs are collected.
     const ids = document.blocks.flatMap((block) =>
-      block.kind === "checklist"
+      block.kind === "todo"
         ? [block.id, ...block.items.map((item) => item.id)]
         : [block.id]
     )
@@ -144,7 +161,7 @@ describe("markdown document parsing", () => {
   it("preserves representative fields from the default document blocks", () => {
     const document = parseMarkdownDocument(demoMarkdownDocument)
 
-    expect(document.blocks).toHaveLength(11)
+    expect(document.blocks).toHaveLength(12)
     const hero = expectBlockAtIndex(document, 0)
     expect(hero).toMatchObject({
       kind: "heading",
@@ -162,15 +179,15 @@ describe("markdown document parsing", () => {
       level: 2
     })
 
-    const checklist = expectBlockAtIndex(document, 4)
-    if (checklist.kind !== "checklist") {
-      throw new Error("Expected checklist block.")
+    const todo = expectBlockAtIndex(document, 4)
+    if (todo.kind !== "todo") {
+      throw new Error("Expected todo block.")
     }
-    expect(checklist.title).toBe("")
-    expect(checklist.items).toHaveLength(3)
-    expect(checklist.items.some((item) => item.checked)).toBe(true)
-    expect(checklist.items.every((item) => item.checked)).toBe(true)
-    for (const item of checklist.items) {
+    expect(todo.title).toBe("")
+    expect(todo.items).toHaveLength(3)
+    expect(todo.items.some((item) => item.checked)).toBe(true)
+    expect(todo.items.every((item) => item.checked)).toBe(true)
+    for (const item of todo.items) {
       expect(item.id).not.toBe("")
       expect(item.text).not.toBe("")
       expect(typeof item.checked).toBe("boolean")
@@ -212,6 +229,17 @@ describe("markdown document parsing", () => {
     expect(table.rows.length).toBeGreaterThan(0)
     expect(table.rows[0]).toContain("Feature")
     expect(table.rows[0]).toContain("Status")
+
+    const collapsible = expectBlockAtIndex(document, 11)
+    expect(collapsible).toMatchObject({
+      kind: "collapsible",
+      title: "Roadmap",
+      collapsed: false
+    })
+    if (collapsible.kind !== "collapsible") {
+      throw new Error("Expected collapsible block.")
+    }
+    expect(collapsible.blocks.length).toBeGreaterThan(0)
   })
 
   it("parses quote author from the author line", () => {
@@ -293,16 +321,16 @@ describe("markdown document serialization", () => {
     expect(reparsed.updatedAt).toBe(document.updatedAt)
   })
 
-  it("persists checklist block edits through serialization without changing updatedAt", () => {
+  it("persists todo block edits through serialization without changing updatedAt", () => {
     const document = parseMarkdownDocument(demoMarkdownDocument)
-    const checklist = expectBlockAtIndex(document, 4)
-    if (checklist.kind !== "checklist") {
-      throw new Error("Expected checklist block.")
+    const todo = expectBlockAtIndex(document, 4)
+    if (todo.kind !== "todo") {
+      throw new Error("Expected todo block.")
     }
-    const firstItem = expectFirstChecklistItem(checklist)
-    const editedItemText = "Confirm edited checklist persistence."
+    const firstItem = expectFirstTodoItem(todo)
+    const editedItemText = "Confirm edited todo persistence."
     const editedBlocks: readonly NoteBlock[] = document.blocks.map((block) => {
-      if (block.kind !== "checklist" || block.id !== checklist.id) return block
+      if (block.kind !== "todo" || block.id !== todo.id) return block
       return {
         ...block,
         items: block.items.map((item) =>
@@ -319,11 +347,11 @@ describe("markdown document serialization", () => {
     const reparsed = parseMarkdownDocument(
       serializeMarkdownDocument(editedDocument)
     )
-    const reparsedChecklist = expectBlockAtIndex(reparsed, 4)
-    if (reparsedChecklist.kind !== "checklist") {
-      throw new Error("Expected reparsed checklist block.")
+    const reparsedTodo = expectBlockAtIndex(reparsed, 4)
+    if (reparsedTodo.kind !== "todo") {
+      throw new Error("Expected reparsed todo block.")
     }
-    const reparsedItem = expectFirstChecklistItem(reparsedChecklist)
+    const reparsedItem = expectFirstTodoItem(reparsedTodo)
 
     expect(reparsedItem.checked).toBe(!firstItem.checked)
     expect(reparsedItem.text).toBe(editedItemText)
@@ -348,9 +376,28 @@ describe("markdown document serialization", () => {
     )
 
     // Then: the math fence preserves the formula source without internal metadata.
-    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 11))).toEqual({
+    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 12))).toEqual({
       kind: "formula",
       formula: formulaSource
+    })
+  })
+
+  it("round-trips a directory as a marker without derived entries", () => {
+    // Given: directory data containing only its runtime id and kind marker.
+    const document = parseMarkdownDocument(demoMarkdownDocument)
+    const editedDocument: DemoMarkdownDocument = {
+      ...document,
+      blocks: [...document.blocks, { id: "toc", kind: "directory" }]
+    }
+
+    // When: the document is serialized and parsed again.
+    const serialized = serializeMarkdownDocument(editedDocument)
+    const reparsed = parseMarkdownDocument(serialized)
+
+    // Then: only the directory marker is persisted; entries remain derived.
+    expect(serialized).toContain("```directory\n\n```")
+    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 12))).toEqual({
+      kind: "directory"
     })
   })
 
@@ -397,7 +444,7 @@ describe("markdown document serialization", () => {
     expect(serialized).toContain(
       "![my picture.png](<https://example.com/my picture.png>)"
     )
-    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 11))).toEqual({
+    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 12))).toEqual({
       kind: "picture",
       url: "https://example.com/my picture.png",
       filename: "my picture.png"
@@ -452,11 +499,11 @@ describe("markdown document serialization", () => {
     )
 
     // Then: dynamic outer fences preserve both source strings exactly.
-    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 11))).toEqual({
+    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 12))).toEqual({
       kind: "formula",
       formula: formulaSource
     })
-    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 12))).toEqual({
+    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 13))).toEqual({
       kind: "code",
       language: "ts",
       code: codeSource

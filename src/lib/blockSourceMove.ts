@@ -1,18 +1,28 @@
+import {
+  type BlockContainerId,
+  updateBlockContainer
+} from "./blockContainerMove"
 import { moveBlock } from "./blockDragTarget"
 import { quoteTextLines } from "./blockSourceConversion"
-import { createNoteId } from "./noteId"
-import type { NoteBlock, NoteChecklistBlock, NoteQuoteBlock } from "./types"
+import { splitQuoteBlock, splitTodoBlock } from "./blockSourceSplit"
+import type { NoteBlock } from "./types"
 
 export type BlockDragSource =
-  | { readonly kind: "block" }
   | {
-      readonly kind: "checklist-item"
+      readonly kind: "block"
       readonly blockId: string
+      readonly containerId: BlockContainerId
+    }
+  | {
+      readonly kind: "todo-item"
+      readonly blockId: string
+      readonly containerId: BlockContainerId
       readonly sourceId: string
     }
   | {
       readonly kind: "quote-line"
       readonly blockId: string
+      readonly containerId: BlockContainerId
       readonly sourceId: string
     }
 
@@ -59,18 +69,20 @@ export const moveBlockSource = ({
     return moveBlock(blocks, sourceIndex, destinationIndex)
   }
 
-  return blocks.map((block) => {
-    if (block.id !== source.blockId) return block
-    if (source.kind === "checklist-item") {
-      if (block.kind !== "checklist") return block
-      const items = moveItem(block.items, sourceIndex, destinationIndex)
-      return items === block.items ? block : { ...block, items }
-    }
-    if (block.kind !== "quote") return block
-    const lines = quoteTextLines(block.text)
-    const nextLines = moveItem(lines, sourceIndex, destinationIndex)
-    return nextLines === lines ? block : { ...block, text: nextLines.join("\n") }
-  })
+  return updateBlockContainer(blocks, source.containerId, (children) =>
+    children.map((block) => {
+      if (block.id !== source.blockId) return block
+      if (source.kind === "todo-item") {
+        if (block.kind !== "todo") return block
+        const items = moveItem(block.items, sourceIndex, destinationIndex)
+        return items === block.items ? block : { ...block, items }
+      }
+      if (block.kind !== "quote") return block
+      const lines = quoteTextLines(block.text)
+      const nextLines = moveItem(lines, sourceIndex, destinationIndex)
+      return nextLines === lines ? block : { ...block, text: nextLines.join("\n") }
+    })
+  )
 }
 
 type MoveBlockSourceToBoundaryInput = {
@@ -86,13 +98,46 @@ export const moveBlockSourceToBoundary = ({
   source,
   sourceIndex
 }: MoveBlockSourceToBoundaryInput): readonly NoteBlock[] => {
+  if (source.containerId !== null) {
+    let extractedBlock: NoteBlock | undefined
+    const extracted = updateBlockContainer(
+      blocks,
+      source.containerId,
+      (children) =>
+        children.flatMap((block) => {
+          if (block.id !== source.blockId) return [block]
+          const split =
+            source.kind === "todo-item"
+              ? block.kind === "todo"
+                ? splitTodoBlock(block, source.sourceId)
+                : [block]
+              : block.kind === "quote"
+                ? splitQuoteBlock(block, sourceIndex, source.sourceId)
+                : [block]
+          extractedBlock = split.find((part) => part.id === source.sourceId)
+          return split.filter((part) => part.id !== source.sourceId)
+        })
+    )
+    if (extractedBlock === undefined || extracted === blocks) return blocks
+    const targetIndex = extracted.findIndex(
+      (block) => block.id === destination.targetBlockId
+    )
+    if (targetIndex < 0) return blocks
+    const nextBlocks = extracted.slice()
+    nextBlocks.splice(
+      destination.placement === "after" ? targetIndex + 1 : targetIndex,
+      0,
+      extractedBlock
+    )
+    return nextBlocks
+  }
   if (!blocks.some((block) => block.id === source.blockId)) return blocks
 
   const extracted = blocks.flatMap((block) => {
     if (block.id !== source.blockId) return [block]
-    if (source.kind === "checklist-item") {
-      if (block.kind !== "checklist") return [block]
-      return splitChecklistBlock(block, source.sourceId)
+    if (source.kind === "todo-item") {
+      if (block.kind !== "todo") return [block]
+      return splitTodoBlock(block, source.sourceId)
     }
     if (block.kind !== "quote") return [block]
     return splitQuoteBlock(block, sourceIndex, source.sourceId)
@@ -134,75 +179,4 @@ export const moveBlockSourceToBoundary = ({
     extractedBlock
   )
   return nextBlocks
-}
-
-const splitChecklistBlock = (
-  block: NoteChecklistBlock,
-  itemId: string
-): NoteBlock[] => {
-  const itemIndex = block.items.findIndex((item) => item.id === itemId)
-  const item = block.items[itemIndex]
-  if (itemIndex < 0 || item === undefined) return [block]
-
-  const beforeItems = block.items.slice(0, itemIndex)
-  const afterItems = block.items.slice(itemIndex + 1)
-  const titleForExtractedItem =
-    beforeItems.length === 0 && afterItems.length === 0 ? block.title : ""
-
-  return [
-    ...(beforeItems.length > 0 ? [{ ...block, items: beforeItems }] : []),
-    {
-      id: item.id,
-      kind: "checklist",
-      title: titleForExtractedItem,
-      items: [item]
-    },
-    ...(afterItems.length > 0
-      ? [
-          {
-            ...block,
-            id: beforeItems.length > 0 ? createNoteId() : block.id,
-            title: beforeItems.length > 0 ? "" : block.title,
-            items: afterItems
-          }
-        ]
-      : [])
-  ]
-}
-
-const splitQuoteBlock = (
-  block: NoteQuoteBlock,
-  lineIndex: number,
-  lineId: string
-): NoteBlock[] => {
-  const lines = quoteTextLines(block.text)
-  const line = lines[lineIndex]
-  if (line === undefined) return [block]
-
-  const beforeLines = lines.slice(0, lineIndex)
-  const afterLines = lines.slice(lineIndex + 1)
-  const quoteBlock = (
-    id: string,
-    text: string,
-    author?: string
-  ): NoteQuoteBlock => ({
-    id,
-    kind: "quote",
-    text,
-    ...(author === undefined ? {} : { author })
-  })
-
-  return [
-    ...(beforeLines.length > 0
-      ? [quoteBlock(block.id, beforeLines.join("\n"))]
-      : []),
-    quoteBlock(
-      lineId,
-      line,
-      afterLines.length === 0 ? block.author : undefined
-    ),
-    ...(afterLines.length > 0
-      ? [quoteBlock(createNoteId(), afterLines.join("\n"), block.author)]
-      : [])
-  ]
 }

@@ -1,9 +1,9 @@
 import type { BlockConvertTarget } from "./blockConversion"
-import { convertBlockFormat } from "./blockConversion"
+import { convertBlockFormatToBlocks } from "./blockConversion"
 import { createNoteId } from "./noteId"
 import type {
   NoteBlock,
-  NoteChecklistBlock,
+  NoteTodoBlock,
   NotePictureBlock,
   NoteQuoteBlock
 } from "./types"
@@ -11,6 +11,11 @@ import { assertNever } from "./utils"
 
 export type BlockSource =
   | { readonly kind: "block"; readonly blockId: string }
+  | {
+      readonly kind: "todo-item"
+      readonly blockId: string
+      readonly itemId: string
+    }
   | {
       readonly kind: "checklist-item"
       readonly blockId: string
@@ -25,7 +30,7 @@ export type BlockSource =
 
 type ConvertBlockSourceInput = {
   readonly blocks: readonly NoteBlock[]
-  readonly checklistItemId?: string | undefined
+  readonly todoItemId?: string | undefined
   readonly preserveMarkdownMarker?: boolean | undefined
   readonly replacementId?: string | undefined
   readonly source: BlockSource
@@ -41,7 +46,7 @@ type ReplaceBlockSourceWithPictureInput = {
   readonly height?: number | undefined
 }
 
-type ReplaceSourceBlock = (sourceBlock: NoteBlock) => NoteBlock
+type ReplaceSourceBlock = (sourceBlock: NoteBlock) => readonly NoteBlock[]
 
 export const quoteTextLines = (text: string): readonly string[] =>
   text.split(/\n|<br\s*\/?>/giu)
@@ -49,19 +54,19 @@ export const quoteTextLines = (text: string): readonly string[] =>
 export const quoteLineId = (blockId: string, lineIndex: number): string =>
   lineIndex === 0 ? blockId : `${blockId}-line-${lineIndex}`
 
-type ReplaceChecklistItemInput = {
-  readonly block: NoteChecklistBlock
+type ReplaceTodoItemInput = {
+  readonly block: NoteTodoBlock
   readonly itemId: string
   readonly preserveMarkdownMarker: boolean
   readonly replace: ReplaceSourceBlock
 }
 
-const replaceChecklistItem = ({
+const replaceTodoItem = ({
   block,
   itemId,
   preserveMarkdownMarker,
   replace
-}: ReplaceChecklistItemInput): NoteBlock[] => {
+}: ReplaceTodoItemInput): NoteBlock[] => {
   const itemIndex = block.items.findIndex((item) => item.id === itemId)
   const item = block.items[itemIndex]
   if (itemIndex < 0 || item === undefined) return [block]
@@ -82,7 +87,7 @@ const replaceChecklistItem = ({
 
   return [
     ...(beforeItems.length > 0 ? [{ ...block, items: beforeItems }] : []),
-    replacement,
+    ...replacement,
     ...(afterItems.length > 0
       ? [
           {
@@ -151,7 +156,7 @@ const replaceQuoteLine = ({
           )
         ]
       : []),
-    replacement,
+    ...replacement,
     ...(afterLines.length > 0
       ? [
           quoteSegment(
@@ -184,11 +189,20 @@ const replaceBlockSource = ({
 
     switch (source.kind) {
       case "block":
-        return [replace(block)]
+        return replace(block)
+      case "todo-item":
+        return block.kind === "todo"
+          ? replaceTodoItem({
+              block,
+              itemId: source.itemId,
+              preserveMarkdownMarker,
+              replace
+            })
+          : [block]
       case "checklist-item":
         return block.kind === "checklist"
-          ? replaceChecklistItem({
-              block,
+          ? replaceTodoItem({
+              block: block as unknown as NoteTodoBlock,
               itemId: source.itemId,
               preserveMarkdownMarker,
               replace
@@ -214,7 +228,7 @@ const replaceBlockSource = ({
 
 export const convertBlockSource = ({
   blocks,
-  checklistItemId,
+  todoItemId,
   preserveMarkdownMarker,
   replacementId,
   source,
@@ -226,7 +240,7 @@ export const convertBlockSource = ({
     replacementId,
     source,
     replace: (sourceBlock) =>
-      convertBlockFormat(sourceBlock, target, checklistItemId)
+      convertBlockFormatToBlocks(sourceBlock, target, todoItemId)
   })
 
 export const replaceBlockSourceWithPicture = ({
@@ -240,12 +254,14 @@ export const replaceBlockSourceWithPicture = ({
   replaceBlockSource({
     blocks,
     source,
-    replace: (sourceBlock): NotePictureBlock => ({
-      id: sourceBlock.id,
-      kind: "picture",
-      url,
-      filename,
-      ...(width === undefined ? {} : { width }),
-      ...(height === undefined ? {} : { height })
-    })
+    replace: (sourceBlock): readonly NotePictureBlock[] => [
+      {
+        id: sourceBlock.id,
+        kind: "picture",
+        url,
+        filename,
+        ...(width === undefined ? {} : { width }),
+        ...(height === undefined ? {} : { height })
+      }
+    ]
   })

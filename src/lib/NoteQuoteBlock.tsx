@@ -117,6 +117,7 @@ type NoteQuoteLineProps = {
   readonly lineIndex: number
   readonly ctx: EditContext
   readonly showAuthor: boolean
+  readonly containerId: string | undefined
 }
 
 const NoteQuoteLine = ({
@@ -124,7 +125,8 @@ const NoteQuoteLine = ({
   line,
   lineIndex,
   ctx,
-  showAuthor
+  showAuthor,
+  containerId
 }: NoteQuoteLineProps): ReactElement => {
   const { editable, blocks, onBlocksChange, selectMode, selectedBlockId } = ctx
   const lineId = quoteLineId(block.id, lineIndex)
@@ -142,6 +144,7 @@ const NoteQuoteLine = ({
         .join(" ")}
       id={lineId}
       key={lineId}
+      data-note-drag-container-id={containerId}
       {...(sortable
         ? {
             "data-note-sortable-id": lineId,
@@ -230,11 +233,13 @@ const NoteQuoteLine = ({
 type NoteQuoteBlockProps = {
   readonly block: NoteQuoteBlockData
   readonly ctx: EditContext
+  readonly containerId?: string
 }
 
 export const NoteQuoteBlock = ({
   block,
-  ctx
+  ctx,
+  containerId
 }: NoteQuoteBlockProps): ReactElement => {
   const lines = quoteTextLines(block.text)
 
@@ -244,6 +249,7 @@ export const NoteQuoteBlock = ({
         <NoteQuoteLine
           key={quoteLineId(block.id, lineIndex)}
           block={block}
+          containerId={containerId}
           line={line}
           lineIndex={lineIndex}
           ctx={ctx}

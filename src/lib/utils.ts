@@ -60,48 +60,55 @@ export const headingLevelTag = (
   }
 }
 
+const countBlockWords = (block: NoteBlock): number => {
+  switch (block.kind) {
+    case "heading":
+    case "paragraph":
+    case "quote":
+    case "callout":
+      return block.text.split(/\s+/u).length
+    case "todo":
+    case "checklist":
+      return block.items.reduce(
+        (itemCount, item) => itemCount + item.text.split(/\s+/u).length,
+        0
+      )
+    case "unorderedList":
+    case "orderedList":
+      return block.text.split(/\s+/u).length
+    case "code":
+      return Math.max(8, block.code.split(/\s+/u).length)
+    case "table":
+      return block.rows.reduce(
+        (cellCount, row) =>
+          cellCount +
+          row.reduce(
+            (rowCount, cell) => rowCount + cell.split(/\s+/u).length,
+            0
+          ),
+        0
+      )
+    case "formula":
+      return Math.max(4, block.formula.split(/\s+/u).length)
+    case "collapsible":
+      // 容器块：标题字数 + 递归统计内部子块
+      return (
+        block.title.split(/\s+/u).length +
+        block.blocks.reduce((sum, child) => sum + countBlockWords(child), 0)
+      )
+    case "picture":
+    case "directory":
+      return 0
+    default:
+      return assertNever(block)
+  }
+}
+
 export const getReadingMinutes = (blocks: readonly NoteBlock[]): number => {
-  const totalWords = blocks.reduce((count, block) => {
-    switch (block.kind) {
-      case "heading":
-        return count + block.text.split(/\s+/u).length
-      case "paragraph":
-        return count + block.text.split(/\s+/u).length
-      case "checklist":
-        return (
-          count +
-          block.items.reduce(
-            (itemCount, item) => itemCount + item.text.split(/\s+/u).length,
-            0
-          )
-        )
-      case "quote":
-        return count + block.text.split(/\s+/u).length
-      case "code":
-        return count + Math.max(8, block.code.split(/\s+/u).length)
-      case "callout":
-        return count + block.text.split(/\s+/u).length
-      case "table":
-        return (
-          count +
-          block.rows.reduce(
-            (cellCount, row) =>
-              cellCount +
-              row.reduce(
-                (rowCount, cell) => rowCount + cell.split(/\s+/u).length,
-                0
-              ),
-            0
-          )
-        )
-      case "formula":
-        return count + Math.max(4, block.formula.split(/\s+/u).length)
-      case "picture":
-        return count
-      default:
-        return assertNever(block)
-    }
-  }, 0)
+  const totalWords = blocks.reduce(
+    (count, block) => count + countBlockWords(block),
+    0
+  )
 
   return Math.max(1, Math.round(totalWords / 160))
 }

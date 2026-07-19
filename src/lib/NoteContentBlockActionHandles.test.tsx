@@ -11,13 +11,15 @@ const mixedBlocks: readonly NoteBlock[] = [
   { id: "para", kind: "paragraph", text: "Paragraph" },
   {
     id: "list",
-    kind: "checklist",
-    title: "List",
+    kind: "todo",
+    title: "Todo",
     items: [
       { id: "item-1", checked: false, text: "One" },
       { id: "item-2", checked: true, text: "Two" }
     ]
   },
+  { id: "ulist", kind: "unorderedList", text: "One" },
+  { id: "olist", kind: "orderedList", text: "One" },
   {
     id: "table",
     kind: "table",
@@ -60,6 +62,8 @@ describe("NoteContent block action handles", () => {
     const blockIds = [
       "h1",
       "para",
+      "ulist",
+      "olist",
       "table",
       "pic",
       "formula",
@@ -77,10 +81,44 @@ describe("NoteContent block action handles", () => {
     }
   })
 
-  it("renders per-checklist-item add and convert handles", () => {
-    // Given: a checklist with two items.
+  it("renders block-level handles for unordered and ordered lists", () => {
+    // Given: editable note with list blocks.
     const view = render(
-      <NoteContent blocks={mixedBlocks} title="Checklist handles" editable />
+      <NoteContent blocks={mixedBlocks} title="List handles" editable />
+    )
+
+    // Then: each list block has exactly one add and one convert handle.
+    for (const id of ["ulist", "olist"]) {
+      const add = findHandle(view.container, id, "add")
+      const convert = findHandle(view.container, id, "convert")
+      expect(add, `add handle for ${id}`).not.toBeNull()
+      expect(convert, `convert handle for ${id}`).not.toBeNull()
+    }
+  })
+
+  it("does not render per-item handles for list blocks", () => {
+    // Given: editable note with list blocks.
+    const view = render(
+      <NoteContent blocks={mixedBlocks} title="List item handles" editable />
+    )
+
+    // Then: list item ids are not used as handle block ids.
+    for (const itemId of ["ul-1", "ul-2", "ol-1", "ol-2"]) {
+      expect(
+        findHandle(view.container, itemId, "add"),
+        `no add handle for ${itemId}`
+      ).toBeNull()
+      expect(
+        findHandle(view.container, itemId, "convert"),
+        `no convert handle for ${itemId}`
+      ).toBeNull()
+    }
+  })
+
+  it("renders per-todo-item add and convert handles", () => {
+    // Given: a todo with two items.
+    const view = render(
+      <NoteContent blocks={mixedBlocks} title="Todo handles" editable />
     )
 
     // Then: each item row exposes its own pair, not a block-level pair.
@@ -159,8 +197,76 @@ describe("NoteContent block action handles", () => {
     })
   })
 
-  it("inserts a new block after the containing checklist from any item add handle", async () => {
-    // Given: a controlled note with a checklist followed by a sentinel block.
+  it("inserts a directory marker through the add menu", async () => {
+    // Given: a controlled note with one heading source.
+    const onChange = vi.fn<(blocks: NoteBlock[]) => void>()
+    const Harness = () => {
+      const [blocks, setBlocks] = useState<readonly NoteBlock[]>([
+        { id: "directory-anchor", kind: "heading", level: 1, text: "Overview" }
+      ])
+      return (
+        <NoteContent
+          blocks={blocks}
+          title="Insert directory"
+          editable
+          onBlocksChange={(next) => {
+            onChange(next)
+            setBlocks(next)
+          }}
+        />
+      )
+    }
+    const view = render(<Harness />)
+
+    // When: Directory is selected from the heading's add menu.
+    const add = findHandle(view.container, "directory-anchor", "add")
+    if (!add) throw new Error("Expected directory-anchor add handle.")
+    fireEvent.click(add)
+    fireEvent.click(await screen.findByRole("menuitem", { name: "目录" }))
+
+    // Then: a marker-only block is inserted immediately after the source.
+    await waitFor(() => {
+      expect(onChange.mock.calls.at(-1)?.[0]).toEqual([
+        {
+          id: "directory-anchor",
+          kind: "heading",
+          level: 1,
+          text: "Overview"
+        },
+        expect.objectContaining({ kind: "directory" })
+      ])
+      const inserted = onChange.mock.calls.at(-1)?.[0]?.[1]
+      expect(inserted).toEqual({ id: inserted?.id, kind: "directory" })
+    })
+  })
+
+  it("opens the add menu without visually selecting a block type", async () => {
+    // Given: a paragraph block whose current type also exists in the add menu.
+    const view = render(
+      <NoteContent blocks={[findBlock("para")]} title="Add menu focus" editable />
+    )
+
+    // When: the add handle opens the menu and its deferred focus logic settles.
+    const add = findHandle(view.container, "para", "add")
+    if (!add) throw new Error("Expected paragraph add handle.")
+    fireEvent.click(add)
+    const menu = await screen.findByRole("menu", { name: "插入新区块类型" })
+
+    // Then: focus stays on the menu itself, so no block type looks preselected.
+    await waitFor(() => expect(document.activeElement).toBe(menu))
+    expect(menu.querySelector(":focus")).toBeNull()
+
+    // And: keyboard users can still enter the list from the menu container.
+    fireEvent.keyDown(menu, { key: "ArrowDown" })
+    expect(document.activeElement).toBe(
+      screen.getByRole("menuitem", { name: "H1" })
+    )
+    fireEvent.keyDown(menu, { key: "Escape" })
+    await waitFor(() => expect(menu.isConnected).toBe(false))
+  })
+
+  it("inserts a new block after the containing todo from any item add handle", async () => {
+    // Given: a controlled note with a todo followed by a sentinel block.
     const initialBlocks: readonly NoteBlock[] = [
       findBlock("list"),
       { id: "tail", kind: "paragraph", text: "Tail" }
@@ -168,24 +274,24 @@ describe("NoteContent block action handles", () => {
     const Harness = () => {
       const [blocks, setBlocks] = useState(initialBlocks)
       return (
-        <NoteContent
-          blocks={blocks}
-          title="Insert after checklist"
-          editable
-          onBlocksChange={setBlocks}
-        />
+      <NoteContent
+        blocks={blocks}
+        title="Insert after todo"
+        editable
+        onBlocksChange={setBlocks}
+      />
       )
     }
     const view = render(<Harness />)
 
-    // When: the second checklist item's add handle is used to insert a paragraph.
+    // When: the second todo item's add handle is used to insert a paragraph.
     const add = findHandle(view.container, "item-2", "add")
     if (!add) throw new Error("Expected item-2 add handle.")
     fireEvent.click(add)
     const item = await screen.findByRole("menuitem", { name: "正文" })
     fireEvent.click(item)
 
-    // Then: the new paragraph is placed after the whole checklist, before tail.
+    // Then: the new paragraph is placed after the whole todo, before tail.
     await waitFor(() => {
       const blocks = view.container.querySelectorAll(
         ".hn-note-body > [data-note-sortable-id]"
@@ -200,8 +306,8 @@ describe("NoteContent block action handles", () => {
     })
   })
 
-  it("inserts a new checklist item immediately after the source item", async () => {
-    // Given: a controlled checklist with two items.
+  it("inserts a new todo item immediately after the source item", async () => {
+    // Given: a controlled todo with two items.
     const Harness = () => {
       const [blocks, setBlocks] = useState<readonly NoteBlock[]>([
         findBlock("list")
@@ -209,7 +315,7 @@ describe("NoteContent block action handles", () => {
       return (
         <NoteContent
           blocks={blocks}
-          title="Insert checklist item"
+          title="Insert todo item"
           editable
           onBlocksChange={setBlocks}
         />
@@ -217,24 +323,24 @@ describe("NoteContent block action handles", () => {
     }
     const view = render(<Harness />)
 
-    // When: List is selected from the first item's add menu.
+    // When: Todo is selected from the first item's add menu.
     const add = findHandle(view.container, "item-1", "add")
     if (!add) throw new Error("Expected item-1 add handle.")
     fireEvent.click(add)
-    fireEvent.click(await screen.findByRole("menuitem", { name: "List" }))
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Todo" }))
 
     // Then: one empty item is inserted between the two existing items.
     await waitFor(() => {
       const items = Array.from(
         view.container.querySelectorAll<HTMLElement>(
-          ".hn-note-body > .hn-note-checklist-item"
+          ".hn-note-body > .hn-note-todo-item"
         )
       )
       expect(items).toHaveLength(3)
       expect(items[0]?.id).toBe("item-1")
       expect(items[1]?.textContent).not.toContain("Two")
       expect(items[2]?.id).toBe("item-2")
-      expect(view.container.querySelector(".hn-note-checklist")).toBeNull()
+      expect(view.container.querySelector(".hn-note-todo")).toBeNull()
     })
   })
 

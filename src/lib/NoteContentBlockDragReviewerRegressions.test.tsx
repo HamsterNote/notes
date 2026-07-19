@@ -120,16 +120,16 @@ describe("NoteContent reviewed drag boundaries", () => {
     ).toEqual(["First", "Second"])
   })
 
-  it("extracts the last checklist item after a surviving last parent", () => {
-    // Given: the final body block is a checklist with two items.
+  it("extracts the last todo item after a surviving last parent", () => {
+    // Given: the final body block is a todo with two items.
     const view = render(
       <ControlledNote
         initialBlocks={[
           { id: "intro", kind: "paragraph", text: "Intro" },
           {
             id: "list",
-            kind: "checklist",
-            title: "List",
+            kind: "todo",
+            title: "Todo",
             items: [
               { id: "first", checked: false, text: "First" },
               { id: "last", checked: true, text: "Last" }
@@ -144,7 +144,7 @@ describe("NoteContent reviewed drag boundaries", () => {
     const handle = view.container.querySelector(
       '[data-block-id="last"][data-block-menu-mode="convert"]'
     )
-    if (!handle) throw new Error("Expected the last checklist-item handle.")
+    if (!handle) throw new Error("Expected the last todo-item handle.")
     setRect(requiredElement(sortables, 0), 0, 40)
     setRect(requiredElement(sortables, 1), 60, 40)
     setRect(requiredElement(sortables, 2), 100, 40)
@@ -152,23 +152,23 @@ describe("NoteContent reviewed drag boundaries", () => {
     // When: the last item crosses below the document's final parent block.
     dragMouse(handle, 120, 150)
 
-    // Then: the surviving checklist remains before the extracted checklist item.
+    // Then: the surviving todo remains before the extracted todo item.
     expect(sortableIds(view.container)).toEqual(["intro", "first", "last"])
     expect(
       Array.from(
         view.container.querySelectorAll<HTMLElement>(
-          '.hn-note-body > [data-note-drag-kind="checklist-item"]'
+          '.hn-note-body > [data-note-drag-kind="todo-item"]'
         )
       ).map((item) => item.id)
     ).toEqual(["first", "last"])
-    const extractedChecklistItem = view.container.querySelector<HTMLElement>(
+    const extractedTodoItem = view.container.querySelector<HTMLElement>(
       '[data-note-sortable-id="last"]'
     )
-    expect(extractedChecklistItem?.classList.contains("hn-note-checklist-item")).toBe(
+    expect(extractedTodoItem?.classList.contains("hn-note-todo-item")).toBe(
       true
     )
-    expect(extractedChecklistItem?.getAttribute("data-note-drag-kind")).toBe(
-      "checklist-item"
+    expect(extractedTodoItem?.getAttribute("data-note-drag-kind")).toBe(
+      "todo-item"
     )
   })
 

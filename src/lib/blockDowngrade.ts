@@ -46,6 +46,8 @@ export const canDowngradeEmptySpecialBlock = (
       // 只把 callout 视为可降级特殊块；其他 kind 走常规删除路径
       if (block.kind !== "callout") return false
       return isVisibleHtmlEmpty(block.text)
+    case "todo-item":
+      return false
     case "checklist-item": {
       if (block.kind !== "checklist") return false
       const item = block.items.find((i) => i.id === source.itemId)
@@ -210,6 +212,8 @@ export const downgradeEmptySpecialBlockToParagraph = ({
   switch (source.kind) {
     case "block":
       return downgradeCallout(blocks, source.blockId)
+    case "todo-item":
+      return { blocks: [...blocks], focusId: source.itemId }
     case "checklist-item": {
       const block = blocks.find(
         (b): b is NoteChecklistBlock =>

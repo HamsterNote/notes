@@ -78,8 +78,8 @@ const ControlledNote = ({ initialBlocks }: { initialBlocks: readonly NoteBlock[]
 }
 
 describe("NoteContent cross-boundary block dragging", () => {
-  it("uses every direct checklist item when resolving a persisted target", () => {
-    // Given: a two-item target checklist followed by a separate source checklist.
+  it("uses every direct todo item when resolving a persisted target", () => {
+    // Given: a two-item target todo followed by a separate source todo.
     const body = document.createElement("div")
     const targetFirst = document.createElement("div")
     const targetSecond = document.createElement("div")
@@ -92,7 +92,7 @@ describe("NoteContent cross-boundary block dragging", () => {
       element.id = itemId
       element.setAttribute("data-note-sortable-id", itemId)
       element.setAttribute("data-note-block-id", blockId)
-      element.setAttribute("data-note-drag-kind", "checklist-item")
+      element.setAttribute("data-note-drag-kind", "todo-item")
       element.setAttribute("data-note-drag-parent-id", blockId)
       body.append(element)
     }
@@ -100,10 +100,10 @@ describe("NoteContent cross-boundary block dragging", () => {
     setRect(targetSecond, { top: 110, height: 40 })
     setRect(source, { top: 200, height: 40 })
 
-    // When: the source is dragged over the second half of the target checklist.
+    // When: the source is dragged over the second half of the target todo.
     const target = getBlockBoundaryTarget(body, source, 130)
 
-    // Then: the destination is after the whole target checklist, at its last item.
+    // Then: the destination is after the whole target todo, at its last item.
     expect(target?.destination).toEqual({
       placement: "after",
       targetBlockId: "target-list"
@@ -168,14 +168,14 @@ describe("NoteContent cross-boundary block dragging", () => {
     ).toEqual(["First", "Second"])
   })
 
-  it("removes a checklist parent when its only item moves outside", () => {
-    // Given: a single-item checklist sits before an external paragraph.
+  it("removes a todo parent when its only item moves outside", () => {
+    // Given: a single-item todo sits before an external paragraph.
     const view = render(
       <ControlledNote
         initialBlocks={[
           {
             id: "list",
-            kind: "checklist",
+            kind: "todo",
             title: "Solo",
             items: [{ id: "only", checked: false, text: "Only item" }]
           },
@@ -187,13 +187,13 @@ describe("NoteContent cross-boundary block dragging", () => {
       view.container.querySelectorAll<HTMLElement>("[data-note-sortable-id]")
     )
     const item = view.container.querySelector<HTMLElement>(
-      '.hn-note-body > [data-note-drag-kind="checklist-item"]'
+      '.hn-note-body > [data-note-drag-kind="todo-item"]'
     )
     const handle = view.container.querySelector(
       '[data-block-id="only"][data-block-menu-mode="convert"]'
     )
     if (!handle || !item || sortables.length !== 2) {
-      throw new Error("Expected the checklist item and body blocks.")
+      throw new Error("Expected the todo item and body blocks.")
     }
     setRect(requiredElement(sortables, 0), { top: 0, height: 40 })
     setRect(requiredElement(sortables, 1), { top: 60, height: 40 })
@@ -202,28 +202,28 @@ describe("NoteContent cross-boundary block dragging", () => {
     // When: the only item is dragged below the external paragraph.
     dragMouse(handle, 20, 90)
 
-    // Then: the empty parent disappears and the item remains a checklist item.
+    // Then: the empty parent disappears and the item remains a todo item.
     expect(sortableIds(view.container)).toEqual(["tail", "only"])
-    expect(view.container.querySelector(".hn-note-checklist")).toBeNull()
+    expect(view.container.querySelector(".hn-note-todo")).toBeNull()
     const movedItem = view.container.querySelector<HTMLElement>(
       '[data-note-sortable-id="only"]'
     )
     expect(movedItem?.textContent).toContain("Only item")
-    expect(movedItem?.classList.contains("hn-note-checklist-item")).toBe(true)
+    expect(movedItem?.classList.contains("hn-note-todo-item")).toBe(true)
     expect(movedItem?.getAttribute("data-note-drag-kind")).toBe(
-      "checklist-item"
+      "todo-item"
     )
   })
 
-  it("keeps checklist item reordering local inside its persisted block", () => {
-    // Given: a flat-rendered checklist between two body-level paragraphs.
+  it("keeps todo item reordering local inside its persisted block", () => {
+    // Given: a flat-rendered todo between two body-level paragraphs.
     const view = render(
       <ControlledNote
         initialBlocks={[
           { id: "intro", kind: "paragraph", text: "Intro" },
           {
             id: "list",
-            kind: "checklist",
+            kind: "todo",
             title: "Tasks",
             items: [
               { id: "first", checked: false, text: "First" },
@@ -236,14 +236,14 @@ describe("NoteContent cross-boundary block dragging", () => {
     )
     const items = Array.from(
       view.container.querySelectorAll<HTMLElement>(
-        '.hn-note-body > [data-note-drag-kind="checklist-item"]'
+        '.hn-note-body > [data-note-drag-kind="todo-item"]'
       )
     )
     const handle = view.container.querySelector(
       '[data-block-id="first"][data-block-menu-mode="convert"]'
     )
     if (!handle || items.length !== 2) {
-      throw new Error("Expected two direct checklist items and a drag handle.")
+      throw new Error("Expected two direct todo items and a drag handle.")
     }
     setRect(requiredElement(items, 0), { top: 60, height: 40 })
     setRect(requiredElement(items, 1), { top: 110, height: 40 })
@@ -255,7 +255,7 @@ describe("NoteContent cross-boundary block dragging", () => {
     expect(
       Array.from(
         view.container.querySelectorAll<HTMLElement>(
-          '.hn-note-body > [data-note-drag-kind="checklist-item"]'
+          '.hn-note-body > [data-note-drag-kind="todo-item"]'
         )
       ).map((item) => item.id)
     ).toEqual(["second", "first"])

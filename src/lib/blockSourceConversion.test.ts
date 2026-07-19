@@ -11,12 +11,12 @@ const UUID_V4_PATTERN =
 const QUOTE_REPLACEMENT_ID = "5b66ed99-ea4d-4978-bce3-53aa6a390497"
 
 describe("convertBlockSource", () => {
-  it("extracts only the selected checklist item", () => {
-    // Given: a three-item checklist whose middle item owns the menu.
+  it("extracts only the selected todo item", () => {
+    // Given: a three-item todo whose middle item owns the menu.
     const blocks: readonly NoteBlock[] = [
       {
         id: "tasks",
-        kind: "checklist",
+        kind: "todo",
         title: "Tasks",
         items: [
           { id: "first", checked: true, text: "First" },
@@ -29,7 +29,7 @@ describe("convertBlockSource", () => {
     // When: the middle item becomes a paragraph.
     const converted = convertBlockSource({
       blocks,
-      source: { kind: "checklist-item", blockId: "tasks", itemId: "second" },
+      source: { kind: "todo-item", blockId: "tasks", itemId: "second" },
       target: { kind: "paragraph" }
     })
 
@@ -37,13 +37,13 @@ describe("convertBlockSource", () => {
     expect(converted).toMatchObject([
       {
         id: "tasks",
-        kind: "checklist",
+        kind: "todo",
         title: "Tasks",
         items: [{ id: "first", checked: true, text: "First" }]
       },
       { id: "second", kind: "paragraph", text: "[ ] Second" },
       {
-        kind: "checklist",
+        kind: "todo",
         title: "",
         items: [{ id: "third", checked: false, text: "Third" }]
       }
@@ -119,12 +119,12 @@ describe("replaceBlockSourceWithPicture", () => {
     ])
   })
 
-  it("extracts a selected checklist item as a picture", () => {
-    // Given: the middle item in a checklist owns the upload action.
+  it("extracts a selected todo item as a picture", () => {
+    // Given: the middle item in a todo owns the upload action.
     const blocks: readonly NoteBlock[] = [
       {
         id: "tasks",
-        kind: "checklist",
+        kind: "todo",
         title: "Tasks",
         items: [
           { id: "first", checked: false, text: "First" },
@@ -137,27 +137,27 @@ describe("replaceBlockSourceWithPicture", () => {
     // When: that item is replaced by an uploaded picture.
     const replaced = replaceBlockSourceWithPicture({
       blocks,
-      source: { kind: "checklist-item", blockId: "tasks", itemId: "second" },
-      url: "blob:http://localhost/checklist",
-      filename: "checklist.png"
+      source: { kind: "todo-item", blockId: "tasks", itemId: "second" },
+      url: "blob:http://localhost/todo",
+      filename: "todo.png"
     })
 
-    // Then: the surrounding checklist segments retain their order and title.
+    // Then: the surrounding todo segments retain their order and title.
     expect(replaced).toMatchObject([
       {
         id: "tasks",
-        kind: "checklist",
+        kind: "todo",
         title: "Tasks",
         items: [{ id: "first", checked: false, text: "First" }]
       },
       {
         id: "second",
         kind: "picture",
-        url: "blob:http://localhost/checklist",
-        filename: "checklist.png"
+        url: "blob:http://localhost/todo",
+        filename: "todo.png"
       },
       {
-        kind: "checklist",
+        kind: "todo",
         title: "",
         items: [{ id: "third", checked: false, text: "Third" }]
       }

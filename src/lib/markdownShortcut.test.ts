@@ -143,35 +143,35 @@ describe("buildReplacementFromShortcut", () => {
     })
   })
 
-  it("builds an empty checklist containing a single fresh item id", () => {
+  it("builds an empty todo containing a single fresh item id", () => {
     const replacement = buildReplacementFromShortcut(
       { kind: "checklist", checked: true },
       "block-1"
     )
     expect(replacement).toMatchObject({
       id: "block-1",
-      kind: "checklist",
+      kind: "todo",
       title: "",
       items: [{ checked: true, text: "" }]
     })
     // items[0].id 由 createNoteId 新鲜生成（字符串），与测试名
     // "single fresh item id" 对齐；不内嵌到上面 toMatchObject 是为
     // 避免 expect.any(String) 触发 @typescript-eslint/no-unsafe-assignment。
-    if (replacement.kind !== "checklist") {
-      throw new Error("Expected a checklist replacement.")
+    if (replacement.kind !== "todo") {
+      throw new Error("Expected a todo replacement.")
     }
     expect(replacement.items).toHaveLength(1)
     expect(typeof replacement.items[0]?.id).toBe("string")
   })
 
-  it("builds an empty checklist with checked=false for the unchecked variant", () => {
+  it("builds an empty todo with checked=false for the unchecked variant", () => {
     const replacement = buildReplacementFromShortcut(
       { kind: "checklist", checked: false },
       "block-1"
     )
     expect(replacement).toMatchObject({
       id: "block-1",
-      kind: "checklist",
+      kind: "todo",
       items: [{ checked: false }]
     })
   })
@@ -208,23 +208,23 @@ describe("buildReplacementFromShortcut", () => {
       { kind: "checklist", checked: false },
       "block-1"
     )
-    if (first.kind !== "checklist" || second.kind !== "checklist") {
-      throw new Error("Expected both replacements to be checklist blocks.")
+    if (first.kind !== "todo" || second.kind !== "todo") {
+      throw new Error("Expected both replacements to be todo blocks.")
     }
     expect(first.items[0]?.id).not.toBe(second.items[0]?.id)
   })
 })
 
 describe("focusTargetIdFromShortcut", () => {
-  it("selects the first checklist item id as focus target for a checklist match", () => {
+  it("selects the first todo item id as focus target for a checklist match", () => {
     // 块容器本身没有 contentEditable；可编辑根是 item.id，
     // requestFocus 必须用 item.id 才能让 useBlockEditing 找到正确节点。
     const replacement = buildReplacementFromShortcut(
       { kind: "checklist", checked: false },
       "block-1"
     )
-    if (replacement.kind !== "checklist") {
-      throw new Error("Expected a checklist replacement.")
+    if (replacement.kind !== "todo") {
+      throw new Error("Expected a todo replacement.")
     }
     const itemId = replacement.items[0]?.id
     if (itemId === undefined) throw new Error("Expected a checklist item id.")

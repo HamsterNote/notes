@@ -219,3 +219,13 @@ Table insertion and operation controls sit on cell boundaries rather than inside
 - At and below the compact breakpoint, where handles are hidden, a stationary `500ms` touch hold on a row starts the same move interaction. Moving before the hold threshold preserves native scrolling and cancels the pending drag. Once dragging activates, native text selection is cleared for the remainder of the gesture.
 - The source block remains rendered in place throughout the gesture. Crossing another block's vertical midpoint previews the corresponding insertion boundary with a `3px` `--hn-theme` line and `--hn-theme-soft` edge.
 - Reordering is committed through `onBlocksChange` only on pointer release. Pointer cancellation removes all transient drag and insertion states without changing blocks.
+
+---
+
+## 14. Link Mention Menu
+
+- Typing `@` in any editable text surface opens a fixed-position listbox immediately below the caret. The listbox uses the existing desktop popover surface, `10px` radius, shadow, padding, and opacity fade; it introduces no new palette or motion language.
+- Options reuse the popover button states: transparent with `#e2e8f0` text by default, then `rgba(255, 255, 255, 0.14)` with white text while hovered or keyboard-selected.
+- Arrow Up and Arrow Down move the active option cyclically, Enter inserts it, and Escape closes the listbox without changing the trigger text. Pointer selection preserves the editable caret.
+- An inserted mention is a non-editable inline pill containing the visible `@name` and the link id in `data-note-link-id`. It uses `--hn-theme-soft`, `--hn-theme-text`, and the existing `999px` inline-pill radius.
+- The menu exposes `role="listbox"`; each option exposes `role="option"` and `aria-selected`. Keyboard focus keeps the standard theme-color outline.

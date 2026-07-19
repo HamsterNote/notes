@@ -3,6 +3,7 @@ import type { FocusEvent } from "react"
 import type { NoteBlock } from "./types"
 import type { FocusCaret } from "./useBlockEditing"
 
+
 export type EditContext = {
   readonly editable: boolean
   readonly blocks: readonly NoteBlock[]
@@ -18,7 +19,7 @@ export type EditContext = {
   /**
    * 是否处于内容块选择模式。
    * 选择模式下各块渲染为只读，子块渲染器可据此在自身边界上
-   * 标记 data-note-select-id 等选择属性（如 checklist 的每个条目）。
+    * 标记 data-note-select-id 等选择属性（如 todo 的每个条目）。
    */
   readonly selectMode?: boolean
   /** 当前被选中的内容块/条目 id，用于驱动 aria-selected 高亮。 */
@@ -80,7 +81,9 @@ export const updateText = (
       block.kind === "heading" ||
       block.kind === "paragraph" ||
       block.kind === "quote" ||
-      block.kind === "callout"
+      block.kind === "callout" ||
+      block.kind === "unorderedList" ||
+      block.kind === "orderedList"
     ) {
       return { ...block, text }
     }
@@ -105,6 +108,25 @@ export const updateQuoteAuthor = (
   blocks.map((block) => {
     if (block.id !== id || block.kind !== "quote") return block
     return { ...block, author }
+  })
+
+export const updateCollapsibleTitle = (
+  blocks: readonly NoteBlock[],
+  id: string,
+  title: string
+): NoteBlock[] =>
+  blocks.map((block) => {
+    if (block.id !== id || block.kind !== "collapsible") return block
+    return { ...block, title }
+  })
+
+export const toggleCollapsible = (
+  blocks: readonly NoteBlock[],
+  id: string
+): NoteBlock[] =>
+  blocks.map((block) => {
+    if (block.id !== id || block.kind !== "collapsible") return block
+    return { ...block, collapsed: !block.collapsed }
   })
 
 export const updateCode = (
@@ -145,6 +167,37 @@ export const updateCodeFilename = (
   blocks.map((block) => {
     if (block.id !== id || block.kind !== "code") return block
     return { ...block, filename }
+  })
+
+export const toggleTodoItem = (
+  blocks: readonly NoteBlock[],
+  blockId: string,
+  itemId: string
+): NoteBlock[] =>
+  blocks.map((block) => {
+    if (block.id !== blockId || block.kind !== "todo") return block
+    return {
+      ...block,
+      items: block.items.map((item) =>
+        item.id === itemId ? { ...item, checked: !item.checked } : item
+      )
+    }
+  })
+
+export const updateTodoItemText = (
+  blocks: readonly NoteBlock[],
+  blockId: string,
+  itemId: string,
+  text: string
+): NoteBlock[] =>
+  blocks.map((block) => {
+    if (block.id !== blockId || block.kind !== "todo") return block
+    return {
+      ...block,
+      items: block.items.map((item) =>
+        item.id === itemId ? { ...item, text } : item
+      )
+    }
   })
 
 export const toggleChecklistItem = (

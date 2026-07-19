@@ -4,6 +4,7 @@ import type {
   NoteBlock,
   NoteContentHandle,
   NoteContentUndoRedoController,
+  NoteLink,
   NoteTheme
 } from "../lib"
 import { NoteContent } from "../lib"
@@ -26,6 +27,12 @@ const presetColors = [
 const initialDocument = parseMarkdownDocument(demoMarkdownDocument)
 const initialTableBlockId =
   initialDocument.blocks.find((block) => block.kind === "table")?.id ?? ""
+const demoLinks: readonly NoteLink[] = [
+  { id: "product-roadmap", name: "Product roadmap" },
+  { id: "release-notes", name: "Release notes" },
+  { id: "editor-guide", name: "Editor guide" },
+  { id: "team-handbook", name: "Team handbook" }
+]
 
 export const App = () => {
   // ===== 受控状态：由侧边栏面板驱动 NoteContent 的全部可调参数 =====
@@ -393,6 +400,7 @@ export const App = () => {
           <NoteContent
             ref={noteContentRef}
             blocks={blocks}
+            links={demoLinks}
             summary={summary}
             tagLabel={tagLabel}
             title={title}

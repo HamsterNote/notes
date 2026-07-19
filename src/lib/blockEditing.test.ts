@@ -9,7 +9,7 @@ import {
   normalizeEditableHtml,
   splitTextBlockAtHtml
 } from "./blockEditing"
-import { resolveDeletionFocus } from "./NoteBlockFocus"
+import { resolveBackspaceFocus, resolveDeletionFocus } from "./NoteBlockFocus"
 import type { NoteBlock, NoteHeadingBlock, NoteParagraphBlock } from "./types"
 
 const paragraphBlock: NoteParagraphBlock = {
@@ -80,10 +80,10 @@ describe("convertTextBlockFormat", () => {
 describe("convertBlockFormat", () => {
   it.each([
     [
-      "checklist",
+      "todo",
       {
         id: "tasks",
-        kind: "checklist",
+        kind: "todo",
         title: "Tasks & notes",
         items: [
           { id: "done", checked: true, text: "Done" },
@@ -283,84 +283,59 @@ describe("insertSplitBlock", () => {
     ])
   })
 
-  it.each([
-    [
-      "quote",
-      { id: "quote", kind: "quote", text: "AlphaBeta", author: "Ada" },
-      { id: "quote", kind: "quote", text: "Alpha", author: "Ada" },
-      { id: "quote-line", kind: "quote", text: "Beta", author: "Ada" }
-    ],
-    [
-      "callout",
-      {
-        id: "callout",
-        kind: "callout",
-        tone: "warning",
-        title: "Heads up",
-        text: "AlphaBeta"
-      },
-      {
-        id: "callout",
-        kind: "callout",
-        tone: "warning",
-        title: "Heads up",
-        text: "Alpha"
-      },
-      {
-        id: "callout-line",
-        kind: "callout",
-        tone: "warning",
-        title: "Heads up",
-        text: "Beta"
-      }
-    ],
-    [
-      "code",
-      {
-        id: "code",
-        kind: "code",
-        language: "ts",
-        filename: "demo.ts",
-        code: "AlphaBeta"
-      },
-      {
-        id: "code",
-        kind: "code",
-        language: "ts",
-        filename: "demo.ts",
-        code: "Alpha"
-      },
-      {
-        id: "code-line",
-        kind: "code",
-        language: "ts",
-        filename: "demo.ts",
-        code: "Beta"
-      }
+  it("creates a paragraph after a heading instead of cloning the heading", () => {
+    // Given: a heading split around the caret.
+    const blocks: readonly NoteBlock[] = [
+      { id: "heading", kind: "heading", level: 2, text: "AlphaBeta" }
     ]
-  ] as const)("splits a %s into a matching block", (_label, block, before, after) => {
-    // Given: a non-heading block whose primary content is edited.
-    const blocks: readonly NoteBlock[] = [block]
 
-    // When: Enter splits its primary content around the caret.
+    // When: Enter creates the following block.
     const result = insertSplitBlock({
       afterHtml: "Beta",
       beforeHtml: "Alpha",
       blocks,
-      nextId: after.id,
-      sourceId: block.id
+      nextId: "heading-line",
+      sourceId: "heading"
     })
 
-    // Then: the inserted block keeps the source block style and metadata.
-    expect(result).toEqual([before, after])
+    // Then: the source keeps its type, while the new block is plain text.
+    expect(result).toEqual([
+      { id: "heading", kind: "heading", level: 2, text: "Alpha" },
+      { id: "heading-line", kind: "paragraph", text: "Beta" }
+    ])
   })
 
-  it("inserts a checklist item after the edited item", () => {
-    // Given: a checklist with an item being split in the middle.
+  it.each(["unorderedList", "orderedList"] as const)(
+    "keeps %s for the block created by Enter",
+    (kind) => {
+      // Given: a list item split around the caret.
+      const blocks: readonly NoteBlock[] = [
+        { id: "list", kind, text: "AlphaBeta" }
+      ]
+
+      // When: Enter creates the following item.
+      const result = insertSplitBlock({
+        afterHtml: "Beta",
+        beforeHtml: "Alpha",
+        blocks,
+        nextId: "list-line",
+        sourceId: "list"
+      })
+
+      // Then: both halves remain list items of the same type.
+      expect(result).toEqual([
+        { id: "list", kind, text: "Alpha" },
+        { id: "list-line", kind, text: "Beta" }
+      ])
+    }
+  )
+
+  it("inserts a todo item after the edited item", () => {
+    // Given: a todo with an item being split in the middle.
     const blocks: readonly NoteBlock[] = [
       {
         id: "tasks",
-        kind: "checklist",
+        kind: "todo",
         title: "Tasks",
         items: [{ id: "first", checked: true, text: "AlphaBeta" }]
       }
@@ -375,11 +350,11 @@ describe("insertSplitBlock", () => {
       sourceId: "first"
     })
 
-    // Then: a new unchecked checklist item follows the edited item.
+    // Then: a new unchecked todo item follows the edited item.
     expect(result).toEqual([
       {
         id: "tasks",
-        kind: "checklist",
+        kind: "todo",
         title: "Tasks",
         items: [
           { id: "first", checked: true, text: "Alpha" },
@@ -388,6 +363,74 @@ describe("insertSplitBlock", () => {
       }
     ])
   })
+
+  it("inserts an item in a persisted legacy checklist", () => {
+    // Given: a legacy checklist item being split in the middle.
+    const blocks: readonly NoteBlock[] = [
+      {
+        id: "legacy-checklist",
+        kind: "checklist",
+        title: "Imported tasks",
+        items: [{ id: "legacy-item", checked: true, text: "AlphaBeta" }]
+      }
+    ]
+
+    // When: Enter splits the persisted item around the caret.
+    const result = insertSplitBlock({
+      afterHtml: "Beta",
+      beforeHtml: "Alpha",
+      blocks,
+      nextId: "legacy-item-line",
+      sourceId: "legacy-item"
+    })
+
+    // Then: the block shape and title survive, while a new unchecked item follows.
+    expect(result).toEqual([
+      {
+        id: "legacy-checklist",
+        kind: "checklist",
+        title: "Imported tasks",
+        items: [
+          { id: "legacy-item", checked: true, text: "Alpha" },
+          { id: "legacy-item-line", checked: false, text: "Beta" }
+        ]
+      }
+    ])
+  })
+
+  it.each([
+    {
+      id: "notice",
+      kind: "callout",
+      tone: "info",
+      title: "Notice",
+      text: "AlphaBeta"
+    },
+    {
+      id: "sample",
+      kind: "code",
+      code: "AlphaBeta",
+      language: "text"
+    }
+  ] satisfies readonly NoteBlock[])(
+    "keeps $kind unchanged because Enter is handled inside the block",
+    (block) => {
+      // Given: a multiline block whose editor owns the Enter key.
+      const blocks: readonly NoteBlock[] = [block]
+
+      // When: the generic split helper is called defensively.
+      const result = insertSplitBlock({
+        afterHtml: "Beta",
+        beforeHtml: "Alpha",
+        blocks,
+        nextId: "new-block",
+        sourceId: block.id
+      })
+
+      // Then: the generic helper does not clone or convert the block.
+      expect(result).toEqual(blocks)
+    }
+  )
 })
 
 describe("insertBlockAfter", () => {
@@ -410,25 +453,25 @@ describe("insertBlockAfter", () => {
     ])
   })
 
-  it("generates a checklist with the correct default item id", () => {
+  it("generates a todo with the correct default item id", () => {
     // Given: a single paragraph.
     const blocks: readonly NoteBlock[] = [paragraphBlock]
 
-    // When: inserting a checklist after it.
+    // When: inserting a todo after it.
     const result = insertBlockAfter({
       blocks,
       blockId: "intro",
-      checklistItemId: "32ff2214-ad42-42c1-a50a-a663f4b6d601",
+      todoItemId: "32ff2214-ad42-42c1-a50a-a663f4b6d601",
       nextId: "89430e11-f481-4d80-ab93-6c065784b0a6",
-      target: { kind: "checklist" }
+      target: { kind: "todo" }
     })
 
-    // Then: the new checklist has an empty title and a single empty item.
+    // Then: the new todo has an empty title and a single empty item.
     expect(result).toEqual([
       paragraphBlock,
       {
         id: "89430e11-f481-4d80-ab93-6c065784b0a6",
-        kind: "checklist",
+        kind: "todo",
         title: "",
         items: [
           {
@@ -493,6 +536,30 @@ describe("deleteEmptyTextBlock", () => {
     expect(result).toEqual([{ id: "after", kind: "paragraph", text: "After" }])
   })
 
+  it.each(["unorderedList", "orderedList"] as const)(
+    "downgrades an empty %s to a stable paragraph when another block remains",
+    (kind) => {
+      // Given: an empty list item before another block.
+      const blocks: readonly NoteBlock[] = [
+        { id: "empty-list", kind, text: "" },
+        { id: "after", kind: "paragraph", text: "After" }
+      ]
+
+      // When: Backspace is pressed at the start of the empty list item.
+      const result = deleteEmptyTextBlock({
+        blocks,
+        currentHtml: "<br>",
+        sourceId: "empty-list"
+      })
+
+      // Then: the row remains with the same id and becomes a paragraph.
+      expect(result).toEqual([
+        { id: "empty-list", kind: "paragraph", text: "" },
+        { id: "after", kind: "paragraph", text: "After" }
+      ])
+    }
+  )
+
   it("replaces the last empty block with one stable empty paragraph", () => {
     // Given: the document only has one visibly empty heading block.
     const blocks: readonly NoteBlock[] = [
@@ -510,12 +577,12 @@ describe("deleteEmptyTextBlock", () => {
     expect(result).toEqual([{ id: "solo", kind: "paragraph", text: "" }])
   })
 
-  it("deletes an empty checklist item while preserving its checklist", () => {
-    // Given: a checklist containing one empty item and one remaining item.
+  it("deletes an empty todo item while preserving its todo", () => {
+    // Given: a todo containing one empty item and one remaining item.
     const blocks: readonly NoteBlock[] = [
       {
         id: "tasks",
-        kind: "checklist",
+        kind: "todo",
         title: "Tasks",
         items: [
           { id: "empty", checked: false, text: "Old" },
@@ -531,14 +598,40 @@ describe("deleteEmptyTextBlock", () => {
       sourceId: "empty"
     })
 
-    // Then: only that item is removed, not the whole checklist block.
+    // Then: only that item is removed, not the whole todo block.
     expect(result).toEqual([
       {
         id: "tasks",
-        kind: "checklist",
+        kind: "todo",
         title: "Tasks",
         items: [{ id: "after", checked: false, text: "After" }]
       }
+    ])
+  })
+
+  it("downgrades a single-item empty todo to paragraph when other blocks exist", () => {
+    // Given: a single-item todo block with empty content, alongside another block.
+    const blocks: readonly NoteBlock[] = [
+      {
+        id: "tasks",
+        kind: "todo",
+        title: "Tasks",
+        items: [{ id: "only", checked: true, text: "" }]
+      },
+      { id: "after", kind: "paragraph", text: "After" }
+    ]
+
+    // When: Backspace is pressed on the empty todo item.
+    const result = deleteEmptyTextBlock({
+      blocks,
+      currentHtml: "<br>",
+      sourceId: "only"
+    })
+
+    // Then: the todo block becomes a paragraph, keeping its block id.
+    expect(result).toEqual([
+      { id: "tasks", kind: "paragraph", text: "" },
+      { id: "after", kind: "paragraph", text: "After" }
     ])
   })
 
@@ -608,12 +701,12 @@ describe("deleteEmptyTextBlock", () => {
 })
 
 describe("resolveDeletionFocus", () => {
-  it("focuses the replacement paragraph after deleting the only checklist item", () => {
-    // Given: a one-item checklist is replaced by a stable empty paragraph.
+  it("focuses the replacement paragraph after deleting the only todo item", () => {
+    // Given: a one-item todo is replaced by a stable empty paragraph.
     const before: readonly NoteBlock[] = [
       {
         id: "tasks",
-        kind: "checklist",
+        kind: "todo",
         title: "Tasks",
         items: [{ id: "only", checked: false, text: "" }]
       }
@@ -626,6 +719,81 @@ describe("resolveDeletionFocus", () => {
     const target = resolveDeletionFocus({ after, before, sourceId: "only" })
 
     // Then: the replacement block receives focus at its start.
+    expect(target).toEqual({ id: "tasks", position: "start" })
+  })
+})
+
+describe("resolveBackspaceFocus", () => {
+  it("keeps focus on the downgraded paragraph when a single-item todo follows other blocks", () => {
+    // Given: a heading precedes a one-item todo that Backspace downgrades to a paragraph.
+    const before: readonly NoteBlock[] = [
+      { id: "intro", kind: "heading", level: 1, text: "Intro" },
+      {
+        id: "tasks",
+        kind: "todo",
+        title: "",
+        items: [{ id: "only", checked: false, text: "" }]
+      }
+    ]
+    const after: readonly NoteBlock[] = [
+      { id: "intro", kind: "heading", level: 1, text: "Intro" },
+      { id: "tasks", kind: "paragraph", text: "" }
+    ]
+
+    // When: the Backspace focus destination is resolved for the emptied item.
+    const target = resolveBackspaceFocus({ after, before, sourceId: "only" })
+
+    // Then: the caret stays on the downgraded paragraph instead of jumping to the previous block.
+    expect(target).toEqual({ id: "tasks", position: "start" })
+  })
+
+  it("moves focus to the previous item when one of several todo items is removed", () => {
+    // Given: a two-item todo whose second empty item is removed by Backspace.
+    const before: readonly NoteBlock[] = [
+      {
+        id: "tasks",
+        kind: "todo",
+        title: "",
+        items: [
+          { id: "first", checked: false, text: "One" },
+          { id: "second", checked: false, text: "" }
+        ]
+      }
+    ]
+    const after: readonly NoteBlock[] = [
+      {
+        id: "tasks",
+        kind: "todo",
+        title: "",
+        items: [{ id: "first", checked: false, text: "One" }]
+      }
+    ]
+
+    // When: the Backspace focus destination is resolved.
+    const target = resolveBackspaceFocus({ after, before, sourceId: "second" })
+
+    // Then: the caret lands at the end of the remaining previous item.
+    expect(target).toEqual({ id: "first", position: "end" })
+  })
+
+  it("focuses the surviving paragraph when the single-item todo is the only block", () => {
+    // Given: a one-item todo is the only block and becomes a paragraph.
+    const before: readonly NoteBlock[] = [
+      {
+        id: "tasks",
+        kind: "todo",
+        title: "",
+        items: [{ id: "only", checked: false, text: "" }]
+      }
+    ]
+    const after: readonly NoteBlock[] = [
+      { id: "tasks", kind: "paragraph", text: "" }
+    ]
+
+    // When: the Backspace focus destination is resolved.
+    const target = resolveBackspaceFocus({ after, before, sourceId: "only" })
+
+    // Then: the caret stays on the downgraded paragraph.
     expect(target).toEqual({ id: "tasks", position: "start" })
   })
 })
