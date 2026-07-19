@@ -148,12 +148,20 @@ describe("buildReplacementFromShortcut", () => {
       { kind: "checklist", checked: true },
       "block-1"
     )
-    expect(replacement).toEqual({
+    expect(replacement).toMatchObject({
       id: "block-1",
       kind: "checklist",
       title: "",
-      items: [{ id: expect.any(String), checked: true, text: "" }]
+      items: [{ checked: true, text: "" }]
     })
+    // items[0].id 由 createNoteId 新鲜生成（字符串），与测试名
+    // "single fresh item id" 对齐；不内嵌到上面 toMatchObject 是为
+    // 避免 expect.any(String) 触发 @typescript-eslint/no-unsafe-assignment。
+    if (replacement.kind !== "checklist") {
+      throw new Error("Expected a checklist replacement.")
+    }
+    expect(replacement.items).toHaveLength(1)
+    expect(typeof replacement.items[0]?.id).toBe("string")
   })
 
   it("builds an empty checklist with checked=false for the unchecked variant", () => {

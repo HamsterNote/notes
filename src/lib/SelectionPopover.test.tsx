@@ -347,7 +347,11 @@ describe("SelectionPopover 新增格式化按钮与行为", () => {
 // 其余格式化按钮仍可用（走 crossBlock* helpers）。
 // ============================================================
 
-const mountCrossBlockPopover = async (): Promise<MountResult> => {
+// 函数体内无真正的 await 操作，故不声明 async（否则触发
+// @typescript-eslint/require-await）；但仍返回 Promise<MountResult>
+// 让调用方 `await` 一次微任务，给 React effect 处理 selectionchange
+// 留出时间--与 `mountPopover` 保持同一风格。
+const mountCrossBlockPopover = (): Promise<MountResult> => {
   const containerRef: RefObject<HTMLElement | null> = { current: null }
   const onContentChange = vi.fn()
 
@@ -412,7 +416,7 @@ const mountCrossBlockPopover = async (): Promise<MountResult> => {
 
   document.dispatchEvent(new Event("selectionchange"))
 
-  return { containerRef, onContentChange }
+  return Promise.resolve({ containerRef, onContentChange })
 }
 
 describe("SelectionPopover 跨块选区", () => {

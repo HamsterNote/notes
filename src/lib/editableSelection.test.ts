@@ -88,7 +88,7 @@ describe("editableSelection - 单块守卫", () => {
   })
 
   it("起终点位于容器外 -> isRangeInSingleEditableRoot=false", () => {
-    const { container, block1 } = mountTwoEditableBlocks()
+    const { container } = mountTwoEditableBlocks()
     const outside = document.createElement("div")
     outside.setAttribute("contenteditable", "true")
     outside.textContent = "outside"
