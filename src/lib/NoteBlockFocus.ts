@@ -33,6 +33,8 @@ const editableIds = (blocks: readonly NoteBlock[]): string[] =>
       case "picture":
       case "directory":
         return []
+      case "checklist":
+        return block.items.map((item) => item.id)
       case "table":
         return block.rows.flatMap((row, rowIndex) =>
           row.map((_, colIndex) => `${block.id}-r${rowIndex}-c${colIndex}`)

@@ -890,6 +890,12 @@
   color: #b91c1c;
 }
 
+/* docked 模式下的 active 状态：底色为主题化背景，需用主题色 soft 变体重写 */
+.hn-note-popover--docked .hn-note-popover-btn--active {
+  background: var(--hn-theme-soft);
+  color: var(--hn-theme-text);
+}
+
 .hn-note-popover-btn {
   display: inline-flex;
   align-items: center;
@@ -914,29 +920,10 @@
   color: #ffffff;
 }
 
-/* 按钮在当前选区已生效时的激活态：主题色背景 + 高对比文字，
-   让用户一眼看出当前选区已经应用了哪些格式 */
 .hn-note-popover-btn--active {
-  background: rgba(59, 130, 246, 0.32);
+  background: rgba(255, 255, 255, 0.22);
   color: #ffffff;
 }
-
-.hn-note-popover-btn--active:hover {
-  background: rgba(59, 130, 246, 0.45);
-  color: #ffffff;
-}
-
-/* Docked 模式：跟随主题色，并以更明显的实心背景突出激活态 */
-.hn-note-popover--docked .hn-note-popover-btn--active {
-  background: color-mix(in srgb, var(--hn-theme) 22%, transparent);
-  color: var(--hn-theme);
-}
-
-.hn-note-popover--docked .hn-note-popover-btn--active:hover {
-  background: color-mix(in srgb, var(--hn-theme) 35%, transparent);
-  color: var(--hn-theme);
-}
-
 /* 复制按钮：文字更紧凑 */
 .hn-note-popover-btn--copy {
   min-width: auto;
@@ -962,14 +949,28 @@
   text-decoration: underline;
 }
 
-/* 清除样式按钮的 SVG glyph：与链接 glyph 一致的 inline-flex 居中容器 */
+.hn-note-popover-glyph--strikethrough {
+  text-decoration: line-through;
+}
+
+.hn-note-popover-glyph--code {
+  font-family: var(--hn-code-font, ui-monospace, monospace);
+}
+
+.hn-note-popover-glyph--formula {
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+}
+
 .hn-note-popover-glyph--clear {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  opacity: 0.85;
 }
 
-/* 清除样式按钮：略红色调暗示破坏性操作，但不变更 primary 色板 */
 .hn-note-popover-btn--clear {
   color: #fca5a5;
 }
@@ -1532,6 +1533,35 @@
 
 .hn-note-formula-textarea::placeholder {
   color: rgba(226, 232, 240, 0.45);
+}
+
+/* ===== 行内公式与行内代码 ===== */
+/* 行内公式基础态：富文本 HTML 中存储的未渲染占位，衬线斜体以区别于正文。
+   与块级 .hn-note-formula-* 系列平行，但走独立的 BEM 命名。 */
+.hn-note-inline-formula {
+  display: inline-block;
+  padding: 0 0.2em;
+  color: var(--hn-text);
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+}
+
+/* 行内公式渲染态：KaTeX 已替换内容，重置 padding/字体为正常排版 */
+.hn-note-inline-formula--rendered {
+  padding: 0;
+  font-family: inherit;
+  font-style: normal;
+}
+
+/* 行内代码：浅色背景胶囊 + 等宽字体，与块级 .hn-note-code-card 的深色卡片独立。
+   作用域为正文内 <code class="hn-note-inline-code">，不与 .hn-note-code-card code 冲突。 */
+.hn-note-inline-code {
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+  background: var(--hn-surface);
+  color: var(--hn-text);
+  font-family: var(--hn-code-font);
+  font-size: 0.88em;
 }
 
 /* ===== 表格块 ===== */

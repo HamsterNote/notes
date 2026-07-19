@@ -120,6 +120,7 @@ const serializeBlock = (block: NoteBlock): string => {
     case "orderedList":
       return ""
     case "todo":
+    case "checklist":
       return block.items
         .map((item) => `- [${item.checked ? "x" : " "}] ${item.text}`)
         .join("\n")

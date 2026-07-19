@@ -1,5 +1,6 @@
 import type { ReactElement } from "react"
 import { NoteCalloutBlock } from "./NoteCalloutBlock"
+import { NoteChecklistBlock } from "./NoteChecklistBlock"
 import { NoteCodeBlock } from "./NoteCodeEditorBlock"
 import { NoteCollapsibleBlock } from "./NoteCollapsibleBlock"
 import type { EditContext } from "./NoteContentEditing"
@@ -47,6 +48,8 @@ export const renderBlock = (
       return <NoteDirectoryBlock block={block} ctx={ctx} />
     case "collapsible":
       return <NoteCollapsibleBlock block={block} ctx={ctx} />
+    case "checklist":
+      return <NoteChecklistBlock block={block} ctx={ctx} />
     default:
       return assertNever(block)
   }

@@ -254,6 +254,7 @@ export const insertSplitBlock = ({
       case "directory":
         return [block]
       case "collapsible":
+      case "checklist":
         // 标题行不参与 Enter 拆分，保持块不变
         return [block]
       default:
@@ -315,6 +316,7 @@ export const deleteEmptyTextBlock = ({
         case "directory":
           return block
         case "collapsible":
+        case "checklist":
           // 标题非空时更新 title 字段
           return { ...block, title: normalizedText }
         default:

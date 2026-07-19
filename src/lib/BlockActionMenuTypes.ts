@@ -113,6 +113,8 @@ export const blockKindLabel = (
       return "目录"
     case "collapsible":
       return "Collapsible"
+    case "checklist":
+      return "Checklist"
     default:
       return assertNever(kind)
   }

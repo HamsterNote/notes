@@ -11,16 +11,18 @@ import {
 import "./styles.css"
 
 import { isVisibleHtmlEmpty } from "./blockEditing"
+import { useInlineFormulaRendering } from "./inlineFormulaRendering"
 import { LinkMentionMenu } from "./LinkMentionMenu"
+import { NoteChecklistBlock } from "./NoteChecklistBlock"
+import { NoteListBlock } from "./NoteListBlock"
 import { renderBlock, richText } from "./NoteContentBlocks"
 import { editableProps, updateText } from "./NoteContentEditing"
-import { NoteListBlock } from "./NoteListBlock"
+import type { NoteBlock, NoteContentProps, NoteContentUndoRedoHandle } from "./types"
 import { NoteQuoteBlock } from "./NoteQuoteBlock"
 import { NoteTodoBlock } from "./NoteTodoBlock"
 import { DISABLED_CONTROLLER } from "./noteContentUndoRedo"
 import { createNoteId } from "./noteId"
 import { SelectionPopover } from "./SelectionPopover"
-import type { NoteContentProps, NoteContentUndoRedoHandle } from "./types"
 import { useBlockEditing } from "./useBlockEditing"
 import { useBlockDrag } from "./useBlockDrag"
 
@@ -132,6 +134,14 @@ export function NoteContent({
     blocks,
     onBlocksChange: blockDragEnabled ? onBlocksChange : undefined,
     touchEnabled: viewportWidth <= 840
+  })
+  // 只读模式下渲染富文本中嵌入的内联公式占位 span。可编辑模式下传 null
+  // 禁用渲染——contentEditable 需保留原始 LaTeX 文本供用户直接编辑，
+  // KaTeX 渲染产物会破坏选区与编辑语义。renderKey 仍随 blocks 变化，
+  // 在只读模式下任何内容更新都会重新扫描并渲染公式。
+  useInlineFormulaRendering({
+    root: bodyRef,
+    renderKey: contentEditable ? null : blocks
   })
   const selectBlockFromTarget = (target: EventTarget | null): boolean => {
     if (!(target instanceof Element)) return false
@@ -348,6 +358,16 @@ export function NoteContent({
           onMagicLinkConfigure={onMagicLinkConfigure}
           onContentChange={(blockId, innerHtml) => {
             onBlocksChange?.(updateText(blocks, blockId, innerHtml))
+          }}
+          onBatchContentChange={(updates) => {
+            // 跨块格式化后批量同步：以本次渲染的 blocks 为起点 reduce，
+            // 避免多次调用 onContentChange 时闭包 blocks 取到 stale 值。
+            onBlocksChange?.(
+              updates.reduce<NoteBlock[]>(
+                (acc, [blockId, innerHtml]) => updateText(acc, blockId, innerHtml),
+                [...blocks]
+              )
+            )
           }}
         />
       ) : null}

@@ -186,6 +186,7 @@ const blockAsRichText = (block: NoteBlock): string => {
     case "paragraph":
       return block.text
     case "todo":
+    case "checklist":
       return [
         `<strong>${escapePlainText(block.title)}</strong>`,
         ...block.items.map(

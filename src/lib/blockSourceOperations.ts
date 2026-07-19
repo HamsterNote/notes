@@ -75,7 +75,8 @@ const cloneBlockWithNewId = (block: NoteBlock): NoteBlock => {
     case "directory":
       // 无 id 子结构：仅替换 block.id 即可
       return { ...block, id: newId }
-    case "todo": {
+    case "todo":
+    case "checklist": {
       // 为每条 item 生成新 id，保持 item 内容文本/勾选状态不变
       const items: NoteTodoItem[] = block.items.map((item) => ({
         ...item,

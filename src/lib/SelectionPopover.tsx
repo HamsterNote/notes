@@ -10,7 +10,21 @@ import { createPortal } from "react-dom"
 
 import "./styles.css"
 
-import { isRangeInSingleEditableRoot } from "./editableSelection"
+import { isRangeInNoteEditableScope, isRangeInSingleEditableRoot, isRangeCrossMultipleEditableRoots } from "./editableSelection"
+import {
+  EMPTY_SELECTION_FORMAT_STATE,
+  applyInlineCode,
+  applyInlineFormula,
+  clearSelectionFormatting,
+  crossBlockClearFormatting,
+  crossBlockToggleInlineCode,
+  getSelectionFormatState,
+  runCrossBlockFormatCommand,
+  runNativeFormatCommand,
+  syncEditableBlockFromRange,
+  syncEditableBlocksFromRange,
+  type SelectionFormatState
+} from "./inlineSelectionFormatting"
 
 type SelectionPopoverProps = {
   readonly containerRef: RefObject<HTMLElement | null>
@@ -24,6 +38,14 @@ type SelectionPopoverProps = {
    * 导致保存的选区 Range 失效。
    */
   readonly onContentChange?: ((blockId: string, innerHtml: string) => void) | undefined
+  /**
+   * 跨块格式化后批量同步：参数为受影响 root 的 (blockId, innerHtml) 数组。
+   * 单块场景继续走 onContentChange；跨块场景使用本批量入口，避免多次调用
+   * onContentChange 时 NoteContent 闭包内 blocks 取到 stale 值。
+   */
+  readonly onBatchContentChange?:
+    | ((updates: ReadonlyArray<readonly [string, string]>) => void)
+    | undefined
 }
 
 type PopoverPosition = {
@@ -35,28 +57,7 @@ type PopoverPosition = {
 
 type PopoverMode = "format" | "link"
 
-// 已知可被按钮触发/清除的格式名集合，复用于 queryActiveFormats 与高亮判断
-type FormatCommand = "bold" | "italic" | "underline"
 
-// 当前选区已生效的格式状态，用于在对应按钮上高亮显示。
-// jsdom 未实现 queryCommandState，需做空值与异常兜底，避免测试与 SSR 崩溃。
-const queryActiveFormats = (): Record<FormatCommand, boolean> => {
-  const empty: Record<FormatCommand, boolean> = {
-    bold: false,
-    italic: false,
-    underline: false
-  }
-  if (typeof document.queryCommandState !== "function") return empty
-  try {
-    return {
-      bold: document.queryCommandState("bold") === true,
-      italic: document.queryCommandState("italic") === true,
-      underline: document.queryCommandState("underline") === true
-    }
-  } catch {
-    return empty
-  }
-}
 
 // 选区距视口顶部小于该阈值时，popover 翻转到选区下方，避免被裁切
 const FLIP_THRESHOLD = 88
@@ -99,21 +100,23 @@ export const SelectionPopover = ({
   containerRef,
   portalContainerRef,
   onMagicLinkConfigure,
-  onContentChange
+  onContentChange,
+  onBatchContentChange
 }: SelectionPopoverProps) => {
   const [position, setPosition] = useState<PopoverPosition | null>(null)
   const [mode, setMode] = useState<PopoverMode>("format")
   const [linkUrl, setLinkUrl] = useState("")
   const [configuring, setConfiguring] = useState(false)
+  // 当前选区的格式激活态（bold / italic / underline / strikeThrough / code / formula）
+  // 在 selectionchange 与每次格式化动作后刷新；popover 隐藏时重置为空态
+  const [activeFormats, setActiveFormats] = useState<SelectionFormatState>(
+    EMPTY_SELECTION_FORMAT_STATE
+  )
   // 当前选区文字颜色（由 queryCommandValue("foreColor") 读取），
   // 用于在对应色块上高亮；jsdom 下为空字符串，不会命中任何预设色块
   const [activeColor, setActiveColor] = useState<string>("")
-  // 当前选区已生效的格式（bold/italic/underline），用于在对应按钮上高亮
-  const [activeFormats, setActiveFormats] = useState<Record<FormatCommand, boolean>>({
-    bold: false,
-    italic: false,
-    underline: false
-  })
+  // 当前选区是否跨多个 contenteditable 根；用于在跨块时禁用 createLink 等单 selection 操作。
+  const [crossBlock, setCrossBlock] = useState(false)
 
   // 保存进入链接配置时的选区 Range，用于恢复选区后执行 createLink
   const savedRangeRef = useRef<Range | null>(null)
@@ -122,6 +125,9 @@ export const SelectionPopover = ({
   // mode 的 ref 镜像：selectionchange 监听器内读取最新值，避免闭包过期
   const modeRef = useRef<PopoverMode>(mode)
   modeRef.current = mode
+  // 最近一次有效选区的 Range 克隆；格式化 helper 执行后若选区丢失，
+  // 用它作为 syncEditableBlockFromRange 的兜底入参，保证 onContentChange 仍被触发
+  const lastRangeRef = useRef<Range | null>(null)
 
   // 监听选区变化：仅在笔记容器内、非折叠、含可见文字时展示 popover。
   // 链接配置模式下跳过同步，避免输入框获焦导致选区丢失而关闭 popover。
@@ -139,13 +145,19 @@ export const SelectionPopover = ({
         !container
       ) {
         setPosition(null)
+        setActiveFormats(EMPTY_SELECTION_FORMAT_STATE)
+        setActiveColor("")
+        setCrossBlock(false)
         return
       }
 
       const range = selection.getRangeAt(0)
 
-      if (!isRangeInSingleEditableRoot(range, container)) {
+      if (!isRangeInNoteEditableScope(range, container)) {
         setPosition(null)
+        setActiveFormats(EMPTY_SELECTION_FORMAT_STATE)
+        setActiveColor("")
+        setCrossBlock(false)
         return
       }
 
@@ -153,12 +165,17 @@ export const SelectionPopover = ({
 
       if (!text.trim()) {
         setPosition(null)
+        setActiveFormats(EMPTY_SELECTION_FORMAT_STATE)
+        setActiveColor("")
+        setCrossBlock(false)
         return
       }
 
-      setActiveColor(queryActiveColor())
-      setActiveFormats(queryActiveFormats())
+      lastRangeRef.current = range.cloneRange()
       setPosition(computePosition(range))
+      setActiveFormats(getSelectionFormatState())
+      setActiveColor(queryActiveColor())
+      setCrossBlock(isRangeCrossMultipleEditableRoots(range))
     }
 
     document.addEventListener("selectionchange", sync)
@@ -178,7 +195,11 @@ export const SelectionPopover = ({
       setLinkUrl("")
       setConfiguring(false)
       savedRangeRef.current = null
+      lastRangeRef.current = null
       setPosition(null)
+      setActiveFormats(EMPTY_SELECTION_FORMAT_STATE)
+      setActiveColor("")
+      setCrossBlock(false)
     }
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") close()
@@ -204,11 +225,40 @@ export const SelectionPopover = ({
 
   if (!position) return null
 
-  // 执行格式化命令并重新定位；execCommand 虽已废弃，
-  // 但仍是 contentEditable 富文本选区操作的最简且兼容性最好的方案
-  const format = (command: FormatCommand) => {
-    document.execCommand(command)
+  // 格式化动作后把 contentEditable 的 DOM 变更同步回 React 状态。
+  // 优先使用 helper 执行后的新鲜选区；若选区已丢失（如公式占位插入后光标
+  // 落在 contenteditable=false 节点旁），回退到 lastRangeRef 保存的选区，
+  // 确保 onContentChange 总能被触发。
+  // 跨块选区走 syncEditableBlocksFromRange，遍历每个受影响 root 多次回调。
+  // 若宿主提供 onBatchContentChange，则一次性收集所有 (blockId, innerHtml) 后批量回调，
+  // 避免 NoteContent 内 onContentChange 闭包 blocks 取到 stale 值。
+  const syncAfterFormat = () => {
+    if (!onContentChange && !onBatchContentChange) return
+    const container = containerRef.current
+    const selection = window.getSelection()
+    let range: Range | null =
+      selection && selection.rangeCount > 0 ? selection.getRangeAt(0) : null
+    if (range === null) {
+      range = lastRangeRef.current
+    }
+    if (range === null) return
+    if (crossBlock && container) {
+      if (onBatchContentChange) {
+        const updates: Array<readonly [string, string]> = []
+        syncEditableBlocksFromRange(range, container, (blockId, innerHtml) => {
+          updates.push([blockId, innerHtml])
+        })
+        if (updates.length > 0) onBatchContentChange(updates)
+      } else if (onContentChange) {
+        syncEditableBlocksFromRange(range, container, onContentChange)
+      }
+    } else if (onContentChange) {
+      syncEditableBlockFromRange(range, onContentChange)
+    }
+  }
 
+  // 格式化动作后刷新 popover 位置与激活态：选区仍有效则重新定位，否则隐藏
+  const refreshPositionAndState = () => {
     const selection = window.getSelection()
     const container = containerRef.current
 
@@ -217,11 +267,11 @@ export const SelectionPopover = ({
       selection.rangeCount > 0 &&
       !selection.isCollapsed &&
       container &&
-      isRangeInSingleEditableRoot(selection.getRangeAt(0), container)
+      isRangeInNoteEditableScope(selection.getRangeAt(0), container)
     ) {
       // 切换格式后立即读取最新状态，使按钮高亮反映 toggle 结果
       setActiveColor(queryActiveColor())
-      setActiveFormats(queryActiveFormats())
+      setActiveFormats(getSelectionFormatState())
       setPosition(computePosition(selection.getRangeAt(0)))
     } else {
       setPosition(null)
@@ -235,7 +285,7 @@ export const SelectionPopover = ({
     setActiveColor(colorHex)
     // 应用颜色不改变 bold/italic/underline 状态，但仍刷新一次以规避
     // 浏览器在跨节点选择时可能产生的格式漂移
-    setActiveFormats(queryActiveFormats())
+    setActiveFormats(getSelectionFormatState())
 
     const selection = window.getSelection()
     const container = containerRef.current
@@ -270,11 +320,60 @@ export const SelectionPopover = ({
       isRangeInSingleEditableRoot(selection.getRangeAt(0), container)
     ) {
       setActiveColor(queryActiveColor())
-      setActiveFormats(queryActiveFormats())
+      setActiveFormats(getSelectionFormatState())
       setPosition(computePosition(selection.getRangeAt(0)))
+      setCrossBlock(isRangeCrossMultipleEditableRoots(selection.getRangeAt(0)))
     } else {
       setPosition(null)
     }
+    setActiveFormats(getSelectionFormatState())
+  }
+
+  // 原生格式命令（bold / italic / underline / strikeThrough）：
+  // 单块选区 -> runNativeFormatCommand；跨块选区 -> runCrossBlockFormatCommand 按 root 逐段执行
+  const format = (command: "bold" | "italic" | "underline" | "strikeThrough") => {
+    const container = containerRef.current
+    if (crossBlock && container) {
+      runCrossBlockFormatCommand(container, command)
+    } else {
+      runNativeFormatCommand(command)
+    }
+    syncAfterFormat()
+    refreshPositionAndState()
+  }
+
+  // 行内代码：选区外包裹 <code>，已在 <code> 内则解包（单块走 applyInlineCode；跨块走 crossBlockToggleInlineCode）
+  const handleInlineCode = () => {
+    const container = containerRef.current
+    if (crossBlock && container) {
+      crossBlockToggleInlineCode(container)
+    } else {
+      applyInlineCode()
+    }
+    syncAfterFormat()
+    refreshPositionAndState()
+  }
+
+  // 行内公式：把选中文本替换为 data-hn-inline-formula 占位 span（由 helper 实现）
+  // 跨块时禁用（按钮 disabled），避免多块内容塌陷到单个 span。
+  const handleInlineFormula = () => {
+    if (crossBlock) return
+    applyInlineFormula()
+    syncAfterFormat()
+    refreshPositionAndState()
+  }
+
+  // 清除格式：removeFormat + 手动解包 code / formula 等自定义包裹
+  // 跨块走 crossBlockClearFormatting 按 root 独立扫描。
+  const handleClearFormatting = () => {
+    const container = containerRef.current
+    if (crossBlock && container) {
+      crossBlockClearFormatting(container)
+    } else {
+      clearSelectionFormatting()
+    }
+    syncAfterFormat()
+    refreshPositionAndState()
   }
 
   // 进入链接配置模式：保存当前选区 Range（克隆以避免后续 DOM 变更影响）
@@ -300,7 +399,8 @@ export const SelectionPopover = ({
   }
 
   // 确认应用链接：恢复保存的选区，执行 createLink（选中文本作为链接文案，url 作为 href）
-  // 之后同步 DOM 变更到 React 状态，避免 onBlur 因 innerHTML 差异替换 DOM 节点
+  // 之后通过 syncEditableBlockFromRange 同步 DOM 变更到 React 状态，避免 onBlur
+  // 因 innerHTML 差异替换 DOM 节点
   const applyLink = () => {
     const url = linkUrl.trim()
     const savedRange = savedRangeRef.current
@@ -319,16 +419,7 @@ export const SelectionPopover = ({
     // 使 block.text 包含 <a> 标签，防止后续重渲染因 dangerouslySetInnerHTML
     // 引用变化而替换 DOM，从而避免保存的选区 Range 失效
     if (onContentChange) {
-      const container = savedRange.commonAncestorContainer
-      const el =
-        container.nodeType === Node.ELEMENT_NODE
-          ? (container as HTMLElement)
-          : container.parentElement
-      const blockEl = el?.closest("[data-editable-block-id]")
-      if (blockEl) {
-        const blockId = blockEl.getAttribute("data-editable-block-id")
-        if (blockId) onContentChange(blockId, blockEl.innerHTML)
-      }
+      syncEditableBlockFromRange(savedRange, onContentChange)
     }
 
     close()
@@ -339,7 +430,11 @@ export const SelectionPopover = ({
     setLinkUrl("")
     setConfiguring(false)
     savedRangeRef.current = null
+    lastRangeRef.current = null
     setPosition(null)
+    setActiveFormats(EMPTY_SELECTION_FORMAT_STATE)
+    setActiveColor("")
+    setCrossBlock(false)
   }
 
   const onLinkFormSubmit = (event: FormEvent) => {
@@ -409,6 +504,54 @@ export const SelectionPopover = ({
               U
             </span>
           </button>
+          <button
+            type="button"
+            className={`hn-note-popover-btn${activeFormats.strikeThrough ? " hn-note-popover-btn--active" : ""}`}
+            onClick={() => format("strikeThrough")}
+            title="删除线"
+            aria-label="删除线"
+            aria-pressed={activeFormats.strikeThrough}
+          >
+            <span className="hn-note-popover-glyph hn-note-popover-glyph--strikethrough">
+              S
+            </span>
+          </button>
+          <button
+            type="button"
+            className={`hn-note-popover-btn${activeFormats.code ? " hn-note-popover-btn--active" : ""}`}
+            onClick={handleInlineCode}
+            title="行内代码"
+            aria-label="行内代码"
+            aria-pressed={activeFormats.code}
+          >
+            <span className="hn-note-popover-glyph hn-note-popover-glyph--code">
+              {"</>"}
+            </span>
+          </button>
+          <button
+            type="button"
+            className={`hn-note-popover-btn${activeFormats.formula ? " hn-note-popover-btn--active" : ""}`}
+            onClick={handleInlineFormula}
+            title="行内公式"
+            aria-label="行内公式"
+            aria-pressed={activeFormats.formula}
+            disabled={crossBlock}
+          >
+            <span className="hn-note-popover-glyph hn-note-popover-glyph--formula">
+              fx
+            </span>
+          </button>
+          <button
+            type="button"
+            className="hn-note-popover-btn"
+            onClick={handleClearFormatting}
+            title="清除格式"
+            aria-label="清除格式"
+          >
+            <span className="hn-note-popover-glyph hn-note-popover-glyph--clear">
+              T
+            </span>
+          </button>
           <span className="hn-note-popover-divider" />
           {TEXT_COLORS.map((color) => (
             <button
@@ -449,6 +592,7 @@ export const SelectionPopover = ({
             onClick={enterLinkMode}
             title="链接"
             aria-label="为选中文字添加链接"
+            disabled={crossBlock}
           >
             <span className="hn-note-popover-glyph hn-note-popover-glyph--link">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

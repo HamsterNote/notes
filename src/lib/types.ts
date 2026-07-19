@@ -13,7 +13,8 @@ export const noteBlockKinds = {
   formula: "formula",
   picture: "picture",
   directory: "directory",
-  collapsible: "collapsible"
+  collapsible: "collapsible",
+  checklist: "checklist"
 } as const
 
 export type NoteBlockKind = (typeof noteBlockKinds)[keyof typeof noteBlockKinds]
@@ -119,6 +120,19 @@ export type NoteDirectoryBlock = {
  * 收缩块。可折叠/展开的容器型块，内部 blocks 可嵌套任意 NoteBlock（含 collapsible 自身）。
  * 展开后，内部完整内容块可通过拖拽手柄在容器内排序，也可在正文与折叠块之间移动。
  */
+export type NoteChecklistItem = {
+  readonly id: string
+  readonly checked: boolean
+  readonly text: string
+}
+
+export type NoteChecklistBlock = {
+  readonly id: string
+  readonly kind: "checklist"
+  readonly title: string
+  readonly items: readonly NoteChecklistItem[]
+}
+
 export type NoteCollapsibleBlock = {
   readonly id: string
   readonly kind: "collapsible"
@@ -140,6 +154,7 @@ export type NoteBlock =
   | NoteFormulaBlock
   | NotePictureBlock
   | NoteDirectoryBlock
+  | NoteChecklistBlock
   | NoteCollapsibleBlock
 
 export const noteListLikeBlockKinds = [

@@ -199,3 +199,34 @@ export const updateTodoItemText = (
       )
     }
   })
+
+export const toggleChecklistItem = (
+  blocks: readonly NoteBlock[],
+  blockId: string,
+  itemId: string
+): NoteBlock[] =>
+  blocks.map((block) => {
+    if (block.id !== blockId || block.kind !== "checklist") return block
+    return {
+      ...block,
+      items: block.items.map((item) =>
+        item.id === itemId ? { ...item, checked: !item.checked } : item
+      )
+    }
+  })
+
+export const updateChecklistItemText = (
+  blocks: readonly NoteBlock[],
+  blockId: string,
+  itemId: string,
+  text: string
+): NoteBlock[] =>
+  blocks.map((block) => {
+    if (block.id !== blockId || block.kind !== "checklist") return block
+    return {
+      ...block,
+      items: block.items.map((item) =>
+        item.id === itemId ? { ...item, text } : item
+      )
+    }
+  })

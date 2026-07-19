@@ -45,6 +45,7 @@ const markdownBlockValue = (block: NoteBlock): unknown => {
     case "quote":
       return { author: block.author, kind: block.kind, text: block.text }
     case "todo":
+    case "checklist":
       return {
         items: block.items.map(({ checked, text }) => ({ checked, text })),
         kind: block.kind,

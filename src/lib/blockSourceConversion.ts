@@ -3,6 +3,7 @@ import { convertBlockFormatToBlocks } from "./blockConversion"
 import { createNoteId } from "./noteId"
 import type {
   NoteBlock,
+  NoteChecklistBlock,
   NoteTodoBlock,
   NotePictureBlock,
   NoteQuoteBlock
@@ -13,6 +14,11 @@ export type BlockSource =
   | { readonly kind: "block"; readonly blockId: string }
   | {
       readonly kind: "todo-item"
+      readonly blockId: string
+      readonly itemId: string
+    }
+  | {
+      readonly kind: "checklist-item"
       readonly blockId: string
       readonly itemId: string
     }
@@ -189,6 +195,15 @@ const replaceBlockSource = ({
         return block.kind === "todo"
           ? replaceTodoItem({
               block,
+              itemId: source.itemId,
+              preserveMarkdownMarker,
+              replace
+            })
+          : [block]
+      case "checklist-item":
+        return block.kind === "checklist"
+          ? replaceTodoItem({
+              block: block as unknown as NoteTodoBlock,
               itemId: source.itemId,
               preserveMarkdownMarker,
               replace

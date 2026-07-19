@@ -19,6 +19,10 @@ import {
   deleteBlockSource,
   duplicateBlockSource
 } from "./blockSourceOperations"
+import {
+  downgradeEmptySpecialBlockToParagraph,
+  resolveSpecialBlockSourceForBackspace
+} from "./blockDowngrade"
 import { insertBlockAfterSource } from "./blockSourceInsertion"
 import { resolveDeletionFocus } from "./NoteBlockFocus"
 import type { EditContext } from "./NoteContentEditing"
@@ -137,6 +141,22 @@ export const handleEditableBlockKeyDown = ({
   const beforeHtml = htmlBeforeCaret(element, range)
   if (!isVisibleHtmlEmpty(beforeHtml) || !isVisibleHtmlEmpty(element.innerHTML))
     return
+
+  // 特殊块（callout / checklist item）在空白时按 Backspace：第一次先降级为 paragraph，
+  // 第二次再走下方 deleteEmptyTextBlock 路径把 paragraph 删除。
+  // quote-line 不经此入口（走 handleQuoteLineKeyDown 自有降级路径）。
+  const specialSource = resolveSpecialBlockSourceForBackspace(blocks, sourceId)
+  if (specialSource) {
+    event.preventDefault()
+    const { blocks: nextBlocks, focusId } =
+      downgradeEmptySpecialBlockToParagraph({
+        blocks,
+        source: specialSource
+      })
+    onBlocksChange(nextBlocks)
+    requestFocus?.(focusId, "start")
+    return
+  }
 
   event.preventDefault()
   const nextBlocks = deleteEmptyTextBlock({

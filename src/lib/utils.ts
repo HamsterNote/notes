@@ -68,6 +68,7 @@ const countBlockWords = (block: NoteBlock): number => {
     case "callout":
       return block.text.split(/\s+/u).length
     case "todo":
+    case "checklist":
       return block.items.reduce(
         (itemCount, item) => itemCount + item.text.split(/\s+/u).length,
         0
