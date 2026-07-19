@@ -17,6 +17,8 @@ import type { NoteBlock } from "./types"
 export type MarkdownShortcutMatch =
   | { readonly kind: "heading"; readonly level: 1 | 2 | 3 | 4 | 5 }
   | { readonly kind: "checklist"; readonly checked: boolean }
+  | { readonly kind: "unorderedList" }
+  | { readonly kind: "orderedList" }
   | { readonly kind: "quote" }
   | { readonly kind: "code" }
 
@@ -67,6 +69,9 @@ export const matchMarkdownShortcut = (
   if (text === "[] ") return { kind: "checklist", checked: false }
   if (text === "[x] ") return { kind: "checklist", checked: true }
 
+  if (text === "- ") return { kind: "unorderedList" }
+  if (/^\d+\. $/u.test(text)) return { kind: "orderedList" }
+
   // quote：沿用既有 NoteTextBlock.handleInput 的精确字符串匹配。
   if (text === "> ") return { kind: "quote" }
 
@@ -99,6 +104,10 @@ export const buildReplacementFromShortcut = (
       }
     case "quote":
       return { id: blockId, kind: "quote", text: "" }
+    case "unorderedList":
+      return { id: blockId, kind: "unorderedList", text: "" }
+    case "orderedList":
+      return { id: blockId, kind: "orderedList", text: "" }
     case "code":
       return {
         id: blockId,
