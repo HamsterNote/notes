@@ -1556,10 +1556,13 @@
   font-style: normal;
 }
 
-/* 行内代码：浅色背景胶囊 + 等宽字体，与块级 .hn-note-code-card 的深色卡片独立。
-   作用域为正文内 <code class="hn-note-inline-code">，不与 .hn-note-code-card code 冲突。 */
-.hn-note-inline-code {
+/* 行内代码：边框 + 浅色背景胶囊 + 等宽字体，与块级 .hn-note-code-card 的深色卡片独立。
+   作用域为正文内 <code class="hn-note-inline-code">；存量无 class 的行内 <code>
+   由 [data-editable-block-id] code:not([class]) 兜底（语法高亮代码带语言 class，不受影响）。 */
+.hn-note-inline-code,
+[data-editable-block-id] code:not([class]) {
   padding: 0.15em 0.35em;
+  border: 1px solid var(--hn-border-strong);
   border-radius: 4px;
   background: var(--hn-surface);
   color: var(--hn-text);

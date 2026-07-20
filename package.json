@@ -1,6 +1,6 @@
 {
   "name": "@hamster-note/notes",
-  "version": "1.1.0",
+  "version": "1.2.0-beta",
   "description": "React components for note content rendering and presentation.",
   "type": "module",
   "license": "MIT",

@@ -68,6 +68,13 @@ const INLINE_FORMULA_CLASS = "hn-note-inline-formula"
 const INLINE_FORMULA_SELECTOR = `[${INLINE_FORMULA_ATTR}]`
 
 /**
+ * 行内代码 `<code>` 的标记 class：新建包裹时写入，styles.css 据此提供
+ * 边框 + 背景胶囊样式；存量无 class 的 `<code>` 由
+ * `[data-editable-block-id] code:not([class])` 选择器兜底覆盖。
+ */
+const INLINE_CODE_CLASS = "hn-note-inline-code"
+
+/**
  * `document.execCommand` 已被废弃但在所有现代浏览器中仍是 contentEditable
  * 富文本选区操作的最简且兼容性最好的路径。jsdom 的实现是空操作且永不抛错，
  * 因此 try/catch 只作为防御性兜底（旧浏览器 / 被覆写的实现）。
@@ -215,9 +222,114 @@ export const getSelectionFormatState = (): SelectionFormatState => {
 }
 
 /**
- * 行内代码切换：选区在 `<code>` 内 → 解包并把其子节点提升回父级；
- * 选区外 → 抽取选区内容包进新建的 `<code>`，并把光标定位到包裹之后，
- * 方便用户继续输入。
+ * 把 (container, offset) 边界点折算成 root 子树内的纯文本字符偏移。
+ * 用前置 Range 的 toString 长度计算，对元素 / 文本节点容器都稳健。
+ */
+const rangeTextOffset = (root: Node, container: Node, offset: number): number => {
+  const pre = document.createRange()
+  pre.selectNodeContents(root)
+  try {
+    pre.setEnd(container, offset)
+  } catch {
+    // 边界点不在 root 内时退化为 0（调用方已保证作用域正确，此处仅防御）
+    return 0
+  }
+  return pre.toString().length
+}
+
+/**
+ * 按字符偏移在 root 子树的文本节点上重建选区（R5）。
+ * 用于 unwrap 等 DOM 变更之后恢复用户原本的选中范围 —— 变更前保存的
+ * Range 可能指向已移除的节点，纯文本偏移则不受节点拆分 / 移动影响。
+ * 越界端点 clamp 到最后一个文本节点末尾。
+ */
+const restoreTextOffsets = (root: Node, start: number, end: number): void => {
+  const selection = window.getSelection()
+  if (selection === null) return
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
+  const range = document.createRange()
+  let offset = 0
+  let startSet = false
+  let endSet = false
+  let lastText: Text | null = null
+  let node = walker.nextNode() as Text | null
+  while (node !== null) {
+    const len = node.data.length
+    if (!startSet && start <= offset + len) {
+      range.setStart(node, start - offset)
+      startSet = true
+    }
+    if (!endSet && end <= offset + len) {
+      range.setEnd(node, end - offset)
+      endSet = true
+      break
+    }
+    offset += len
+    lastText = node
+    node = walker.nextNode() as Text | null
+  }
+  if (!startSet || !endSet) {
+    // root 内没有可落点的文本节点（如全被移除）时放弃恢复
+    if (lastText === null) return
+    if (!startSet) range.setStart(lastText, lastText.data.length)
+    if (!endSet) range.setEnd(lastText, lastText.data.length)
+  }
+  selection.removeAllRanges()
+  selection.addRange(range)
+}
+
+/**
+ * 把 Range 的起 / 终点折算成 root 子树内的纯文本字符偏移（R5）。
+ * 供调用方在 DOM 被整体替换（如 React 重渲染 innerHTML）后按偏移重建选区。
+ */
+export const captureSelectionOffsets = (
+  root: Node,
+  range: Range
+): { readonly start: number; readonly end: number } => ({
+  start: rangeTextOffset(root, range.startContainer, range.startOffset),
+  end: rangeTextOffset(root, range.endContainer, range.endOffset)
+})
+
+/**
+ * 按 captureSelectionOffsets 记录的偏移在 root 子树中重建选区（R5）。
+ * root 可以是重渲染后查询到的新元素 —— 偏移按纯文本计算，与节点身份无关。
+ */
+export const restoreSelectionOffsets = (
+  root: Node,
+  start: number,
+  end: number
+): void => {
+  restoreTextOffsets(root, start, end)
+}
+
+/**
+ * 查找与 Range 相交的全部 `<code>` 元素：起 / 终点所在的祖先 `<code>`
+ * 加上 root 子树内与 Range 有交集的 `<code>`，去重后返回。
+ * 必须在任何 DOM 变更之前调用 —— `intersectsNode` 对游离节点的行为不可靠。
+ */
+const findIntersectingCodeElements = (
+  range: Range,
+  root: ParentNode
+): HTMLElement[] => {
+  const found = new Set<HTMLElement>()
+  const startAncestor = elementEndpoint(range.startContainer)?.closest("code")
+  if (startAncestor !== null && startAncestor !== undefined) {
+    found.add(startAncestor)
+  }
+  const endAncestor = elementEndpoint(range.endContainer)?.closest("code")
+  if (endAncestor !== null && endAncestor !== undefined) {
+    found.add(endAncestor)
+  }
+  for (const code of Array.from(root.querySelectorAll<HTMLElement>("code"))) {
+    if (range.intersectsNode(code)) found.add(code)
+  }
+  return [...found]
+}
+
+/**
+ * 行内代码切换：选区与任何 `<code>` 相交 → 把这些 `<code>` 整体解包
+ * （R3b：取消时取消整个代码块，而不是只取消选中的部分，也避免部分重叠时
+ * 产生嵌套 `<code>`）；否则抽取选区内容包进新建的 `<code>`。
  *
  * 折叠选区或越界时直接 return，避免产生空 `<code>` 或破坏 DOM。
  */
@@ -228,25 +340,41 @@ export const toggleInlineCode = (): void => {
   }
   const range = selection.getRangeAt(0)
   const startEl = elementEndpoint(range.startContainer)
-  // 已在 <code> 内：解包。
-  const codeAncestor = startEl?.closest("code") ?? null
-  if (codeAncestor !== null) {
-    unwrapElement(codeAncestor)
+  // 相交扫描限定在最近的可编辑块内，避免误伤其它块的 <code>
+  const searchRoot: ParentNode =
+    startEl?.closest("[data-editable-block-id]") ??
+    elementEndpoint(range.commonAncestorContainer) ??
+    document
+  const intersecting = findIntersectingCodeElements(range, searchRoot)
+  if (intersecting.length > 0) {
+    // R5: 解包前先按纯文本偏移记住选区，unwrap 移除节点后原 Range 会失效
+    const offsets = {
+      start: rangeTextOffset(searchRoot, range.startContainer, range.startOffset),
+      end: rangeTextOffset(searchRoot, range.endContainer, range.endOffset)
+    }
+    for (const code of intersecting) {
+      unwrapElement(code)
+    }
+    // 解包后恢复非折叠选区，保持原文本处于选中状态
+    if (offsets.end > offsets.start) {
+      restoreTextOffsets(searchRoot, offsets.start, offsets.end)
+    }
     return
   }
 
   // 选区外：抽取内容并包进 <code>。
   const fragment = range.extractContents()
   const code = document.createElement("code")
+  code.className = INLINE_CODE_CLASS
   code.appendChild(fragment)
   range.insertNode(code)
 
-  // 把光标移到新插入的 <code> 之后，与原生 execCommand 的 wrap 行为一致。
+  // R5: 重新选中新 <code> 的全部内容而非折叠光标，
+  // 保持「点击 popover 后文字仍处于选中状态」的交互。
   selection.removeAllRanges()
-  const after = document.createRange()
-  after.setStartAfter(code)
-  after.collapse(true)
-  selection.addRange(after)
+  const wrapped = document.createRange()
+  wrapped.selectNodeContents(code)
+  selection.addRange(wrapped)
 }
 
 /**
@@ -402,10 +530,10 @@ export const runCrossBlockFormatCommand = (
 
 /**
  * 跨块切换行内代码。每个 root 独立判定：
- *  - sub.startContainer 在 <code> 内 -> 解包该 root 内 sub 范围中的所有 <code>；
+ *  - sub 范围与 root 内任何 <code> 相交 -> 整体解包这些 <code>（R3b）；
  *  - 否则把 sub 内容抽取包进新建 <code>。
  * 完成后恢复 outer range。注意：跨块 toggle 不保证「全部包裹或全部解包」的全局一致性，
- * 而是按 root 局部状态决定（与单块版本语义一致：起点决定行为）。
+ * 而是按 root 局部状态决定（与单块版本语义一致：相交即解包）。
  */
 export const crossBlockToggleInlineCode = (container: HTMLElement): void => {
   const selection = window.getSelection()
@@ -413,26 +541,31 @@ export const crossBlockToggleInlineCode = (container: HTMLElement): void => {
     return
   }
   const outerRange = selection.getRangeAt(0).cloneRange()
+  // R5: 先按容器级纯文本偏移记住跨块选区；unwrap 移除节点后 outerRange 会失效
+  const offsets = {
+    start: rangeTextOffset(container, outerRange.startContainer, outerRange.startOffset),
+    end: rangeTextOffset(container, outerRange.endContainer, outerRange.endOffset)
+  }
   forEachEditableRootInRange(outerRange, container, (sub, root) => {
-    const startEl = elementEndpoint(sub.startContainer)
-    const codeAncestor = startEl?.closest("code") ?? null
-    if (codeAncestor !== null) {
-      const codes = Array.from(root.querySelectorAll("code"))
-      // 用 intersectsNode 判断交集，避免 jsdom comparePoint 对 Element offset 0
-      // 与 Element 子节点 offset 0 的位置计算偏差。
-      for (const code of codes) {
-        if (!sub.intersectsNode(code)) continue
+    const intersecting = findIntersectingCodeElements(sub, root)
+    if (intersecting.length > 0) {
+      for (const code of intersecting) {
         unwrapElement(code)
       }
       return
     }
     const fragment = sub.extractContents()
     const code = document.createElement("code")
+    code.className = INLINE_CODE_CLASS
     code.appendChild(fragment)
     sub.insertNode(code)
   })
-  selection.removeAllRanges()
-  selection.addRange(outerRange)
+  if (offsets.end > offsets.start) {
+    restoreTextOffsets(container, offsets.start, offsets.end)
+  } else {
+    selection.removeAllRanges()
+    selection.addRange(outerRange)
+  }
 }
 
 /**

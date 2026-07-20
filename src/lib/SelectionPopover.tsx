@@ -3,6 +3,7 @@ import {
   type FormEvent,
   type RefObject,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState
 } from "react"
@@ -14,15 +15,15 @@ import { isRangeInNoteEditableScope, isRangeInSingleEditableRoot, isRangeCrossMu
 import {
   EMPTY_SELECTION_FORMAT_STATE,
   applyInlineCode,
-  applyInlineFormula,
-  clearSelectionFormatting,
-  crossBlockClearFormatting,
+  captureSelectionOffsets,
   crossBlockToggleInlineCode,
   getSelectionFormatState,
+  restoreSelectionOffsets,
   runCrossBlockFormatCommand,
   runNativeFormatCommand,
   syncEditableBlockFromRange,
   syncEditableBlocksFromRange,
+  wrapSelectionWithInlineFormula,
   type SelectionFormatState
 } from "./inlineSelectionFormatting"
 
@@ -55,7 +56,7 @@ type PopoverPosition = {
   readonly flip: boolean
 }
 
-type PopoverMode = "format" | "link"
+type PopoverMode = "format" | "link" | "formula"
 
 
 
@@ -63,9 +64,22 @@ type PopoverMode = "format" | "link"
 const FLIP_THRESHOLD = 88
 // popover 与选区之间的间距
 const POPPER_GAP = 8
+// popover 水平 clamp 时与容器左右边缘保留的间距
+const POPOVER_MARGIN = 8
 
 const computePosition = (range: Range): PopoverPosition => {
   const rect = range.getBoundingClientRect()
+  return {
+    top: rect.top,
+    bottom: rect.bottom,
+    left: rect.left + rect.width / 2,
+    flip: rect.top < FLIP_THRESHOLD
+  }
+}
+
+// 以元素（如行内公式 span）的矩形为锚点计算 popover 位置，与选区锚点共用翻转阈值
+const computeElementPosition = (el: HTMLElement): PopoverPosition => {
+  const rect = el.getBoundingClientRect()
   return {
     top: rect.top,
     bottom: rect.bottom,
@@ -107,6 +121,8 @@ export const SelectionPopover = ({
   const [mode, setMode] = useState<PopoverMode>("format")
   const [linkUrl, setLinkUrl] = useState("")
   const [configuring, setConfiguring] = useState(false)
+  // 公式输入模式（R1）的草稿值；确认时作为 LaTeX 源写入占位 span
+  const [formulaValue, setFormulaValue] = useState("")
   // 当前选区的格式激活态（bold / italic / underline / strikeThrough / code / formula）
   // 在 selectionchange 与每次格式化动作后刷新；popover 隐藏时重置为空态
   const [activeFormats, setActiveFormats] = useState<SelectionFormatState>(
@@ -122,18 +138,33 @@ export const SelectionPopover = ({
   const savedRangeRef = useRef<Range | null>(null)
   // 链接输入框 ref，用于自动聚焦
   const inputRef = useRef<HTMLInputElement | null>(null)
+  // 公式输入框 ref，用于自动聚焦
+  const formulaInputRef = useRef<HTMLInputElement | null>(null)
+  // 正在编辑的已有行内公式 span（R1）；null 表示本次是新建公式
+  const editingFormulaSpanRef = useRef<HTMLElement | null>(null)
   // mode 的 ref 镜像：selectionchange 监听器内读取最新值，避免闭包过期
   const modeRef = useRef<PopoverMode>(mode)
   modeRef.current = mode
   // 最近一次有效选区的 Range 克隆；格式化 helper 执行后若选区丢失，
   // 用它作为 syncEditableBlockFromRange 的兜底入参，保证 onContentChange 仍被触发
   const lastRangeRef = useRef<Range | null>(null)
+  // popover 根元素 ref：水平 clamp 需要测量自身宽度
+  const popoverRef = useRef<HTMLDivElement | null>(null)
+  // R5: 格式化动作同步 innerHTML 会触发 React 重渲染，contentEditable 的 DOM
+  // 被 dangerouslySetInnerHTML 整体替换，旧选区随之失效。动作后在此记录选区的
+  // 纯文本偏移，useLayoutEffect 在提交完成后按偏移在新 DOM 上重建选区。
+  // blockId 为 null 表示偏移基准是容器（跨块选区），否则是块元素。
+  const pendingRestoreRef = useRef<{
+    blockId: string | null
+    start: number
+    end: number
+  } | null>(null)
 
   // 监听选区变化：仅在笔记容器内、非折叠、含可见文字时展示 popover。
-  // 链接配置模式下跳过同步，避免输入框获焦导致选区丢失而关闭 popover。
+  // 链接 / 公式输入模式下跳过同步，避免输入框获焦导致选区丢失而关闭 popover。
   useEffect(() => {
     const sync = () => {
-      if (modeRef.current === "link") return
+      if (modeRef.current !== "format") return
 
       const container = containerRef.current
       const selection = window.getSelection()
@@ -193,8 +224,10 @@ export const SelectionPopover = ({
     const close = () => {
       setMode("format")
       setLinkUrl("")
+      setFormulaValue("")
       setConfiguring(false)
       savedRangeRef.current = null
+      editingFormulaSpanRef.current = null
       lastRangeRef.current = null
       setPosition(null)
       setActiveFormats(EMPTY_SELECTION_FORMAT_STATE)
@@ -216,12 +249,124 @@ export const SelectionPopover = ({
     }
   }, [position, portalContainerRef])
 
-  // 进入链接配置模式：聚焦输入框
+  // 进入链接 / 公式输入模式：聚焦对应输入框
   useEffect(() => {
     if (mode === "link" && inputRef.current) {
       inputRef.current.focus()
     }
+    if (mode === "formula" && formulaInputRef.current) {
+      formulaInputRef.current.focus()
+    }
   }, [mode])
+
+  // R1: 点击已有的行内公式 span（contenteditable=false）时打开公式编辑 popover。
+  // 这类点击会把选区折叠到 span 旁，无法靠 selectionchange 驱动，需单独监听。
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+    const onClick = (event: MouseEvent) => {
+      const target = event.target
+      if (!(target instanceof Element)) return
+      const span = target.closest<HTMLElement>("[data-hn-inline-formula]")
+      if (!span || !container.contains(span)) return
+      editingFormulaSpanRef.current = span
+      savedRangeRef.current = null
+      setFormulaValue(
+        span.getAttribute("data-hn-inline-formula") ?? span.textContent ?? ""
+      )
+      setPosition(computeElementPosition(span))
+      setMode("formula")
+    }
+    container.addEventListener("click", onClick)
+    return () => container.removeEventListener("click", onClick)
+  }, [containerRef])
+
+  // R4: 水平 clamp —— 浮动 popover 以 translate(-50%) 居中于 position.left，
+  // 选区靠近容器边缘时 popover 会溢出容器。渲染后测量自身宽度，把中心点
+  // clamp 到 [容器左 + MARGIN + 半宽, 容器右 - MARGIN - 半宽]；
+  // 容器缺失时退化为视口。docked（底部栏）模式由宿主布局负责，跳过。
+  useLayoutEffect(() => {
+    if (!position || portalContainerRef?.current) return
+    const popover = popoverRef.current
+    if (!popover) return
+    const width = popover.getBoundingClientRect().width
+    const containerRect = containerRef.current?.getBoundingClientRect()
+    // jsdom 等环境下容器矩形退化为零宽时按视口边界 clamp，避免错误归 0
+    const boundLeft =
+      containerRect && containerRect.width > 0 ? containerRect.left : 0
+    const boundRight =
+      containerRect && containerRect.width > 0
+        ? containerRect.right
+        : window.innerWidth
+    const minCenter = boundLeft + POPOVER_MARGIN + width / 2
+    const maxCenter = boundRight - POPOVER_MARGIN - width / 2
+    // 容器比 popover 还窄时退化为容器中心，避免 min > max 造成来回抖动
+    const clamped =
+      maxCenter < minCenter
+        ? (boundLeft + boundRight) / 2
+        : Math.min(Math.max(position.left, minCenter), maxCenter)
+    if (clamped !== position.left) {
+      setPosition((current) => (current ? { ...current, left: clamped } : null))
+    }
+  }, [position, containerRef, portalContainerRef])
+
+  // R5: 格式化动作后记录选区偏移，待重渲染提交后恢复。
+  // 必须在 syncAfterFormat（触发 React 状态更新）之前调用 —— 此时旧 DOM 上的
+  // 选区仍有效。跨块选区以容器为偏移基准，单块以所在块元素为基准。
+  const capturePendingRestore = () => {
+    pendingRestoreRef.current = null
+    const container = containerRef.current
+    const selection = window.getSelection()
+    if (
+      !container ||
+      !selection ||
+      selection.rangeCount === 0 ||
+      selection.isCollapsed
+    ) {
+      return
+    }
+    const range = selection.getRangeAt(0)
+    const startEl =
+      range.startContainer instanceof HTMLElement
+        ? range.startContainer
+        : range.startContainer.parentElement
+    const blockEl = crossBlock
+      ? null
+      : (startEl?.closest("[data-editable-block-id]") ?? null)
+    const root = blockEl ?? container
+    const offsets = captureSelectionOffsets(root, range)
+    if (offsets.end <= offsets.start) return
+    pendingRestoreRef.current = {
+      blockId: blockEl?.getAttribute("data-editable-block-id") ?? null,
+      start: offsets.start,
+      end: offsets.end
+    }
+  }
+
+  // R5: 每次提交后检查是否有待恢复的选区 —— 重渲染替换 innerHTML 后，
+  // 按 blockId 找到新块元素并按纯文本偏移重建选区，再据此更新 popover 位置。
+  useLayoutEffect(() => {
+    const pending = pendingRestoreRef.current
+    if (!pending) return
+    pendingRestoreRef.current = null
+    const container = containerRef.current
+    if (!container) return
+    const root = pending.blockId
+      ? container.querySelector(
+          `[data-editable-block-id="${pending.blockId}"]`
+        )
+      : container
+    if (!root) return
+    restoreSelectionOffsets(root, pending.start, pending.end)
+    const selection = window.getSelection()
+    if (
+      selection &&
+      selection.rangeCount > 0 &&
+      !selection.isCollapsed
+    ) {
+      setPosition(computePosition(selection.getRangeAt(0)))
+    }
+  })
 
   if (!position) return null
 
@@ -306,8 +451,11 @@ export const SelectionPopover = ({
   // 清除选区内全部内联样式：removeFormat 会剥离 <b>/<i>/<u>/<font>/<span style> 等
   // 加粗、斜体、下划线与文字颜色等富文本标签。链接不在 removeFormat 处理范围，
   // 当前 popover 未集成 unlink 路径，故不在此处理。
+  // removeFormat 直接改 DOM，需经 syncAfterFormat 把 innerHTML 同步回 React 状态。
   const clearFormatting = () => {
     document.execCommand("removeFormat")
+    capturePendingRestore()
+    syncAfterFormat()
 
     const selection = window.getSelection()
     const container = containerRef.current
@@ -338,6 +486,7 @@ export const SelectionPopover = ({
     } else {
       runNativeFormatCommand(command)
     }
+    capturePendingRestore()
     syncAfterFormat()
     refreshPositionAndState()
   }
@@ -350,30 +499,60 @@ export const SelectionPopover = ({
     } else {
       applyInlineCode()
     }
+    capturePendingRestore()
     syncAfterFormat()
     refreshPositionAndState()
   }
 
-  // 行内公式：把选中文本替换为 data-hn-inline-formula 占位 span（由 helper 实现）
-  // 跨块时禁用（按钮 disabled），避免多块内容塌陷到单个 span。
+  // 行内公式（R1）：不再直接包裹选区文本，而是打开公式输入 popover ——
+  // 预填选中文本作为 LaTeX 草稿，确认时才插入占位 span。跨块时禁用
+  // （按钮 disabled），避免多块内容塌陷到单个 span。
   const handleInlineFormula = () => {
     if (crossBlock) return
-    applyInlineFormula()
-    syncAfterFormat()
-    refreshPositionAndState()
+    const selection = window.getSelection()
+    if (selection && selection.rangeCount > 0) {
+      savedRangeRef.current = selection.getRangeAt(0).cloneRange()
+    }
+    editingFormulaSpanRef.current = null
+    setFormulaValue(selection?.toString().trim() ?? "")
+    setMode("formula")
   }
 
-  // 清除格式：removeFormat + 手动解包 code / formula 等自定义包裹
-  // 跨块走 crossBlockClearFormatting 按 root 独立扫描。
-  const handleClearFormatting = () => {
-    const container = containerRef.current
-    if (crossBlock && container) {
-      crossBlockClearFormatting(container)
-    } else {
-      clearSelectionFormatting()
+  // 确认公式输入：编辑已有 span 时原地更新属性与文本；否则恢复保存的选区，
+  // 用 wrapSelectionWithInlineFormula 插入新占位 span。两条路径都同步所在块。
+  const applyFormula = () => {
+    const formula = formulaValue.trim()
+    if (!formula) {
+      close()
+      return
     }
-    syncAfterFormat()
-    refreshPositionAndState()
+    const editingSpan = editingFormulaSpanRef.current
+    if (editingSpan !== null && editingSpan.isConnected) {
+      editingSpan.setAttribute("data-hn-inline-formula", formula)
+      editingSpan.textContent = formula
+      if (onContentChange) {
+        const range = document.createRange()
+        range.selectNode(editingSpan)
+        syncEditableBlockFromRange(range, onContentChange)
+      }
+      close()
+      return
+    }
+    const savedRange = savedRangeRef.current
+    if (!savedRange) {
+      close()
+      return
+    }
+    const selection = window.getSelection()
+    if (selection) {
+      selection.removeAllRanges()
+      selection.addRange(savedRange)
+    }
+    wrapSelectionWithInlineFormula(formula)
+    if (onContentChange) {
+      syncEditableBlockFromRange(savedRange, onContentChange)
+    }
+    close()
   }
 
   // 进入链接配置模式：保存当前选区 Range（克隆以避免后续 DOM 变更影响）
@@ -428,8 +607,10 @@ export const SelectionPopover = ({
   const close = () => {
     setMode("format")
     setLinkUrl("")
+    setFormulaValue("")
     setConfiguring(false)
     savedRangeRef.current = null
+    editingFormulaSpanRef.current = null
     lastRangeRef.current = null
     setPosition(null)
     setActiveFormats(EMPTY_SELECTION_FORMAT_STATE)
@@ -440,6 +621,11 @@ export const SelectionPopover = ({
   const onLinkFormSubmit = (event: FormEvent) => {
     event.preventDefault()
     applyLink()
+  }
+
+  const onFormulaFormSubmit = (event: FormEvent) => {
+    event.preventDefault()
+    applyFormula()
   }
 
   const style: CSSProperties = position.flip
@@ -456,6 +642,7 @@ export const SelectionPopover = ({
 
   const popover = (
     <div
+      ref={popoverRef}
       className={`hn-note-popover hn-note-popover--edit${portalContainerRef ? " hn-note-popover--docked" : ""}`}
       style={portalContainerRef ? undefined : style}
       role="toolbar"
@@ -541,17 +728,6 @@ export const SelectionPopover = ({
               fx
             </span>
           </button>
-          <button
-            type="button"
-            className="hn-note-popover-btn"
-            onClick={handleClearFormatting}
-            title="清除格式"
-            aria-label="清除格式"
-          >
-            <span className="hn-note-popover-glyph hn-note-popover-glyph--clear">
-              T
-            </span>
-          </button>
           <span className="hn-note-popover-divider" />
           {TEXT_COLORS.map((color) => (
             <button
@@ -602,6 +778,39 @@ export const SelectionPopover = ({
             </span>
           </button>
         </>
+      ) : mode === "formula" ? (
+        <form
+          className="hn-note-popover-link-form"
+          onSubmit={onFormulaFormSubmit}
+        >
+          <input
+            ref={formulaInputRef}
+            type="text"
+            className="hn-note-popover-link-input"
+            placeholder="输入 LaTeX 公式"
+            aria-label="公式（LaTeX）"
+            value={formulaValue}
+            onChange={(event) => setFormulaValue(event.target.value)}
+          />
+          <button
+            type="submit"
+            className="hn-note-popover-btn hn-note-popover-btn--confirm"
+            disabled={!formulaValue.trim()}
+            title="确认"
+            aria-label="确认"
+          >
+            ✓
+          </button>
+          <button
+            type="button"
+            className="hn-note-popover-btn hn-note-popover-btn--cancel"
+            onClick={close}
+            title="取消"
+            aria-label="取消"
+          >
+            ✕
+          </button>
+        </form>
       ) : (
         <form className="hn-note-popover-link-form" onSubmit={onLinkFormSubmit}>
           <input
