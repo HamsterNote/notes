@@ -10,23 +10,28 @@ import type { NoteBlock } from "./types"
 const Harness = ({ initialBlock }: { initialBlock: NoteBlock }) => {
   const [blocks, setBlocks] = useState<readonly NoteBlock[]>([initialBlock])
   return (
-    <NoteContent
-      blocks={blocks}
-      title="inline markdown"
-      editable
-      onBlocksChange={setBlocks}
-    />
+    <>
+      <NoteContent
+        blocks={blocks}
+        title="inline markdown"
+        editable
+        onBlocksChange={setBlocks}
+      />
+      <output data-testid="blocks-state">{JSON.stringify(blocks)}</output>
+    </>
   )
 }
 
-const renderParagraph = (text: string) => {
-  const view = render(
-    <Harness initialBlock={{ id: "p", kind: "paragraph", text: "" }} />
-  )
+const renderEditable = (
+  initialBlock: NoteBlock,
+  editableId: string,
+  text: string
+) => {
+  const view = render(<Harness initialBlock={initialBlock} />)
   const editable = view.container.querySelector<HTMLElement>(
-    '[data-editable-block-id="p"]'
+    `[data-editable-block-id="${editableId}"]`
   )
-  if (!editable) throw new Error("Expected editable paragraph.")
+  if (!editable) throw new Error(`Expected editable root: ${editableId}.`)
   // 模拟用户已键入的字符：直接写入 textContent（不经 onInput 同步），
   // 与真实浏览器中「字符已插入 DOM 但 React state 尚未更新」的瞬间一致
   editable.textContent = text
@@ -38,8 +43,12 @@ const renderParagraph = (text: string) => {
   const selection = window.getSelection()
   selection?.removeAllRanges()
   selection?.addRange(range)
-  return { view, editable }
+  const state = view.getByTestId("blocks-state")
+  return { view, editable, state }
 }
+
+const renderParagraph = (text: string) =>
+  renderEditable({ id: "p", kind: "paragraph", text: "" }, "p", text)
 
 describe("NoteContent Markdown 行内自动转换（R7）", () => {
   afterEach(() => {
@@ -91,6 +100,91 @@ describe("NoteContent Markdown 行内自动转换（R7）", () => {
     expect(editable.innerHTML).toBe(
       '<code class="hn-note-inline-code">foo</code>X'
     )
+  })
+
+  it("todo 条目的转换和首个逃逸字符写回条目状态", () => {
+    // Given: todo 条目是独立 editable root，条目 id 并不是顶层 block id。
+    const { editable, state } = renderEditable(
+      {
+        id: "todo",
+        kind: "todo",
+        title: "",
+        items: [{ id: "todo-item", checked: false, text: "" }]
+      },
+      "todo-item",
+      "`foo"
+    )
+
+    // When: 完成 Markdown 转换并继续输入第一个普通字符。
+    fireEvent.keyDown(editable, { key: "`" })
+    fireEvent.keyDown(editable, { key: "X" })
+
+    // Then: 宿主受控状态保存条目富文本，而不只是临时修改 DOM。
+    expect(state.textContent).toContain(
+      '<code class=\\"hn-note-inline-code\\">foo</code>X'
+    )
+  })
+
+  it("checklist 条目的行内 Markdown 转换写回条目状态", () => {
+    // Given: checklist 条目同样通过 item id 标识 editable root。
+    const { editable, state } = renderEditable(
+      {
+        id: "checklist",
+        kind: "checklist",
+        title: "",
+        items: [{ id: "check-item", checked: false, text: "" }]
+      },
+      "check-item",
+      "*foo"
+    )
+
+    // When: 输入闭合星号。
+    fireEvent.keyDown(editable, { key: "*" })
+
+    // Then: 转换后的 HTML 保存到 checklist item.text。
+    expect(state.textContent).toContain('"text":"<em>foo</em>"')
+  })
+
+  it("collapsible 标题的行内 Markdown 转换写回 title", () => {
+    // Given: collapsible 标题的 id 等于块 id，但数据字段是 title 而非 text。
+    const { editable, state } = renderEditable(
+      {
+        id: "fold",
+        kind: "collapsible",
+        title: "",
+        collapsed: false,
+        blocks: []
+      },
+      "fold",
+      "**foo*"
+    )
+
+    // When: 输入最后一个星号完成粗体转换。
+    fireEvent.keyDown(editable, { key: "*" })
+
+    // Then: 受控状态更新 collapsible.title。
+    expect(state.textContent).toContain('"title":"<strong>foo</strong>"')
+  })
+
+  it("collapsible 内嵌子块的行内 Markdown 转换写回嵌套 blocks", () => {
+    // Given: 子块只存在于 collapsible.blocks，不存在于 NoteContent 顶层 blocks。
+    const { editable, state } = renderEditable(
+      {
+        id: "fold",
+        kind: "collapsible",
+        title: "Details",
+        collapsed: false,
+        blocks: [{ id: "child", kind: "paragraph", text: "" }]
+      },
+      "child",
+      "~~foo~"
+    )
+
+    // When: 输入最后一个波浪号完成删除线转换。
+    fireEvent.keyDown(editable, { key: "~" })
+
+    // Then: 嵌套 child.text 保存转换后的 HTML。
+    expect(state.textContent).toContain('"text":"<s>foo</s>"')
   })
 
   it("未配对的触发键不转换也不拦截", () => {

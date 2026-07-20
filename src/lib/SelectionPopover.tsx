@@ -11,20 +11,26 @@ import { createPortal } from "react-dom"
 
 import "./styles.css"
 
-import { isRangeInNoteEditableScope, isRangeInSingleEditableRoot, isRangeCrossMultipleEditableRoots } from "./editableSelection"
 import {
-  EMPTY_SELECTION_FORMAT_STATE,
+  isRangeCrossMultipleEditableRoots,
+  isRangeInNoteEditableScope,
+  isRangeInSingleEditableRoot
+} from "./editableSelection"
+import {
   applyInlineCode,
   captureSelectionOffsets,
+  clearSelectionFormatting,
+  crossBlockClearFormatting,
   crossBlockToggleInlineCode,
+  EMPTY_SELECTION_FORMAT_STATE,
   getSelectionFormatState,
   restoreSelectionOffsets,
   runCrossBlockFormatCommand,
   runNativeFormatCommand,
+  type SelectionFormatState,
   syncEditableBlockFromRange,
   syncEditableBlocksFromRange,
-  wrapSelectionWithInlineFormula,
-  type SelectionFormatState
+  wrapSelectionWithInlineFormula
 } from "./inlineSelectionFormatting"
 
 type SelectionPopoverProps = {
@@ -237,6 +243,7 @@ export const SelectionPopover = ({
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") close()
     }
+    document.addEventListener("keydown", onKeyDown)
 
     const isDocked = Boolean(portalContainerRef?.current)
     if (!isDocked) {
@@ -258,7 +265,6 @@ export const SelectionPopover = ({
         document.removeEventListener("pointerdown", onPointerDown)
       }
     }
-    document.addEventListener("keydown", onKeyDown)
     return () => {
       document.removeEventListener("keydown", onKeyDown)
     }
@@ -463,33 +469,18 @@ export const SelectionPopover = ({
     }
   }
 
-  // 清除选区内全部内联样式：removeFormat 会剥离 <b>/<i>/<u>/<font>/<span style> 等
-  // 加粗、斜体、下划线与文字颜色等富文本标签。链接不在 removeFormat 处理范围，
-  // 当前 popover 未集成 unlink 路径，故不在此处理。
-  // removeFormat 直接改 DOM，需经 syncAfterFormat 把 innerHTML 同步回 React 状态。
+  // 清除原生富文本标签，并补充处理自定义行内代码与公式节点。
+  // 跨块选区需逐个 editable root 清理，避免原生命令只作用于当前根。
   const clearFormatting = () => {
-    document.execCommand("removeFormat")
+    const container = containerRef.current
+    if (crossBlock && container) {
+      crossBlockClearFormatting(container)
+    } else {
+      clearSelectionFormatting()
+    }
     capturePendingRestore()
     syncAfterFormat()
-
-    const selection = window.getSelection()
-    const container = containerRef.current
-
-    if (
-      selection &&
-      selection.rangeCount > 0 &&
-      !selection.isCollapsed &&
-      container &&
-      isRangeInSingleEditableRoot(selection.getRangeAt(0), container)
-    ) {
-      setActiveColor(queryActiveColor())
-      setActiveFormats(getSelectionFormatState())
-      setPosition(computePosition(selection.getRangeAt(0)))
-      setCrossBlock(isRangeCrossMultipleEditableRoots(selection.getRangeAt(0)))
-    } else {
-      setPosition(null)
-    }
-    setActiveFormats(getSelectionFormatState())
+    refreshPositionAndState()
   }
 
   // 原生格式命令（bold / italic / underline / strikeThrough）：
@@ -542,7 +533,7 @@ export const SelectionPopover = ({
       return
     }
     const editingSpan = editingFormulaSpanRef.current
-    if (editingSpan !== null && editingSpan.isConnected) {
+    if (editingSpan?.isConnected) {
       editingSpan.setAttribute("data-hn-inline-formula", formula)
       editingSpan.textContent = formula
       if (onContentChange) {

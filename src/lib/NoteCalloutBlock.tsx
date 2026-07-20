@@ -35,12 +35,12 @@ export const NoteCalloutBlock = ({
           </span>
           {editable ? (
             <strong
-              {...editableProps((event) =>
+              {...editableProps((editable) =>
                 onBlocksChange?.(
                   updateCalloutTitle(
                     blocks,
                     block.id,
-                    event.currentTarget.innerHTML
+                    editable.innerHTML
                   )
                 )
               )}
@@ -52,9 +52,9 @@ export const NoteCalloutBlock = ({
         </div>
         {editable ? (
           <p
-            {...editableProps((event) =>
+            {...editableProps((editable) =>
               onBlocksChange?.(
-                updateText(blocks, block.id, event.currentTarget.innerHTML)
+                updateText(blocks, block.id, editable.innerHTML)
               )
             )}
             onKeyDown={(event) =>

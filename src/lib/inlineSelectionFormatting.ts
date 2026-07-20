@@ -1,3 +1,5 @@
+import { forEachEditableRootInRange } from "./editableSelection"
+
 /**
  * 行内选区格式化助手：在 contentEditable 选区内执行加粗 / 斜体 / 下划线 /
  * 删除线、行内代码 `<code>`、行内公式占位 span、清除格式，并把 DOM 变更同步回
@@ -72,8 +74,7 @@ const INLINE_FORMULA_SELECTOR = `[${INLINE_FORMULA_ATTR}]`
  * 边框 + 背景胶囊样式；存量无 class 的 `<code>` 由
  * `[data-editable-block-id] code:not([class])` 选择器兜底覆盖。
  */
-const INLINE_CODE_CLASS = "hn-note-inline-code"
-export { INLINE_CODE_CLASS }
+export const INLINE_CODE_CLASS = "hn-note-inline-code"
 
 /**
  * `document.execCommand` 已被废弃但在所有现代浏览器中仍是 contentEditable
@@ -410,10 +411,9 @@ export const wrapSelectionWithInlineFormula = (formula: string): void => {
 }
 
 /**
- * 清除选区内全部行内格式。两段式：
- *  1) `document.execCommand("removeFormat")` —— 浏览器原生清理内建格式标签
- *     与样式属性。jsdom 空实现；后续手动补刀是主路径。
- *  2) 手动解包 / 移除选区范围内的 `<strong>` / `<b>` / `<em>` / `<i>` /
+ * 清除选区内全部行内格式。先按原始 Range 收集自定义格式节点，再调用
+ * `document.execCommand("removeFormat")` 清理浏览器内建格式，最后手动解包 /
+ * 移除原始选区范围内的 `<strong>` / `<b>` / `<em>` / `<i>` /
  *     `<u>` / `<s>` / `<strike>` / `<del>` / `<code>`，以及
  *     `[data-hn-inline-formula]`（公式占位是 contenteditable=false 的原子节点，
  *     整体移除而非解包子节点 —— LaTeX 源文本本身不属于用户可编辑内容）。
@@ -423,11 +423,9 @@ export const wrapSelectionWithInlineFormula = (formula: string): void => {
  * 目标元素划入范围内。
  */
 export const clearSelectionFormatting = (): void => {
-  runNativeFormatCommand("removeFormat")
-
   const selection = window.getSelection()
   if (selection === null || selection.rangeCount === 0) return
-  const range = selection.getRangeAt(0)
+  const range = selection.getRangeAt(0).cloneRange()
 
   // commonAncestorContainer 可能是文本节点（仅选中文字）或元素节点（跨多元素
   // 选区），统一收口为元素根再做 querySelectorAll。
@@ -436,11 +434,14 @@ export const clearSelectionFormatting = (): void => {
 
   const candidates = Array.from(
     root.querySelectorAll<HTMLElement>(
-      "strong,b,em,i,u,s,strike,del,code," + INLINE_FORMULA_SELECTOR
+      `strong,b,em,i,u,s,strike,del,code,${INLINE_FORMULA_SELECTOR}`
     )
-  )
+  ).filter((element) => isElementWithinRange(range, element))
+
+  runNativeFormatCommand("removeFormat")
+
   for (const el of candidates) {
-    if (!isElementWithinRange(range, el)) continue
+    if (!el.isConnected) continue
     if (el.hasAttribute(INLINE_FORMULA_ATTR)) {
       // 公式占位是不可编辑原子节点，直接移除而不解包子节点。
       el.remove()
@@ -503,8 +504,6 @@ export const applyInlineFormula = (): void => {
 //    `[data-editable-block-id]` 取 blockId + innerHTML 多次回调 onContentChange，
 //    与 SelectionPopover 既有 onContentChange 签名保持一致。
 // ============================================================
-
-import { forEachEditableRootInRange } from "./editableSelection"
 
 /**
  * 跨块执行原生格式命令（bold / italic / underline / strikeThrough / removeFormat）。
@@ -583,7 +582,7 @@ export const crossBlockClearFormatting = (container: HTMLElement): void => {
   forEachEditableRootInRange(outerRange, container, (sub, root) => {
     const candidates = Array.from(
       root.querySelectorAll<HTMLElement>(
-        "strong,b,em,i,u,s,strike,del,code," + INLINE_FORMULA_SELECTOR
+        `strong,b,em,i,u,s,strike,del,code,${INLINE_FORMULA_SELECTOR}`
       )
     )
     for (const el of candidates) {

@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react"
-import { type RefObject, createRef, useState } from "react"
+import { createRef, type RefObject, useState } from "react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { NoteContent } from "./NoteContent"
@@ -361,6 +361,81 @@ describe("SelectionPopover 新增格式化按钮与行为", () => {
     fireEvent.click(findButton("清除样式"))
 
     expect(documentCommands.execCommand).toHaveBeenCalledWith("removeFormat")
+  })
+
+  it("浮动 popover 按 Escape 后关闭", async () => {
+    // Given: 非 docked 模式下，文字选区已打开浮动 popover。
+    await mountPopover()
+    expect(findButton("粗体")).not.toBeNull()
+
+    // When: 用户按下 Escape。
+    fireEvent.keyDown(document, { key: "Escape" })
+
+    // Then: popover 从页面移除。
+    expect(screen.queryByRole("toolbar", { name: "文字操作" })).toBeNull()
+  })
+
+  it("清除样式同时移除行内代码和行内公式", async () => {
+    // Given: 单个 editable root 内的完整选区包含自定义 code 与公式节点。
+    const containerRef: RefObject<HTMLElement | null> = { current: null }
+    const onContentChange = vi.fn()
+    render(
+      <div
+        ref={(element) => {
+          containerRef.current = element
+        }}
+      >
+        <div
+          contentEditable="true"
+          data-editable-block-id="block-custom"
+          ref={(element) => {
+            if (element && element.childNodes.length === 0) {
+              element.innerHTML =
+                '<code class="hn-note-inline-code">foo</code> <span data-hn-inline-formula="x^2" contenteditable="false">x^2</span> bar'
+            }
+          }}
+        />
+        <SelectionPopover
+          containerRef={containerRef}
+          onContentChange={onContentChange}
+        />
+      </div>
+    )
+    const editable = containerRef.current?.querySelector<HTMLElement>(
+      '[data-editable-block-id="block-custom"]'
+    )
+    if (!editable) throw new Error("Expected custom-format editable root.")
+    const range = document.createRange()
+    range.selectNodeContents(editable)
+    const selection = window.getSelection()
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+    dispatchSelectionChange()
+    await waitFor(() => {
+      expect(screen.queryByRole("button", { name: "清除样式" })).not.toBeNull()
+    })
+
+    documentCommands.execCommand.mockImplementation((command) => {
+      if (command !== "removeFormat") return true
+      const formula = editable.querySelector("[data-hn-inline-formula]")
+      if (!formula) return true
+      const narrowedRange = document.createRange()
+      narrowedRange.selectNodeContents(formula)
+      selection?.removeAllRanges()
+      selection?.addRange(narrowedRange)
+      return true
+    })
+
+    // When: 用户点击唯一保留的清除样式按钮。
+    fireEvent.click(findButton("清除样式"))
+
+    // Then: 自定义 code 被解包，公式原子节点被移除，并同步最新 HTML。
+    expect(editable.querySelector("code")).toBeNull()
+    expect(editable.querySelector("[data-hn-inline-formula]")).toBeNull()
+    expect(onContentChange).toHaveBeenCalledWith(
+      "block-custom",
+      expect.not.stringContaining("data-hn-inline-formula")
+    )
   })
 
   it("点击行内代码按钮调用 ./inlineSelectionFormatting.applyInlineCode", async () => {

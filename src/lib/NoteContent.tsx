@@ -24,17 +24,21 @@ import {
 } from "./inlineSelectionFormatting"
 import { LinkMentionMenu } from "./LinkMentionMenu"
 import { NoteChecklistBlock } from "./NoteChecklistBlock"
-import { NoteListBlock } from "./NoteListBlock"
 import { renderBlock, richText } from "./NoteContentBlocks"
-import { editableProps, updateText } from "./NoteContentEditing"
-import type { NoteBlock, NoteContentProps, NoteContentUndoRedoHandle } from "./types"
+import {
+  commitEditableContent,
+  editableProps,
+  updateText
+} from "./NoteContentEditing"
+import { NoteListBlock } from "./NoteListBlock"
 import { NoteQuoteBlock } from "./NoteQuoteBlock"
 import { NoteTodoBlock } from "./NoteTodoBlock"
 import { DISABLED_CONTROLLER } from "./noteContentUndoRedo"
 import { createNoteId } from "./noteId"
 import { SelectionPopover } from "./SelectionPopover"
-import { useBlockEditing } from "./useBlockEditing"
+import type { NoteBlock, NoteContentProps, NoteContentUndoRedoHandle } from "./types"
 import { useBlockDrag } from "./useBlockDrag"
+import { useBlockEditing } from "./useBlockEditing"
 
 type LegacyNoteContentProps = Omit<NoteContentProps, "ref"> & {
   readonly ref?: Ref<NoteContentUndoRedoHandle>
@@ -264,7 +268,7 @@ export function NoteContent({
                     selection.getRangeAt(0)
                   )
                   pendingCaretRef.current = { blockId, offset: offsets.start }
-                  onBlocksChange(updateText(blocks, blockId, escaped.innerHTML))
+                  commitEditableContent(escaped)
                 }
                 // 字符已手动插入并同步，跳过本键的其它处理
                 return
@@ -287,7 +291,7 @@ export function NoteContent({
                   )
                   pendingCaretRef.current = { blockId, offset: offsets.start }
                   escapeFormatBlockRef.current = blockId
-                  onBlocksChange(updateText(blocks, blockId, blockEl.innerHTML))
+                  commitEditableContent(blockEl)
                 }
               }
             }
@@ -315,8 +319,8 @@ export function NoteContent({
           {tagLabel ? <span className="hn-note-badge">{tagLabel}</span> : null}
           {contentEditable ? (
             <h1
-              {...editableProps((event) =>
-                onTitleChange?.(event.currentTarget.innerHTML)
+              {...editableProps((editable) =>
+                onTitleChange?.(editable.innerHTML)
               )}
               {...richText(title)}
             />
@@ -327,8 +331,7 @@ export function NoteContent({
             contentEditable ? (
               <p
                 {...editableProps(
-                  (event) =>
-                    onSummaryChange?.(event.currentTarget.innerHTML),
+                  (editable) => onSummaryChange?.(editable.innerHTML),
                   "hn-note-summary"
                 )}
                 {...richText(summary)}

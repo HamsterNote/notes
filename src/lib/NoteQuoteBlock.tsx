@@ -1,11 +1,9 @@
 import type { ReactElement, KeyboardEvent as ReactKeyboardEvent } from "react"
 
+import { downgradeEmptySpecialBlockToParagraph } from "./blockDowngrade"
 import { isVisibleHtmlEmpty, normalizeEditableHtml } from "./blockEditing"
+import type { BlockSource } from "./blockSourceConversion"
 import { quoteLineId, quoteTextLines } from "./blockSourceConversion"
-import {
-  downgradeEmptySpecialBlockToParagraph
-} from "./blockDowngrade"
-import { type BlockSource } from "./blockSourceConversion"
 import {
   handleEditableBlockKeyDown,
   renderBlockActionMenu
@@ -187,13 +185,13 @@ const NoteQuoteLine = ({
       >
         {editable ? (
           <p
-            {...editableProps((event) =>
+            {...editableProps((editable) =>
               onBlocksChange?.(
                 updateQuoteLine(
                   blocks,
                   block.id,
                   lineIndex,
-                  normalizeEditableHtml(event.currentTarget.innerHTML)
+                  normalizeEditableHtml(editable.innerHTML)
                 )
               )
             )}
@@ -209,12 +207,12 @@ const NoteQuoteLine = ({
         {showAuthor && block.author ? (
           editable ? (
             <footer
-              {...editableProps((event) =>
+              {...editableProps((editable) =>
                 onBlocksChange?.(
                   updateQuoteAuthor(
                     blocks,
                     block.id,
-                    event.currentTarget.innerHTML
+                    editable.innerHTML
                   )
                 )
               )}
