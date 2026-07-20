@@ -12,6 +12,7 @@ export const noteBlockKinds = {
   table: "table",
   formula: "formula",
   picture: "picture",
+  drawing: "drawing",
   directory: "directory",
   collapsible: "collapsible",
   checklist: "checklist"
@@ -111,6 +112,17 @@ export type NotePictureBlock = {
   readonly height?: number
 }
 
+/**
+ * 画板块。data 保存 @hamster-note/painting 的 DrawingValue JSON 字符串
+ * （与代码块类似的"围栏文本"存储方式；空字符串表示尚未绘制）。
+ * 只读态渲染为等比缩放的缩略图，编辑态点击缩略图弹出画板对话框进行绘制。
+ */
+export type NoteDrawingBlock = {
+  readonly id: string
+  readonly kind: "drawing"
+  readonly data: string
+}
+
 export type NoteDirectoryBlock = {
   readonly id: string
   readonly kind: "directory"
@@ -153,6 +165,7 @@ export type NoteBlock =
   | NoteTableBlock
   | NoteFormulaBlock
   | NotePictureBlock
+  | NoteDrawingBlock
   | NoteDirectoryBlock
   | NoteChecklistBlock
   | NoteCollapsibleBlock

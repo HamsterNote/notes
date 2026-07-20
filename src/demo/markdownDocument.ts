@@ -4,6 +4,7 @@ import remarkParse from "remark-parse"
 import { unified } from "unified"
 
 import type { NoteBlock } from "../lib/types"
+import { NOTE_DRAWING_FENCE_LANGUAGE } from "../lib/drawingData"
 import { parseMarkdownBlocks } from "./markdownDocumentBlocks"
 import { serializePicture } from "./markdownDocumentPhrasing"
 
@@ -140,6 +141,8 @@ const serializeBlock = (block: NoteBlock): string => {
       return fencedBlock("math", block.formula).join("\n")
     case "picture":
       return serializePicture(block)
+    case "drawing":
+      return fencedBlock(NOTE_DRAWING_FENCE_LANGUAGE, block.data).join("\n")
     case "directory":
       return fencedBlock("directory", "").join("\n")
     case "collapsible": {

@@ -13,6 +13,7 @@ export type {
   NoteContentUndoRedoHandle,
   NoteContentUndoRedoSnapshot,
   NoteDirectoryBlock,
+  NoteDrawingBlock,
   NoteFormulaBlock,
   NoteHeadingBlock,
   NoteLink,

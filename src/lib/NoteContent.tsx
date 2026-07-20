@@ -11,6 +11,12 @@ import {
 
 import "./styles.css"
 
+import {
+  BottomBlockControls,
+  type BottomBlockTarget,
+  resolveBottomBlockTarget,
+  resolveBottomBlockTargetBySource
+} from "./BottomBlockControls"
 import { isVisibleHtmlEmpty } from "./blockEditing"
 import { useInlineFormulaRendering } from "./inlineFormulaRendering"
 import {
@@ -86,6 +92,8 @@ export function NoteContent({
     typeof window === "undefined" ? 841 : window.innerWidth
   )
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null)
+  const [bottomBlockTarget, setBottomBlockTarget] =
+    useState<BottomBlockTarget | null>(null)
   const blocksRef = useRef(blocks)
   const isMobileDevice =
     typeof navigator !== "undefined" &&
@@ -102,8 +110,7 @@ export function NoteContent({
   const bodyPaddingX = viewportWidth > 840 ? "4rem" : "1.5rem"
   const contentEditable = editable && !selectMode
   const blockDragEnabled = contentEditable && onBlocksChange !== undefined
-  // 底部工具栏触发条件：移动设备 或 视口宽度 <= 840px（窄屏布局）
-  const useBottomBar = isMobileDevice || viewportWidth <= 840
+  const useBottomBar = isMobileDevice || viewportWidth < 840
   // shellStyle：注入主题色与可选的顶部/底部额外留白（px）。
   // 不直接写 padding，而是用 CSS 变量，使 .hn-note-hero/.hn-note-body
   // 能以 calc 叠加在各自默认内边距之上，保持原有视觉节奏。
@@ -182,6 +189,37 @@ export function NoteContent({
       moveCaretOutsideTrailingFormat(root)
     }
   })
+  useLayoutEffect(() => {
+    if (!useBottomBar) return
+    const body = bodyRef.current
+    if (!body) return
+    if (blocks.length === 0) {
+      setBottomBlockTarget(null)
+      return
+    }
+    const menuIsOpen = openBlockMenuId !== null
+    setBottomBlockTarget((current) => {
+      const next = resolveBottomBlockTargetBySource(
+        body,
+        current?.sourceId ?? null
+      )
+      if (
+        !next ||
+        menuIsOpen ||
+        (!next.addExpanded && !next.convertExpanded)
+      ) {
+        return next
+      }
+      return { ...next, addExpanded: false, convertExpanded: false }
+    })
+  }, [blocks, openBlockMenuId, useBottomBar])
+  const syncBottomBlockTarget = (target: EventTarget | null): void => {
+    if (!useBottomBar) return
+    const body = bodyRef.current
+    if (!body) return
+    const nextTarget = resolveBottomBlockTarget(target, body)
+    if (nextTarget) setBottomBlockTarget(nextTarget)
+  }
   const selectBlockFromTarget = (target: EventTarget | null): boolean => {
     if (!(target instanceof Element)) return false
     const body = bodyRef.current
@@ -211,6 +249,8 @@ export function NoteContent({
         aria-label={selectMode ? "Note blocks" : undefined}
         ref={shellRef}
         style={shellStyle}
+        onFocusCapture={(event) => syncBottomBlockTarget(event.target)}
+        onPointerDownCapture={(event) => syncBottomBlockTarget(event.target)}
         onClickCapture={(event) => {
           if (contentEditable && event.target === bodyRef.current) {
             appendParagraphAtTail()
@@ -448,7 +488,12 @@ export function NoteContent({
           ) : null}
         </div>
         {contentEditable && useBottomBar ? (
-          <div ref={bottomBarRef} className="hn-note-bottom-bar" />
+          <div ref={bottomBarRef} className="hn-note-bottom-bar">
+            <BottomBlockControls
+              shellRef={shellRef}
+              target={bottomBlockTarget}
+            />
+          </div>
         ) : null}
       </article>
       {contentEditable ? (

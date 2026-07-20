@@ -5,6 +5,7 @@ import { NoteCodeBlock } from "./NoteCodeEditorBlock"
 import { NoteCollapsibleBlock } from "./NoteCollapsibleBlock"
 import type { EditContext } from "./NoteContentEditing"
 import { NoteDirectoryBlock } from "./NoteDirectoryBlock"
+import { NoteDrawingBlock } from "./NoteDrawingBlock"
 import { NoteFormulaBlock } from "./NoteFormulaBlock"
 import { NoteListBlock } from "./NoteListBlock"
 import { NotePictureBlock } from "./NotePictureBlock"
@@ -44,6 +45,8 @@ export const renderBlock = (
       return <NoteFormulaBlock key={block.id} block={block} ctx={ctx} />
     case "picture":
       return <NotePictureBlock key={block.id} block={block} ctx={ctx} />
+    case "drawing":
+      return <NoteDrawingBlock key={block.id} block={block} ctx={ctx} />
     case "directory":
       return <NoteDirectoryBlock block={block} ctx={ctx} />
     case "collapsible":

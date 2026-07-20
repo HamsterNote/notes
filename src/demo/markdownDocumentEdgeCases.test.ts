@@ -36,8 +36,77 @@ const expectBlockAtIndex = (
 }
 
 describe("markdown document edge cases", () => {
-  it("round-trips H4 and H5 heading blocks", () => {
+  it("parses hamster-note-card fences as structured card data", () => {
+    // Given: Markdown contains a card payload with nested JSON data.
+    const cardData = {
+      title: "Release health",
+      columns: [
+        { id: "todo", title: "Todo" },
+        { id: "done", title: "Done" }
+      ],
+      items: [{ id: "ship", columnId: "done", text: "Ship notes" }]
+    }
+
+    // When: the document crosses the Markdown parsing boundary.
     const document = parseMarkdownDocument(
+      markdownDocument(
+        [
+          "```hamster-note-card",
+          JSON.stringify(cardData, null, 2),
+          "```"
+        ].join("\n")
+      )
+    )
+
+    // Then: the fence becomes a first-class card block without losing JSON fields.
+    expect(expectBlockAtIndex(document, 0)).toMatchObject({
+      kind: "card",
+      data: cardData
+    })
+  })
+
+  it("round-trips hamster-note-drawing fences as drawing blocks", () => {
+    // Given: a drawing fence whose payload is DrawingValue JSON.
+    const drawingData = JSON.stringify({
+      schemaVersion: 2,
+      strokes: [
+        {
+          schemaVersion: 2,
+          id: "stroke-1",
+          tool: "pen",
+          points: [
+            { x: 0, y: 0 },
+            { x: 24, y: 18 }
+          ]
+        }
+      ]
+    })
+
+    // When: the document crosses the Markdown parsing boundary.
+    const document = parseMarkdownDocument(
+      markdownDocument(
+        ["```hamster-note-drawing", drawingData, "```"].join("\n")
+      )
+    )
+
+    // Then: the fence becomes a drawing block keeping the raw JSON payload.
+    expect(expectBlockAtIndex(document, 0)).toMatchObject({
+      kind: "drawing",
+      data: drawingData
+    })
+
+    // And: serialization restores the same fence for a full round-trip.
+    const serialized = serializeMarkdownDocument(document)
+    expect(serialized).toContain("```hamster-note-drawing")
+    expect(serialized).toContain(drawingData)
+
+    const reparsed = parseMarkdownDocument(serialized)
+    expect(reparsed.blocks).toMatchObject([
+      { kind: "drawing", data: drawingData }
+    ])
+  })
+
+  it("round-trips H4 and H5 heading blocks", () => {    const document = parseMarkdownDocument(
       markdownDocument(
         ["#### Fourth level", "", "##### Fifth level"].join("\n")
       )

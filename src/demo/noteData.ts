@@ -49,6 +49,12 @@ The current component intentionally focuses on note reading, not editing. That k
 | Table operations | In Progress | Row/column add/delete via edge buttons |
 | Code highlight | Done | highlight.js with language selector |
 
+### Sketch
+
+\`\`\`hamster-note-drawing
+{"schemaVersion":2,"strokes":[{"schemaVersion":2,"id":"demo-ellipse","tool":"ellipse","points":[{"x":40,"y":40},{"x":200,"y":140}],"strokeColor":"#3b82f6","strokeWidth":3},{"schemaVersion":2,"id":"demo-smile","tool":"pen","points":[{"x":70,"y":100},{"x":90,"y":120},{"x":150,"y":120},{"x":170,"y":100}],"strokeColor":"#1e293b","strokeWidth":3}]}
+\`\`\`
+
 \`\`\`collapsible
 {"title":"Roadmap","collapsed":false}
 

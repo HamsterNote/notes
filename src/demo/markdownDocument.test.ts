@@ -81,6 +81,8 @@ const markdownBlockValue = (block: NoteBlock): unknown => {
         kind: block.kind,
         url: block.url
       }
+    case "drawing":
+      return { data: block.data, kind: block.kind }
     case "directory":
       return { kind: block.kind }
     case "collapsible":
@@ -161,7 +163,7 @@ describe("markdown document parsing", () => {
   it("preserves representative fields from the default document blocks", () => {
     const document = parseMarkdownDocument(demoMarkdownDocument)
 
-    expect(document.blocks).toHaveLength(12)
+    expect(document.blocks).toHaveLength(14)
     const hero = expectBlockAtIndex(document, 0)
     expect(hero).toMatchObject({
       kind: "heading",
@@ -230,7 +232,23 @@ describe("markdown document parsing", () => {
     expect(table.rows[0]).toContain("Feature")
     expect(table.rows[0]).toContain("Status")
 
-    const collapsible = expectBlockAtIndex(document, 11)
+    expect(expectBlockAtIndex(document, 11)).toMatchObject({
+      kind: "heading",
+      level: 3,
+      text: "Sketch"
+    })
+    const drawing = expectBlockAtIndex(document, 12)
+    expect(drawing).toMatchObject({ kind: "drawing" })
+    if (drawing.kind !== "drawing") throw new Error("Expected drawing block.")
+    // 围栏内容原样保留为 DrawingValue JSON 字符串
+    expect(JSON.parse(drawing.data)).toMatchObject({
+      schemaVersion: 2,
+      strokes: expect.arrayContaining([
+        expect.objectContaining({ tool: "ellipse" })
+      ])
+    })
+
+    const collapsible = expectBlockAtIndex(document, 13)
     expect(collapsible).toMatchObject({
       kind: "collapsible",
       title: "Roadmap",
@@ -376,7 +394,7 @@ describe("markdown document serialization", () => {
     )
 
     // Then: the math fence preserves the formula source without internal metadata.
-    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 12))).toEqual({
+    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 14))).toEqual({
       kind: "formula",
       formula: formulaSource
     })
@@ -396,7 +414,7 @@ describe("markdown document serialization", () => {
 
     // Then: only the directory marker is persisted; entries remain derived.
     expect(serialized).toContain("```directory\n\n```")
-    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 12))).toEqual({
+    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 14))).toEqual({
       kind: "directory"
     })
   })
@@ -444,7 +462,7 @@ describe("markdown document serialization", () => {
     expect(serialized).toContain(
       "![my picture.png](<https://example.com/my picture.png>)"
     )
-    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 12))).toEqual({
+    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 14))).toEqual({
       kind: "picture",
       url: "https://example.com/my picture.png",
       filename: "my picture.png"
@@ -499,11 +517,11 @@ describe("markdown document serialization", () => {
     )
 
     // Then: dynamic outer fences preserve both source strings exactly.
-    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 12))).toEqual({
+    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 14))).toEqual({
       kind: "formula",
       formula: formulaSource
     })
-    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 13))).toEqual({
+    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 15))).toEqual({
       kind: "code",
       language: "ts",
       code: codeSource

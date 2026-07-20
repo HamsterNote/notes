@@ -3,6 +3,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   useCallback,
   useEffect,
+  useEffectEvent,
   useRef,
   useState
 } from "react"
@@ -80,6 +81,16 @@ const MENU_Z_INDEX = 9999
 const CONVERT_MAIN_INDEX_CONVERT = 0
 const CONVERT_MAIN_INDEX_DELETE = 1
 const CONVERT_MAIN_INDEX_DUPLICATE = 2
+const BLOCK_ACTION_MENU_TRIGGER = "hn:block-action-menu-trigger"
+
+export const triggerBlockActionMenu = (
+  handle: HTMLButtonElement,
+  anchor: HTMLElement
+): void => {
+  handle.dispatchEvent(
+    new CustomEvent(BLOCK_ACTION_MENU_TRIGGER, { detail: anchor })
+  )
+}
 
 // ===== 组件 =====
 
@@ -118,6 +129,7 @@ export const BlockActionMenu = ({
 
   // handle 按钮内部引用：用于定位计算与焦点归还
   const handleRef = useRef<HTMLButtonElement | null>(null)
+  const externalAnchorRef = useRef<HTMLElement | null>(null)
   // 主菜单容器引用：用于点击外部检测
   const menuRef = useRef<HTMLDivElement | null>(null)
   // 子菜单容器引用：用于点击外部检测（convert 模式才存在）
@@ -139,11 +151,12 @@ export const BlockActionMenu = ({
     isCurrentBlockMenuItem(item, kind, headingLevel)
 
   /** 根据 handle 按钮位置计算主菜单的 fixed 定位坐标 */
-  const computeMenuStyle = (): CSSProperties => {
-    const handle = handleRef.current
-    if (!handle) return { display: "none" }
+  const computeMenuStyle = (
+    anchor: HTMLElement | null = handleRef.current
+  ): CSSProperties => {
+    if (!anchor) return { display: "none" }
 
-    const rect = handle.getBoundingClientRect()
+    const rect = anchor.getBoundingClientRect()
 
     // 宽屏（>800px）：菜单紧贴 handle 右侧，顶部对齐
     if (window.innerWidth > MENU_CENTER_BREAKPOINT) {
@@ -193,14 +206,32 @@ export const BlockActionMenu = ({
   }
 
   /** handle 点击 / Enter：切换主菜单开闭 */
-  const handleToggle = () => {
+  const handleToggle = (anchor: HTMLElement | null = handleRef.current) => {
     if (open) {
       onOpenChange(false)
     } else {
-      setMenuStyle(computeMenuStyle())
+      setMenuStyle(computeMenuStyle(anchor))
       onOpenChange(true)
     }
   }
+
+  const handleExternalToggle = useEffectEvent((anchor: HTMLElement) => {
+    externalAnchorRef.current = anchor
+    handleToggle(anchor)
+  })
+
+  useEffect(() => {
+    const handle = handleRef.current
+    if (!handle) return
+    const handleExternalTrigger = (event: Event) => {
+      if (!(event instanceof CustomEvent)) return
+      if (!(event.detail instanceof HTMLElement)) return
+      handleExternalToggle(event.detail)
+    }
+    handle.addEventListener(BLOCK_ACTION_MENU_TRIGGER, handleExternalTrigger)
+    return () =>
+      handle.removeEventListener(BLOCK_ACTION_MENU_TRIGGER, handleExternalTrigger)
+  }, [])
 
   // 子菜单项被选中（与 add 模式直接选择走同一路径）
   const handleSubmenuSelect = (item: MenuItem) => {
@@ -309,6 +340,7 @@ export const BlockActionMenu = ({
       if (!target) return
       // 点击 handle 自身：由 handleToggle 处理，不在此关闭
       if (handleRef.current?.contains(target)) return
+      if (externalAnchorRef.current?.contains(target)) return
       // 点击主菜单内部：交给各 menuitem onClick 处理
       if (menuRef.current?.contains(target)) return
       // 点击子菜单内部：由子菜单项 onClick 处理
@@ -328,7 +360,12 @@ export const BlockActionMenu = ({
 
       // 其它情况关主菜单并把焦点给 handle
       onOpenChange(false)
-      handleRef.current?.focus()
+      const externalAnchor = externalAnchorRef.current
+      if (externalAnchor?.isConnected) {
+        externalAnchor.focus()
+      } else {
+        handleRef.current?.focus()
+      }
     }
 
     // 滚动或窗口尺寸变化时关闭菜单：handle 位置已变，fixed 定位会错位
@@ -588,7 +625,10 @@ export const BlockActionMenu = ({
         aria-label={handleAriaLabel}
         data-block-id={blockId}
         data-block-menu-mode={mode}
-        onClick={handleToggle}
+        onClick={() => {
+          externalAnchorRef.current = null
+          handleToggle()
+        }}
       >
         <span
           className={

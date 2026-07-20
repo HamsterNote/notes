@@ -82,6 +82,7 @@
     "vitest": "^4.0.10"
   },
   "dependencies": {
+    "@hamster-note/painting": "0.2.0",
     "@system-ui-js/multi-drag": "^0.4.0",
     "highlight.js": "^11.11.1",
     "katex": "^0.17.0",

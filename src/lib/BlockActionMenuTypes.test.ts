@@ -52,4 +52,13 @@ describe("BlockActionMenuTypes", () => {
     expect(blockKindLabel("collapsible")).toBe("Collapsible")
     expect(blockKindLabel("paragraph")).toBe("正文")
   })
+
+  it("exposes a Drawing menu item mapping to the drawing target", () => {
+    const drawing = blockMenuItems.find((item) => item.label === "Drawing")
+
+    expect(drawing).toBeDefined()
+    if (drawing)
+      expect(blockMenuItemTarget(drawing)).toEqual({ kind: "drawing" })
+    expect(blockKindLabel("drawing")).toBe("Drawing")
+  })
 })

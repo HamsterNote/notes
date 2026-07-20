@@ -169,6 +169,17 @@ export const updateFormula = (
     return { ...block, formula }
   })
 
+/** 更新画板块的 DrawingValue JSON 字符串。 */
+export const updateDrawing = (
+  blocks: readonly NoteBlock[],
+  id: string,
+  data: string
+): NoteBlock[] =>
+  blocks.map((block) => {
+    if (block.id !== id || block.kind !== "drawing") return block
+    return { ...block, data }
+  })
+
 export const updateCodeLanguage = (
   blocks: readonly NoteBlock[],
   id: string,

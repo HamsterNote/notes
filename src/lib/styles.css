@@ -125,9 +125,6 @@
   text-align: left;
 }
 
-/* 移动端底部工具栏容器：仅作为 sticky 锚点 + 透明留白托盘。
-   视觉浮层（跑道型胶囊）由内部 .hn-note-popover--docked 承担，
-   这样桌面悬浮版 popover 仍维持深色系，与此处主题化样式互不污染。 */
 .hn-note-bottom-bar {
   position: sticky;
   bottom: 0;
@@ -135,13 +132,71 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
+  box-sizing: border-box;
+  min-width: 0;
   width: 100%;
   padding: 0.625rem 1rem 0.75rem;
   pointer-events: none;
 }
 
-.hn-note-bottom-bar > .hn-note-popover {
+.hn-note-bottom-bar > .hn-note-popover,
+.hn-note-bottom-actions {
   pointer-events: auto;
+}
+
+.hn-note-bottom-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.35rem 0.45rem;
+  border: 1px solid var(--hn-border);
+  border-radius: 999px;
+  background: var(--hn-bg);
+  box-shadow:
+    0 4px 14px rgba(15, 23, 42, 0.18),
+    0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.hn-note-bottom-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--hn-text-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.hn-note-bottom-action:hover {
+  background: var(--hn-surface-hover);
+  color: var(--hn-text);
+}
+
+.hn-note-bottom-action:focus-visible {
+  box-shadow: 0 0 0 2px var(--hn-theme);
+  outline: none;
+}
+
+.hn-note-bottom-action[aria-expanded="true"] {
+  background: var(--hn-theme-soft);
+  color: var(--hn-theme-text);
+}
+
+.hn-note-bottom-action:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.hn-note-bottom-action--add {
+  font-size: 1rem;
+  font-weight: 500;
 }
 
 .hn-note-block,
@@ -789,6 +844,16 @@
   font-weight: 700;
 }
 
+/* 空态提示：过滤后无匹配（或 links 本身为空）时展示，非交互元素。
+   复用现有 popover 视觉语言——#e2e8f0 降透明度，不引入新色板。 */
+.hn-note-mention-empty {
+  padding: 0.5rem 0.65rem;
+  color: rgba(226, 232, 240, 0.6);
+  font-size: 0.8rem;
+  text-align: left;
+  cursor: default;
+}
+
 .hn-note-link-mention {
   padding: 0 0.2em;
   border-radius: 999px;
@@ -826,8 +891,11 @@
 .hn-note-popover--docked {
   position: relative;
   width: auto;
+  min-width: 0;
   max-width: 100%;
-  justify-content: center;
+  justify-content: flex-start;
+  overflow-x: auto;
+  scrollbar-width: none;
   padding: 0.35rem 0.45rem;
   border: 1px solid var(--hn-border);
   border-radius: 999px;
@@ -837,6 +905,10 @@
     0 4px 14px rgba(15, 23, 42, 0.18),
     0 1px 3px rgba(15, 23, 42, 0.08);
   transform: none;
+}
+
+.hn-note-popover--docked::-webkit-scrollbar {
+  display: none;
 }
 
 /* Docked 模式下按钮文字颜色随主题；hover 用 surface 而不是透明白覆盖 */
@@ -1281,7 +1353,7 @@
   margin-top: 0.35rem;
 }
 
-@media (max-width: 840px) {
+@media (max-width: 839px) {
   .hn-note-block:has(> .hn-note-block-handle)::before,
   .hn-note-block-handle {
     display: none;
@@ -1290,6 +1362,11 @@
   .hn-note-collapsible-body {
     padding-left: 1.5rem;
   }
+}
+
+.hn-note-shell--mobile .hn-note-block:has(> .hn-note-block-handle)::before,
+.hn-note-shell--mobile .hn-note-block-handle {
+  display: none;
 }
 
 .hn-note-picture {
@@ -1536,6 +1613,133 @@
 
 .hn-note-formula-textarea::placeholder {
   color: rgba(226, 232, 240, 0.45);
+}
+
+/* ===== 画板块 ===== */
+/* 预览态外观对齐公式块：整块可点击区域 + 主题色 hover/focus 反馈 */
+.hn-note-drawing-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 3.25rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+}
+
+.hn-note-drawing-preview--editable {
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.hn-note-drawing-preview--editable:hover {
+  outline: 2px solid var(--hn-theme);
+}
+
+.hn-note-drawing-preview--editable:focus {
+  background: color-mix(in srgb, var(--hn-theme) 8%, transparent);
+  box-shadow: 0 0 0 2px var(--hn-theme);
+  outline: none;
+}
+
+/* 缩略图视觉对齐图片块：白底 + 细边框 + 8px 圆角，宽度撑满、高度按 viewBox 等比 */
+.hn-note-drawing-thumbnail {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  max-height: 320px;
+  border: 1px solid var(--hn-border);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+/* 未绘制占位：虚线框提示，与图片上传前的空态语义一致 */
+.hn-note-drawing-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 3.25rem;
+  border: 1px dashed var(--hn-border-strong);
+  border-radius: 8px;
+  color: var(--hn-text-muted);
+  font-size: 0.85rem;
+}
+
+/* 编辑对话框：portal 脱离 .hn-note-shell，沿用既有暗色浮层的字面量色值 */
+.hn-note-drawing-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.5);
+  animation: hn-popover-in 0.12s ease;
+}
+
+.hn-note-drawing-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(720px, 100%);
+  height: min(560px, 100%);
+  border-radius: 10px;
+  background: #1e293b;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
+  overflow: hidden;
+}
+
+.hn-note-drawing-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+}
+
+/* 工具条按钮复用块菜单项的暗色按钮外观 */
+.hn-note-drawing-tool {
+  padding: 0.35rem 0.6rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #e2e8f0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+}
+
+.hn-note-drawing-tool:hover,
+.hn-note-drawing-tool:focus {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  outline: none;
+}
+
+.hn-note-drawing-tool[aria-pressed="true"] {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+/* "完成"按钮推到工具条最右侧 */
+.hn-note-drawing-close {
+  margin-left: auto;
+}
+
+/* 画布区域：DrawingSurface 宿主 div 为 100% 宽高，这里给白底与剩余空间 */
+.hn-note-drawing-canvas {
+  flex: 1;
+  min-height: 0;
+  background: #ffffff;
 }
 
 /* ===== 行内公式与行内代码 ===== */
