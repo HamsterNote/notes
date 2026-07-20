@@ -4,6 +4,7 @@ import {
   type Ref,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useRef,
   useState
 } from "react"
@@ -12,6 +13,15 @@ import "./styles.css"
 
 import { isVisibleHtmlEmpty } from "./blockEditing"
 import { useInlineFormulaRendering } from "./inlineFormulaRendering"
+import {
+  moveCaretOutsideTrailingFormat,
+  tryApplyInlineMarkdownShortcut,
+  tryEscapeTrailingFormat
+} from "./inlineMarkdownShortcut"
+import {
+  captureSelectionOffsets,
+  restoreSelectionOffsets
+} from "./inlineSelectionFormatting"
 import { LinkMentionMenu } from "./LinkMentionMenu"
 import { NoteChecklistBlock } from "./NoteChecklistBlock"
 import { NoteListBlock } from "./NoteListBlock"
@@ -58,6 +68,16 @@ export function NoteContent({
   const shellRef = useRef<HTMLElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
   const bottomBarRef = useRef<HTMLDivElement>(null)
+  // R7: Markdown 行内自动转换同步 innerHTML 后，React 提交会用
+  // dangerouslySetInnerHTML 重建块 DOM，折叠光标随之失效。转换时在此记录
+  // 块内纯文本偏移，useLayoutEffect 在提交完成后于新 DOM 上恢复光标。
+  const pendingCaretRef = useRef<{ blockId: string; offset: number } | null>(
+    null
+  )
+  // R7: 一次性「逃逸」守卫 —— 自动转换完成后标记所在块；下一个可打印
+  // 字符的 keydown 若仍处于块尾格式元素右边界，则手动插入该字符，
+  // 规避 Chrome 把输入吸进内联元素的粘滞行为。
+  const escapeFormatBlockRef = useRef<string | null>(null)
   const [viewportWidth, setViewportWidth] = useState(() =>
     typeof window === "undefined" ? 841 : window.innerWidth
   )
@@ -143,6 +163,21 @@ export function NoteContent({
     root: bodyRef,
     renderKey: contentEditable ? null : blocks
   })
+  // R7: 每次提交后检查是否有待恢复的行内转换光标 —— 与 SelectionPopover
+  // 的 pendingRestore 同理，按块内纯文本偏移在重建后的 DOM 上恢复折叠光标。
+  useLayoutEffect(() => {
+    const pending = pendingCaretRef.current
+    if (!pending) return
+    pendingCaretRef.current = null
+    const root = shellRef.current?.querySelector(
+      `[data-editable-block-id="${pending.blockId}"]`
+    )
+    if (root) {
+      restoreSelectionOffsets(root, pending.offset, pending.offset)
+      // 偏移恢复的光标会落在格式元素文本内部末尾，外移到元素之后
+      moveCaretOutsideTrailingFormat(root)
+    }
+  })
   const selectBlockFromTarget = (target: EventTarget | null): boolean => {
     if (!(target instanceof Element)) return false
     const body = bodyRef.current
@@ -202,6 +237,61 @@ export function NoteContent({
           }
         }}
         onKeyDownCapture={(event) => {
+          // R7: Markdown 行内自动转换 —— 按下闭合字符（`、*、~）且与光标前
+          // 起始标记配对时，直接把配对内容转换为行内 code/strong/em/s，
+          // preventDefault 拦截该字符插入，并把块 innerHTML 同步回 React 状态。
+          // capture 阶段处理，先于各块的 onKeyDown（它们不消费这些字符）。
+          if (
+            contentEditable &&
+            onBlocksChange &&
+            event.key.length === 1 &&
+            !event.ctrlKey &&
+            !event.metaKey &&
+            !event.altKey &&
+            !event.nativeEvent.isComposing
+          ) {
+            // 一次性逃逸守卫：转换后的第一个可打印字符优先走手动插入
+            if (escapeFormatBlockRef.current !== null) {
+              escapeFormatBlockRef.current = null
+              const escaped = tryEscapeTrailingFormat(event.key)
+              if (escaped) {
+                event.preventDefault()
+                const blockId = escaped.getAttribute("data-editable-block-id")
+                const selection = window.getSelection()
+                if (blockId && selection && selection.rangeCount > 0) {
+                  const offsets = captureSelectionOffsets(
+                    escaped,
+                    selection.getRangeAt(0)
+                  )
+                  pendingCaretRef.current = { blockId, offset: offsets.start }
+                  onBlocksChange(updateText(blocks, blockId, escaped.innerHTML))
+                }
+                // 字符已手动插入并同步，跳过本键的其它处理
+                return
+              }
+            }
+            if (
+              event.key === "`" ||
+              event.key === "*" ||
+              event.key === "~"
+            ) {
+              const blockEl = tryApplyInlineMarkdownShortcut(event.key)
+              if (blockEl) {
+                event.preventDefault()
+                const blockId = blockEl.getAttribute("data-editable-block-id")
+                const selection = window.getSelection()
+                if (blockId && selection && selection.rangeCount > 0) {
+                  const offsets = captureSelectionOffsets(
+                    blockEl,
+                    selection.getRangeAt(0)
+                  )
+                  pendingCaretRef.current = { blockId, offset: offsets.start }
+                  escapeFormatBlockRef.current = blockId
+                  onBlocksChange(updateText(blocks, blockId, blockEl.innerHTML))
+                }
+              }
+            }
+          }
           // 键盘等价：Enter/Space 激活 hnmagic:// 链接时同样拦截原生跳转
           if (event.key !== "Enter" && event.key !== " ") return
           if (selectMode && selectBlockFromTarget(event.target)) {

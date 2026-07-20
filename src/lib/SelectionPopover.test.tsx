@@ -1,5 +1,5 @@
 /** @vitest-environment jsdom */
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { type RefObject, createRef, useState } from "react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
@@ -757,6 +757,40 @@ describe("SelectionPopover 行内公式编辑（R1）", () => {
 
     const input = screen.getByRole("textbox", { name: "公式（LaTeX）" })
     expect((input as HTMLInputElement).value).toBe("x^2")
+  })
+
+  it("R6: 公式输入框打开时点击 popover 外部任意位置即隐藏输入框", () => {
+    const { span } = mountFormulaSpanPopover()
+
+    fireEvent.click(span)
+    expect(
+      screen.queryByRole("textbox", { name: "公式（LaTeX）" })
+    ).not.toBeNull()
+
+    // 模拟鼠标点击编辑区其它位置（popover  portal 在 body 上，容器在其外部）；
+    // 原生 dispatchEvent 不经 React 合成事件系统，需 act 刷新状态更新。
+    act(() => {
+      span.parentElement?.dispatchEvent(
+        new MouseEvent("pointerdown", { bubbles: true })
+      )
+    })
+
+    expect(
+      screen.queryByRole("textbox", { name: "公式（LaTeX）" })
+    ).toBeNull()
+  })
+
+  it("R6: 点击 popover 内部（输入框 / 按钮）不关闭", () => {
+    const { span } = mountFormulaSpanPopover()
+
+    fireEvent.click(span)
+    const input = screen.getByRole("textbox", { name: "公式（LaTeX）" })
+
+    input.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true }))
+
+    expect(
+      screen.queryByRole("textbox", { name: "公式（LaTeX）" })
+    ).not.toBeNull()
   })
 
   it("编辑已有公式时确认后原地更新 span 并同步所在块", () => {

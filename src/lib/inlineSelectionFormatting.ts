@@ -73,6 +73,7 @@ const INLINE_FORMULA_SELECTOR = `[${INLINE_FORMULA_ATTR}]`
  * `[data-editable-block-id] code:not([class])` 选择器兜底覆盖。
  */
 const INLINE_CODE_CLASS = "hn-note-inline-code"
+export { INLINE_CODE_CLASS }
 
 /**
  * `document.execCommand` 已被废弃但在所有现代浏览器中仍是 contentEditable

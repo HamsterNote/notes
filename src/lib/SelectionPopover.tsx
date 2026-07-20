@@ -241,10 +241,25 @@ export const SelectionPopover = ({
     const isDocked = Boolean(portalContainerRef?.current)
     if (!isDocked) {
       window.addEventListener("scroll", close, true)
+      // R6: 点击 popover 外部任意位置即关闭（含公式 / 链接输入模式），
+      // 与公式块 NoteFormulaBlock 的 pointerdown 外部关闭行为对齐。
+      // 点击 popover 内部（输入框 / 按钮）时跳过；docked 底部栏模式与
+      // scroll 关闭同理跳过——移动端可能保留选区高亮但不触发 selectionchange。
+      const onPointerDown = (event: PointerEvent) => {
+        const target = event.target
+        if (!(target instanceof Node)) return
+        if (popoverRef.current?.contains(target)) return
+        close()
+      }
+      document.addEventListener("pointerdown", onPointerDown)
+      return () => {
+        window.removeEventListener("scroll", close, true)
+        document.removeEventListener("keydown", onKeyDown)
+        document.removeEventListener("pointerdown", onPointerDown)
+      }
     }
     document.addEventListener("keydown", onKeyDown)
     return () => {
-      window.removeEventListener("scroll", close, true)
       document.removeEventListener("keydown", onKeyDown)
     }
   }, [position, portalContainerRef])
