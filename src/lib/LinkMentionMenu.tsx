@@ -27,6 +27,18 @@ type MentionMenuState = {
   readonly triggerRange: Range
 }
 
+const MENTION_QUERY_PATTERN = /^[\p{L}\p{N}_-]*$/u
+
+const isMentionTrigger = (
+  text: string,
+  atIndex: number,
+  caretOffset: number
+): boolean => {
+  const previous = atIndex > 0 ? text.at(atIndex - 1) : undefined
+  if (previous !== undefined && !/\s/u.test(previous)) return false
+  return MENTION_QUERY_PATTERN.test(text.slice(atIndex + 1, caretOffset))
+}
+
 /**
  * 取当前光标位置的触发 range：仅当光标紧贴 `@` 右侧（首次触发）时返回单字符 range。
  * 菜单已打开时的 query 扩展由 syncFromSelection 负责，不在这里判断。
@@ -38,7 +50,10 @@ const triggerRangeAtCaret = (editable: HTMLElement): Range | null => {
   const caret = selection.getRangeAt(0)
   if (!editable.contains(caret.startContainer)) return null
   if (!(caret.startContainer instanceof Text) || caret.startOffset === 0) return null
-  if (caret.startContainer.data.at(caret.startOffset - 1) !== "@") return null
+  const text = caret.startContainer.data
+  const atIndex = caret.startOffset - 1
+  if (text.at(atIndex) !== "@") return null
+  if (!isMentionTrigger(text, atIndex, caret.startOffset)) return null
 
   const triggerRange = caret.cloneRange()
   triggerRange.setStart(caret.startContainer, caret.startOffset - 1)
@@ -64,6 +79,7 @@ const scanBackForTrigger = (editable: HTMLElement): Range | null => {
   // 从光标前一个字符向前找最近的 `@`；找到即以此为起点构造 triggerRange。
   const atIdx = text.lastIndexOf("@", caretOffset - 1)
   if (atIdx === -1) return null
+  if (!isMentionTrigger(text, atIdx, caretOffset)) return null
 
   const triggerRange = caret.cloneRange()
   triggerRange.setStart(caret.startContainer, atIdx)
@@ -226,6 +242,10 @@ export const LinkMentionMenu = ({
         return
       }
       const query = text.slice(1)
+      if (!MENTION_QUERY_PATTERN.test(query)) {
+        setMenu(null)
+        return
+      }
       setMenu((prev) => {
         if (!prev) return null
         if (prev.query === query) return prev

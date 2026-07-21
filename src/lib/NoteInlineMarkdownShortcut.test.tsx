@@ -28,8 +28,11 @@ const renderEditable = (
   text: string
 ) => {
   const view = render(<Harness initialBlock={initialBlock} />)
-  const editable = view.container.querySelector<HTMLElement>(
-    `[data-editable-block-id="${editableId}"]`
+  const editable = Array.from(
+    view.container.querySelectorAll<HTMLElement>("[data-editable-block-id]")
+  ).find(
+    (candidate) =>
+      candidate.getAttribute("data-editable-block-id") === editableId
   )
   if (!editable) throw new Error(`Expected editable root: ${editableId}.`)
   // 模拟用户已键入的字符：直接写入 textContent（不经 onInput 同步），
@@ -209,6 +212,31 @@ describe("NoteContent Markdown 行内自动转换（R7）", () => {
     const anchor = selection?.anchorNode
     expect(anchor).toBeInstanceOf(Text)
     expect(selection?.anchorOffset).toBe(0)
+    expect((anchor as Text).previousSibling).toBe(
+      editable.querySelector("code")
+    )
+  })
+
+  it("特殊字符块 id 转换后仍能恢复光标", () => {
+    // Given: id 包含 CSS attribute selector 中有语义的字符。
+    const blockId = 'section"]draft'
+    const { editable } = renderEditable(
+      { id: blockId, kind: "paragraph", text: "" },
+      blockId,
+      "`foo"
+    )
+
+    // When: 完成行内 Markdown 转换并提交受控状态。
+    fireEvent.keyDown(editable, { key: "`" })
+
+    // Then: 光标恢复流程不抛异常，且仍折叠在 code 元素之后。
+    expect(editable.innerHTML).toBe(
+      '<code class="hn-note-inline-code">foo</code>'
+    )
+    const selection = window.getSelection()
+    expect(selection?.isCollapsed).toBe(true)
+    const anchor = selection?.anchorNode
+    expect(anchor).toBeInstanceOf(Text)
     expect((anchor as Text).previousSibling).toBe(
       editable.querySelector("code")
     )

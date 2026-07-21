@@ -18,6 +18,7 @@ import {
   resolveBottomBlockTargetBySource
 } from "./BottomBlockControls"
 import { isVisibleHtmlEmpty } from "./blockEditing"
+import { findEditableBlockById } from "./editableSelection"
 import { useInlineFormulaRendering } from "./inlineFormulaRendering"
 import {
   moveCaretOutsideTrailingFormat,
@@ -180,9 +181,8 @@ export function NoteContent({
     const pending = pendingCaretRef.current
     if (!pending) return
     pendingCaretRef.current = null
-    const root = shellRef.current?.querySelector(
-      `[data-editable-block-id="${pending.blockId}"]`
-    )
+    const shell = shellRef.current
+    const root = shell ? findEditableBlockById(shell, pending.blockId) : null
     if (root) {
       restoreSelectionOffsets(root, pending.offset, pending.offset)
       // 偏移恢复的光标会落在格式元素文本内部末尾，外移到元素之后

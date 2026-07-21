@@ -1,18 +1,15 @@
 import { type RefObject, useCallback, useState } from "react"
 
-export type FocusCaret = "start" | "end"
+import { findEditableBlockById } from "./editableSelection"
 
-const editableBlockSelector = (blockId: string): string =>
-  `[data-editable-block-id="${blockId}"]`
+export type FocusCaret = "start" | "end"
 
 export const focusEditableBlock = (
   blockId: string,
   caret: FocusCaret,
   root?: ParentNode | null
 ): void => {
-  const target = (root ?? document).querySelector<HTMLElement>(
-    editableBlockSelector(blockId)
-  )
+  const target = findEditableBlockById(root ?? document, blockId)
   if (!target) return
 
   target.focus()

@@ -52,6 +52,20 @@ const TextHarness = ({ initialBlock }: { initialBlock: NoteBlock }) => {
   )
 }
 
+const editableBlockById = (
+  container: HTMLElement,
+  blockId: string
+): HTMLElement => {
+  const editable = Array.from(
+    container.querySelectorAll<HTMLElement>("[data-editable-block-id]")
+  ).find(
+    (candidate) =>
+      candidate.getAttribute("data-editable-block-id") === blockId
+  )
+  if (!editable) throw new Error(`Expected editable block: ${blockId}.`)
+  return editable
+}
+
 describe("SelectionPopover text color", () => {
   beforeEach(() => {
     if (!("execCommand" in document)) {
@@ -155,6 +169,42 @@ describe("SelectionPopover text color", () => {
 
     await waitFor(() => {
       expect(execCommandSpy).toHaveBeenCalledWith("bold")
+    })
+  })
+
+  it("restores the selection after formatting a block whose id contains selector syntax", async () => {
+    // Given: block id 是公开 string，可合法包含引号和右方括号。
+    const block = {
+      id: 'section"]draft',
+      kind: "paragraph",
+      text: "Bold me"
+    } as const
+    const view = render(<TextHarness initialBlock={block} />)
+    const editable = editableBlockById(view.container, block.id)
+    vi.spyOn(document, "execCommand").mockReturnValue(true)
+
+    editable.focus()
+    const range = document.createRange()
+    range.setStart(editable.firstChild ?? editable, 0)
+    range.setEnd(editable.firstChild ?? editable, 4)
+    const selection = window.getSelection()
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+    dispatchSelectionChange()
+    await waitFor(() => {
+      expect(document.body.querySelector('[aria-label="粗体"]')).not.toBeNull()
+    })
+
+    // When: 格式化触发受控状态提交与选区恢复。
+    const boldButton = document.body.querySelector<HTMLElement>(
+      '[aria-label="粗体"]'
+    )
+    if (!boldButton) throw new Error("Expected bold button.")
+    fireEvent.click(boldButton)
+
+    // Then: 特殊 id 不会被解释为 CSS selector，选区仍恢复为原文本范围。
+    await waitFor(() => {
+      expect(window.getSelection()?.toString()).toBe("Bold")
     })
   })
 

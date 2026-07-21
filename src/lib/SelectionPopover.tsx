@@ -12,6 +12,7 @@ import { createPortal } from "react-dom"
 import "./styles.css"
 
 import {
+  findEditableBlockById,
   isRangeCrossMultipleEditableRoots,
   isRangeInNoteEditableScope,
   isRangeInSingleEditableRoot
@@ -373,9 +374,7 @@ export const SelectionPopover = ({
     const container = containerRef.current
     if (!container) return
     const root = pending.blockId
-      ? container.querySelector(
-          `[data-editable-block-id="${pending.blockId}"]`
-        )
+      ? findEditableBlockById(container, pending.blockId)
       : container
     if (!root) return
     restoreSelectionOffsets(root, pending.start, pending.end)

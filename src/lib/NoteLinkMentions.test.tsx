@@ -94,6 +94,20 @@ const moveCaretTo = (editable: HTMLElement, offset: number): void => {
 }
 
 describe("NoteContent link mentions", () => {
+  it("opens the link options when @ starts the editable block", () => {
+    // Given: 光标位于空段落开头。
+    const view = render(<MentionHarness />)
+    const editable = editableParagraph(view.container)
+
+    // When: 用户从块首输入一个有效 mention query。
+    typeAtCaret(editable, "@rel")
+
+    // Then: 块首是合法 token 边界，匹配选项正常出现。
+    expect(
+      screen.getByRole("option", { name: "Release notes" }).hidden
+    ).toBe(false)
+  })
+
   it("opens the link options when the user types @ in editable content", () => {
     // Given: an editable paragraph and a list of links.
     const view = render(<MentionHarness />)
@@ -198,6 +212,36 @@ describe("NoteContent link mentions", () => {
     expect(
       screen.queryByRole("option", { name: "Product roadmap" })
     ).toBeNull()
+  })
+
+  it("does not treat an @ inside an email address as a mention trigger", () => {
+    // Given: 普通文本包含邮箱，光标位于其后的同一文本节点。
+    const view = render(<MentionHarness />)
+    const editable = editableParagraph(view.container)
+
+    // When: 用户一次性输入邮箱及后续文本。
+    typeAtCaret(editable, "Contact a@b.com x")
+
+    // Then: 历史 @ 不会打开菜单，也没有可被 Enter 误删的 trigger range。
+    expect(screen.queryByRole("listbox", { name: "可选链接" })).toBeNull()
+    fireEvent.keyDown(editable, { key: "Enter" })
+    expect(editable.textContent).toBe("Contact a@b.com x")
+  })
+
+  it("closes the mention menu when the query crosses a whitespace boundary", () => {
+    // Given: 一个有效 mention query 已打开菜单。
+    const view = render(<MentionHarness />)
+    const editable = editableParagraph(view.container)
+    typeAtCaret(editable, "Meet @rel")
+    expect(screen.getByRole("listbox", { name: "可选链接" })).not.toBeNull()
+
+    // When: 用户继续输入空格和普通正文。
+    typeAtCaret(editable, "Meet @rel x")
+
+    // Then: mention token 已结束，菜单关闭且 Enter 不会删除整段正文。
+    expect(screen.queryByRole("listbox", { name: "可选链接" })).toBeNull()
+    fireEvent.keyDown(editable, { key: "Enter" })
+    expect(editable.textContent).toBe("Meet @rel x")
   })
 
   it("keeps the listbox open with an empty-state hint when no link matches the query", () => {
