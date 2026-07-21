@@ -31,6 +31,7 @@ const editableIds = (blocks: readonly NoteBlock[]): string[] =>
       case "collapsible":
         return [block.id]
       case "picture":
+      case "card":
       case "drawing":
       case "directory":
         return []

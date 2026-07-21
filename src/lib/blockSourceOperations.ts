@@ -72,6 +72,7 @@ const cloneBlockWithNewId = (block: NoteBlock): NoteBlock => {
     case "table":
     case "formula":
     case "picture":
+    case "card":
     case "drawing":
     case "directory":
       // 无 id 子结构：仅替换 block.id 即可

@@ -5,6 +5,8 @@ export type {
   NoteBlock,
   NoteCalloutBlock,
   NoteCalloutTone,
+  NoteCardBlock,
+  NoteCardData,
   NoteCodeBlock,
   NoteCollapsibleBlock,
   NoteContentHandle,

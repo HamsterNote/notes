@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest"
+import { parseDrawingData } from "../lib/drawingData"
 import type { NoteBlock, NoteTodoItem } from "../lib/types"
 import type { DemoMarkdownDocument } from "./markdownDocument"
 import {
@@ -81,6 +82,8 @@ const markdownBlockValue = (block: NoteBlock): unknown => {
         kind: block.kind,
         url: block.url
       }
+    case "card":
+      return { data: block.data, kind: block.kind }
     case "drawing":
       return { data: block.data, kind: block.kind }
     case "directory":
@@ -163,7 +166,7 @@ describe("markdown document parsing", () => {
   it("preserves representative fields from the default document blocks", () => {
     const document = parseMarkdownDocument(demoMarkdownDocument)
 
-    expect(document.blocks).toHaveLength(14)
+    expect(document.blocks).toHaveLength(16)
     const hero = expectBlockAtIndex(document, 0)
     expect(hero).toMatchObject({
       kind: "heading",
@@ -240,15 +243,23 @@ describe("markdown document parsing", () => {
     const drawing = expectBlockAtIndex(document, 12)
     expect(drawing).toMatchObject({ kind: "drawing" })
     if (drawing.kind !== "drawing") throw new Error("Expected drawing block.")
-    // 围栏内容原样保留为 DrawingValue JSON 字符串
-    expect(JSON.parse(drawing.data)).toMatchObject({
-      schemaVersion: 2,
-      strokes: expect.arrayContaining([
-        expect.objectContaining({ tool: "ellipse" })
-      ])
-    })
+    const drawingValue = parseDrawingData(drawing.data)
+    expect(drawingValue?.schemaVersion).toBe(2)
+    expect(drawingValue?.strokes.some((stroke) => stroke.tool === "ellipse")).toBe(
+      true
+    )
 
-    const collapsible = expectBlockAtIndex(document, 13)
+    expect(expectBlockAtIndex(document, 13)).toMatchObject({
+      kind: "heading",
+      level: 3,
+      text: "Release cards"
+    })
+    const card = expectBlockAtIndex(document, 14)
+    expect(card).toMatchObject({ kind: "card" })
+    if (card.kind !== "card") throw new Error("Expected card block.")
+    expect(card.data.some((item) => item.title === "Release ready")).toBe(true)
+
+    const collapsible = expectBlockAtIndex(document, 15)
     expect(collapsible).toMatchObject({
       kind: "collapsible",
       title: "Roadmap",
@@ -394,7 +405,9 @@ describe("markdown document serialization", () => {
     )
 
     // Then: the math fence preserves the formula source without internal metadata.
-    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 14))).toEqual({
+    expect(
+      markdownBlockValue(expectBlockAtIndex(reparsed, reparsed.blocks.length - 1))
+    ).toEqual({
       kind: "formula",
       formula: formulaSource
     })
@@ -414,7 +427,9 @@ describe("markdown document serialization", () => {
 
     // Then: only the directory marker is persisted; entries remain derived.
     expect(serialized).toContain("```directory\n\n```")
-    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 14))).toEqual({
+    expect(
+      markdownBlockValue(expectBlockAtIndex(reparsed, reparsed.blocks.length - 1))
+    ).toEqual({
       kind: "directory"
     })
   })
@@ -462,7 +477,9 @@ describe("markdown document serialization", () => {
     expect(serialized).toContain(
       "![my picture.png](<https://example.com/my picture.png>)"
     )
-    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 14))).toEqual({
+    expect(
+      markdownBlockValue(expectBlockAtIndex(reparsed, reparsed.blocks.length - 1))
+    ).toEqual({
       kind: "picture",
       url: "https://example.com/my picture.png",
       filename: "my picture.png"
@@ -517,11 +534,15 @@ describe("markdown document serialization", () => {
     )
 
     // Then: dynamic outer fences preserve both source strings exactly.
-    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 14))).toEqual({
+    expect(
+      markdownBlockValue(expectBlockAtIndex(reparsed, reparsed.blocks.length - 2))
+    ).toEqual({
       kind: "formula",
       formula: formulaSource
     })
-    expect(markdownBlockValue(expectBlockAtIndex(reparsed, 15))).toEqual({
+    expect(
+      markdownBlockValue(expectBlockAtIndex(reparsed, reparsed.blocks.length - 1))
+    ).toEqual({
       kind: "code",
       language: "ts",
       code: codeSource

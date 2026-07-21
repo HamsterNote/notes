@@ -57,6 +57,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.31.0",
+    "@hamster-note/cards": "0.3.2",
     "@testing-library/react": "^16.3.2",
     "@types/mdast": "^4.0.4",
     "@types/node": "^24.0.15",

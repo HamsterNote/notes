@@ -2008,3 +2008,198 @@ td:hover > .hn-note-table-edge-btn {
   background: rgba(239, 68, 68, 0.15);
   color: #ffffff;
 }
+
+.hn-note-card {
+  width: 100%;
+}
+
+.hn-note-card-preview {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  border: 1px solid var(--hn-border);
+  border-radius: 10px;
+  background: var(--hn-surface);
+  color: var(--hn-text);
+  cursor: pointer;
+  isolation: isolate;
+}
+
+.hn-note-card-preview:hover {
+  border-color: var(--hn-border-strong);
+}
+
+.hn-note-card-preview:focus-visible {
+  outline: 2px solid var(--hn-theme);
+  outline-offset: 3px;
+}
+
+.hn-note-card-preview-stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-origin: center;
+  translate: -50% -50%;
+  pointer-events: none;
+}
+
+.hn-note-card-empty {
+  display: grid;
+  height: 100%;
+  place-items: center;
+  color: var(--hn-text-muted);
+}
+
+.hn-note-card-preview-hint {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  padding: 6px 9px;
+  border: 1px solid var(--hn-border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--hn-bg) 88%, transparent);
+  color: var(--hn-text-muted);
+  font-size: 0.75rem;
+  line-height: 1;
+  backdrop-filter: blur(8px);
+}
+
+.hn-note-card-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.68);
+  backdrop-filter: blur(8px);
+}
+
+.hn-note-card-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(1120px, 100%);
+  max-height: min(820px, calc(100dvh - 48px));
+  overflow: hidden;
+  border: 1px solid var(--hn-border);
+  border-radius: 18px;
+  background: var(--hn-bg);
+  color: var(--hn-text);
+  box-shadow: 0 24px 72px rgba(15, 23, 42, 0.34);
+}
+
+.hn-note-card-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--hn-border);
+}
+
+.hn-note-card-dialog-header h2,
+.hn-note-card-dialog-header p {
+  margin: 0;
+}
+
+.hn-note-card-dialog-header p {
+  margin-top: 3px;
+  color: var(--hn-text-muted);
+  font-size: 0.82rem;
+}
+
+.hn-note-card-dialog-header button {
+  padding: 8px 14px;
+  border: 1px solid var(--hn-theme);
+  border-radius: 8px;
+  background: var(--hn-theme);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.hn-note-card-dialog-header button:focus-visible,
+.hn-note-card-inspector :is(input, textarea):focus-visible {
+  outline: 2px solid var(--hn-theme);
+  outline-offset: 2px;
+}
+
+.hn-note-card-dialog-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 0;
+}
+
+.hn-note-card-dialog-body--with-inspector {
+  grid-template-columns: minmax(0, 1fr) 260px;
+}
+
+.hn-note-card-dialog-canvas {
+  min-height: 520px;
+  overflow: auto;
+  background: var(--hn-surface);
+}
+
+.hn-note-card-dialog-stage {
+  position: relative;
+}
+
+.hn-note-card-inspector {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+  border-left: 1px solid var(--hn-border);
+  background: var(--hn-bg);
+}
+
+.hn-note-card-inspector label {
+  display: grid;
+  gap: 7px;
+  color: var(--hn-text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.hn-note-card-inspector :is(input, textarea) {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 10px;
+  border: 1px solid var(--hn-border);
+  border-radius: 8px;
+  background: var(--hn-surface);
+  color: var(--hn-text);
+  font: inherit;
+  font-weight: 400;
+}
+
+.hn-note-card-inspector textarea {
+  min-height: 132px;
+  resize: vertical;
+}
+
+@media (max-width: 720px) {
+  .hn-note-card-overlay {
+    padding: 12px;
+  }
+
+  .hn-note-card-dialog {
+    max-height: calc(100dvh - 24px);
+    border-radius: 14px;
+  }
+
+  .hn-note-card-dialog-body {
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+  }
+
+  .hn-note-card-dialog-canvas {
+    min-height: 420px;
+  }
+
+  .hn-note-card-inspector {
+    border-top: 1px solid var(--hn-border);
+    border-left: 0;
+  }
+}

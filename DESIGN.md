@@ -229,3 +229,13 @@ Table insertion and operation controls sit on cell boundaries rather than inside
 - Arrow Up and Arrow Down move the active option cyclically, Enter inserts it, and Escape closes the listbox without changing the trigger text. Pointer selection preserves the editable caret.
 - An inserted mention is a non-editable inline pill containing the visible `@name` and the link id in `data-note-link-id`. It uses `--hn-theme-soft`, `--hn-theme-text`, and the existing `999px` inline-pill radius.
 - The menu exposes `role="listbox"`; each option exposes `role="option"` and `aria-selected`. Keyboard focus keeps the standard theme-color outline.
+
+---
+
+## 15. Card Block and Dialog
+
+- `hamster-note-card` fenced blocks contain the JSON array consumed by `@hamster-note/cards`. The normal note surface renders the complete canvas inside a fixed preview viewport and scales it down only when its bounds exceed that viewport.
+- The preview canvas is inert and has no independent pointer or keyboard interaction. One full-surface trigger is the only interactive layer; activating it opens the full-size card canvas in a modal Dialog.
+- The Dialog uses `--hn-bg`, `--hn-surface`, `--hn-border`, `--hn-text`, and `--hn-theme` rather than introducing a separate palette. It keeps canvas overflow scrollable so card coordinates and sizes remain unchanged on narrow screens.
+- Read-only notes open a full-size inspection view. Editable controlled notes additionally enable card selection, movement, resize, and title/content fields; every mutation is committed through `onBlocksChange` and therefore returns to Markdown JSON serialization.
+- Escape, the completion button, and a pointer press on the backdrop close the Dialog. Closing restores keyboard focus to the preview trigger. The Dialog exposes `role="dialog"`, `aria-modal`, a visible heading, and visible focus states.

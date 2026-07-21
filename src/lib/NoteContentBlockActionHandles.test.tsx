@@ -240,6 +240,45 @@ describe("NoteContent block action handles", () => {
     })
   })
 
+  it("inserts an empty card canvas through the add menu", async () => {
+    // Given: a controlled note with one paragraph anchor.
+    const onChange = vi.fn<(blocks: NoteBlock[]) => void>()
+    const Harness = () => {
+      const [blocks, setBlocks] = useState<readonly NoteBlock[]>([
+        { id: "card-anchor", kind: "paragraph", text: "Before card" }
+      ])
+      return (
+        <NoteContent
+          blocks={blocks}
+          title="Insert card"
+          editable
+          onBlocksChange={(next) => {
+            onChange(next)
+            setBlocks(next)
+          }}
+        />
+      )
+    }
+    const view = render(<Harness />)
+
+    // When: Card is selected from the paragraph's add menu.
+    const add = findHandle(view.container, "card-anchor", "add")
+    if (!add) throw new Error("Expected card-anchor add handle.")
+    fireEvent.click(add)
+    fireEvent.click(await screen.findByRole("menuitem", { name: "卡片" }))
+
+    // Then: an empty card block is inserted and rendered after the source.
+    await waitFor(() => {
+      const next = onChange.mock.calls.at(-1)?.[0]
+      const inserted = next?.[1]
+      expect(next).toEqual([
+        { id: "card-anchor", kind: "paragraph", text: "Before card" },
+        { id: inserted?.id, kind: "card", data: [] }
+      ])
+      expect(screen.getByRole("button", { name: "打开卡片" })).toBeDefined()
+    })
+  })
+
   it("opens the add menu without visually selecting a block type", async () => {
     // Given: a paragraph block whose current type also exists in the add menu.
     const view = render(

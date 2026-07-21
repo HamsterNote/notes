@@ -276,6 +276,7 @@ export const insertSplitBlock = ({
       case "table":
       case "formula":
       case "picture":
+      case "card":
       case "drawing":
       case "directory":
         return [block]
@@ -340,6 +341,7 @@ export const deleteEmptyTextBlock = ({
         case "table":
         case "formula":
         case "picture":
+        case "card":
         case "drawing":
         case "directory":
           return block

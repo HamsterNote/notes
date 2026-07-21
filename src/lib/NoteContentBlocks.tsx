@@ -1,5 +1,6 @@
 import type { ReactElement } from "react"
 import { NoteCalloutBlock } from "./NoteCalloutBlock"
+import { NoteCardBlock } from "./NoteCardBlock"
 import { NoteChecklistBlock } from "./NoteChecklistBlock"
 import { NoteCodeBlock } from "./NoteCodeEditorBlock"
 import { NoteCollapsibleBlock } from "./NoteCollapsibleBlock"
@@ -39,6 +40,8 @@ export const renderBlock = (
       return <NoteCodeBlock key={block.id} block={block} ctx={ctx} />
     case "callout":
       return <NoteCalloutBlock block={block} ctx={ctx} />
+    case "card":
+      return <NoteCardBlock key={block.id} block={block} ctx={ctx} />
     case "table":
       return renderTableBlock(block, ctx)
     case "formula":

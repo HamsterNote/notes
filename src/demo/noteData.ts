@@ -55,6 +55,32 @@ The current component intentionally focuses on note reading, not editing. That k
 {"schemaVersion":2,"strokes":[{"schemaVersion":2,"id":"demo-ellipse","tool":"ellipse","points":[{"x":40,"y":40},{"x":200,"y":140}],"strokeColor":"#3b82f6","strokeWidth":3},{"schemaVersion":2,"id":"demo-smile","tool":"pen","points":[{"x":70,"y":100},{"x":90,"y":120},{"x":150,"y":120},{"x":170,"y":100}],"strokeColor":"#1e293b","strokeWidth":3}]}
 \`\`\`
 
+### Release cards
+
+\`\`\`hamster-note-card
+[
+  {
+    "id": "release-ready",
+    "title": "Release ready",
+    "content": "Package, documentation, and visual QA are complete.",
+    "x": 32,
+    "y": 32,
+    "width": 260,
+    "height": 156
+  },
+  {
+    "id": "publish-next",
+    "title": "Publish next",
+    "content": "Verify the registry artifact before promoting latest.",
+    "x": 348,
+    "y": 96,
+    "width": 260,
+    "height": 156,
+    "linkedCardIds": ["release-ready"]
+  }
+]
+\`\`\`
+
 \`\`\`collapsible
 {"title":"Roadmap","collapsed":false}
 

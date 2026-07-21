@@ -2,9 +2,12 @@ import type { Root } from "mdast"
 import remarkGfm from "remark-gfm"
 import remarkParse from "remark-parse"
 import { unified } from "unified"
-
-import type { NoteBlock } from "../lib/types"
+import {
+  NOTE_CARD_FENCE_LANGUAGE,
+  stringifyCardData
+} from "../lib/cardData"
 import { NOTE_DRAWING_FENCE_LANGUAGE } from "../lib/drawingData"
+import type { NoteBlock } from "../lib/types"
 import { parseMarkdownBlocks } from "./markdownDocumentBlocks"
 import { serializePicture } from "./markdownDocumentPhrasing"
 
@@ -141,6 +144,11 @@ const serializeBlock = (block: NoteBlock): string => {
       return fencedBlock("math", block.formula).join("\n")
     case "picture":
       return serializePicture(block)
+    case "card":
+      return fencedBlock(
+        NOTE_CARD_FENCE_LANGUAGE,
+        stringifyCardData(block.data)
+      ).join("\n")
     case "drawing":
       return fencedBlock(NOTE_DRAWING_FENCE_LANGUAGE, block.data).join("\n")
     case "directory":

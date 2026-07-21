@@ -33,6 +33,9 @@ importers:
       '@eslint/js':
         specifier: ^9.31.0
         version: 9.39.4
+      '@hamster-note/cards':
+        specifier: 0.3.2
+        version: 0.3.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@testing-library/react':
         specifier: ^16.3.2
         version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -449,6 +452,13 @@ packages:
     peerDependenciesMeta:
       '@noble/hashes':
         optional: true
+
+  '@hamster-note/cards@0.3.2':
+    resolution: {integrity: sha512-IIE85U52AUHSVBQJfbbNjzYtwOsditDIquAvrljdmfLqtfRiKI8RlK4GYyxo70DlHuWt7OeHke/J4Khbsr2MWA==, tarball: https://registry.npmjs.org/@hamster-note/cards/-/cards-0.3.2.tgz}
+    engines: {node: '>=22'}
+    peerDependencies:
+      react: ^19.2.7
+      react-dom: ^19.2.7
 
   '@hamster-note/painting@0.2.0':
     resolution: {integrity: sha512-GUNh6EBFLr01LwCSpJrt0xNalOOUAHZZOu31+ZIivUJscoQHq9P8PWYcYMjBHkVVHPGThXo0+z3/9NtvBCVepQ==, tarball: https://registry.npmjs.org/@hamster-note/painting/-/painting-0.2.0.tgz}
@@ -2919,6 +2929,12 @@ snapshots:
       levn: 0.4.1
 
   '@exodus/bytes@1.15.1': {}
+
+  '@hamster-note/cards@0.3.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+    dependencies:
+      '@system-ui-js/multi-drag': 0.4.0
+      react: 19.2.7
+      react-dom: 19.2.7(react@19.2.7)
 
   '@hamster-note/painting@0.2.0(react-dom@19.2.7(react@19.2.7))(react-native@0.86.0(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.7))(react@19.2.7)':
     dependencies:

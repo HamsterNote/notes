@@ -23,6 +23,7 @@ export type StructuralMenuItem = {
     | "formula"
     | "directory"
     | "collapsible"
+    | "card"
     | "drawing"
   readonly label: string
 }
@@ -46,6 +47,7 @@ export const blockMenuItems: readonly MenuItem[] = [
   { kind: "formula", label: "公式" },
   { kind: "directory", label: "目录" },
   { kind: "collapsible", label: "Collapsible" },
+  { kind: "card", label: "卡片" },
   { kind: "drawing", label: "Drawing" }
 ] satisfies readonly (BlockConvertTarget & { readonly label: string })[]
 
@@ -73,6 +75,7 @@ export const blockMenuItemTarget = (item: MenuItem): BlockConvertTarget => {
     case "formula":
     case "directory":
     case "collapsible":
+    case "card":
     case "drawing":
       return { kind: item.kind }
     default:
@@ -106,6 +109,8 @@ export const blockKindLabel = (
       return "Code"
     case "callout":
       return "Callout"
+    case "card":
+      return "卡片"
     case "table":
       return "Table"
     case "formula":

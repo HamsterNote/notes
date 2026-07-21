@@ -38,14 +38,17 @@ const expectBlockAtIndex = (
 describe("markdown document edge cases", () => {
   it("parses hamster-note-card fences as structured card data", () => {
     // Given: Markdown contains a card payload with nested JSON data.
-    const cardData = {
-      title: "Release health",
-      columns: [
-        { id: "todo", title: "Todo" },
-        { id: "done", title: "Done" }
-      ],
-      items: [{ id: "ship", columnId: "done", text: "Ship notes" }]
-    }
+    const cardData = [
+      {
+        id: "release-health",
+        title: "Release health",
+        content: "Ship notes",
+        x: 24,
+        y: 32,
+        width: 240,
+        height: 144
+      }
+    ]
 
     // When: the document crosses the Markdown parsing boundary.
     const document = parseMarkdownDocument(
@@ -63,6 +66,13 @@ describe("markdown document edge cases", () => {
       kind: "card",
       data: cardData
     })
+
+    // And: serialization preserves the documented fence and structured payload.
+    const serialized = serializeMarkdownDocument(document)
+    expect(serialized).toContain("```hamster-note-card")
+    expect(parseMarkdownDocument(serialized).blocks).toMatchObject([
+      { kind: "card", data: cardData }
+    ])
   })
 
   it("round-trips hamster-note-drawing fences as drawing blocks", () => {
