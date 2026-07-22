@@ -185,6 +185,30 @@ describe("NoteContent convert handle main menu", () => {
     })
   })
 
+  it("converts a populated paragraph to an empty card canvas", async () => {
+    // Given: a controlled paragraph carrying content that cards cannot preserve.
+    const onChange = vi.fn()
+    const view = makeHarness(
+      [{ id: "card-source", kind: "paragraph", text: "Discard me" }],
+      onChange
+    )
+
+    // When: Card is selected from the convert submenu.
+    const handle = findConvertHandle(view.container, "card-source")
+    if (!handle) throw new Error("Expected card-source convert handle.")
+    fireEvent.click(handle)
+    fireEvent.click(await screen.findByRole("menuitem", { name: /转换成/ }))
+    fireEvent.click(await screen.findByRole("menuitem", { name: "卡片" }))
+
+    // Then: the block id is retained while card data starts as an empty canvas.
+    await waitFor(() => {
+      expect(onChange).toHaveBeenCalled()
+      expect(onChange.mock.calls.at(-1)?.[0]).toEqual([
+        { id: "card-source", kind: "card", data: [] }
+      ])
+    })
+  })
+
   it("opens the 转换成 submenu without focusing a format", async () => {
     // Given: a paragraph whose current format is represented in the submenu.
     const view = render(

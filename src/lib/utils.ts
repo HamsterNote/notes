@@ -97,6 +97,8 @@ const countBlockWords = (block: NoteBlock): number => {
         block.blocks.reduce((sum, child) => sum + countBlockWords(child), 0)
       )
     case "picture":
+    case "card":
+    case "drawing":
     case "directory":
       return 0
     default:

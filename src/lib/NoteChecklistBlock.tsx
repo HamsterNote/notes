@@ -104,13 +104,13 @@ const NoteChecklistItem = ({
         )}
         {editable ? (
           <span
-            {...editableProps((event) =>
+            {...editableProps((editable) =>
               onBlocksChange?.(
                 updateChecklistItemText(
                   blocks,
                   block.id,
                   item.id,
-                  event.currentTarget.innerHTML
+                  editable.innerHTML
                 )
               )
             )}

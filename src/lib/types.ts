@@ -12,6 +12,8 @@ export const noteBlockKinds = {
   table: "table",
   formula: "formula",
   picture: "picture",
+  card: "card",
+  drawing: "drawing",
   directory: "directory",
   collapsible: "collapsible",
   checklist: "checklist"
@@ -111,6 +113,38 @@ export type NotePictureBlock = {
   readonly height?: number
 }
 
+export type NoteCardData = {
+  readonly id: string
+  readonly parent?: string
+  readonly title: string
+  readonly content: string
+  readonly x: number
+  readonly y: number
+  readonly width: number
+  readonly height: number
+  readonly zIndex?: number
+  readonly childrenLayoutMode?: "free" | "mind-map-horizontal" | "arrange"
+  readonly linkedCardIds?: readonly string[]
+}
+
+/** 卡片块。data 是可直接交给 @hamster-note/cards CardCanvas 的持久化数据。 */
+export type NoteCardBlock = {
+  readonly id: string
+  readonly kind: "card"
+  readonly data: readonly NoteCardData[]
+}
+
+/**
+ * 画板块。data 保存 @hamster-note/painting 的 DrawingValue JSON 字符串
+ * （与代码块类似的"围栏文本"存储方式；空字符串表示尚未绘制）。
+ * 只读态渲染为等比缩放的缩略图，编辑态点击缩略图弹出画板对话框进行绘制。
+ */
+export type NoteDrawingBlock = {
+  readonly id: string
+  readonly kind: "drawing"
+  readonly data: string
+}
+
 export type NoteDirectoryBlock = {
   readonly id: string
   readonly kind: "directory"
@@ -153,6 +187,8 @@ export type NoteBlock =
   | NoteTableBlock
   | NoteFormulaBlock
   | NotePictureBlock
+  | NoteCardBlock
+  | NoteDrawingBlock
   | NoteDirectoryBlock
   | NoteChecklistBlock
   | NoteCollapsibleBlock

@@ -1,10 +1,12 @@
 import type { ReactElement } from "react"
 import { NoteCalloutBlock } from "./NoteCalloutBlock"
+import { NoteCardBlock } from "./NoteCardBlock"
 import { NoteChecklistBlock } from "./NoteChecklistBlock"
 import { NoteCodeBlock } from "./NoteCodeEditorBlock"
 import { NoteCollapsibleBlock } from "./NoteCollapsibleBlock"
 import type { EditContext } from "./NoteContentEditing"
 import { NoteDirectoryBlock } from "./NoteDirectoryBlock"
+import { NoteDrawingBlock } from "./NoteDrawingBlock"
 import { NoteFormulaBlock } from "./NoteFormulaBlock"
 import { NoteListBlock } from "./NoteListBlock"
 import { NotePictureBlock } from "./NotePictureBlock"
@@ -38,12 +40,16 @@ export const renderBlock = (
       return <NoteCodeBlock key={block.id} block={block} ctx={ctx} />
     case "callout":
       return <NoteCalloutBlock block={block} ctx={ctx} />
+    case "card":
+      return <NoteCardBlock key={block.id} block={block} ctx={ctx} />
     case "table":
       return renderTableBlock(block, ctx)
     case "formula":
       return <NoteFormulaBlock key={block.id} block={block} ctx={ctx} />
     case "picture":
       return <NotePictureBlock key={block.id} block={block} ctx={ctx} />
+    case "drawing":
+      return <NoteDrawingBlock key={block.id} block={block} ctx={ctx} />
     case "directory":
       return <NoteDirectoryBlock block={block} ctx={ctx} />
     case "collapsible":

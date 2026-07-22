@@ -125,12 +125,12 @@ export const NoteCollapsibleBlock = ({
           </button>
           {editable ? (
             <div
-              {...editableProps((event) =>
+              {...editableProps((editable) =>
                 onBlocksChange?.(
                   updateCollapsibleTitle(
                     blocks,
                     block.id,
-                    event.currentTarget.innerHTML
+                    editable.innerHTML
                   )
                 )
               )}

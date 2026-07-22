@@ -1,5 +1,5 @@
 /** @vitest-environment jsdom */
-import { cleanup, fireEvent, render, screen } from "@testing-library/react"
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { useState } from "react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
@@ -35,6 +35,24 @@ const MentionHarness = ({ onLinkClick }: { onLinkClick?: (id: string) => void })
 
 const typeAtCaret = (editable: HTMLElement, text: string): void => {
   editable.focus()
+  // 追加模式：若 editable 已有 text node 且新 text 是旧 text 的扩展，
+  // 只 appendData 追加新字符，保留原 text node —— 这样 live triggerRange、
+  // dismiss 标记（text node + offset）才能在连续输入时保持有效，
+  // 行为也更贴近真实用户逐字输入。
+  const existing = editable.firstChild
+  if (existing instanceof Text && text.startsWith(existing.data) && text !== existing.data) {
+    const appended = text.slice(existing.data.length)
+    existing.appendData(appended)
+    const range = document.createRange()
+    range.setStart(existing, text.length)
+    range.collapse(true)
+    const selection = window.getSelection()
+    if (!selection) throw new Error("Expected document selection.")
+    selection.removeAllRanges()
+    selection.addRange(range)
+    fireEvent.input(editable, { data: appended.at(-1), inputType: "insertText" })
+    return
+  }
   editable.textContent = text
   const textNode = editable.firstChild
   if (!textNode) throw new Error("Expected editable text node.")
@@ -57,7 +75,39 @@ const editableParagraph = (container: HTMLElement): HTMLElement => {
   return editable
 }
 
+/** 把光标手动设到 editable 文本节点的指定 offset，并派发 selectionchange 事件。
+ *  包在 act() 里确保 useEffect（依赖 menu）先重新绑定 selectionchange 监听器，
+ *  否则在 menu 刚打开后立即派发 selectionchange 会被旧闭包吞掉（menu === null 不动作）。 */
+const moveCaretTo = (editable: HTMLElement, offset: number): void => {
+  const textNode = editable.firstChild
+  if (!textNode) throw new Error("Expected editable text node.")
+  act(() => {
+    const range = document.createRange()
+    range.setStart(textNode, offset)
+    range.collapse(true)
+    const selection = window.getSelection()
+    if (!selection) throw new Error("Expected document selection.")
+    selection.removeAllRanges()
+    selection.addRange(range)
+    document.dispatchEvent(new Event("selectionchange"))
+  })
+}
+
 describe("NoteContent link mentions", () => {
+  it("opens the link options when @ starts the editable block", () => {
+    // Given: 光标位于空段落开头。
+    const view = render(<MentionHarness />)
+    const editable = editableParagraph(view.container)
+
+    // When: 用户从块首输入一个有效 mention query。
+    typeAtCaret(editable, "@rel")
+
+    // Then: 块首是合法 token 边界，匹配选项正常出现。
+    expect(
+      screen.getByRole("option", { name: "Release notes" }).hidden
+    ).toBe(false)
+  })
+
   it("opens the link options when the user types @ in editable content", () => {
     // Given: an editable paragraph and a list of links.
     const view = render(<MentionHarness />)
@@ -116,23 +166,146 @@ describe("NoteContent link mentions", () => {
     expect(editable.textContent).toBe("Meet @")
   })
 
-  it.each(["ArrowLeft", "ArrowRight"] as const)(
-    "closes the link options when the user presses %s without changing content",
-    (key) => {
-      // Given: an open link option list.
-      const view = render(<MentionHarness />)
-      const editable = editableParagraph(view.container)
-      typeAtCaret(editable, "Meet @")
+  it("keeps the menu closed after Escape even if the user keeps typing into the same @", () => {
+    // Given: an @ trigger whose menu was dismissed with Escape.
+    const view = render(<MentionHarness />)
+    const editable = editableParagraph(view.container)
+    typeAtCaret(editable, "Meet @")
+    fireEvent.keyDown(editable, { key: "Escape" })
+    expect(screen.queryByRole("listbox", { name: "可选链接" })).toBeNull()
 
-      // When: the user presses a horizontal arrow key.
-      fireEvent.keyDown(editable, { key })
+    // When: the user continues typing into the same @ trigger.
+    typeAtCaret(editable, "Meet @r")
 
-      // Then: the options close and the typed trigger remains untouched.
-      // 光标按浏览器默认行为移动，菜单关闭但不干预默认动作。
-      expect(screen.queryByRole("listbox", { name: "可选链接" })).toBeNull()
-      expect(editable.textContent).toBe("Meet @")
-    }
-  )
+    // Then: the menu stays closed — the dismiss mark suppresses re-opening.
+    expect(screen.queryByRole("listbox", { name: "可选链接" })).toBeNull()
+    expect(editable.textContent).toBe("Meet @r")
+  })
+
+  it("closes the link options when the caret moves to the left of the @ trigger", () => {
+    // Given: an open link option list.
+    const view = render(<MentionHarness />)
+    const editable = editableParagraph(view.container)
+    typeAtCaret(editable, "Meet @")
+
+    // When: the caret moves to the left of the @ (manual selection + selectionchange).
+    // "Meet @" 中 @ 位于 offset 5，把光标移到 offset 5 即位于触发 @ 起始处。
+    moveCaretTo(editable, 5)
+
+    // Then: the options close — cursor at or left of the trigger @ closes the menu.
+    expect(screen.queryByRole("listbox", { name: "可选链接" })).toBeNull()
+    expect(editable.textContent).toBe("Meet @")
+  })
+
+  it("filters the options by the query typed after @", () => {
+    // Given: an editable paragraph.
+    const view = render(<MentionHarness />)
+    const editable = editableParagraph(view.container)
+
+    // When: the user types @ followed by a query that matches only one link.
+    typeAtCaret(editable, "Meet @rel")
+
+    // Then: only the matching link remains in the listbox.
+    const options = screen.getAllByRole("option")
+    expect(options).toHaveLength(1)
+    expect(options[0]?.textContent).toContain("Release notes")
+    expect(
+      screen.queryByRole("option", { name: "Product roadmap" })
+    ).toBeNull()
+  })
+
+  it("does not treat an @ inside an email address as a mention trigger", () => {
+    // Given: 普通文本包含邮箱，光标位于其后的同一文本节点。
+    const view = render(<MentionHarness />)
+    const editable = editableParagraph(view.container)
+
+    // When: 用户一次性输入邮箱及后续文本。
+    typeAtCaret(editable, "Contact a@b.com x")
+
+    // Then: 历史 @ 不会打开菜单，也没有可被 Enter 误删的 trigger range。
+    expect(screen.queryByRole("listbox", { name: "可选链接" })).toBeNull()
+    fireEvent.keyDown(editable, { key: "Enter" })
+    expect(editable.textContent).toBe("Contact a@b.com x")
+  })
+
+  it("closes the mention menu when the query crosses a whitespace boundary", () => {
+    // Given: 一个有效 mention query 已打开菜单。
+    const view = render(<MentionHarness />)
+    const editable = editableParagraph(view.container)
+    typeAtCaret(editable, "Meet @rel")
+    expect(screen.getByRole("listbox", { name: "可选链接" })).not.toBeNull()
+
+    // When: 用户继续输入空格和普通正文。
+    typeAtCaret(editable, "Meet @rel x")
+
+    // Then: mention token 已结束，菜单关闭且 Enter 不会删除整段正文。
+    expect(screen.queryByRole("listbox", { name: "可选链接" })).toBeNull()
+    fireEvent.keyDown(editable, { key: "Enter" })
+    expect(editable.textContent).toBe("Meet @rel x")
+  })
+
+  it("keeps the listbox open with an empty-state hint when no link matches the query", () => {
+    // Given: an editable paragraph.
+    const view = render(<MentionHarness />)
+    const editable = editableParagraph(view.container)
+
+    // When: the user types @ followed by a query that matches nothing.
+    typeAtCaret(editable, "Meet @zzz")
+
+    // Then: the listbox stays open and shows a non-interactive empty hint.
+    const listbox = screen.getByRole("listbox", { name: "可选链接" })
+    expect(listbox.hidden).toBe(false)
+    expect(screen.queryByRole("option")).toBeNull()
+    const hint = listbox.querySelector(".hn-note-mention-empty")
+    expect(hint?.textContent).toBe("无匹配结果")
+  })
+
+  it("closes the link options when the editable loses focus", () => {
+    // Given: an open link option list.
+    const view = render(<MentionHarness />)
+    const editable = editableParagraph(view.container)
+    typeAtCaret(editable, "Meet @")
+    expect(screen.getByRole("listbox", { name: "可选链接" }).hidden).toBe(false)
+
+    // When: the editable fires focusout (focus leaves the editable).
+    fireEvent.focusOut(editable)
+
+    // Then: the options close — blur of the trigger editable closes the menu.
+    expect(screen.queryByRole("listbox", { name: "可选链接" })).toBeNull()
+  })
+
+  it("replaces the whole @query range with a mention pill when confirming with Enter", () => {
+    // Given: an open menu with a query that narrows to a single link.
+    const view = render(<MentionHarness />)
+    const editable = editableParagraph(view.container)
+    typeAtCaret(editable, "Meet @rel")
+
+    // When: the user presses Enter on the single filtered option.
+    fireEvent.keyDown(editable, { key: "Enter" })
+
+    // Then: the entire `@rel` range is replaced by the mention pill + nbsp spacer.
+    expect(screen.queryByRole("listbox", { name: "可选链接" })).toBeNull()
+    const mention = editable.querySelector<HTMLElement>(
+      '[data-note-link-id="release-notes"]'
+    )
+    expect(mention?.textContent).toBe("Release notes")
+    expect(editable.textContent).toBe("Meet Release notes\u00a0")
+  })
+
+  it("replaces the whole @query range with a mention pill when clicking an option", () => {
+    // Given: an open menu with a query that narrows to a single link.
+    const view = render(<MentionHarness />)
+    const editable = editableParagraph(view.container)
+    typeAtCaret(editable, "Meet @rel")
+
+    // When: the user clicks the single filtered option.
+    const option = screen.getByRole("option")
+    fireEvent.click(option)
+
+    // Then: the entire `@rel` range is replaced by the mention pill + nbsp spacer.
+    expect(screen.queryByRole("listbox", { name: "可选链接" })).toBeNull()
+    expect(editable.textContent).toBe("Meet Release notes\u00a0")
+  })
 
   it("places the options above the caret when they would overflow the viewport", () => {
     // Given: a caret close to the bottom of the viewport.

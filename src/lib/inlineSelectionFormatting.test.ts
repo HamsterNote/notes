@@ -229,6 +229,12 @@ describe("toggleInlineCode", () => {
     const code = editable.querySelector("code")
     expect(code).not.toBeNull()
     expect(code?.textContent).toBe("bar")
+    // R3a: 新建的行内代码必须带 hn-note-inline-code class，样式才会生效
+    expect(code?.classList.contains("hn-note-inline-code")).toBe(true)
+    // R5: 包裹后选区保持非折叠，仍选中原文字，popover 不会因选区塌陷而关闭
+    const selection = window.getSelection()
+    expect(selection?.isCollapsed).toBe(false)
+    expect(selection?.toString()).toBe("bar")
   })
 
   it("unwraps <code> when the selection is inside an existing <code> element", () => {
@@ -245,6 +251,46 @@ describe("toggleInlineCode", () => {
     expect(editable.textContent).toContain("bar")
     expect(editable.textContent).toContain("foo")
     expect(editable.textContent).toContain("baz")
+    // R5: 解包后选区保持非折叠，仍选中原 code 内文字
+    const selection = window.getSelection()
+    expect(selection?.isCollapsed).toBe(false)
+    expect(selection?.toString()).toBe("bar")
+  })
+
+  it("unwraps the whole <code> even when only part of its text is selected (R3b)", () => {
+    // Given: a paragraph wrapping "barbaz" in <code>.
+    const editable = mountEditable("<p>foo <code>barbaz</code> qux</p>")
+    const innerText = findTextNode(editable, "barbaz")
+
+    // When: only "arb" (offsets 1..4) inside the <code> is selected and toggled off.
+    selectBetween(innerText, 1, innerText, 4)
+    toggleInlineCode()
+
+    // Then: the entire <code> is unwrapped, not just the selected slice.
+    expect(editable.querySelector("code")).toBeNull()
+    expect(editable.textContent).toContain("barbaz")
+  })
+
+  it("unwraps an intersecting <code> when the selection starts before it, without nesting (R3b)", () => {
+    // Given: a paragraph where the selection starts in plain text and ends inside <code>.
+    const editable = mountEditable("<p>foo <code>bar</code> baz</p>")
+    const plainText = findTextNode(editable, "foo")
+    const codeText = findTextNode(editable, "bar")
+
+    // When: the selection runs from "foo" into the middle of the <code> and toggles.
+    selectBetween(plainText, 1, codeText, 2)
+    toggleInlineCode()
+
+    // Then: the overlapped <code> is unwrapped as a whole; no nested <code> is created.
+    expect(editable.querySelector("code code")).toBeNull()
+    expect(editable.querySelector("code")).toBeNull()
+    expect(editable.textContent).toContain("foo")
+    expect(editable.textContent).toContain("bar")
+    expect(editable.textContent).toContain("baz")
+    // R5: 部分重叠解包后，用户原本选中的可见文本保持选中
+    const selection = window.getSelection()
+    expect(selection?.isCollapsed).toBe(false)
+    expect(selection?.toString()).toBe("oo ba")
   })
 })
 
@@ -453,6 +499,13 @@ describe("inlineSelectionFormatting - 跨块 helpers", () => {
     // Then: block1 整段被包进 <code>，block2 的 'gamma' 被包进 <code>
     expect(block1.querySelector("code")?.textContent).toBe("alpha beta")
     expect(block2.querySelector("code")?.textContent).toBe("gamma")
+    // R3a: 跨块新建的行内代码同样带 hn-note-inline-code class
+    expect(
+      block1.querySelector("code")?.classList.contains("hn-note-inline-code")
+    ).toBe(true)
+    expect(
+      block2.querySelector("code")?.classList.contains("hn-note-inline-code")
+    ).toBe(true)
   })
 
   it("crossBlockToggleInlineCode 起点已在 <code> 内 -> 仅解包该 root 的 <code>", () => {
@@ -469,6 +522,24 @@ describe("inlineSelectionFormatting - 跨块 helpers", () => {
 
     // Then: block1 的 <code> 被解包（无 code），block2 的 'gamma' 被新包进 <code>
     expect(block1.querySelector("code")).toBeNull()
+    expect(block2.querySelector("code")?.textContent).toBe("gamma")
+  })
+
+  it("crossBlockToggleInlineCode 选区从 code 外开始覆盖部分 code -> 该 root 整体解包（R3b）", () => {
+    // Given: block1 选区起点在 code 外的纯文本、终点跨入 code；block2 为纯文本
+    const { container, block1, block2 } = mountTwoEditables()
+    block1.innerHTML = "foo <code>bar</code>"
+    block2.innerHTML = "gamma delta"
+    const t1 = findTextIn(block1, "foo")
+    const t2 = findTextIn(block2, "gamma")
+    selectCrossBlockRange(t1, 1, t2, 5)
+
+    // When: 跨块切换行内代码
+    crossBlockToggleInlineCode(container)
+
+    // Then: block1 的 <code> 被整体解包（不产生嵌套），block2 的 'gamma' 被包进 <code>
+    expect(block1.querySelector("code")).toBeNull()
+    expect(block1.textContent).toContain("bar")
     expect(block2.querySelector("code")?.textContent).toBe("gamma")
   })
 

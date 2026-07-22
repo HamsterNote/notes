@@ -40,7 +40,7 @@ export const renderEditableTextLayout = ({
 }: EditableTextLayoutInput): ReactElement => (
   <span
     {...editableProps(
-      (event) => onTextChange(event.currentTarget.innerHTML),
+      (editable) => onTextChange(editable.innerHTML),
       block.kind === "paragraph"
         ? `hn-note-text hn-note-text--${block.tone ?? "default"}`
         : undefined

@@ -11,6 +11,11 @@ import type {
 import remarkGfm from "remark-gfm"
 import remarkParse from "remark-parse"
 import { unified } from "unified"
+import {
+  NOTE_CARD_FENCE_LANGUAGE,
+  parseCardData
+} from "../lib/cardData"
+import { NOTE_DRAWING_FENCE_LANGUAGE } from "../lib/drawingData"
 import { createNoteId } from "../lib/noteId"
 import type {
   NoteBlock,
@@ -172,6 +177,22 @@ const parseCode = (node: Code): NoteBlock => {
 
   if (node.lang === "collapsible") {
     return parseCollapsibleCode(node.value)
+  }
+
+  if (node.lang === NOTE_CARD_FENCE_LANGUAGE) {
+    const data = parseCardData(node.value)
+    if (data !== undefined) {
+      return { id: createNoteId(), kind: "card", data }
+    }
+  }
+
+  // 画板块：围栏内容为 DrawingValue JSON，原样存入 data 字段
+  if (node.lang === NOTE_DRAWING_FENCE_LANGUAGE) {
+    return {
+      id: createNoteId(),
+      kind: "drawing",
+      data: node.value
+    }
   }
 
   const filename = parseFilename(node.meta)

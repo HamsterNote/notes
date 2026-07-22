@@ -23,6 +23,8 @@ type TableTarget = { readonly kind: "table" }
 type FormulaTarget = { readonly kind: "formula" }
 type DirectoryTarget = { readonly kind: "directory" }
 type CollapsibleTarget = { readonly kind: "collapsible" }
+type CardTarget = { readonly kind: "card" }
+type DrawingTarget = { readonly kind: "drawing" }
 
 type StructuralTarget =
   | TodoTarget
@@ -35,6 +37,8 @@ type StructuralTarget =
   | FormulaTarget
   | DirectoryTarget
   | CollapsibleTarget
+  | CardTarget
+  | DrawingTarget
 
 export type BlockConvertTarget =
   | HeadingTarget
@@ -217,6 +221,12 @@ const blockAsRichText = (block: NoteBlock): string => {
       return escapeCodeAsRichText(block.formula)
     case "picture":
       return escapePlainText(block.filename)
+    case "card":
+      return block.data.length > 0
+        ? block.data.map((card) => escapePlainText(card.title)).join("<br>")
+        : "[Cards]"
+    case "drawing":
+      return "[Drawing]"
     case "collapsible":
       return block.title
     case "directory":
@@ -277,6 +287,10 @@ export const convertBlockFormat = (
       }
     case "directory":
       return { id: block.id, kind: "directory" }
+    case "card":
+      return { id: block.id, kind: "card", data: [] }
+    case "drawing":
+      return { id: block.id, kind: "drawing", data: "" }
     case "collapsible":
       return {
         id: block.id,

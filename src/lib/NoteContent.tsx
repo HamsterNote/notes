@@ -4,27 +4,48 @@ import {
   type Ref,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useRef,
   useState
 } from "react"
 
 import "./styles.css"
 
+import {
+  BottomBlockControls,
+  type BottomBlockTarget,
+  resolveBottomBlockTarget,
+  resolveBottomBlockTargetBySource
+} from "./BottomBlockControls"
 import { isVisibleHtmlEmpty } from "./blockEditing"
+import { findEditableBlockById } from "./editableSelection"
 import { useInlineFormulaRendering } from "./inlineFormulaRendering"
+import {
+  moveCaretOutsideTrailingFormat,
+  tryApplyInlineMarkdownShortcut,
+  tryEscapeTrailingFormat
+} from "./inlineMarkdownShortcut"
+import {
+  captureSelectionOffsets,
+  restoreSelectionOffsets
+} from "./inlineSelectionFormatting"
 import { LinkMentionMenu } from "./LinkMentionMenu"
 import { NoteChecklistBlock } from "./NoteChecklistBlock"
-import { NoteListBlock } from "./NoteListBlock"
 import { renderBlock, richText } from "./NoteContentBlocks"
-import { editableProps, updateText } from "./NoteContentEditing"
-import type { NoteBlock, NoteContentProps, NoteContentUndoRedoHandle } from "./types"
+import {
+  commitEditableContent,
+  editableProps,
+  updateText
+} from "./NoteContentEditing"
+import { NoteListBlock } from "./NoteListBlock"
 import { NoteQuoteBlock } from "./NoteQuoteBlock"
 import { NoteTodoBlock } from "./NoteTodoBlock"
 import { DISABLED_CONTROLLER } from "./noteContentUndoRedo"
 import { createNoteId } from "./noteId"
 import { SelectionPopover } from "./SelectionPopover"
-import { useBlockEditing } from "./useBlockEditing"
+import type { NoteBlock, NoteContentProps, NoteContentUndoRedoHandle } from "./types"
 import { useBlockDrag } from "./useBlockDrag"
+import { useBlockEditing } from "./useBlockEditing"
 
 type LegacyNoteContentProps = Omit<NoteContentProps, "ref"> & {
   readonly ref?: Ref<NoteContentUndoRedoHandle>
@@ -58,10 +79,22 @@ export function NoteContent({
   const shellRef = useRef<HTMLElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
   const bottomBarRef = useRef<HTMLDivElement>(null)
+  // R7: Markdown 行内自动转换同步 innerHTML 后，React 提交会用
+  // dangerouslySetInnerHTML 重建块 DOM，折叠光标随之失效。转换时在此记录
+  // 块内纯文本偏移，useLayoutEffect 在提交完成后于新 DOM 上恢复光标。
+  const pendingCaretRef = useRef<{ blockId: string; offset: number } | null>(
+    null
+  )
+  // R7: 一次性「逃逸」守卫 —— 自动转换完成后标记所在块；下一个可打印
+  // 字符的 keydown 若仍处于块尾格式元素右边界，则手动插入该字符，
+  // 规避 Chrome 把输入吸进内联元素的粘滞行为。
+  const escapeFormatBlockRef = useRef<string | null>(null)
   const [viewportWidth, setViewportWidth] = useState(() =>
     typeof window === "undefined" ? 841 : window.innerWidth
   )
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null)
+  const [bottomBlockTarget, setBottomBlockTarget] =
+    useState<BottomBlockTarget | null>(null)
   const blocksRef = useRef(blocks)
   const isMobileDevice =
     typeof navigator !== "undefined" &&
@@ -78,8 +111,7 @@ export function NoteContent({
   const bodyPaddingX = viewportWidth > 840 ? "4rem" : "1.5rem"
   const contentEditable = editable && !selectMode
   const blockDragEnabled = contentEditable && onBlocksChange !== undefined
-  // 底部工具栏触发条件：移动设备 或 视口宽度 <= 840px（窄屏布局）
-  const useBottomBar = isMobileDevice || viewportWidth <= 840
+  const useBottomBar = isMobileDevice || viewportWidth < 840
   // shellStyle：注入主题色与可选的顶部/底部额外留白（px）。
   // 不直接写 padding，而是用 CSS 变量，使 .hn-note-hero/.hn-note-body
   // 能以 calc 叠加在各自默认内边距之上，保持原有视觉节奏。
@@ -143,6 +175,51 @@ export function NoteContent({
     root: bodyRef,
     renderKey: contentEditable ? null : blocks
   })
+  // R7: 每次提交后检查是否有待恢复的行内转换光标 —— 与 SelectionPopover
+  // 的 pendingRestore 同理，按块内纯文本偏移在重建后的 DOM 上恢复折叠光标。
+  useLayoutEffect(() => {
+    const pending = pendingCaretRef.current
+    if (!pending) return
+    pendingCaretRef.current = null
+    const shell = shellRef.current
+    const root = shell ? findEditableBlockById(shell, pending.blockId) : null
+    if (root) {
+      restoreSelectionOffsets(root, pending.offset, pending.offset)
+      // 偏移恢复的光标会落在格式元素文本内部末尾，外移到元素之后
+      moveCaretOutsideTrailingFormat(root)
+    }
+  })
+  useLayoutEffect(() => {
+    if (!useBottomBar) return
+    const body = bodyRef.current
+    if (!body) return
+    if (blocks.length === 0) {
+      setBottomBlockTarget(null)
+      return
+    }
+    const menuIsOpen = openBlockMenuId !== null
+    setBottomBlockTarget((current) => {
+      const next = resolveBottomBlockTargetBySource(
+        body,
+        current?.sourceId ?? null
+      )
+      if (
+        !next ||
+        menuIsOpen ||
+        (!next.addExpanded && !next.convertExpanded)
+      ) {
+        return next
+      }
+      return { ...next, addExpanded: false, convertExpanded: false }
+    })
+  }, [blocks, openBlockMenuId, useBottomBar])
+  const syncBottomBlockTarget = (target: EventTarget | null): void => {
+    if (!useBottomBar) return
+    const body = bodyRef.current
+    if (!body) return
+    const nextTarget = resolveBottomBlockTarget(target, body)
+    if (nextTarget) setBottomBlockTarget(nextTarget)
+  }
   const selectBlockFromTarget = (target: EventTarget | null): boolean => {
     if (!(target instanceof Element)) return false
     const body = bodyRef.current
@@ -172,6 +249,8 @@ export function NoteContent({
         aria-label={selectMode ? "Note blocks" : undefined}
         ref={shellRef}
         style={shellStyle}
+        onFocusCapture={(event) => syncBottomBlockTarget(event.target)}
+        onPointerDownCapture={(event) => syncBottomBlockTarget(event.target)}
         onClickCapture={(event) => {
           if (contentEditable && event.target === bodyRef.current) {
             appendParagraphAtTail()
@@ -202,6 +281,61 @@ export function NoteContent({
           }
         }}
         onKeyDownCapture={(event) => {
+          // R7: Markdown 行内自动转换 —— 按下闭合字符（`、*、~）且与光标前
+          // 起始标记配对时，直接把配对内容转换为行内 code/strong/em/s，
+          // preventDefault 拦截该字符插入，并把块 innerHTML 同步回 React 状态。
+          // capture 阶段处理，先于各块的 onKeyDown（它们不消费这些字符）。
+          if (
+            contentEditable &&
+            onBlocksChange &&
+            event.key.length === 1 &&
+            !event.ctrlKey &&
+            !event.metaKey &&
+            !event.altKey &&
+            !event.nativeEvent.isComposing
+          ) {
+            // 一次性逃逸守卫：转换后的第一个可打印字符优先走手动插入
+            if (escapeFormatBlockRef.current !== null) {
+              escapeFormatBlockRef.current = null
+              const escaped = tryEscapeTrailingFormat(event.key)
+              if (escaped) {
+                event.preventDefault()
+                const blockId = escaped.getAttribute("data-editable-block-id")
+                const selection = window.getSelection()
+                if (blockId && selection && selection.rangeCount > 0) {
+                  const offsets = captureSelectionOffsets(
+                    escaped,
+                    selection.getRangeAt(0)
+                  )
+                  pendingCaretRef.current = { blockId, offset: offsets.start }
+                  commitEditableContent(escaped)
+                }
+                // 字符已手动插入并同步，跳过本键的其它处理
+                return
+              }
+            }
+            if (
+              event.key === "`" ||
+              event.key === "*" ||
+              event.key === "~"
+            ) {
+              const blockEl = tryApplyInlineMarkdownShortcut(event.key)
+              if (blockEl) {
+                event.preventDefault()
+                const blockId = blockEl.getAttribute("data-editable-block-id")
+                const selection = window.getSelection()
+                if (blockId && selection && selection.rangeCount > 0) {
+                  const offsets = captureSelectionOffsets(
+                    blockEl,
+                    selection.getRangeAt(0)
+                  )
+                  pendingCaretRef.current = { blockId, offset: offsets.start }
+                  escapeFormatBlockRef.current = blockId
+                  commitEditableContent(blockEl)
+                }
+              }
+            }
+          }
           // 键盘等价：Enter/Space 激活 hnmagic:// 链接时同样拦截原生跳转
           if (event.key !== "Enter" && event.key !== " ") return
           if (selectMode && selectBlockFromTarget(event.target)) {
@@ -225,8 +359,8 @@ export function NoteContent({
           {tagLabel ? <span className="hn-note-badge">{tagLabel}</span> : null}
           {contentEditable ? (
             <h1
-              {...editableProps((event) =>
-                onTitleChange?.(event.currentTarget.innerHTML)
+              {...editableProps((editable) =>
+                onTitleChange?.(editable.innerHTML)
               )}
               {...richText(title)}
             />
@@ -237,8 +371,7 @@ export function NoteContent({
             contentEditable ? (
               <p
                 {...editableProps(
-                  (event) =>
-                    onSummaryChange?.(event.currentTarget.innerHTML),
+                  (editable) => onSummaryChange?.(editable.innerHTML),
                   "hn-note-summary"
                 )}
                 {...richText(summary)}
@@ -355,7 +488,12 @@ export function NoteContent({
           ) : null}
         </div>
         {contentEditable && useBottomBar ? (
-          <div ref={bottomBarRef} className="hn-note-bottom-bar" />
+          <div ref={bottomBarRef} className="hn-note-bottom-bar">
+            <BottomBlockControls
+              shellRef={shellRef}
+              target={bottomBlockTarget}
+            />
+          </div>
         ) : null}
       </article>
       {contentEditable ? (

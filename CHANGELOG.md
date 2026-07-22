@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0-beta] - 2026-07-20
+
+### Added
+- Inline formula rendering and format toolbar (bold/italic/underline/strikethrough/code/formula)
+- List features upgrade: todo, unordered list, ordered list, directory, collapsible blocks and text color
+- Markdown quick input and empty block Backspace demote to paragraph
+- Cross-block selection formatting support
+- Format button highlight state and clear formatting button
+- Selection popover component
+
+### Fixed
+- List keyboard shortcut type branch completion
+- Editor list and multi-line input regression
+- CI lint errors
+
 ## [1.1.0] - 2026-07-18
 
 ### Added

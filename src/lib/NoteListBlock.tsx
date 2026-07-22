@@ -96,9 +96,9 @@ export const NoteListBlock = ({
           <div className="hn-note-list-item-content">
             {ctx.editable ? (
               <span
-                {...editableProps((event) =>
+                {...editableProps((editable) =>
                   onBlocksChange?.(
-                    updateText(ctx.getBlocks(), block.id, event.currentTarget.innerHTML)
+                    updateText(ctx.getBlocks(), block.id, editable.innerHTML)
                   )
                 )}
                 onKeyDown={(event) =>

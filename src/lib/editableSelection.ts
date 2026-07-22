@@ -7,6 +7,20 @@ const editableRoot = (node: Node): HTMLElement | null => {
   return nearest?.getAttribute("contenteditable") === "true" ? nearest : null
 }
 
+export const findEditableBlockById = (
+  container: ParentNode,
+  blockId: string
+): HTMLElement | null => {
+  const candidates =
+    container.querySelectorAll<HTMLElement>("[data-editable-block-id]")
+  for (const candidate of candidates) {
+    if (candidate.getAttribute("data-editable-block-id") === blockId) {
+      return candidate
+    }
+  }
+  return null
+}
+
 export const isRangeInSingleEditableRoot = (
   range: Range,
   container: HTMLElement

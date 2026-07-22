@@ -1,5 +1,3 @@
-import type { FocusEvent } from "react"
-
 import type { NoteBlock } from "./types"
 import type { FocusCaret } from "./useBlockEditing"
 
@@ -26,25 +24,47 @@ export type EditContext = {
   readonly selectedBlockId?: string | null
 }
 
+const editableCommitters = new WeakMap<HTMLElement, () => void>()
+
+/**
+ * 立即提交指定 contenteditable 的当前 DOM 内容。
+ * Markdown 快捷转换会在元素仍保持焦点时调用此入口，从而复用该 editable
+ * 原本的 blur 持久化路径，包括条目、折叠标题、表格单元格和嵌套块。
+ */
+export const commitEditableContent = (editable: HTMLElement) => {
+  editableCommitters.get(editable)?.()
+}
+
 export const editableProps = (
-  onBlur: (event: FocusEvent<HTMLElement>) => void,
+  onCommit: (editable: HTMLElement) => void,
   baseClassName?: string
-) => ({
-  contentEditable: true,
-  suppressContentEditableWarning: true,
-  className: baseClassName
-    ? `${baseClassName} hn-note-editable`
-    : "hn-note-editable",
-  spellCheck: false,
-  onBlur: (event: FocusEvent<HTMLElement>) => {
-    // 焦点移向 SelectionPopover（如链接输入框）时跳过同步：
-    // 避免 React 因 dangerouslySetInnerHTML 引用变化而替换 DOM 节点，
-    // 导致 SelectionPopover 内保存的选区 Range 指向已被销毁的节点
-    const related = event.relatedTarget as HTMLElement | null
-    if (related?.closest(".hn-note-popover")) return
-    onBlur(event)
+) => {
+  let currentEditable: HTMLElement | null = null
+
+  return {
+    contentEditable: true,
+    suppressContentEditableWarning: true,
+    className: baseClassName
+      ? `${baseClassName} hn-note-editable`
+      : "hn-note-editable",
+    spellCheck: false,
+    ref: (editable: HTMLElement | null) => {
+      if (currentEditable) editableCommitters.delete(currentEditable)
+      currentEditable = editable
+      if (editable) {
+        editableCommitters.set(editable, () => onCommit(editable))
+      }
+    },
+    onBlur: (event: React.FocusEvent<HTMLElement>) => {
+      // 焦点移向 SelectionPopover（如链接输入框）时跳过同步：
+      // 避免 React 因 dangerouslySetInnerHTML 引用变化而替换 DOM 节点，
+      // 导致 SelectionPopover 内保存的选区 Range 指向已被销毁的节点
+      const related = event.relatedTarget as HTMLElement | null
+      if (related?.closest(".hn-note-popover")) return
+      onCommit(event.currentTarget)
+    }
   }
-})
+}
 
 /**
  * 缓存 richText 返回值，相同字符串返回相同对象引用。
@@ -147,6 +167,17 @@ export const updateFormula = (
   blocks.map((block) => {
     if (block.id !== id || block.kind !== "formula") return block
     return { ...block, formula }
+  })
+
+/** 更新画板块的 DrawingValue JSON 字符串。 */
+export const updateDrawing = (
+  blocks: readonly NoteBlock[],
+  id: string,
+  data: string
+): NoteBlock[] =>
+  blocks.map((block) => {
+    if (block.id !== id || block.kind !== "drawing") return block
+    return { ...block, data }
   })
 
 export const updateCodeLanguage = (

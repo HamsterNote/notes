@@ -205,7 +205,26 @@ describe("popover toolbar formatting styles", () => {
   it("styles inline code via a dedicated BEM surface alongside inline formula", () => {
     // Given: 行内代码需与行内公式保持平行的命名约定，避免依赖章节级 code 样式。
     // Then: 样式表提供 .hn-note-inline-code 选择器作为行内代码的基础渲染契约。
-    expect(styles).toMatch(/\.hn-note-inline-code\s*\{/)
+    expect(styles).toMatch(/\.hn-note-inline-code/)
+  })
+
+  it("gives inline code a visible border and background", () => {
+    // Given: R3a 要求行内代码有边框 + 背景的胶囊表示。
+    // When: 提取包含 hn-note-inline-code 选择器的规则块。
+    const rule = styles.match(/[^{}]*hn-note-inline-code[^{}]*\{([^}]*)\}/)
+    // Then: 该规则同时声明 border 与 background。
+    expect(rule).not.toBeNull()
+    expect(rule?.[1]).toMatch(/border\s*:/)
+    expect(rule?.[1]).toMatch(/background\s*:/)
+  })
+
+  it("extends inline code styling to legacy bare <code> inside editable blocks only", () => {
+    // Given: 存量数据的行内 <code> 没有 class，仍需被同一套边框/背景覆盖；
+    // 语法高亮代码（带语言 class）不受影响。
+    // Then: 样式表包含 [data-editable-block-id] code:not([class]) 选择器，
+    // 且不存在无作用域的全局 code:not([class]) 选择器。
+    expect(styles).toMatch(/\[data-editable-block-id\]\s+code:not\(\[class\]\)/)
+    expect(styles).not.toMatch(/(^|[,{]\s*)code:not\(\[class\]\)/m)
   })
 
   it("supports the docked active state for the mobile bottom toolbar", () => {

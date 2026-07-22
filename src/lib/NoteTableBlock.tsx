@@ -151,9 +151,9 @@ const NoteTableBlock = ({ block, ctx }: NoteTableBlockProps): ReactElement => {
                       <div
                         role="textbox"
                         tabIndex={0}
-                        {...editableProps((event) => {
+                        {...editableProps((editable) => {
                           const normalized = normalizeEditableHtml(
-                            event.currentTarget.innerHTML
+                            editable.innerHTML
                           )
                           if (normalized === cell) return
                           onBlocksChange?.(

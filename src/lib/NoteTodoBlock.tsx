@@ -107,13 +107,13 @@ const NoteTodoItem = ({
         )}
         {editable ? (
           <span
-            {...editableProps((event) =>
+            {...editableProps((editable) =>
               onBlocksChange?.(
                 updateTodoItemText(
                   blocks,
                   block.id,
                   item.id,
-                  event.currentTarget.innerHTML
+                  editable.innerHTML
                 )
               )
             )}
