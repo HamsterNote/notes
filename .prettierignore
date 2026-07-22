@@ -6,5 +6,5 @@ coverage/
 .omo/
 
 # Lock files and build info
-pnpm-lock.yaml
+yarn.lock
 *.tsbuildinfo

@@ -14,8 +14,8 @@
 ## 本地开发
 
 ```bash
-pnpm install
-pnpm dev
+yarn install
+yarn dev
 ```
 
 默认会在 `0.0.0.0:9235` 启动 Demo 页面。
@@ -23,11 +23,11 @@ pnpm dev
 ## 构建
 
 ```bash
-pnpm build
+yarn build
 ```
 
-- `pnpm build:lib` 生成组件库产物到 `dist/`
-- `pnpm build:demo` 生成 Demo 静态站点到 `dist/demo/`
+- `yarn build:lib` 生成组件库产物到 `dist/`
+- `yarn build:demo` 生成 Demo 静态站点到 `dist/demo/`
 
 ## 使用方式
 

@@ -9,6 +9,13 @@ import {
 } from "react"
 import { createPortal } from "react-dom"
 
+// 组件库 Popover：作为弹层表面，不传 anchor 时不注入定位样式，
+// 只渲染 <div class="hn-popover {className}" ...>，style / ref / role 等 props 原样透传
+import { Popover } from "@hamster-note/components"
+// 组件库样式：使用 @layer hamster-note.components 分层，项目 src/lib/styles.css 未分层，
+// 未分层样式在冲突时优先，故现有 .hn-note-formula-popover 视觉会被保留
+import "@hamster-note/components/styles.css"
+
 import {
   blockMenuStateKey,
   renderBlockActionMenu
@@ -207,7 +214,7 @@ export const NoteFormulaBlock = ({
       </div>
       {position && popoverStyle
         ? createPortal(
-            <div
+            <Popover
               ref={popoverRef}
               className="hn-note-formula-popover"
               style={popoverStyle}
@@ -228,7 +235,7 @@ export const NoteFormulaBlock = ({
                   )
                 }
               />
-            </div>,
+            </Popover>,
             document.body
           )
         : null}
