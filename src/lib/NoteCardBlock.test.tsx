@@ -4,6 +4,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   within
 } from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
@@ -35,9 +36,16 @@ const block: NoteCardBlockData = {
 }
 
 describe("NoteCardBlock", () => {
-  it("blocks preview interaction and opens the full card dialog", () => {
+  it("blocks preview interaction and opens the full card dialog", async () => {
     // Given: a note renders a card canvas in its normal preview state.
-    render(<NoteContent blocks={[block]} title="Cards" />)
+    render(
+      <NoteContent
+        blocks={[block]}
+        title="Cards"
+        theme="dark"
+        themeColor="#f97316"
+      />
+    )
 
     // When: the user activates the single preview interaction layer.
     const preview = screen.getByRole("button", { name: "打开卡片" })
@@ -49,9 +57,18 @@ describe("NoteCardBlock", () => {
     const dialog = screen.getByRole("dialog", { name: "卡片编辑器" })
     expect(dialog).toBeDefined()
     expect(within(dialog).getByText("Release health")).toBeDefined()
-    expect(dialog.closest(".hn-note-shell")).not.toBeNull()
-    expect(document.activeElement).toBe(
-      within(dialog).getByRole("button", { name: "完成" })
+    // 组件库 Dialog 固定 Portal 到 document.body，不再挂进 .hn-note-shell
+    expect(dialog.parentElement?.closest(".hn-note-shell")).toBeNull()
+    // Portal 面板必须自己建立主题变量作用域，不能依赖已断开的祖先继承链。
+    expect(dialog.classList.contains("hn-note-shell")).toBe(true)
+    expect(dialog.classList.contains("hn-note-shell--dark")).toBe(true)
+    expect(dialog.classList.contains("hn-note-card-dialog")).toBe(true)
+    expect(dialog.style.getPropertyValue("--hn-theme")).toBe("#f97316")
+    // 打开时焦点经 requestAnimationFrame 送入面板内第一个可聚焦元素（完成按钮）
+    await waitFor(() =>
+      expect(document.activeElement).toBe(
+        within(dialog).getByRole("button", { name: "完成" })
+      )
     )
     expect(dialog.querySelector(".hn-note-card-dialog-body--with-inspector")).toBeNull()
   })
@@ -91,17 +108,22 @@ describe("NoteCardBlock", () => {
     ])
   })
 
-  it("closes on Escape and restores focus to the preview", () => {
+  it("closes on Escape and restores focus to the preview", async () => {
     // Given: the card dialog is open.
     render(<NoteContent blocks={[block]} title="Cards" />)
     const preview = screen.getByRole("button", { name: "打开卡片" })
+    // 焦点还原依赖打开前的 activeElement；真实浏览器点击会聚焦触发按钮，
+    // fireEvent.click 不会，这里显式聚焦以对齐真实交互
+    preview.focus()
     fireEvent.click(preview)
 
     // When: the user presses Escape.
-    fireEvent.keyDown(document, { key: "Escape" })
+    // 组件库 Dialog 的 Esc 挂在面板 onKeyDown 上（焦点已被送入面板），事件需派发在面板内；
+    // 关闭有 180ms 退场动画，动画结束才卸载并回焦
+    fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" })
 
     // Then: the dialog closes and keyboard focus returns to its trigger.
-    expect(screen.queryByRole("dialog")).toBeNull()
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
     expect(document.activeElement).toBe(preview)
   })
 
@@ -115,12 +137,13 @@ describe("NoteCardBlock", () => {
     const contentInput = within(dialog).getByRole("textbox", { name: "卡片内容" })
 
     // When: focus moves backward from the first control and forward from the last.
+    // 焦点循环挂在面板 onKeyDown 上，事件需从面板内的聚焦元素派发
     closeButton.focus()
-    fireEvent.keyDown(document, { key: "Tab", shiftKey: true })
+    fireEvent.keyDown(closeButton, { key: "Tab", shiftKey: true })
 
     // Then: both directions wrap within the dialog instead of reaching the page.
     expect(document.activeElement).toBe(contentInput)
-    fireEvent.keyDown(document, { key: "Tab" })
+    fireEvent.keyDown(contentInput, { key: "Tab" })
     expect(document.activeElement).toBe(closeButton)
   })
 

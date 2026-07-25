@@ -125,78 +125,31 @@
   text-align: left;
 }
 
-.hn-note-bottom-bar {
-  position: sticky;
-  bottom: 0;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  box-sizing: border-box;
-  min-width: 0;
-  width: 100%;
-  padding: 0.625rem 1rem 0.75rem;
-  pointer-events: none;
+.hn-note-bottom-toolbar {
+  max-width: calc(100vw - 2rem);
+  justify-content: flex-start;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  white-space: nowrap;
 }
 
-.hn-note-bottom-bar > .hn-note-popover,
-.hn-note-bottom-actions {
-  pointer-events: auto;
+.hn-note-bottom-toolbar::-webkit-scrollbar {
+  display: none;
 }
 
-.hn-note-bottom-actions {
-  display: flex;
+.hn-note-bottom-control,
+.hn-note-selection-actions > * {
   flex: 0 0 auto;
-  align-items: center;
-  gap: 0.15rem;
-  padding: 0.35rem 0.45rem;
-  border: 1px solid var(--hn-border);
-  border-radius: 999px;
-  background: var(--hn-bg);
-  box-shadow:
-    0 4px 14px rgba(15, 23, 42, 0.18),
-    0 1px 3px rgba(15, 23, 42, 0.08);
 }
 
-.hn-note-bottom-action {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  padding: 0;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--hn-text-muted);
-  font: inherit;
-  cursor: pointer;
+.hn-note-bottom-control svg {
+  width: 1rem;
+  height: 1rem;
 }
 
-.hn-note-bottom-action:hover {
-  background: var(--hn-surface-hover);
-  color: var(--hn-text);
-}
-
-.hn-note-bottom-action:focus-visible {
-  box-shadow: 0 0 0 2px var(--hn-theme);
-  outline: none;
-}
-
-.hn-note-bottom-action[aria-expanded="true"] {
-  background: var(--hn-theme-soft);
-  color: var(--hn-theme-text);
-}
-
-.hn-note-bottom-action:disabled {
-  cursor: default;
-  opacity: 0.45;
-}
-
-.hn-note-bottom-action--add {
-  font-size: 1rem;
-  font-weight: 500;
+.hn-note-selection-actions {
+  display: contents;
 }
 
 .hn-note-block,
@@ -885,119 +838,9 @@
   animation: hn-popover-in 0.12s ease;
 }
 
-/* Docked 模式（移动端底部栏）：浮起、跑道型胶囊，背景跟随主题色
-   （浅色主题用 --hn-bg 浅色，深色主题用 --hn-bg 深色）。
-   基类 .hn-note-popover 的深色配色仅作用于桌面悬浮版 popover，不在此重写。 */
-.hn-note-popover--docked {
-  position: relative;
-  width: auto;
-  min-width: 0;
-  max-width: 100%;
-  justify-content: flex-start;
-  overflow-x: auto;
-  scrollbar-width: none;
-  padding: 0.35rem 0.45rem;
-  border: 1px solid var(--hn-border);
-  border-radius: 999px;
-  background: var(--hn-bg);
-  color: var(--hn-text);
-  box-shadow:
-    0 4px 14px rgba(15, 23, 42, 0.18),
-    0 1px 3px rgba(15, 23, 42, 0.08);
-  transform: none;
-}
-
-.hn-note-popover--docked::-webkit-scrollbar {
-  display: none;
-}
-
-/* Docked 模式下按钮文字颜色随主题；hover 用 surface 而不是透明白覆盖 */
-.hn-note-popover--docked .hn-note-popover-btn {
-  color: var(--hn-text);
-}
-
-.hn-note-popover--docked .hn-note-popover-btn:hover {
-  background: var(--hn-surface-hover);
-  color: var(--hn-text);
-}
-
-.hn-note-popover--docked .hn-note-popover-divider {
-  background: var(--hn-border-strong);
-}
-
-.hn-note-popover--docked .hn-note-popover-link-input {
-  background: var(--hn-surface);
-  color: var(--hn-text);
-}
-
-.hn-note-popover--docked .hn-note-popover-link-input:focus {
-  background: var(--hn-surface-hover);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--hn-theme) 45%, transparent);
-}
-
-.hn-note-popover--docked .hn-note-popover-link-input::placeholder {
-  color: var(--hn-text-muted);
-}
-
-/* 确认/取消按钮：在主题化底色上保持可读的绿/红状态色 */
-.hn-note-popover--docked .hn-note-popover-btn--confirm {
-  color: #16a34a;
-}
-
-.hn-note-popover--docked .hn-note-popover-btn--confirm:hover {
-  color: #15803d;
-}
-
-.hn-note-popover--docked .hn-note-popover-btn--cancel {
-  color: #dc2626;
-}
-
-.hn-note-popover--docked .hn-note-popover-btn--cancel:hover {
-  color: #b91c1c;
-}
-
-/* Docked 模式：清除按钮在浅色底栏上以红色维持可视化破坏性提示 */
-.hn-note-popover--docked .hn-note-popover-btn--clear {
-  color: #dc2626;
-}
-
-.hn-note-popover--docked .hn-note-popover-btn--clear:hover {
-  color: #b91c1c;
-}
-
-/* docked 模式下的 active 状态：底色为主题化背景，需用主题色 soft 变体重写 */
-.hn-note-popover--docked .hn-note-popover-btn--active {
-  background: var(--hn-theme-soft);
-  color: var(--hn-theme-text);
-}
-
 .hn-note-popover-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   min-width: 30px;
-  height: 30px;
-  padding: 0 0.55rem;
-  border: none;
-  border-radius: 7px;
-  background: transparent;
-  color: #e2e8f0;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    background 0.12s ease,
-    color 0.12s ease;
-}
-
-.hn-note-popover-btn:hover {
-  background: rgba(255, 255, 255, 0.14);
-  color: #ffffff;
-}
-
-.hn-note-popover-btn--active {
-  background: rgba(255, 255, 255, 0.22);
-  color: #ffffff;
+  padding-inline: 0.55rem;
 }
 /* 复制按钮：文字更紧凑 */
 .hn-note-popover-btn--copy {
@@ -1096,19 +939,6 @@
   border-color: #ffffff;
 }
 
-/* Docked 模式（移动端浅色底栏）：色块描边切换为深色，避免在浅色背景上不可见 */
-.hn-note-popover--docked .hn-note-popover-color {
-  border-color: var(--hn-border-strong);
-}
-
-.hn-note-popover--docked .hn-note-popover-color:hover {
-  border-color: var(--hn-text-soft);
-}
-
-.hn-note-popover--docked .hn-note-popover-color--active {
-  border-color: var(--hn-theme);
-}
-
 /* 链接按钮 */
 .hn-note-popover-btn--link {
   min-width: auto;
@@ -1155,39 +985,14 @@
   color: rgba(226, 232, 240, 0.45);
 }
 
-.hn-note-popover--docked .hn-note-popover-link-form {
-  width: 100%;
-  min-width: 0;
-}
-
-.hn-note-popover--docked .hn-note-popover-link-input {
-  flex: 1 1 auto;
-  width: auto;
-  min-width: 0;
-}
-
-/* 魔法链接按钮：用主题色高亮 */
 .hn-note-popover-btn--magic {
   white-space: nowrap;
-  background: var(--hn-theme, #3b82f6);
-  color: #ffffff;
   font-size: 0.78rem;
-}
-
-.hn-note-popover-btn--magic:hover {
-  background: var(--hn-theme, #3b82f6);
-  filter: brightness(1.15);
-  color: #ffffff;
 }
 
 .hn-note-popover-btn--confirm {
   min-width: auto;
-  color: #86efac;
   font-size: 0.95rem;
-}
-
-.hn-note-popover-btn--confirm:hover {
-  color: #4ade80;
 }
 
 .hn-note-popover-btn--cancel {
@@ -1573,15 +1378,17 @@
   font-style: italic;
 }
 
-/* portal 脱离 .hn-note-shell，沿用既有暗色浮层的字面量色值。 */
+/* 锚定模式浮层：经 Portal 渲染到 body，坐标由包内 useAnchorPosition 计算。
+   中和 .hn-popover 的 inline-flex 布局，改为 block 容器以容纳 textarea + 预览。 */
 .hn-note-formula-popover {
-  position: fixed;
+  display: block;
+  gap: normal;
+  width: min(520px, calc(100vw - 16px));
   z-index: 9999;
   padding: 8px;
   border-radius: 10px;
   background: #1e293b;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
-  animation: hn-popover-in 0.12s ease;
 }
 
 .hn-note-formula-textarea {
@@ -1672,28 +1479,26 @@
   font-size: 0.85rem;
 }
 
-/* 编辑对话框：portal 脱离 .hn-note-shell，沿用既有暗色浮层的字面量色值 */
-.hn-note-drawing-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: rgba(15, 23, 42, 0.5);
-  animation: hn-popover-in 0.12s ease;
-}
-
+/* 画板编辑对话框：由 Dialog 组件提供遮罩 + 居中 + 焦点管理，此处仅覆盖面板外观。
+   中和 .hn-dialog__panel 默认 padding，让内容撑满面板。 */
 .hn-note-drawing-dialog {
   display: flex;
   flex-direction: column;
   width: min(720px, 100%);
   height: min(560px, 100%);
+  padding: 0;
   border-radius: 10px;
   background: #1e293b;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
   overflow: hidden;
+}
+
+/* 让 .hn-dialog__content 撑满面板，使内部 flex 子级（工具条 + 画布）正常工作 */
+.hn-note-drawing-dialog .hn-dialog__content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
 .hn-note-drawing-toolbar {
@@ -2065,28 +1870,28 @@ td:hover > .hn-note-table-edge-btn {
   backdrop-filter: blur(8px);
 }
 
-.hn-note-card-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 10000;
-  display: grid;
-  place-items: center;
-  padding: 24px;
-  background: rgba(15, 23, 42, 0.68);
-  backdrop-filter: blur(8px);
-}
-
+/* 卡片编辑对话框：由 Dialog 组件提供遮罩 + 居中 + 焦点管理，此处仅覆盖面板外观。
+   中和 .hn-dialog__panel 默认 padding，让内容撑满面板。 */
 .hn-note-card-dialog {
   display: flex;
   flex-direction: column;
   width: min(1120px, 100%);
   max-height: min(820px, calc(100dvh - 48px));
+  padding: 0;
   overflow: hidden;
   border: 1px solid var(--hn-border);
   border-radius: 18px;
   background: var(--hn-bg);
   color: var(--hn-text);
   box-shadow: 0 24px 72px rgba(15, 23, 42, 0.34);
+}
+
+/* 让 .hn-dialog__content 撑满面板，使内部 flex 子级（头部 + 正文）正常工作 */
+.hn-note-card-dialog .hn-dialog__content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
 .hn-note-card-dialog-header {
@@ -2179,10 +1984,6 @@ td:hover > .hn-note-table-edge-btn {
 }
 
 @media (max-width: 720px) {
-  .hn-note-card-overlay {
-    padding: 12px;
-  }
-
   .hn-note-card-dialog {
     max-height: calc(100dvh - 24px);
     border-radius: 14px;

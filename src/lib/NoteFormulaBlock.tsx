@@ -7,7 +7,13 @@ import {
   useRef,
   useState
 } from "react"
-import { createPortal } from "react-dom"
+
+// 组件库 Popover：作为弹层表面，不传 anchor 时不注入定位样式，
+// 只渲染 <div class="hn-popover {className}" ...>，style / ref / role 等 props 原样透传
+import { Popover } from "@hamster-note/components"
+// 组件库样式：使用 @layer hamster-note.components 分层，项目 src/lib/styles.css 未分层，
+// 未分层样式在冲突时优先，故现有 .hn-note-formula-popover 视觉会被保留
+import "@hamster-note/components/styles.css"
 
 import {
   blockMenuStateKey,
@@ -21,24 +27,11 @@ type NoteFormulaBlockProps = {
   readonly ctx: EditContext
 }
 
-type FormulaPopoverPosition = {
-  readonly left: number
-  readonly top: number
-  readonly width: number
-  readonly placeAbove: boolean
+type FormulaPopoverAnchor = {
+  readonly el: HTMLElement
   readonly theme: string
   readonly codeFont: string
 }
-
-type FormulaPopoverStyle = CSSProperties & {
-  readonly "--hn-theme": string
-  readonly "--hn-code-font": string
-}
-
-const POPOVER_GAP = 8
-const POPOVER_MARGIN = 8
-const POPOVER_MAX_WIDTH = 520
-const POPOVER_ESTIMATED_HEIGHT = 188
 
 type FormulaPreviewProps = {
   readonly formula: string
@@ -65,46 +58,21 @@ const FormulaPreview = ({ formula }: FormulaPreviewProps): ReactElement => {
   )
 }
 
-const positionPopover = (anchor: HTMLElement): FormulaPopoverPosition => {
-  const rect = anchor.getBoundingClientRect()
-  const anchorStyle = getComputedStyle(anchor)
-  const width = Math.min(
-    POPOVER_MAX_WIDTH,
-    window.innerWidth - POPOVER_MARGIN * 2
-  )
-  const centeredLeft = rect.left + rect.width / 2 - width / 2
-  const left = Math.max(
-    POPOVER_MARGIN,
-    Math.min(centeredLeft, window.innerWidth - width - POPOVER_MARGIN)
-  )
-  const placeAbove =
-    window.innerHeight - rect.bottom < POPOVER_ESTIMATED_HEIGHT &&
-    rect.top > POPOVER_ESTIMATED_HEIGHT
-
-  return {
-    left,
-    top: placeAbove ? rect.top - POPOVER_GAP : rect.bottom + POPOVER_GAP,
-    width,
-    placeAbove,
-    theme: anchorStyle.getPropertyValue("--hn-theme"),
-    codeFont: anchorStyle.getPropertyValue("--hn-code-font")
-  }
-}
-
 export const NoteFormulaBlock = ({
   block,
   ctx
 }: NoteFormulaBlockProps): ReactElement => {
-  const [position, setPosition] = useState<FormulaPopoverPosition | null>(null)
+  const [popoverAnchor, setPopoverAnchor] = useState<FormulaPopoverAnchor | null>(null)
   const previewRef = useRef<HTMLButtonElement | null>(null)
   const popoverRef = useRef<HTMLDivElement | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
 
+  // 弹层打开时：聚焦 textarea，监听外部点击 / Escape / 滚动 / 窗口缩放以关闭
   useEffect(() => {
-    if (!position) return
+    if (!popoverAnchor) return
     textareaRef.current?.focus()
 
-    const close = () => setPosition(null)
+    const close = () => setPopoverAnchor(null)
     const onPointerDown = (event: PointerEvent) => {
       const target = event.target
       if (!(target instanceof Node)) return
@@ -136,42 +104,12 @@ export const NoteFormulaBlock = ({
       window.removeEventListener("resize", close)
       window.removeEventListener("scroll", onScroll, true)
     }
-  }, [position])
+  }, [popoverAnchor])
 
+  // 块菜单打开时关闭弹层，避免浮层堆叠
   useEffect(() => {
-    if (ctx.openBlockMenuId !== null) setPosition(null)
+    if (ctx.openBlockMenuId !== null) setPopoverAnchor(null)
   }, [ctx.openBlockMenuId])
-
-  useLayoutEffect(() => {
-    if (!position) return
-    const popover = popoverRef.current
-    if (!popover) return
-
-    const rect = popover.getBoundingClientRect()
-    const minTop = POPOVER_MARGIN
-    const maxBottom = window.innerHeight - POPOVER_MARGIN
-    const topAdjustment =
-      rect.top < minTop
-        ? minTop - rect.top
-        : rect.bottom > maxBottom
-          ? maxBottom - rect.bottom
-          : 0
-    if (topAdjustment === 0) return
-    setPosition((current) =>
-      current ? { ...current, top: current.top + topAdjustment } : null
-    )
-  }, [position])
-
-  const popoverStyle: FormulaPopoverStyle | undefined = position
-    ? {
-        left: position.left,
-        top: position.top,
-        width: position.width,
-        transform: position.placeAbove ? "translateY(-100%)" : undefined,
-        "--hn-theme": position.theme,
-        "--hn-code-font": position.codeFont
-      }
-    : undefined
 
   return (
     <>
@@ -184,7 +122,7 @@ export const NoteFormulaBlock = ({
             className="hn-note-formula-preview hn-note-formula-preview--editable"
             data-editable-block-id={block.id}
             aria-label="编辑公式"
-            aria-expanded={position !== null}
+            aria-expanded={popoverAnchor !== null}
             aria-haspopup="dialog"
             onClick={(event) => {
               ctx.onBlockMenuOpenChange(
@@ -194,7 +132,14 @@ export const NoteFormulaBlock = ({
                 }),
                 false
               )
-              setPosition(positionPopover(event.currentTarget))
+              // 从按钮读取 CSS 变量，传给 Popover 内部以保持主题 / 字体一致
+              const target = event.currentTarget
+              const style = getComputedStyle(target)
+              setPopoverAnchor({
+                el: target,
+                theme: style.getPropertyValue("--hn-theme"),
+                codeFont: style.getPropertyValue("--hn-code-font")
+              })
             }}
           >
             <FormulaPreview formula={block.formula} />
@@ -205,33 +150,36 @@ export const NoteFormulaBlock = ({
           </div>
         )}
       </div>
-      {position && popoverStyle
-        ? createPortal(
-            <div
-              ref={popoverRef}
-              className="hn-note-formula-popover"
-              style={popoverStyle}
-              role="dialog"
-              aria-label="公式编辑器"
-            >
-              <textarea
-                ref={textareaRef}
-                className="hn-note-formula-textarea"
-                value={block.formula}
-                rows={5}
-                spellCheck={false}
-                aria-label="公式（LaTeX）"
-                placeholder="例如：E = mc^2"
-                onChange={(event) =>
-                  ctx.onBlocksChange?.(
-                    updateFormula(ctx.getBlocks(), block.id, event.target.value)
-                  )
-                }
-              />
-            </div>,
-            document.body
-          )
-        : null}
+      {popoverAnchor ? (
+        <Popover
+          ref={popoverRef}
+          anchor={popoverAnchor.el}
+          className="hn-note-formula-popover"
+          style={
+            {
+              "--hn-theme": popoverAnchor.theme,
+              "--hn-code-font": popoverAnchor.codeFont
+            } as CSSProperties
+          }
+          role="dialog"
+          aria-label="公式编辑器"
+        >
+          <textarea
+            ref={textareaRef}
+            className="hn-note-formula-textarea"
+            value={block.formula}
+            rows={5}
+            spellCheck={false}
+            aria-label="公式（LaTeX）"
+            placeholder="例如：E = mc^2"
+            onChange={(event) =>
+              ctx.onBlocksChange?.(
+                updateFormula(ctx.getBlocks(), block.id, event.target.value)
+              )
+            }
+          />
+        </Popover>
+      ) : null}
     </>
   )
 }

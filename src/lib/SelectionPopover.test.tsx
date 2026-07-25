@@ -246,8 +246,9 @@ describe("SelectionPopover text color", () => {
         '[aria-label="粗体"]'
       )
       expect(boldBtn).not.toBeNull()
+      expect(boldBtn?.classList.contains("hn-button--primary")).toBe(true)
       expect(boldBtn?.classList.contains("hn-note-popover-btn--active")).toBe(
-        true
+        false
       )
       expect(boldBtn?.getAttribute("aria-pressed")).toBe("true")
     })

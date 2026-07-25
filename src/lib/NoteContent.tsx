@@ -11,6 +11,9 @@ import {
 
 import "./styles.css"
 
+import { Popover } from "@hamster-note/components"
+import "@hamster-note/components/styles.css"
+
 import {
   BottomBlockControls,
   type BottomBlockTarget,
@@ -390,6 +393,8 @@ export function NoteContent({
           {blocks.map((block) => {
             const editContext = {
               editable: contentEditable,
+              theme,
+              themeColor,
               blocks,
               getBlocks: () => blocksRef.current,
               openBlockMenuId,
@@ -488,12 +493,21 @@ export function NoteContent({
           ) : null}
         </div>
         {contentEditable && useBottomBar ? (
-          <div ref={bottomBarRef} className="hn-note-bottom-bar">
+          <Popover
+            ref={bottomBarRef}
+            className="hn-note-bottom-toolbar"
+            data-note-bottom-bar
+            edge="bottom"
+            edgeOffset={16}
+            role="toolbar"
+            aria-label="编辑操作"
+            style={{ zIndex: 10 }}
+          >
             <BottomBlockControls
               shellRef={shellRef}
               target={bottomBlockTarget}
             />
-          </div>
+          </Popover>
         ) : null}
       </article>
       {contentEditable ? (
