@@ -38,7 +38,14 @@ const block: NoteCardBlockData = {
 describe("NoteCardBlock", () => {
   it("blocks preview interaction and opens the full card dialog", async () => {
     // Given: a note renders a card canvas in its normal preview state.
-    render(<NoteContent blocks={[block]} title="Cards" />)
+    render(
+      <NoteContent
+        blocks={[block]}
+        title="Cards"
+        theme="dark"
+        themeColor="#f97316"
+      />
+    )
 
     // When: the user activates the single preview interaction layer.
     const preview = screen.getByRole("button", { name: "打开卡片" })
@@ -51,7 +58,12 @@ describe("NoteCardBlock", () => {
     expect(dialog).toBeDefined()
     expect(within(dialog).getByText("Release health")).toBeDefined()
     // 组件库 Dialog 固定 Portal 到 document.body，不再挂进 .hn-note-shell
-    expect(dialog.closest(".hn-note-shell")).toBeNull()
+    expect(dialog.parentElement?.closest(".hn-note-shell")).toBeNull()
+    // Portal 面板必须自己建立主题变量作用域，不能依赖已断开的祖先继承链。
+    expect(dialog.classList.contains("hn-note-shell")).toBe(true)
+    expect(dialog.classList.contains("hn-note-shell--dark")).toBe(true)
+    expect(dialog.classList.contains("hn-note-card-dialog")).toBe(true)
+    expect(dialog.style.getPropertyValue("--hn-theme")).toBe("#f97316")
     // 打开时焦点经 requestAnimationFrame 送入面板内第一个可聚焦元素（完成按钮）
     await waitFor(() =>
       expect(document.activeElement).toBe(

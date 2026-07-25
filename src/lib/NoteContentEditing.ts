@@ -1,9 +1,11 @@
-import type { NoteBlock } from "./types"
+import type { NoteBlock, NoteTheme } from "./types"
 import type { FocusCaret } from "./useBlockEditing"
 
 
 export type EditContext = {
   readonly editable: boolean
+  readonly theme: NoteTheme
+  readonly themeColor: string | undefined
   readonly blocks: readonly NoteBlock[]
   readonly getBlocks: () => readonly NoteBlock[]
   readonly openBlockMenuId: string | null

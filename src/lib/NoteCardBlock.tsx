@@ -1,5 +1,7 @@
 import { CardCanvas, type CardCanvasCard } from "@hamster-note/cards"
 import "@hamster-note/cards/styles.css"
+import { Dialog } from "@hamster-note/components"
+import "@hamster-note/components/styles.css"
 import {
   type CSSProperties,
   type ReactElement,
@@ -10,8 +12,6 @@ import {
   useRef,
   useState
 } from "react"
-import { Dialog } from "@hamster-note/components"
-import "@hamster-note/components/styles.css"
 
 import {
   CARD_PREVIEW_HEIGHT,
@@ -145,7 +145,12 @@ export const NoteCardBlock = ({
       <Dialog
         open={dialogOpen}
         onClose={closeDialog}
-        className="hn-note-card-dialog"
+        className={`hn-note-shell hn-note-shell--${ctx.theme} hn-note-card-dialog`}
+        style={
+          ctx.themeColor
+            ? ({ "--hn-theme": ctx.themeColor } as CSSProperties)
+            : undefined
+        }
         aria-label="卡片编辑器"
       >
         <header className="hn-note-card-dialog-header">

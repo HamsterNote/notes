@@ -393,6 +393,8 @@ export function NoteContent({
           {blocks.map((block) => {
             const editContext = {
               editable: contentEditable,
+              theme,
+              themeColor,
               blocks,
               getBlocks: () => blocksRef.current,
               openBlockMenuId,

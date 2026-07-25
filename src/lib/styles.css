@@ -1496,6 +1496,7 @@
 /* 让 .hn-dialog__content 撑满面板，使内部 flex 子级（工具条 + 画布）正常工作 */
 .hn-note-drawing-dialog .hn-dialog__content {
   display: flex;
+  flex-direction: column;
   flex: 1;
   min-height: 0;
 }
@@ -1888,6 +1889,7 @@ td:hover > .hn-note-table-edge-btn {
 /* 让 .hn-dialog__content 撑满面板，使内部 flex 子级（头部 + 正文）正常工作 */
 .hn-note-card-dialog .hn-dialog__content {
   display: flex;
+  flex-direction: column;
   flex: 1;
   min-height: 0;
 }
