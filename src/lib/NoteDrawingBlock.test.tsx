@@ -1,5 +1,5 @@
 /** @vitest-environment jsdom */
-import { cleanup, fireEvent, render, screen } from "@testing-library/react"
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, describe, expect, it } from "vitest"
 
 import { NoteContent } from "./NoteContent"
@@ -48,7 +48,7 @@ describe("NoteDrawingBlock", () => {
     expect(screen.queryByRole("img")).toBeNull()
   })
 
-  it("opens the drawing dialog from the editable preview and closes it", () => {
+  it("opens the drawing dialog from the editable preview and closes it", async () => {
     render(
       <NoteContent
         blocks={[drawingBlock(sampleData)]}
@@ -58,7 +58,11 @@ describe("NoteDrawingBlock", () => {
       />
     )
 
-    fireEvent.click(screen.getByRole("button", { name: "编辑画板" }))
+    // 焦点还原依赖打开前的 activeElement；真实浏览器点击会聚焦触发按钮，
+    // fireEvent.click 不会，这里显式聚焦以对齐真实交互
+    const trigger = screen.getByRole("button", { name: "编辑画板" })
+    trigger.focus()
+    fireEvent.click(trigger)
 
     expect(screen.getByRole("dialog", { name: "画板编辑器" })).toBeDefined()
     for (const label of ["画笔", "直线", "矩形", "椭圆", "橡皮"]) {
@@ -67,14 +71,15 @@ describe("NoteDrawingBlock", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "完成" }))
 
-    expect(screen.queryByRole("dialog")).toBeNull()
+    // 组件库 Dialog 有 180ms 退场动画，动画结束后才真正卸载并回焦
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
     // 关闭后焦点还原到缩略图按钮
     expect(document.activeElement).toBe(
       screen.getByRole("button", { name: "编辑画板" })
     )
   })
 
-  it("closes the dialog on Escape", () => {
+  it("closes the dialog on Escape", async () => {
     render(
       <NoteContent
         blocks={[drawingBlock(sampleData)]}
@@ -85,9 +90,12 @@ describe("NoteDrawingBlock", () => {
     )
 
     fireEvent.click(screen.getByRole("button", { name: "编辑画板" }))
-    expect(screen.getByRole("dialog")).toBeDefined()
+    const dialog = screen.getByRole("dialog")
+    expect(dialog).toBeDefined()
 
-    fireEvent.keyDown(document, { key: "Escape" })
-    expect(screen.queryByRole("dialog")).toBeNull()
+    // 组件库 Dialog 的 Esc 处理挂在面板 onKeyDown 上（打开后焦点已被送入面板），
+    // 因此事件需要派发在面板内的元素上
+    fireEvent.keyDown(dialog, { key: "Escape" })
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull())
   })
 })

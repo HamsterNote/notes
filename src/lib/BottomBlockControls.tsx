@@ -1,3 +1,4 @@
+import { Button, Icon } from "@hamster-note/components"
 import type { RefObject } from "react"
 
 import { triggerBlockActionMenu } from "./BlockActionMenu"
@@ -81,14 +82,12 @@ export const BottomBlockControls = ({
   }
 
   return (
-    <div
-      className="hn-note-bottom-actions"
-      role="toolbar"
-      aria-label="区块操作"
-    >
-      <button
+    <>
+      <Button
         type="button"
-        className="hn-note-bottom-action hn-note-bottom-action--add"
+        size="small"
+        variant="ghost"
+        className="hn-note-bottom-control"
         aria-haspopup="menu"
         aria-expanded={target?.addExpanded ?? false}
         aria-label={target?.addLabel ?? "在当前区块下方插入新行"}
@@ -97,11 +96,13 @@ export const BottomBlockControls = ({
         disabled={!target}
         onClick={(event) => openMenu("add", event.currentTarget)}
       >
-        <span aria-hidden="true">+</span>
-      </button>
-      <button
+        <Icon name="add" aria-hidden="true" />
+      </Button>
+      <Button
         type="button"
-        className="hn-note-bottom-action hn-note-bottom-action--convert"
+        size="small"
+        variant="ghost"
+        className="hn-note-bottom-control"
         aria-haspopup="menu"
         aria-expanded={target?.convertExpanded ?? false}
         aria-label={target?.convertLabel ?? "更改当前区块"}
@@ -110,10 +111,8 @@ export const BottomBlockControls = ({
         disabled={!target}
         onClick={(event) => openMenu("convert", event.currentTarget)}
       >
-        <span className="hn-note-block-handle-glyph" aria-hidden="true">
-          ⋮⋮
-        </span>
-      </button>
-    </div>
+        <Icon name="handle" aria-hidden="true" />
+      </Button>
+    </>
   )
 }

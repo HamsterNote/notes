@@ -180,10 +180,10 @@ describe("popover toolbar formatting styles", () => {
     "utf8"
   )
 
-  it("exposes an active state for the popover formatting buttons", () => {
-    // Given: 粗体/斜体/下划线等格式按钮在被激活时需要持续高亮。
-    // Then: 样式表包含 .hn-note-popover-btn--active 选择器规则。
-    expect(styles).toMatch(/\.hn-note-popover-btn--active\s*\{/)
+  it("uses the component button primary variant without a custom active override", () => {
+    // Given: 格式按钮的激活态由组件库 Button 的 primary variant 提供。
+    // Then: 项目样式不再覆盖组件库的原生 primary 视觉。
+    expect(styles).not.toMatch(/\.hn-note-popover-btn--active\s*\{/)
   })
 
   it("ships glyph variants for strikethrough, code, formula, and clear", () => {
@@ -227,11 +227,12 @@ describe("popover toolbar formatting styles", () => {
     expect(styles).not.toMatch(/(^|[,{]\s*)code:not\(\[class\]\)/m)
   })
 
-  it("supports the docked active state for the mobile bottom toolbar", () => {
-    // Given: docked 模式下按钮主题色不同，--active 高亮需在该作用域内重写。
-    // Then: 样式表存在 .hn-note-popover--docked .hn-note-popover-btn--active 复合选择器。
-    expect(styles).toMatch(
-      /\.hn-note-popover--docked\s+\.hn-note-popover-btn--active\s*\{/
+  it("keeps component button visuals native in the mobile bottom toolbar", () => {
+    // Given: 移动端格式操作已直接合并进唯一的组件库 Popover 宿主。
+    // Then: 项目样式不再通过旧 docked 表面覆盖组件库按钮变体。
+    expect(styles).not.toMatch(/\.hn-note-popover--docked/)
+    expect(styles).not.toMatch(
+      /\.hn-note-bottom-toolbar\s+\.hn-button--(?:ghost|primary)\s*\{/
     )
   })
 })

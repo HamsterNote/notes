@@ -55,11 +55,21 @@ describe("NoteContent responsive layout", () => {
     // When: an editable note is rendered.
     const view = render(<NoteContent blocks={blocks} title="Mobile" editable />)
 
-    // Then: the shell owns a direct bottom-toolbar portal target.
+    // Then: the shell owns a direct portal target positioned by the component
+    // library's viewport-edge bottom-bar mode.
     await waitFor(() => {
       const shell = view.container.querySelector(".hn-note-shell")
-      const bottomBar = shell?.querySelector(":scope > .hn-note-bottom-bar")
+      const bottomBar = shell?.querySelector<HTMLElement>(
+        ":scope > [data-note-bottom-bar]"
+      )
       expect(bottomBar).not.toBeNull()
+      expect(bottomBar?.classList.contains("hn-popover")).toBe(true)
+      expect(bottomBar?.classList.contains("hn-note-bottom-toolbar")).toBe(true)
+      expect(bottomBar?.style.position).toBe("fixed")
+      expect(bottomBar?.style.bottom).toBe("16px")
+      expect(bottomBar?.style.left).toBe("50%")
+      expect(bottomBar?.style.transform).toBe("translateX(-50%)")
+      expect(bottomBar?.style.zIndex).toBe("10")
       expect(shell?.classList.contains("hn-note-shell--mobile")).toBe(true)
     })
   })
@@ -80,7 +90,7 @@ describe("NoteContent responsive layout", () => {
     // Then: the persistent toolbar exposes the same add and convert controls.
     await waitFor(() => {
       const shell = view.container.querySelector(".hn-note-shell")
-      const bottomBar = shell?.querySelector(":scope > .hn-note-bottom-bar")
+      const bottomBar = shell?.querySelector(":scope > [data-note-bottom-bar]")
       expect(bottomBar).not.toBeNull()
       expect(
         bottomBar?.querySelector('[data-block-menu-mode="add"]')
@@ -88,6 +98,61 @@ describe("NoteContent responsive layout", () => {
       expect(
         bottomBar?.querySelector('[data-block-menu-mode="convert"]')
       ).not.toBeNull()
+    })
+  })
+
+  it("merges block and selection actions into one bottom toolbar surface", async () => {
+    // Given: a narrow editable note with a visible text selection.
+    Object.defineProperty(window, "innerWidth", {
+      configurable: true,
+      value: 375
+    })
+    if (!("getBoundingClientRect" in Range.prototype)) {
+      Object.defineProperty(Range.prototype, "getBoundingClientRect", {
+        configurable: true,
+        value: () => ({
+          top: 120,
+          bottom: 140,
+          left: 40,
+          right: 140,
+          width: 100,
+          height: 20,
+          x: 40,
+          y: 120,
+          toJSON: () => ({})
+        })
+      })
+    }
+    const view = render(
+      <NoteContent blocks={blocks} title="Unified toolbar" editable />
+    )
+    const editable = view.container.querySelector<HTMLElement>(
+      '[data-editable-block-id="paragraph"]'
+    )
+    if (!editable) throw new Error("Expected an editable paragraph.")
+    const range = document.createRange()
+    range.setStart(editable.firstChild ?? editable, 0)
+    range.setEnd(editable.firstChild ?? editable, 4)
+    const selection = window.getSelection()
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+
+    // When: selection formatting actions become available.
+    document.dispatchEvent(new Event("selectionchange"))
+
+    // Then: block and text actions share the one component-library surface.
+    await waitFor(() => {
+      const bottomBar = view.container.querySelector<HTMLElement>(
+        "[data-note-bottom-bar]"
+      )
+      const add = bottomBar?.querySelector<HTMLElement>(
+        '[data-block-menu-mode="add"]'
+      )
+      const bold = bottomBar?.querySelector<HTMLElement>('[aria-label="粗体"]')
+      expect(bottomBar?.getAttribute("role")).toBe("toolbar")
+      expect(bottomBar?.querySelector(".hn-popover")).toBeNull()
+      expect(add?.closest(".hn-popover")).toBe(bottomBar)
+      expect(bold?.closest(".hn-popover")).toBe(bottomBar)
     })
   })
 
@@ -107,7 +172,7 @@ describe("NoteContent responsive layout", () => {
     // Then: no bottom toolbar is mounted.
     await waitFor(() => {
       const shell = view.container.querySelector(".hn-note-shell")
-      const bottomBar = shell?.querySelector(":scope > .hn-note-bottom-bar")
+      const bottomBar = shell?.querySelector(":scope > [data-note-bottom-bar]")
       expect(bottomBar).toBeNull()
     })
   })
@@ -143,7 +208,7 @@ describe("NoteContent responsive layout", () => {
 
     // When: focus selects the second block and the bottom add control inserts text.
     fireEvent.focus(second)
-    const bottomBar = view.container.querySelector(".hn-note-bottom-bar")
+    const bottomBar = view.container.querySelector("[data-note-bottom-bar]")
     const add = await waitFor(() => {
       const control = bottomBar?.querySelector<HTMLElement>(
         '[data-block-id="second"][data-block-menu-mode="add"]'
@@ -175,7 +240,7 @@ describe("NoteContent responsive layout", () => {
     const view = render(<NoteContent blocks={blocks} title="Toggle menu" editable />)
     const add = await waitFor(() => {
       const control = view.container.querySelector<HTMLButtonElement>(
-        ".hn-note-bottom-action--add"
+        '[data-note-bottom-bar] [data-block-menu-mode="add"]'
       )
       expect(control).not.toBeNull()
       return control
@@ -204,7 +269,7 @@ describe("NoteContent responsive layout", () => {
     const view = render(<NoteContent blocks={blocks} title="Escape focus" editable />)
     const add = await waitFor(() => {
       const control = view.container.querySelector<HTMLButtonElement>(
-        ".hn-note-bottom-action--add"
+        '[data-note-bottom-bar] [data-block-menu-mode="add"]'
       )
       expect(control).not.toBeNull()
       return control

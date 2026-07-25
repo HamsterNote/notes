@@ -1,3 +1,4 @@
+import { Button, Popover, PopoverSeparator } from "@hamster-note/components"
 import {
   type CSSProperties,
   type FormEvent,
@@ -8,10 +9,6 @@ import {
   useState
 } from "react"
 import { createPortal } from "react-dom"
-
-// 组件库 Popover / PopoverSeparator：作为弹层表面，不传 anchor 时不注入定位样式，
-// 只渲染 <div class="hn-popover {className}" ...>，style / ref / role 等 props 原样透传
-import { Popover, PopoverSeparator } from "@hamster-note/components"
 // 组件库样式：使用 @layer hamster-note.components 分层，项目 src/lib/styles.css 未分层，
 // 未分层样式在冲突时优先，故现有 .hn-note-popover* 视觉会被保留
 import "@hamster-note/components/styles.css"
@@ -651,12 +648,10 @@ export const SelectionPopover = ({
         transform: "translate(-50%, -100%)"
       }
 
-  const popover = (
-    <Popover
-      ref={popoverRef}
-      className={`hn-note-popover hn-note-popover--edit${portalContainerRef ? " hn-note-popover--docked" : ""}`}
-      style={portalContainerRef ? undefined : style}
-      role="toolbar"
+  const actions = (
+    <div
+      className="hn-note-selection-actions"
+      role="group"
       aria-label="文字操作"
       onMouseDown={(event) => {
         // 格式模式：阻止 mousedown 默认行为，避免抢走 contentEditable 焦点、折叠选区。
@@ -666,9 +661,10 @@ export const SelectionPopover = ({
     >
       {mode === "format" ? (
         <>
-          <button
-            type="button"
-            className={`hn-note-popover-btn${activeFormats.bold ? " hn-note-popover-btn--active" : ""}`}
+          <Button
+            size="small"
+            variant={activeFormats.bold ? "primary" : "ghost"}
+            className="hn-note-popover-btn"
             onClick={() => format("bold")}
             title="粗体"
             aria-label="粗体"
@@ -677,10 +673,11 @@ export const SelectionPopover = ({
             <span className="hn-note-popover-glyph hn-note-popover-glyph--bold">
               B
             </span>
-          </button>
-          <button
-            type="button"
-            className={`hn-note-popover-btn${activeFormats.italic ? " hn-note-popover-btn--active" : ""}`}
+          </Button>
+          <Button
+            size="small"
+            variant={activeFormats.italic ? "primary" : "ghost"}
+            className="hn-note-popover-btn"
             onClick={() => format("italic")}
             title="斜体"
             aria-label="斜体"
@@ -689,10 +686,11 @@ export const SelectionPopover = ({
             <span className="hn-note-popover-glyph hn-note-popover-glyph--italic">
               I
             </span>
-          </button>
-          <button
-            type="button"
-            className={`hn-note-popover-btn${activeFormats.underline ? " hn-note-popover-btn--active" : ""}`}
+          </Button>
+          <Button
+            size="small"
+            variant={activeFormats.underline ? "primary" : "ghost"}
+            className="hn-note-popover-btn"
             onClick={() => format("underline")}
             title="下划线"
             aria-label="下划线"
@@ -701,10 +699,11 @@ export const SelectionPopover = ({
             <span className="hn-note-popover-glyph hn-note-popover-glyph--underline">
               U
             </span>
-          </button>
-          <button
-            type="button"
-            className={`hn-note-popover-btn${activeFormats.strikeThrough ? " hn-note-popover-btn--active" : ""}`}
+          </Button>
+          <Button
+            size="small"
+            variant={activeFormats.strikeThrough ? "primary" : "ghost"}
+            className="hn-note-popover-btn"
             onClick={() => format("strikeThrough")}
             title="删除线"
             aria-label="删除线"
@@ -713,10 +712,11 @@ export const SelectionPopover = ({
             <span className="hn-note-popover-glyph hn-note-popover-glyph--strikethrough">
               S
             </span>
-          </button>
-          <button
-            type="button"
-            className={`hn-note-popover-btn${activeFormats.code ? " hn-note-popover-btn--active" : ""}`}
+          </Button>
+          <Button
+            size="small"
+            variant={activeFormats.code ? "primary" : "ghost"}
+            className="hn-note-popover-btn"
             onClick={handleInlineCode}
             title="行内代码"
             aria-label="行内代码"
@@ -725,10 +725,11 @@ export const SelectionPopover = ({
             <span className="hn-note-popover-glyph hn-note-popover-glyph--code">
               {"</>"}
             </span>
-          </button>
-          <button
-            type="button"
-            className={`hn-note-popover-btn${activeFormats.formula ? " hn-note-popover-btn--active" : ""}`}
+          </Button>
+          <Button
+            size="small"
+            variant={activeFormats.formula ? "primary" : "ghost"}
+            className="hn-note-popover-btn"
             onClick={handleInlineFormula}
             title="行内公式"
             aria-label="行内公式"
@@ -738,7 +739,7 @@ export const SelectionPopover = ({
             <span className="hn-note-popover-glyph hn-note-popover-glyph--formula">
               fx
             </span>
-          </button>
+          </Button>
           <PopoverSeparator className="hn-note-popover-divider" />
           {TEXT_COLORS.map((color) => (
             <button
@@ -755,8 +756,9 @@ export const SelectionPopover = ({
             />
           ))}
           <PopoverSeparator className="hn-note-popover-divider" />
-          <button
-            type="button"
+          <Button
+            size="small"
+            variant="ghost"
             className="hn-note-popover-btn hn-note-popover-btn--clear"
             onClick={clearFormatting}
             title="清除样式"
@@ -771,10 +773,11 @@ export const SelectionPopover = ({
                 <path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3" />
               </svg>
             </span>
-          </button>
+          </Button>
           <PopoverSeparator className="hn-note-popover-divider" />
-          <button
-            type="button"
+          <Button
+            size="small"
+            variant="ghost"
             className="hn-note-popover-btn hn-note-popover-btn--link"
             onClick={enterLinkMode}
             title="链接"
@@ -787,7 +790,7 @@ export const SelectionPopover = ({
                 <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
               </svg>
             </span>
-          </button>
+          </Button>
         </>
       ) : mode === "formula" ? (
         <form
@@ -803,24 +806,27 @@ export const SelectionPopover = ({
             value={formulaValue}
             onChange={(event) => setFormulaValue(event.target.value)}
           />
-          <button
+          <Button
             type="submit"
+            size="small"
+            variant="primary"
             className="hn-note-popover-btn hn-note-popover-btn--confirm"
             disabled={!formulaValue.trim()}
             title="确认"
             aria-label="确认"
           >
             ✓
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            size="small"
+            variant="ghost"
             className="hn-note-popover-btn hn-note-popover-btn--cancel"
             onClick={close}
             title="取消"
             aria-label="取消"
           >
             ✕
-          </button>
+          </Button>
         </form>
       ) : (
         <form className="hn-note-popover-link-form" onSubmit={onLinkFormSubmit}>
@@ -834,8 +840,9 @@ export const SelectionPopover = ({
             disabled={configuring}
           />
           {onMagicLinkConfigure ? (
-            <button
-              type="button"
+            <Button
+              size="small"
+              variant="primary"
               className="hn-note-popover-btn hn-note-popover-btn--magic"
               onClick={() => {
                 void handleMagicLinkConfigure()
@@ -844,28 +851,55 @@ export const SelectionPopover = ({
               title="魔法链接"
             >
               {configuring ? "…" : "魔法链接"}
-            </button>
+            </Button>
           ) : null}
-          <button
+          <Button
             type="submit"
+            size="small"
+            variant="primary"
             className="hn-note-popover-btn hn-note-popover-btn--confirm"
             disabled={!linkUrl.trim() || configuring}
             title="确认"
           >
             ✓
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            size="small"
+            variant="ghost"
             className="hn-note-popover-btn hn-note-popover-btn--cancel"
             onClick={close}
             title="取消"
           >
             ✕
-          </button>
+          </Button>
         </form>
       )}
-    </Popover>
+    </div>
   )
 
-  return createPortal(popover, portalContainerRef?.current ?? document.body)
+  const portalContainer = portalContainerRef?.current
+  if (portalContainerRef) {
+    return portalContainer
+      ? createPortal(
+          <>
+            <PopoverSeparator />
+            {actions}
+          </>,
+          portalContainer
+        )
+      : null
+  }
+
+  return createPortal(
+    <Popover
+      ref={popoverRef}
+      className="hn-note-popover hn-note-popover--edit"
+      style={style}
+      role="toolbar"
+      aria-label="文字操作"
+    >
+      {actions}
+    </Popover>,
+    document.body
+  )
 }

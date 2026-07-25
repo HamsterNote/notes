@@ -414,6 +414,10 @@ select {
     grid-template-columns: 1fr;
   }
 
+  .demo-main {
+    order: -1;
+  }
+
   .demo-sidebar {
     position: static;
     height: auto;

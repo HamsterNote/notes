@@ -10,7 +10,8 @@ import {
   useRef,
   useState
 } from "react"
-import { createPortal } from "react-dom"
+import { Dialog } from "@hamster-note/components"
+import "@hamster-note/components/styles.css"
 
 import {
   CARD_PREVIEW_HEIGHT,
@@ -20,7 +21,6 @@ import {
   restoreCardCanvasCoordinates,
   translateCardCanvasCoordinates
 } from "./cardGeometry"
-import { trapDialogFocus } from "./dialogFocus"
 import { renderBlockActionMenu } from "./NoteBlockEditingControls"
 import type { EditContext } from "./NoteContentEditing"
 import type {
@@ -55,8 +55,6 @@ export const NoteCardBlock = ({
   const [dialogGeometry, setDialogGeometry] =
     useState<CardCanvasGeometry | null>(null)
   const previewRef = useRef<HTMLDivElement | null>(null)
-  const dialogRef = useRef<HTMLElement | null>(null)
-  const closeButtonRef = useRef<HTMLButtonElement | null>(null)
   const previewGeometry = useMemo(
     () => getCardCanvasGeometry(block.data),
     [block.data]
@@ -75,19 +73,7 @@ export const NoteCardBlock = ({
     setDialogOpen(false)
     setSelectedCardId(undefined)
     setDialogGeometry(null)
-    previewRef.current?.focus()
   }, [])
-
-  useEffect(() => {
-    if (!dialogOpen) return
-    closeButtonRef.current?.focus()
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") closeDialog()
-      trapDialogFocus(dialogRef.current, event)
-    }
-    document.addEventListener("keydown", onKeyDown)
-    return () => document.removeEventListener("keydown", onKeyDown)
-  }, [dialogOpen, closeDialog])
 
   useEffect(() => {
     const preview = previewRef.current
@@ -156,105 +142,92 @@ export const NoteCardBlock = ({
           <span className="hn-note-card-preview-hint">点击打开卡片</span>
         </div>
       </div>
-      {dialogOpen
-        ? createPortal(
+      <Dialog
+        open={dialogOpen}
+        onClose={closeDialog}
+        className="hn-note-card-dialog"
+        aria-label="卡片编辑器"
+      >
+        <header className="hn-note-card-dialog-header">
+          <div>
+            <h2>卡片</h2>
+            <p>{ctx.editable ? "选择卡片后编辑内容" : "查看完整卡片画布"}</p>
+          </div>
+          <button type="button" onClick={closeDialog}>
+            完成
+          </button>
+        </header>
+        <div
+          className={`hn-note-card-dialog-body${
+            ctx.editable && selectedCard
+              ? " hn-note-card-dialog-body--with-inspector"
+              : ""
+          }`}
+        >
+          <div className="hn-note-card-dialog-canvas">
             <div
-              className="hn-note-card-overlay"
-              onPointerDown={(event) => {
-                if (event.target === event.currentTarget) closeDialog()
+              className="hn-note-card-dialog-stage"
+              style={{
+                width: Math.max(
+                  dialogGeometry?.width ?? previewGeometry.width,
+                  CARD_PREVIEW_WIDTH
+                ),
+                height: Math.max(
+                  dialogGeometry?.height ?? previewGeometry.height,
+                  520
+                )
               }}
             >
-              <section
-                ref={dialogRef}
-                className="hn-note-card-dialog"
-                role="dialog"
-                aria-modal="true"
-                aria-label="卡片编辑器"
-              >
-                <header className="hn-note-card-dialog-header">
-                  <div>
-                    <h2>卡片</h2>
-                    <p>{ctx.editable ? "选择卡片后编辑内容" : "查看完整卡片画布"}</p>
-                  </div>
-                  <button ref={closeButtonRef} type="button" onClick={closeDialog}>
-                    完成
-                  </button>
-                </header>
-                <div
-                  className={`hn-note-card-dialog-body${
-                    ctx.editable && selectedCard
-                      ? " hn-note-card-dialog-body--with-inspector"
-                      : ""
-                  }`}
-                >
-                  <div className="hn-note-card-dialog-canvas">
-                    <div
-                      className="hn-note-card-dialog-stage"
-                      style={{
-                        width: Math.max(
-                          dialogGeometry?.width ?? previewGeometry.width,
-                          CARD_PREVIEW_WIDTH
-                        ),
-                        height: Math.max(
-                          dialogGeometry?.height ?? previewGeometry.height,
-                          520
-                        )
-                      }}
-                    >
-                      <CardCanvas
-                        cards={dialogCards}
-                        selected={selectedCardId ? [selectedCardId] : []}
-                        onSelect={setSelectedCardId}
-                        onClearSelection={() => setSelectedCardId(undefined)}
-                        {...(ctx.editable
-                          ? { onCardsChange: commitCanvasCards }
-                          : {})}
-                        options={{ requireSelectionToMoveResize: true }}
-                      />
-                    </div>
-                  </div>
-                  {ctx.editable && selectedCard ? (
-                    <aside className="hn-note-card-inspector">
-                      <label>
-                        <span>卡片标题</span>
-                        <input
-                          aria-label="卡片标题"
-                          value={selectedCard.title}
-                          onChange={(event) =>
-                            commitCards(
-                              block.data.map((card) =>
-                                card.id === selectedCard.id
-                                  ? { ...card, title: event.currentTarget.value }
-                                  : card
-                              )
-                            )
-                          }
-                        />
-                      </label>
-                      <label>
-                        <span>卡片内容</span>
-                        <textarea
-                          aria-label="卡片内容"
-                          value={selectedCard.content}
-                          onChange={(event) =>
-                            commitCards(
-                              block.data.map((card) =>
-                                card.id === selectedCard.id
-                                  ? { ...card, content: event.currentTarget.value }
-                                  : card
-                              )
-                            )
-                          }
-                        />
-                      </label>
-                    </aside>
-                  ) : null}
-                </div>
-              </section>
-            </div>,
-            previewRef.current?.closest(".hn-note-shell") ?? document.body
-          )
-        : null}
+              <CardCanvas
+                cards={dialogCards}
+                selected={selectedCardId ? [selectedCardId] : []}
+                onSelect={setSelectedCardId}
+                onClearSelection={() => setSelectedCardId(undefined)}
+                {...(ctx.editable
+                  ? { onCardsChange: commitCanvasCards }
+                  : {})}
+                options={{ requireSelectionToMoveResize: true }}
+              />
+            </div>
+          </div>
+          {ctx.editable && selectedCard ? (
+            <aside className="hn-note-card-inspector">
+              <label>
+                <span>卡片标题</span>
+                <input
+                  aria-label="卡片标题"
+                  value={selectedCard.title}
+                  onChange={(event) =>
+                    commitCards(
+                      block.data.map((card) =>
+                        card.id === selectedCard.id
+                          ? { ...card, title: event.currentTarget.value }
+                          : card
+                      )
+                    )
+                  }
+                />
+              </label>
+              <label>
+                <span>卡片内容</span>
+                <textarea
+                  aria-label="卡片内容"
+                  value={selectedCard.content}
+                  onChange={(event) =>
+                    commitCards(
+                      block.data.map((card) =>
+                        card.id === selectedCard.id
+                          ? { ...card, content: event.currentTarget.value }
+                          : card
+                      )
+                    )
+                  }
+                />
+              </label>
+            </aside>
+          ) : null}
+        </div>
+      </Dialog>
     </>
   )
 }

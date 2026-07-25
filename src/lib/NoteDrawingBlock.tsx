@@ -11,7 +11,8 @@ import {
   useRef,
   useState
 } from "react"
-import { createPortal } from "react-dom"
+import { Dialog } from "@hamster-note/components"
+import "@hamster-note/components/styles.css"
 
 import {
   DRAWING_FALLBACK_COLOR,
@@ -94,22 +95,7 @@ export const NoteDrawingBlock = ({
 
   const closeDialog = () => {
     setDialogOpen(false)
-    // 关闭后焦点还原到缩略图按钮，与公式块弹层行为一致
-    previewRef.current?.focus()
   }
-
-  // Escape 关闭编辑对话框
-  useEffect(() => {
-    if (!dialogOpen) return
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return
-      setDialogOpen(false)
-      // 焦点还原到缩略图按钮
-      previewRef.current?.focus()
-    }
-    document.addEventListener("keydown", onKeyDown)
-    return () => document.removeEventListener("keydown", onKeyDown)
-  }, [dialogOpen])
 
   // 块菜单打开时关闭对话框，避免浮层堆叠（与公式块一致）
   useEffect(() => {
@@ -149,65 +135,52 @@ export const NoteDrawingBlock = ({
           </div>
         )}
       </div>
-      {dialogOpen
-        ? createPortal(
-            <div
-              className="hn-note-drawing-overlay"
-              onPointerDown={(event) => {
-                // 仅点击遮罩本体时关闭；面板内部点击不触发
-                if (event.target === event.currentTarget) closeDialog()
-              }}
+      <Dialog
+        open={dialogOpen}
+        onClose={closeDialog}
+        className="hn-note-drawing-dialog"
+        aria-label="画板编辑器"
+      >
+        <div
+          className="hn-note-drawing-toolbar"
+          role="toolbar"
+          aria-label="画板工具"
+        >
+          {DRAWING_DIALOG_TOOLS.map((item) => (
+            <button
+              key={item.tool}
+              type="button"
+              className="hn-note-drawing-tool"
+              aria-pressed={tool === item.tool}
+              onClick={() => setTool(item.tool)}
             >
-              <div
-                className="hn-note-drawing-dialog"
-                role="dialog"
-                aria-modal="true"
-                aria-label="画板编辑器"
-              >
-                <div
-                  className="hn-note-drawing-toolbar"
-                  role="toolbar"
-                  aria-label="画板工具"
-                >
-                  {DRAWING_DIALOG_TOOLS.map((item) => (
-                    <button
-                      key={item.tool}
-                      type="button"
-                      className="hn-note-drawing-tool"
-                      aria-pressed={tool === item.tool}
-                      onClick={() => setTool(item.tool)}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    className="hn-note-drawing-tool hn-note-drawing-close"
-                    onClick={closeDialog}
-                  >
-                    完成
-                  </button>
-                </div>
-                <div className="hn-note-drawing-canvas">
-                  <DrawingSurface
-                    tool={tool}
-                    value={value ?? EMPTY_DRAWING_VALUE}
-                    onChange={(nextValue) =>
-                      ctx.onBlocksChange?.(
-                        updateDrawing(
-                          ctx.getBlocks(),
-                          block.id,
-                          stringifyDrawingData(nextValue)
-                        )
-                      )
-                    }
-                  />
-                </div>
-              </div>
-            </div>,
-            document.body
-          )
-        : null}
+              {item.label}
+            </button>
+          ))}
+          <button
+            type="button"
+            className="hn-note-drawing-tool hn-note-drawing-close"
+            onClick={closeDialog}
+          >
+            完成
+          </button>
+        </div>
+        <div className="hn-note-drawing-canvas">
+          <DrawingSurface
+            tool={tool}
+            value={value ?? EMPTY_DRAWING_VALUE}
+            onChange={(nextValue) =>
+              ctx.onBlocksChange?.(
+                updateDrawing(
+                  ctx.getBlocks(),
+                  block.id,
+                  stringifyDrawingData(nextValue)
+                )
+              )
+            }
+          />
+        </div>
+      </Dialog>
     </>
   )
 }

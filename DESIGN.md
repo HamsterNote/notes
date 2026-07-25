@@ -108,14 +108,14 @@ Editable line content stays visually neutral while the caret or pointer moves be
 
 ## 6. Popover Layer
 
-The selection popover is a fixed-position dark surface on desktop and docks into the shell bottom bar below `840px` or on mobile devices.
+The selection popover is a fixed-position dark surface on desktop and docks into the viewport bottom bar below `840px` or on mobile devices.
 
 - Positioning: `position: fixed`, `z-index: 9999` (`src/lib/styles.css:357-359`).
 - Background: `#1e293b` (`src/lib/styles.css:365`).
 - Shadow: `0 8px 24px rgba(15, 23, 42, 0.28)` (`src/lib/styles.css:366`).
 - Radius: `10px` (`src/lib/styles.css:364`).
 - Padding: `0.3rem`, internal gap `0.15rem` (`src/lib/styles.css:362-363`).
-- Bottom docking: the portal target is `.hn-note-bottom-bar`, a direct sticky child positioned relative to `.hn-note-shell`. The bar always exposes the active block's add and conversion controls; selection formatting appears beside them when text is selected.
+- Bottom toolbar: one component-library `Popover` uses native `edge="bottom"` positioning, a `16px` edge offset, and native surface styling. It is the sole `role="toolbar"` surface for both active-block controls and selection formatting; selection state appends actions directly into that toolbar instead of mounting another Popover. Project CSS only constrains the toolbar to the viewport and enables single-line horizontal overflow, while `z-index: 10` keeps controls clickable above note content.
 
 Popover buttons:
 
@@ -136,7 +136,7 @@ At that breakpoint:
 - Below `840px`, left-side add and conversion handles, including their hover gutter, are replaced by the persistent bottom controls. At exactly `840px`, the desktop handles remain available.
 - Hero grid collapses to a single column (`src/lib/styles.css:350-352`).
 
-Mobile-device detection is separate from viewport width. Mobile devices also mount the sticky shell-relative bottom bar and portal the text-selection toolbar into it.
+Mobile-device detection is separate from viewport width. Mobile devices also mount the fixed viewport-edge toolbar. Text-selection actions merge into that same surface and remain on one horizontally scrollable row when the available width is narrow.
 
 ---
 
