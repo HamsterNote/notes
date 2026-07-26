@@ -122,6 +122,7 @@ export type NoteCardData = {
   readonly y: number
   readonly width: number
   readonly height: number
+  readonly lock?: boolean
   readonly zIndex?: number
   readonly childrenLayoutMode?: "free" | "mind-map-horizontal" | "arrange"
   readonly linkedCardIds?: readonly string[]

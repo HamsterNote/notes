@@ -29,7 +29,8 @@ const parseCard = (value: unknown): NoteCardData | undefined => {
     parent,
     zIndex,
     childrenLayoutMode,
-    linkedCardIds
+    linkedCardIds,
+    lock
   } = value
   const hasValidLinks =
     linkedCardIds === undefined ||
@@ -63,6 +64,7 @@ const parseCard = (value: unknown): NoteCardData | undefined => {
       childrenLayoutMode === "free" ||
       childrenLayoutMode === "mind-map-horizontal" ||
       childrenLayoutMode === "arrange") &&
+    (lock === undefined || typeof lock === "boolean") &&
     hasValidLinks
 
   if (!isValid) return undefined
@@ -78,7 +80,8 @@ const parseCard = (value: unknown): NoteCardData | undefined => {
     ...(parent === undefined ? {} : { parent }),
     ...(zIndex === undefined ? {} : { zIndex }),
     ...(childrenLayoutMode === undefined ? {} : { childrenLayoutMode }),
-    ...(linkedCardIds === undefined ? {} : { linkedCardIds })
+    ...(linkedCardIds === undefined ? {} : { linkedCardIds }),
+    ...(lock === undefined ? {} : { lock })
   }
 }
 
@@ -110,6 +113,5 @@ export const parseCardData = (value: string): NoteCardData[] | undefined => {
   return normalizeCardData(parsed)
 }
 
-export const stringifyCardData = (
-  cards: readonly NoteCardData[]
-): string => JSON.stringify(cards, null, 2)
+export const stringifyCardData = (cards: readonly NoteCardData[]): string =>
+  JSON.stringify(cards, null, 2)
