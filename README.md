@@ -80,12 +80,33 @@ return (
       onTitleChange={undoRedo.setTitle}
       onSummaryChange={undoRedo.setSummary}
       onBlocksChange={undoRedo.setBlocks}
+      onNoteTransaction={({ snapshot }) => undoRedo.commitTransaction(snapshot)}
     />
   </>
 )
 ```
 
 该 hook 只管理 `NoteContent` 负责渲染的内容字段（`title`、`summary`、`blocks`）。Demo 中使用了自定义的全文档控制器，用来把 `tagLabel` 等外层字段也纳入同一份历史。
+
+## 连续文本选区
+
+标题、摘要和正文按阅读顺序组成同一条笔记文本流。普通富文本按字符参与选择；图片、画板、卡片、目录、独立公式块和表格行作为不可拆分的原子选择单元参与。代码块在笔记文本流中以纯文本参与，但仍通过独立的原生文本区域编辑，因此行内格式不会写入代码内容。
+
+`onNoteTransaction` 接收一次操作后的完整 `{ title, summary, blocks }` 快照和操作元数据。跨标题、摘要或正文字段的删除、剪切、替换和格式化只调用该回调一次，以保证宿主只观察到一个状态变化，并可将操作记为一个 undo/redo 历史项。未提供该回调时：
+
+- 跨字段选择和复制仍然可用，但跨字段修改会被阻止。
+- 仅涉及正文的连续修改会降级为一次 `onBlocksChange` 调用。
+- 单一区域编辑继续使用 `onTitleChange`、`onSummaryChange` 或 `onBlocksChange`。
+
+标题、摘要和正文富文本均使用字段级白名单净化的受限 HTML。标题和摘要支持粗体、斜体、下划线、删除线及行内代码；正文还支持安全链接、颜色和 HamsterNote 行内公式、mention 元数据。危险元素、事件属性和不安全 URL 会在渲染与提交边界移除。
+
+连续选区复制会同时写入：
+
+- `text/plain`
+- `text/html`
+- `application/x-hamsternote-fragment+json`
+
+内部 MIME 当前版本为 v2，按阅读顺序保存富文本内容块、代码块、原子选择单元和表格行。粘贴到另一个 HamsterNote 实例时会保留中间结构、重建持久化 ID，并将首尾文本片段与目标残片融合；外部剪贴板则使用净化后的 HTML 或转义的纯文本。
 
 ## 发布规则
 

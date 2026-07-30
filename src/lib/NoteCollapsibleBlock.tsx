@@ -12,6 +12,7 @@ import {
 import { NoteListBlock } from "./NoteListBlock"
 import { NoteQuoteBlock } from "./NoteQuoteBlock"
 import { NoteTodoBlock } from "./NoteTodoBlock"
+import { NOTE_ATOMIC_ATTRIBUTE } from "./noteTextFlow"
 import type { NoteBlock, NoteCollapsibleBlock as NoteCollapsibleBlockData } from "./types"
 
 type NoteCollapsibleBlockProps = {
@@ -63,6 +64,9 @@ const renderChildBlock = (
       data-note-drag-container-id={containerId}
       data-note-drag-kind="block"
       data-note-sortable-id={block.id}
+      {...(["picture", "drawing", "card", "directory", "formula"].includes(block.kind)
+        ? { [NOTE_ATOMIC_ATTRIBUTE]: `block:${block.id}` }
+        : {})}
     >
       {renderBlock(block, ctx)}
     </div>
@@ -136,11 +140,13 @@ export const NoteCollapsibleBlock = ({
               )}
               className="hn-note-collapsible-title"
               data-editable-block-id={block.id}
+              data-note-region-id={`block:${block.id}:title`}
               {...richText(block.title)}
             />
           ) : (
             <div
               className="hn-note-collapsible-title"
+              data-note-region-id={`block:${block.id}:title`}
               {...richText(block.title)}
             />
           )}

@@ -172,6 +172,34 @@ describe("SelectionPopover text color", () => {
     })
   })
 
+  it("rejects an unsafe link before invoking the browser command", async () => {
+    // Given: selected text and a JavaScript URL entered in link mode.
+    const block = { id: "unsafe-link", kind: "paragraph", text: "Link me" } as const
+    const view = render(<TextHarness initialBlock={block} />)
+    const editable = editableBlockById(view.container, block.id)
+    const execCommandSpy = vi.spyOn(document, "execCommand").mockReturnValue(true)
+    const range = document.createRange()
+    range.setStart(editable.firstChild ?? editable, 0)
+    range.setEnd(editable.firstChild ?? editable, 4)
+    window.getSelection()?.removeAllRanges()
+    window.getSelection()?.addRange(range)
+    dispatchSelectionChange()
+    await waitFor(() => expect(document.body.querySelector('[aria-label="为选中文字添加链接"]')).not.toBeNull())
+    fireEvent.click(document.body.querySelector('[aria-label="为选中文字添加链接"]') ?? document.body)
+    expect(screen.getByRole("textbox", { name: "链接 URL" })).not.toBeNull()
+    expect(findButton("确认")).not.toBeNull()
+    expect(findButton("取消")).not.toBeNull()
+    fireEvent.change(document.body.querySelector('input[placeholder="输入链接 URL"]') ?? document.body, {
+      target: { value: "javascript:alert(1)" }
+    })
+
+    // When: the link form is submitted.
+    fireEvent.submit(document.body.querySelector(".hn-note-popover-link-form") ?? document.body)
+
+    // Then: createLink is never allowed to mutate the editable DOM.
+    expect(execCommandSpy).not.toHaveBeenCalledWith("createLink", false, expect.anything())
+  })
+
   it("restores the selection after formatting a block whose id contains selector syntax", async () => {
     // Given: block id 是公开 string，可合法包含引号和右方括号。
     const block = {

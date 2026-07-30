@@ -45,9 +45,13 @@ export const NoteCalloutBlock = ({
                 )
               )}
               {...richText(block.title)}
+              data-note-region-id={`block:${block.id}:title`}
             />
           ) : (
-            <strong {...richText(block.title)} />
+            <strong
+              data-note-region-id={`block:${block.id}:title`}
+              {...richText(block.title)}
+            />
           )}
         </div>
         {editable ? (
@@ -66,10 +70,11 @@ export const NoteCalloutBlock = ({
               })
             }
             data-editable-block-id={block.id}
+            data-note-region-id={`block:${block.id}`}
             {...richText(block.text)}
           />
         ) : (
-          <p {...richText(block.text)} />
+          <p data-note-region-id={`block:${block.id}`} {...richText(block.text)} />
         )}
       </aside>
     </>

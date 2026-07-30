@@ -1,3 +1,4 @@
+import { Icon } from "@hamster-note/components"
 import {
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -545,6 +546,7 @@ export const BlockActionMenu = ({
               tabIndex={-1}
               onClick={handleDelete}
             >
+              <Icon name="delete" aria-hidden="true" />
               <span className="hn-note-block-menu-item-label">删除</span>
             </button>
             {/* 主菜单项 3：创建副本 */}

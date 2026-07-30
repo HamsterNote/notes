@@ -15,20 +15,16 @@ import "@hamster-note/components/styles.css"
 import "./styles.css"
 
 import {
-  findEditableBlockById,
   isRangeCrossMultipleEditableRoots,
-  isRangeInNoteEditableScope,
-  isRangeInSingleEditableRoot
+  isRangeInNoteEditableScope
 } from "./editableSelection"
 import {
   applyInlineCode,
-  captureSelectionOffsets,
   clearSelectionFormatting,
   crossBlockClearFormatting,
   crossBlockToggleInlineCode,
   EMPTY_SELECTION_FORMAT_STATE,
   getSelectionFormatState,
-  restoreSelectionOffsets,
   runCrossBlockFormatCommand,
   runNativeFormatCommand,
   type SelectionFormatState,
@@ -36,9 +32,19 @@ import {
   syncEditableBlocksFromRange,
   wrapSelectionWithInlineFormula
 } from "./inlineSelectionFormatting"
+import {
+  captureStableNoteSelection,
+  restoreStableNoteSelection,
+  type StableNoteSelection
+} from "./noteSelectionRestore"
+import { normalizeNoteRegionHtml } from "./noteRegionCodec"
+import type { NoteRegionUpdate } from "./noteSnapshotMutation"
+import { NOTE_REGION_ATTRIBUTE, rangeCrossesNoteFields } from "./noteTextFlow"
+import { sanitizeRestrictedHref } from "./restrictedHtml"
 
 type SelectionPopoverProps = {
   readonly containerRef: RefObject<HTMLElement | null>
+  readonly allowCrossFieldFormat?: boolean | undefined
   readonly portalContainerRef?: RefObject<HTMLElement | null> | undefined
   readonly onMagicLinkConfigure?: (() => Promise<string>) | undefined
   /**
@@ -56,6 +62,12 @@ type SelectionPopoverProps = {
    */
   readonly onBatchContentChange?:
     | ((updates: ReadonlyArray<readonly [string, string]>) => void)
+    | undefined
+  readonly onCrossRegionFormat?:
+    | ((updates: readonly NoteRegionUpdate[]) => void)
+    | undefined
+  readonly onRegionFormat?:
+    | ((updates: readonly NoteRegionUpdate[], selection: StableNoteSelection | null) => void)
     | undefined
 }
 
@@ -122,10 +134,13 @@ const queryActiveColor = (): string => {
 
 export const SelectionPopover = ({
   containerRef,
+  allowCrossFieldFormat = true,
   portalContainerRef,
   onMagicLinkConfigure,
   onContentChange,
-  onBatchContentChange
+  onBatchContentChange,
+  onCrossRegionFormat,
+  onRegionFormat
 }: SelectionPopoverProps) => {
   const [position, setPosition] = useState<PopoverPosition | null>(null)
   const [mode, setMode] = useState<PopoverMode>("format")
@@ -143,6 +158,8 @@ export const SelectionPopover = ({
   const [activeColor, setActiveColor] = useState<string>("")
   // 当前选区是否跨多个 contenteditable 根；用于在跨块时禁用 createLink 等单 selection 操作。
   const [crossBlock, setCrossBlock] = useState(false)
+  const [crossField, setCrossField] = useState(false)
+  const canMutateFormat = !crossField || allowCrossFieldFormat
 
   // 保存进入链接配置时的选区 Range，用于恢复选区后执行 createLink
   const savedRangeRef = useRef<Range | null>(null)
@@ -164,11 +181,7 @@ export const SelectionPopover = ({
   // 被 dangerouslySetInnerHTML 整体替换，旧选区随之失效。动作后在此记录选区的
   // 纯文本偏移，useLayoutEffect 在提交完成后按偏移在新 DOM 上重建选区。
   // blockId 为 null 表示偏移基准是容器（跨块选区），否则是块元素。
-  const pendingRestoreRef = useRef<{
-    blockId: string | null
-    start: number
-    end: number
-  } | null>(null)
+  const pendingRestoreRef = useRef<StableNoteSelection | null>(null)
 
   // 监听选区变化：仅在笔记容器内、非折叠、含可见文字时展示 popover。
   // 链接 / 公式输入模式下跳过同步，避免输入框获焦导致选区丢失而关闭 popover。
@@ -189,6 +202,7 @@ export const SelectionPopover = ({
         setActiveFormats(EMPTY_SELECTION_FORMAT_STATE)
         setActiveColor("")
         setCrossBlock(false)
+        setCrossField(false)
         return
       }
 
@@ -199,6 +213,7 @@ export const SelectionPopover = ({
         setActiveFormats(EMPTY_SELECTION_FORMAT_STATE)
         setActiveColor("")
         setCrossBlock(false)
+        setCrossField(false)
         return
       }
 
@@ -209,6 +224,7 @@ export const SelectionPopover = ({
         setActiveFormats(EMPTY_SELECTION_FORMAT_STATE)
         setActiveColor("")
         setCrossBlock(false)
+        setCrossField(false)
         return
       }
 
@@ -217,6 +233,7 @@ export const SelectionPopover = ({
       setActiveFormats(getSelectionFormatState())
       setActiveColor(queryActiveColor())
       setCrossBlock(isRangeCrossMultipleEditableRoots(range))
+      setCrossField(rangeCrossesNoteFields(range))
     }
 
     document.addEventListener("selectionchange", sync)
@@ -294,6 +311,9 @@ export const SelectionPopover = ({
       if (!(target instanceof Element)) return
       const span = target.closest<HTMLElement>("[data-hn-inline-formula]")
       if (!span || !container.contains(span)) return
+      const regionId = span.closest<HTMLElement>(`[${NOTE_REGION_ATTRIBUTE}]`)
+        ?.getAttribute(NOTE_REGION_ATTRIBUTE)
+      if (regionId === "title" || regionId === "summary") return
       editingFormulaSpanRef.current = span
       savedRangeRef.current = null
       setFormulaValue(
@@ -340,6 +360,7 @@ export const SelectionPopover = ({
   // 选区仍有效。跨块选区以容器为偏移基准，单块以所在块元素为基准。
   const capturePendingRestore = () => {
     pendingRestoreRef.current = null
+    if (onRegionFormat) return
     const container = containerRef.current
     const selection = window.getSelection()
     if (
@@ -351,21 +372,7 @@ export const SelectionPopover = ({
       return
     }
     const range = selection.getRangeAt(0)
-    const startEl =
-      range.startContainer instanceof HTMLElement
-        ? range.startContainer
-        : range.startContainer.parentElement
-    const blockEl = crossBlock
-      ? null
-      : (startEl?.closest("[data-editable-block-id]") ?? null)
-    const root = blockEl ?? container
-    const offsets = captureSelectionOffsets(root, range)
-    if (offsets.end <= offsets.start) return
-    pendingRestoreRef.current = {
-      blockId: blockEl?.getAttribute("data-editable-block-id") ?? null,
-      start: offsets.start,
-      end: offsets.end
-    }
+    pendingRestoreRef.current = captureStableNoteSelection(range)
   }
 
   // R5: 每次提交后检查是否有待恢复的选区 —— 重渲染替换 innerHTML 后，
@@ -376,11 +383,7 @@ export const SelectionPopover = ({
     pendingRestoreRef.current = null
     const container = containerRef.current
     if (!container) return
-    const root = pending.blockId
-      ? findEditableBlockById(container, pending.blockId)
-      : container
-    if (!root) return
-    restoreSelectionOffsets(root, pending.start, pending.end)
+    restoreStableNoteSelection(container, pending)
     const selection = window.getSelection()
     if (
       selection &&
@@ -400,8 +403,13 @@ export const SelectionPopover = ({
   // 跨块选区走 syncEditableBlocksFromRange，遍历每个受影响 root 多次回调。
   // 若宿主提供 onBatchContentChange，则一次性收集所有 (blockId, innerHtml) 后批量回调，
   // 避免 NoteContent 内 onContentChange 闭包 blocks 取到 stale 值。
-  const syncAfterFormat = () => {
-    if (!onContentChange && !onBatchContentChange) return
+  const syncAfterFormat = (stableSelection?: StableNoteSelection | null) => {
+    if (
+      !onContentChange &&
+      !onBatchContentChange &&
+      !onCrossRegionFormat &&
+      !onRegionFormat
+    ) return
     const container = containerRef.current
     const selection = window.getSelection()
     let range: Range | null =
@@ -410,6 +418,41 @@ export const SelectionPopover = ({
       range = lastRangeRef.current
     }
     if (range === null) return
+    if (onRegionFormat && container) {
+      const selectionToRestore = stableSelection ?? captureStableNoteSelection(range)
+      const updates: NoteRegionUpdate[] = []
+      for (const root of Array.from(
+        container.querySelectorAll<HTMLElement>(
+          `[${NOTE_REGION_ATTRIBUTE}][contenteditable="true"]`
+        )
+      )) {
+        if (!range.intersectsNode(root)) continue
+        const regionId = root.getAttribute(NOTE_REGION_ATTRIBUTE)
+        if (!regionId) continue
+        const normalizedHtml = normalizeNoteRegionHtml(root)
+        if (normalizedHtml !== root.innerHTML) root.innerHTML = normalizedHtml
+        updates.push([regionId, normalizedHtml])
+      }
+      if (updates.length > 0) {
+        onRegionFormat(updates, selectionToRestore)
+      }
+      return
+    }
+    if (crossField && container) {
+      if (!onCrossRegionFormat) return
+      const updates: NoteRegionUpdate[] = []
+      for (const root of Array.from(
+        container.querySelectorAll<HTMLElement>(
+          `[${NOTE_REGION_ATTRIBUTE}][contenteditable="true"]`
+        )
+      )) {
+        if (!range.intersectsNode(root)) continue
+        const regionId = root.getAttribute(NOTE_REGION_ATTRIBUTE)
+        if (regionId) updates.push([regionId, root.innerHTML])
+      }
+      if (updates.length > 0) onCrossRegionFormat(updates)
+      return
+    }
     if (crossBlock && container) {
       if (onBatchContentChange) {
         const updates: Array<readonly [string, string]> = []
@@ -449,45 +492,56 @@ export const SelectionPopover = ({
   // 应用文字颜色：与 format 一致的选区校验与重定位逻辑，
   // 仅 command 改为 foreColor 并带上颜色 hex 作为第三参数
   const applyColor = (colorHex: string) => {
-    document.execCommand("foreColor", false, colorHex)
+    if (!canMutateFormat) return
+    const range = window.getSelection()?.rangeCount
+      ? window.getSelection()?.getRangeAt(0)
+      : null
+    const stableSelection = range ? captureStableNoteSelection(range) : null
+    const container = containerRef.current
+    if (crossBlock && container) {
+      runCrossBlockFormatCommand(container, "foreColor", colorHex)
+    } else {
+      document.execCommand("foreColor", false, colorHex)
+    }
+    capturePendingRestore()
+    syncAfterFormat(stableSelection)
     setActiveColor(colorHex)
     // 应用颜色不改变 bold/italic/underline 状态，但仍刷新一次以规避
     // 浏览器在跨节点选择时可能产生的格式漂移
     setActiveFormats(getSelectionFormatState())
 
-    const selection = window.getSelection()
-    const container = containerRef.current
-
-    if (
-      selection &&
-      selection.rangeCount > 0 &&
-      !selection.isCollapsed &&
-      container &&
-      isRangeInSingleEditableRoot(selection.getRangeAt(0), container)
-    ) {
-      setPosition(computePosition(selection.getRangeAt(0)))
-    } else {
-      setPosition(null)
-    }
+    refreshPositionAndState()
   }
 
   // 清除原生富文本标签，并补充处理自定义行内代码与公式节点。
   // 跨块选区需逐个 editable root 清理，避免原生命令只作用于当前根。
   const clearFormatting = () => {
+    if (!canMutateFormat) return
     const container = containerRef.current
     if (crossBlock && container) {
       crossBlockClearFormatting(container)
     } else {
       clearSelectionFormatting()
     }
+    const correctedRange = window.getSelection()?.rangeCount
+      ? window.getSelection()?.getRangeAt(0)
+      : null
+    const stableSelection = correctedRange
+      ? captureStableNoteSelection(correctedRange)
+      : null
     capturePendingRestore()
-    syncAfterFormat()
+    syncAfterFormat(stableSelection)
     refreshPositionAndState()
   }
 
   // 原生格式命令（bold / italic / underline / strikeThrough）：
   // 单块选区 -> runNativeFormatCommand；跨块选区 -> runCrossBlockFormatCommand 按 root 逐段执行
   const format = (command: "bold" | "italic" | "underline" | "strikeThrough") => {
+    if (!canMutateFormat) return
+    const range = window.getSelection()?.rangeCount
+      ? window.getSelection()?.getRangeAt(0)
+      : null
+    const stableSelection = range ? captureStableNoteSelection(range) : null
     const container = containerRef.current
     if (crossBlock && container) {
       runCrossBlockFormatCommand(container, command)
@@ -495,12 +549,17 @@ export const SelectionPopover = ({
       runNativeFormatCommand(command)
     }
     capturePendingRestore()
-    syncAfterFormat()
+    syncAfterFormat(stableSelection)
     refreshPositionAndState()
   }
 
   // 行内代码：选区外包裹 <code>，已在 <code> 内则解包（单块走 applyInlineCode；跨块走 crossBlockToggleInlineCode）
   const handleInlineCode = () => {
+    if (!canMutateFormat) return
+    const range = window.getSelection()?.rangeCount
+      ? window.getSelection()?.getRangeAt(0)
+      : null
+    const stableSelection = range ? captureStableNoteSelection(range) : null
     const container = containerRef.current
     if (crossBlock && container) {
       crossBlockToggleInlineCode(container)
@@ -508,15 +567,33 @@ export const SelectionPopover = ({
       applyInlineCode()
     }
     capturePendingRestore()
-    syncAfterFormat()
+    syncAfterFormat(stableSelection)
     refreshPositionAndState()
   }
+
+  const regionAtPoint = (node: Node): HTMLElement | null =>
+    (node instanceof Element ? node : node.parentElement)
+      ?.closest<HTMLElement>(`[${NOTE_REGION_ATTRIBUTE}]`) ?? null
+
+  const rangeRegion = (range: Range): HTMLElement | null => {
+    const startRegion = regionAtPoint(range.startContainer)
+    const endRegion = regionAtPoint(range.endContainer)
+    return startRegion === endRegion ? startRegion : null
+  }
+
+  const selectedRegionId = lastRangeRef.current
+    ? rangeRegion(lastRangeRef.current)?.getAttribute(NOTE_REGION_ATTRIBUTE)
+    : null
+  const formulaAllowed = !crossBlock
+    && !crossField
+    && selectedRegionId !== "title"
+    && selectedRegionId !== "summary"
 
   // 行内公式（R1）：不再直接包裹选区文本，而是打开公式输入 popover ——
   // 预填选中文本作为 LaTeX 草稿，确认时才插入占位 span。跨块时禁用
   // （按钮 disabled），避免多块内容塌陷到单个 span。
   const handleInlineFormula = () => {
-    if (crossBlock) return
+    if (!formulaAllowed) return
     const selection = window.getSelection()
     if (selection && selection.rangeCount > 0) {
       savedRangeRef.current = selection.getRangeAt(0).cloneRange()
@@ -536,11 +613,18 @@ export const SelectionPopover = ({
     }
     const editingSpan = editingFormulaSpanRef.current
     if (editingSpan?.isConnected) {
+      const range = document.createRange()
+      range.selectNode(editingSpan)
+      const stableSelection = captureStableNoteSelection(range)
       editingSpan.setAttribute("data-hn-inline-formula", formula)
       editingSpan.textContent = formula
-      if (onContentChange) {
-        const range = document.createRange()
-        range.selectNode(editingSpan)
+      if (onRegionFormat) {
+        const root = editingSpan.closest<HTMLElement>(`[${NOTE_REGION_ATTRIBUTE}]`)
+        const regionId = root?.getAttribute(NOTE_REGION_ATTRIBUTE)
+        if (root && regionId) {
+          onRegionFormat([[regionId, normalizeNoteRegionHtml(root)]], stableSelection)
+        }
+      } else if (onContentChange) {
         syncEditableBlockFromRange(range, onContentChange)
       }
       close()
@@ -556,8 +640,13 @@ export const SelectionPopover = ({
       selection.removeAllRanges()
       selection.addRange(savedRange)
     }
+    const root = rangeRegion(savedRange)
+    const regionId = root?.getAttribute(NOTE_REGION_ATTRIBUTE)
+    const stableSelection = captureStableNoteSelection(savedRange)
     wrapSelectionWithInlineFormula(formula)
-    if (onContentChange) {
+    if (onRegionFormat && root && regionId) {
+      onRegionFormat([[regionId, normalizeNoteRegionHtml(root)]], stableSelection)
+    } else if (onContentChange) {
       syncEditableBlockFromRange(savedRange, onContentChange)
     }
     close()
@@ -589,9 +678,9 @@ export const SelectionPopover = ({
   // 之后通过 syncEditableBlockFromRange 同步 DOM 变更到 React 状态，避免 onBlur
   // 因 innerHTML 差异替换 DOM 节点
   const applyLink = () => {
-    const url = linkUrl.trim()
+    const url = sanitizeRestrictedHref(linkUrl)
     const savedRange = savedRangeRef.current
-    if (!url || !savedRange) {
+    if (url === null || !savedRange) {
       close()
       return
     }
@@ -600,12 +689,20 @@ export const SelectionPopover = ({
       selection.removeAllRanges()
       selection.addRange(savedRange)
     }
+    const stableSelection = captureStableNoteSelection(savedRange)
     document.execCommand("createLink", false, url)
 
     // createLink 后立即同步 contentEditable 的 innerHTML 到 React 状态，
     // 使 block.text 包含 <a> 标签，防止后续重渲染因 dangerouslySetInnerHTML
     // 引用变化而替换 DOM，从而避免保存的选区 Range 失效
-    if (onContentChange) {
+    if (onRegionFormat) {
+      const root = (savedRange.commonAncestorContainer instanceof Element
+        ? savedRange.commonAncestorContainer
+        : savedRange.commonAncestorContainer.parentElement)
+        ?.closest<HTMLElement>(`[${NOTE_REGION_ATTRIBUTE}]`)
+      const regionId = root?.getAttribute(NOTE_REGION_ATTRIBUTE)
+      if (root && regionId) onRegionFormat([[regionId, root.innerHTML]], stableSelection)
+    } else if (onContentChange) {
       syncEditableBlockFromRange(savedRange, onContentChange)
     }
 
@@ -669,6 +766,7 @@ export const SelectionPopover = ({
             title="粗体"
             aria-label="粗体"
             aria-pressed={activeFormats.bold}
+            disabled={!canMutateFormat}
           >
             <span className="hn-note-popover-glyph hn-note-popover-glyph--bold">
               B
@@ -682,6 +780,7 @@ export const SelectionPopover = ({
             title="斜体"
             aria-label="斜体"
             aria-pressed={activeFormats.italic}
+            disabled={!canMutateFormat}
           >
             <span className="hn-note-popover-glyph hn-note-popover-glyph--italic">
               I
@@ -695,6 +794,7 @@ export const SelectionPopover = ({
             title="下划线"
             aria-label="下划线"
             aria-pressed={activeFormats.underline}
+            disabled={!canMutateFormat}
           >
             <span className="hn-note-popover-glyph hn-note-popover-glyph--underline">
               U
@@ -708,6 +808,7 @@ export const SelectionPopover = ({
             title="删除线"
             aria-label="删除线"
             aria-pressed={activeFormats.strikeThrough}
+            disabled={!canMutateFormat}
           >
             <span className="hn-note-popover-glyph hn-note-popover-glyph--strikethrough">
               S
@@ -721,6 +822,7 @@ export const SelectionPopover = ({
             title="行内代码"
             aria-label="行内代码"
             aria-pressed={activeFormats.code}
+            disabled={!canMutateFormat}
           >
             <span className="hn-note-popover-glyph hn-note-popover-glyph--code">
               {"</>"}
@@ -734,7 +836,7 @@ export const SelectionPopover = ({
             title="行内公式"
             aria-label="行内公式"
             aria-pressed={activeFormats.formula}
-            disabled={crossBlock}
+            disabled={!formulaAllowed}
           >
             <span className="hn-note-popover-glyph hn-note-popover-glyph--formula">
               fx
@@ -753,6 +855,7 @@ export const SelectionPopover = ({
               title={`文字颜色：${color.name}`}
               aria-label={`文字颜色：${color.name}`}
               data-active={activeColor === color.hex}
+              disabled={!canMutateFormat}
             />
           ))}
           <PopoverSeparator className="hn-note-popover-divider" />
@@ -761,6 +864,7 @@ export const SelectionPopover = ({
             variant="ghost"
             className="hn-note-popover-btn hn-note-popover-btn--clear"
             onClick={clearFormatting}
+            disabled={!canMutateFormat}
             title="清除样式"
             aria-label="清除样式"
           >
@@ -835,6 +939,7 @@ export const SelectionPopover = ({
             type="text"
             className="hn-note-popover-link-input"
             placeholder="输入链接 URL"
+            aria-label="链接 URL"
             value={linkUrl}
             onChange={(event) => setLinkUrl(event.target.value)}
             disabled={configuring}
@@ -860,6 +965,7 @@ export const SelectionPopover = ({
             className="hn-note-popover-btn hn-note-popover-btn--confirm"
             disabled={!linkUrl.trim() || configuring}
             title="确认"
+            aria-label="确认"
           >
             ✓
           </Button>
@@ -869,6 +975,7 @@ export const SelectionPopover = ({
             className="hn-note-popover-btn hn-note-popover-btn--cancel"
             onClick={close}
             title="取消"
+            aria-label="取消"
           >
             ✕
           </Button>

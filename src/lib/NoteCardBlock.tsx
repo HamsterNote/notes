@@ -1,6 +1,6 @@
 import { CardCanvas, type CardCanvasCard } from "@hamster-note/cards"
 import "@hamster-note/cards/styles.css"
-import { Dialog } from "@hamster-note/components"
+import { Drawer } from "@hamster-note/components"
 import "@hamster-note/components/styles.css"
 import {
   type CSSProperties,
@@ -13,6 +13,8 @@ import {
   useState
 } from "react"
 
+import { CardInspector } from "./CardInspector"
+import { CardLinkOverlay } from "./CardLinkOverlay"
 import {
   CARD_PREVIEW_HEIGHT,
   CARD_PREVIEW_WIDTH,
@@ -29,9 +31,12 @@ import type {
   NoteCardData
 } from "./types"
 
-type NoteCardBlockProps = {
-  readonly block: NoteCardBlockData
-  readonly ctx: EditContext
+type NoteCardBlockProps = { readonly block: NoteCardBlockData; readonly ctx: EditContext }
+
+type CardCanvasStyle = CSSProperties & { readonly "--hn-card-theme": string }
+type CardDrawerStyle = CSSProperties & {
+  readonly "--hn-drawer-size": string
+  readonly "--hn-theme"?: string
 }
 
 const replaceCardBlock = (
@@ -51,6 +56,7 @@ export const NoteCardBlock = ({
 }: NoteCardBlockProps): ReactElement => {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedCardId, setSelectedCardId] = useState<string | undefined>()
+  const [selectedLinkId, setSelectedLinkId] = useState<string | undefined>()
   const [previewWidth, setPreviewWidth] = useState(CARD_PREVIEW_WIDTH)
   const [dialogGeometry, setDialogGeometry] =
     useState<CardCanvasGeometry | null>(null)
@@ -72,6 +78,7 @@ export const NoteCardBlock = ({
   const closeDialog = useCallback(() => {
     setDialogOpen(false)
     setSelectedCardId(undefined)
+    setSelectedLinkId(undefined)
     setDialogGeometry(null)
   }, [])
 
@@ -100,6 +107,21 @@ export const NoteCardBlock = ({
     if (!dialogGeometry) return
     commitCards(restoreCardCanvasCoordinates(cards, dialogGeometry))
   }
+  const deleteLink = (sourceId: string, targetId: string) => {
+    commitCards(
+      block.data.map((card) =>
+        card.id === sourceId
+          ? {
+              ...card,
+              linkedCardIds: (card.linkedCardIds ?? []).filter(
+                (linkedId) => linkedId !== targetId
+              )
+            }
+          : card
+      )
+    )
+    setSelectedLinkId(undefined)
+  }
 
   const openDialog = () => {
     setDialogGeometry(getCardCanvasGeometry(block.data))
@@ -115,6 +137,13 @@ export const NoteCardBlock = ({
     width: previewGeometry.width,
     height: previewGeometry.height,
     transform: `scale(${previewScale})`
+  }
+  const cardCanvasStyle: CardCanvasStyle = {
+    "--hn-card-theme": ctx.themeColor ?? "var(--hn-theme)"
+  }
+  const drawerStyle: CardDrawerStyle = {
+    "--hn-drawer-size": "60vh",
+    ...(ctx.themeColor ? { "--hn-theme": ctx.themeColor } : {})
   }
 
   return (
@@ -134,7 +163,13 @@ export const NoteCardBlock = ({
         >
           <div className="hn-note-card-preview-stage" style={previewStyle} inert>
             {previewGeometry.cards.length > 0 ? (
-              <CardCanvas cards={previewGeometry.cards} />
+              <div
+                className="hn-note-card-canvas"
+                data-theme={ctx.theme}
+                style={cardCanvasStyle}
+              >
+                <CardCanvas cards={previewGeometry.cards} theme={ctx.theme} />
+              </div>
             ) : (
               <span className="hn-note-card-empty">空卡片画布</span>
             )}
@@ -142,18 +177,15 @@ export const NoteCardBlock = ({
           <span className="hn-note-card-preview-hint">点击打开卡片</span>
         </div>
       </div>
-      <Dialog
+      <Drawer
         open={dialogOpen}
         onClose={closeDialog}
-        className={`hn-note-shell hn-note-shell--${ctx.theme} hn-note-card-dialog`}
-        style={
-          ctx.themeColor
-            ? ({ "--hn-theme": ctx.themeColor } as CSSProperties)
-            : undefined
-        }
+        placement="bottom"
+        className={`hn-note-shell hn-note-shell--${ctx.theme} hn-note-card-drawer`}
+        style={drawerStyle}
         aria-label="卡片编辑器"
       >
-        <header className="hn-note-card-dialog-header">
+        <header className="hn-note-card-drawer-header">
           <div>
             <h2>卡片</h2>
             <p>{ctx.editable ? "选择卡片后编辑内容" : "查看完整卡片画布"}</p>
@@ -163,15 +195,15 @@ export const NoteCardBlock = ({
           </button>
         </header>
         <div
-          className={`hn-note-card-dialog-body${
+          className={`hn-note-card-drawer-body${
             ctx.editable && selectedCard
-              ? " hn-note-card-dialog-body--with-inspector"
+              ? " hn-note-card-drawer-body--with-inspector"
               : ""
           }`}
         >
-          <div className="hn-note-card-dialog-canvas">
+          <div className="hn-note-card-drawer-canvas">
             <div
-              className="hn-note-card-dialog-stage"
+              className="hn-note-card-drawer-stage"
               style={{
                 width: Math.max(
                   dialogGeometry?.width ?? previewGeometry.width,
@@ -183,56 +215,52 @@ export const NoteCardBlock = ({
                 )
               }}
             >
-              <CardCanvas
-                cards={dialogCards}
-                selected={selectedCardId ? [selectedCardId] : []}
-                onSelect={setSelectedCardId}
-                onClearSelection={() => setSelectedCardId(undefined)}
-                {...(ctx.editable
-                  ? { onCardsChange: commitCanvasCards }
-                  : {})}
-                options={{ requireSelectionToMoveResize: true }}
-              />
+              <div
+                className="hn-note-card-canvas"
+                data-theme={ctx.theme}
+                style={cardCanvasStyle}
+              >
+                <CardCanvas
+                  cards={dialogCards}
+                  theme={ctx.theme}
+                  selected={selectedCardId ? [selectedCardId] : []}
+                  onSelect={(cardId) => {
+                    setSelectedCardId(cardId)
+                    setSelectedLinkId(undefined)
+                  }}
+                  onClearSelection={() => {
+                    setSelectedCardId(undefined)
+                    setSelectedLinkId(undefined)
+                  }}
+                  {...(ctx.editable
+                    ? { onCardsChange: commitCanvasCards }
+                    : {})}
+                  options={{ requireSelectionToMoveResize: true }}
+                >
+                  <CardLinkOverlay
+                    cards={dialogCards}
+                    editable={ctx.editable}
+                    selectedLinkId={selectedLinkId}
+                    theme={ctx.theme}
+                    onDelete={deleteLink}
+                    onSelect={(linkId) => {
+                      setSelectedLinkId(linkId)
+                      setSelectedCardId(undefined)
+                    }}
+                  />
+                </CardCanvas>
+              </div>
             </div>
           </div>
           {ctx.editable && selectedCard ? (
-            <aside className="hn-note-card-inspector">
-              <label>
-                <span>卡片标题</span>
-                <input
-                  aria-label="卡片标题"
-                  value={selectedCard.title}
-                  onChange={(event) =>
-                    commitCards(
-                      block.data.map((card) =>
-                        card.id === selectedCard.id
-                          ? { ...card, title: event.currentTarget.value }
-                          : card
-                      )
-                    )
-                  }
-                />
-              </label>
-              <label>
-                <span>卡片内容</span>
-                <textarea
-                  aria-label="卡片内容"
-                  value={selectedCard.content}
-                  onChange={(event) =>
-                    commitCards(
-                      block.data.map((card) =>
-                        card.id === selectedCard.id
-                          ? { ...card, content: event.currentTarget.value }
-                          : card
-                      )
-                    )
-                  }
-                />
-              </label>
-            </aside>
+            <CardInspector
+              card={selectedCard}
+              cards={block.data}
+              onCardsChange={commitCards}
+            />
           ) : null}
         </div>
-      </Dialog>
+      </Drawer>
     </>
   )
 }

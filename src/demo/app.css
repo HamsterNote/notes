@@ -48,6 +48,8 @@ select {
   border-right: 1px solid rgba(15, 23, 42, 0.08);
   background: #ffffff;
   overflow-y: auto;
+  scrollbar-color: rgba(100, 116, 139, 0.35) transparent;
+  scrollbar-width: thin;
 }
 
 .demo-sidebar-header h2 {
@@ -72,7 +74,7 @@ select {
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(51, 65, 85, 0.5);
+  color: #64748b;
 }
 
 /* 主题色选择行 */
@@ -176,9 +178,13 @@ select {
 
 .demo-hint {
   margin: 0;
-  color: rgba(51, 65, 85, 0.5);
+  color: #64748b;
   font-size: 0.78rem;
   line-height: 1.5;
+}
+
+.demo-nowrap {
+  white-space: nowrap;
 }
 
 .demo-select-result {
@@ -350,7 +356,9 @@ select {
 
 .demo-note-preview > .hn-note-shell {
   width: 100%;
-  overflow: scroll;
+  overflow: auto;
+  scrollbar-color: rgba(100, 116, 139, 0.35) transparent;
+  scrollbar-width: thin;
 }
 
 .demo-note-preview--dark {
@@ -406,6 +414,8 @@ select {
   overflow: auto;
   max-height: 320px;
   word-wrap: normal;
+  scrollbar-color: rgba(100, 116, 139, 0.35) transparent;
+  scrollbar-width: thin;
 }
 
 /* ===== 响应式：窄屏折叠侧边栏到顶部 ===== */

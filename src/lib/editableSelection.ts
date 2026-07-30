@@ -125,6 +125,7 @@ export const forEachEditableRootInRange = (
   // 自动更新，导致后续 root 的 sub 计算失效。
   const pairs: Array<{ sub: Range; root: HTMLElement }> = []
   for (const root of roots) {
+    if (root.closest("[data-note-atomic-id]")) continue
     const sub = intersectRangeWithEditableRoot(range, root)
     if (sub === null) continue
     pairs.push({ sub, root })

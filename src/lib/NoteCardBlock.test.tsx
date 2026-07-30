@@ -35,8 +35,33 @@ const block: NoteCardBlockData = {
   ]
 }
 
+const linkedBlock: NoteCardBlockData = {
+  ...block,
+  data: [
+    {
+      id: "card-1",
+      title: "Release health",
+      content: "Ready to ship",
+      x: 24,
+      y: 32,
+      width: 240,
+      height: 144,
+      linkedCardIds: ["card-2"]
+    },
+    {
+      id: "card-2",
+      title: "Launch notes",
+      content: "Publish the release notes",
+      x: 360,
+      y: 180,
+      width: 240,
+      height: 144
+    }
+  ]
+}
+
 describe("NoteCardBlock", () => {
-  it("blocks preview interaction and opens the full card dialog", async () => {
+  it("blocks preview interaction and opens the full card drawer", async () => {
     // Given: a note renders a card canvas in its normal preview state.
     render(
       <NoteContent
@@ -53,16 +78,18 @@ describe("NoteCardBlock", () => {
     expect(preview.querySelector("[inert]")).not.toBeNull()
     fireEvent.click(preview)
 
-    // Then: the complete canvas opens in a modal dialog.
+    // Then: the complete canvas opens in a bottom drawer at 60% viewport height.
     const dialog = screen.getByRole("dialog", { name: "卡片编辑器" })
     expect(dialog).toBeDefined()
     expect(within(dialog).getByText("Release health")).toBeDefined()
-    // 组件库 Dialog 固定 Portal 到 document.body，不再挂进 .hn-note-shell
+    // 组件库 Drawer 固定 Portal 到 document.body，不再挂进 .hn-note-shell
     expect(dialog.parentElement?.closest(".hn-note-shell")).toBeNull()
     // Portal 面板必须自己建立主题变量作用域，不能依赖已断开的祖先继承链。
     expect(dialog.classList.contains("hn-note-shell")).toBe(true)
     expect(dialog.classList.contains("hn-note-shell--dark")).toBe(true)
-    expect(dialog.classList.contains("hn-note-card-dialog")).toBe(true)
+    expect(dialog.classList.contains("hn-note-card-drawer")).toBe(true)
+    expect(dialog.classList.contains("hn-drawer__panel--bottom")).toBe(true)
+    expect(dialog.style.getPropertyValue("--hn-drawer-size")).toBe("60vh")
     expect(dialog.style.getPropertyValue("--hn-theme")).toBe("#f97316")
     // 打开时焦点经 requestAnimationFrame 送入面板内第一个可聚焦元素（完成按钮）
     await waitFor(() =>
@@ -70,7 +97,7 @@ describe("NoteCardBlock", () => {
         within(dialog).getByRole("button", { name: "完成" })
       )
     )
-    expect(dialog.querySelector(".hn-note-card-dialog-body--with-inspector")).toBeNull()
+    expect(dialog.querySelector(".hn-note-card-drawer-body--with-inspector")).toBeNull()
   })
 
   it("writes card edits back through the controlled block callback", () => {
@@ -91,7 +118,7 @@ describe("NoteCardBlock", () => {
     expect(
       screen
         .getByRole("dialog")
-        .querySelector(".hn-note-card-dialog-body--with-inspector")
+        .querySelector(".hn-note-card-drawer-body--with-inspector")
     ).not.toBeNull()
 
     // When: the selected card title changes in the dialog inspector.
@@ -106,6 +133,71 @@ describe("NoteCardBlock", () => {
         data: [{ ...block.data[0], title: "Release ready" }]
       }
     ])
+  })
+
+  it("selects a card link and deletes it from its popover", () => {
+    // Given: an editable card canvas contains one dashed link.
+    const onBlocksChange = vi.fn()
+    render(
+      <NoteContent
+        blocks={[linkedBlock]}
+        title="Cards"
+        editable
+        themeColor="#f97316"
+        onBlocksChange={onBlocksChange}
+      />
+    )
+    fireEvent.click(screen.getByRole("button", { name: "打开卡片" }))
+
+    // When: the user selects the link and activates its icon-only delete action.
+    const link = screen.getByRole("button", {
+      name: "Release health 到 Launch notes 的连线"
+    })
+    fireEvent.click(link)
+    expect(link.getAttribute("aria-pressed")).toBe("true")
+    expect(link.getAttribute("x1")).toBe("272")
+    expect(link.getAttribute("x2")).toBe("368")
+    const deleteButton = screen.getByRole("button", { name: "删除连线" })
+    expect(deleteButton.querySelector("svg")).not.toBeNull()
+    expect(deleteButton.textContent).toBe("")
+    fireEvent.click(deleteButton)
+
+    // Then: only that target id is removed and the host receives the full block.
+    expect(onBlocksChange).toHaveBeenLastCalledWith([
+      {
+        ...linkedBlock,
+        data: [
+          { ...linkedBlock.data[0], linkedCardIds: [] },
+          linkedBlock.data[1]
+        ]
+      }
+    ])
+    expect(screen.queryByRole("button", { name: "删除连线" })).toBeNull()
+  })
+
+  it("passes the note mode and theme color into both card canvases", () => {
+    // Given: a dark note uses a custom accent color.
+    render(
+      <NoteContent
+        blocks={[linkedBlock]}
+        title="Cards"
+        theme="dark"
+        themeColor="#f97316"
+      />
+    )
+
+    // When: the preview and dialog canvases are rendered.
+    fireEvent.click(screen.getByRole("button", { name: "打开卡片" }))
+    const canvases = document.querySelectorAll<HTMLElement>(
+      ".hn-note-card-canvas"
+    )
+
+    // Then: both use the cards dark mode and expose the note accent token.
+    expect(canvases).toHaveLength(2)
+    for (const canvas of canvases) {
+      expect(canvas.getAttribute("data-theme")).toBe("dark")
+      expect(canvas.style.getPropertyValue("--hn-card-theme")).toBe("#f97316")
+    }
   })
 
   it("closes on Escape and restores focus to the preview", async () => {
@@ -171,7 +263,7 @@ describe("NoteCardBlock", () => {
     // Then: the visual stage is normalized to the card bounds instead of
     // allocating thousands of empty pixels before the card.
     const dialog = screen.getByRole("dialog", { name: "卡片编辑器" })
-    const stage = dialog.querySelector<HTMLElement>(".hn-note-card-dialog-stage")
+    const stage = dialog.querySelector<HTMLElement>(".hn-note-card-drawer-stage")
     expect(stage?.style.width).toBe("720px")
     expect(within(dialog).getByText("Release health")).toBeDefined()
   })

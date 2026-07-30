@@ -48,6 +48,7 @@ export const renderEditableTextLayout = ({
     onInput={onInput}
     onKeyDown={onKeyDown}
     data-editable-block-id={block.id}
+    data-note-region-id={`block:${block.id}`}
     role="textbox"
     tabIndex={0}
     {...richText(block.text)}
@@ -105,7 +106,11 @@ export const renderHeadingBlockLayout = ({
       ) : null}
       {actionMenu}
       <HeadingTag className={`hn-note-heading hn-note-heading--${block.level}`}>
-        {ctx.editable ? editableText : <span {...richText(block.text)} />}
+        {ctx.editable ? (
+          editableText
+        ) : (
+          <span data-note-region-id={`block:${block.id}`} {...richText(block.text)} />
+        )}
       </HeadingTag>
     </>
   )

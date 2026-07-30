@@ -115,7 +115,7 @@ The selection popover is a fixed-position dark surface on desktop and docks into
 - Shadow: `0 8px 24px rgba(15, 23, 42, 0.28)` (`src/lib/styles.css:366`).
 - Radius: `10px` (`src/lib/styles.css:364`).
 - Padding: `0.3rem`, internal gap `0.15rem` (`src/lib/styles.css:362-363`).
-- Bottom toolbar: one component-library `Popover` uses native `edge="bottom"` positioning, a `16px` edge offset, and native surface styling. It is the sole `role="toolbar"` surface for both active-block controls and selection formatting; selection state appends actions directly into that toolbar instead of mounting another Popover. Project CSS only constrains the toolbar to the viewport and enables single-line horizontal overflow, while `z-index: 10` keeps controls clickable above note content.
+- Bottom toolbar: one component-library `Popover` uses native `edge="bottom"` positioning, a `16px` edge offset, and native surface styling. It is the sole `role="toolbar"` surface for both active-block controls and selection formatting; selection state appends actions directly into that toolbar instead of mounting another Popover. Project CSS only constrains the toolbar to the viewport and enables single-line horizontal overflow. Its `z-index: 900` stays above note content but below component-library Popovers (`1000`) and Dialogs (`1100`).
 
 Popover buttons:
 
@@ -232,10 +232,13 @@ Table insertion and operation controls sit on cell boundaries rather than inside
 
 ---
 
-## 15. Card Block and Dialog
+## 15. Card and Drawing Editor Drawers
 
 - `hamster-note-card` fenced blocks contain the JSON array consumed by `@hamster-note/cards`. The normal note surface renders the complete canvas inside a fixed preview viewport and scales it down only when its bounds exceed that viewport.
-- The preview canvas is inert and has no independent pointer or keyboard interaction. One full-surface trigger is the only interactive layer; activating it opens the full-size card canvas in a modal Dialog.
-- The Dialog uses `--hn-bg`, `--hn-surface`, `--hn-border`, `--hn-text`, and `--hn-theme` rather than introducing a separate palette. It keeps canvas overflow scrollable so card coordinates and sizes remain unchanged on narrow screens.
+- The preview canvas is inert and has no independent pointer or keyboard interaction. One full-surface trigger is the only interactive layer; activating it opens the full-size card canvas in a component-library Drawer attached to the bottom edge.
+- Card and drawing editors use the component-library Drawer with `placement="bottom"` and `--hn-drawer-size: 60vh`, so the default editor height remains 60% of the current viewport as the viewport changes. Their content areas keep overflow scrollable rather than resizing persisted canvas coordinates.
+- The card Drawer uses `--hn-bg`, `--hn-surface`, `--hn-border`, `--hn-text`, and `--hn-theme` rather than introducing a separate palette.
 - Read-only notes open a full-size inspection view. Editable controlled notes additionally enable card selection, movement, resize, and title/content fields; every mutation is committed through `onBlocksChange` and therefore returns to Markdown JSON serialization.
-- Escape, the completion button, and a pointer press on the backdrop close the Dialog. Closing restores keyboard focus to the preview trigger. The Dialog exposes `role="dialog"`, `aria-modal`, a visible heading, and visible focus states.
+- Card canvases receive the note's explicit light/dark mode and expose `themeColor` through `--hn-card-theme`; canvas selection, link controls, and connector highlights resolve to that token.
+- Dashed card links have a transparent 18px pointer and keyboard target over the dependency-rendered connector. Selection highlights the connector with `--hn-card-theme` and opens a component-library Popover at its midpoint. Editable notes expose one icon-only delete action with an accessible label; read-only notes allow selection without mutation.
+- Escape, the completion button, and a pointer press on the backdrop close each Drawer. Closing restores keyboard focus to the preview trigger. Each Drawer exposes `role="dialog"`, `aria-modal`, an accessible name, and visible focus states.

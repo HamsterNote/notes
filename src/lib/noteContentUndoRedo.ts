@@ -142,6 +142,7 @@ export function useNoteContentUndoRedo(
     setTitle,
     setSummary,
     setBlocks,
+    commitTransaction: setPresent,
     canUndo,
     canRedo,
     undo,

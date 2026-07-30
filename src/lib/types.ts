@@ -252,6 +252,8 @@ export type NoteContentProps = {
   readonly onSummaryChange?: (summary: string) => void
   /** 内容块变更回调，参数为完整的最新 blocks 数组（不可变更新） */
   readonly onBlocksChange?: (blocks: NoteBlock[]) => void
+  /** 跨标题、摘要或正文区域的编辑，以单个完整笔记事务提交。 */
+  readonly onNoteTransaction?: (transaction: NoteContentTransaction) => void
   /**
    * 图片上传回调。base64 是浏览器 FileReader 生成的完整 data URL，
    * Promise 成功值应为最终用于展示图片的 URL。
@@ -302,6 +304,16 @@ export type NoteContentUndoRedoSnapshot = {
   readonly blocks: readonly NoteBlock[]
 }
 
+export type NoteContentTransactionOperation = {
+  readonly kind: "delete" | "cut" | "replace" | "format"
+  readonly source: "beforeinput" | "clipboard" | "popover"
+}
+
+export type NoteContentTransaction = {
+  readonly snapshot: NoteContentUndoRedoSnapshot
+  readonly operation: NoteContentTransactionOperation
+}
+
 /**
  * 对外暴露的撤销/重做手柄。
  * 宿主可通过 ref 或 controller 绑定到 NoteContent 组件。
@@ -336,6 +348,7 @@ export type UseNoteContentUndoRedoResult = {
   readonly setTitle: (title: string) => void
   readonly setSummary: (summary: string | undefined) => void
   readonly setBlocks: (blocks: readonly NoteBlock[]) => void
+  readonly commitTransaction: (snapshot: NoteContentUndoRedoSnapshot) => void
   readonly canUndo: boolean
   readonly canRedo: boolean
   readonly undo: () => boolean

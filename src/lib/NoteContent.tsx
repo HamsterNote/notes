@@ -2,6 +2,7 @@ import {
   type CSSProperties,
   type ReactNode,
   type Ref,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useLayoutEffect,
@@ -45,14 +46,53 @@ import { NoteQuoteBlock } from "./NoteQuoteBlock"
 import { NoteTodoBlock } from "./NoteTodoBlock"
 import { DISABLED_CONTROLLER } from "./noteContentUndoRedo"
 import { createNoteId } from "./noteId"
+import { bindNotePointerSelection } from "./notePointerSelection"
+import { isNativeNoteEditorTarget } from "./noteRegionCodec"
+import { expandSelectAllToNoteFlow } from "./noteSelectAll"
+import {
+  restoreStableNoteCaret,
+  restoreStableNoteSelection,
+  type StableNoteCaret,
+  type StableNoteSelection
+} from "./noteSelectionRestore"
+import {
+  applyNoteRegionUpdates,
+  deleteSelectedNoteFlow
+} from "./noteSnapshotMutation"
+import {
+  createStructuredClipboard,
+} from "./noteStructuredClipboard"
+import {
+  caretAfterNoteFlowMutation,
+  NOTE_ATOMIC_ATTRIBUTE,
+  noteFlowCrossesFields,
+  noteFlowClipboardPayload,
+  selectedNoteFlow
+} from "./noteTextFlow"
+import { plainTextToRestrictedHtml } from "./restrictedHtml"
 import { SelectionPopover } from "./SelectionPopover"
-import type { NoteBlock, NoteContentProps, NoteContentUndoRedoHandle } from "./types"
+import { replaceNoteFlowFromTransfer } from "./noteTransferReplacement"
+import type {
+  NoteBlock,
+  NoteContentProps,
+  NoteContentTransactionOperation,
+  NoteContentUndoRedoHandle,
+  NoteContentUndoRedoSnapshot
+} from "./types"
 import { useBlockDrag } from "./useBlockDrag"
 import { useBlockEditing } from "./useBlockEditing"
 
 type LegacyNoteContentProps = Omit<NoteContentProps, "ref"> & {
   readonly ref?: Ref<NoteContentUndoRedoHandle>
 }
+
+const noteSnapshotRenderKey = (
+  snapshot: NoteContentUndoRedoSnapshot
+): string => JSON.stringify({
+  title: snapshot.title,
+  ...(snapshot.summary ? { summary: snapshot.summary } : {}),
+  blocks: snapshot.blocks
+})
 
 export function NoteContent(props: LegacyNoteContentProps): ReactNode
 export function NoteContent(props: NoteContentProps): ReactNode
@@ -69,6 +109,7 @@ export function NoteContent({
   onTitleChange,
   onSummaryChange,
   onBlocksChange,
+  onNoteTransaction,
   onBlockSelect,
   onPictureUpload,
   onMagicLinkConfigure,
@@ -79,6 +120,7 @@ export function NoteContent({
   topPadding,
   bottomPadding
 }: NoteContentProps | LegacyNoteContentProps) {
+  const contentEditable = editable && !selectMode
   const shellRef = useRef<HTMLElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
   const bottomBarRef = useRef<HTMLDivElement>(null)
@@ -88,6 +130,14 @@ export function NoteContent({
   const pendingCaretRef = useRef<{ blockId: string; offset: number } | null>(
     null
   )
+  const pendingNoteCaretRef = useRef<{
+    readonly caret: StableNoteCaret
+    readonly snapshotKey: string
+  } | null>(null)
+  const pendingNoteSelectionRef = useRef<{
+    readonly selection: StableNoteSelection
+    readonly snapshotKey: string
+  } | null>(null)
   // R7: 一次性「逃逸」守卫 —— 自动转换完成后标记所在块；下一个可打印
   // 字符的 keydown 若仍处于块尾格式元素右边界，则手动插入该字符，
   // 规避 Chrome 把输入吸进内联元素的粘滞行为。
@@ -99,6 +149,57 @@ export function NoteContent({
   const [bottomBlockTarget, setBottomBlockTarget] =
     useState<BottomBlockTarget | null>(null)
   const blocksRef = useRef(blocks)
+  const commitContinuousMutation = useCallback((
+    snapshot: NoteContentUndoRedoSnapshot,
+    operation: NoteContentTransactionOperation,
+    crossesFields: boolean,
+    caret: StableNoteCaret | null
+  ): boolean => {
+    const pending = caret
+      ? { caret, snapshotKey: noteSnapshotRenderKey(snapshot) }
+      : null
+    if (onNoteTransaction) {
+      pendingNoteCaretRef.current = pending
+      onNoteTransaction({ snapshot, operation })
+      return true
+    }
+    if (crossesFields) return false
+    if (!onBlocksChange) return false
+    pendingNoteCaretRef.current = pending
+    onBlocksChange([...snapshot.blocks])
+    return true
+  }, [onBlocksChange, onNoteTransaction])
+  const commitRegionFormat = useCallback((
+    updates: readonly (readonly [regionId: string, html: string])[],
+    selection: StableNoteSelection | null
+  ): void => {
+    const snapshot = applyNoteRegionUpdates(
+      { title, ...(summary === undefined ? {} : { summary }), blocks },
+      updates
+    )
+    const pending = selection
+      ? { selection, snapshotKey: noteSnapshotRenderKey(snapshot) }
+      : null
+    if (onNoteTransaction) {
+      pendingNoteSelectionRef.current = pending
+      onNoteTransaction({
+        snapshot,
+        operation: { kind: "format", source: "popover" }
+      })
+      return
+    }
+    const fields = new Set(
+      updates.map(([regionId]) =>
+        regionId === "title" ? "title" : regionId === "summary" ? "summary" : "body"
+      )
+    )
+    if (fields.size !== 1) return
+    const field = fields.values().next().value
+    pendingNoteSelectionRef.current = pending
+    if (field === "title") onTitleChange?.(snapshot.title)
+    else if (field === "summary") onSummaryChange?.(snapshot.summary ?? "")
+    else onBlocksChange?.([...snapshot.blocks])
+  }, [blocks, onBlocksChange, onNoteTransaction, onSummaryChange, onTitleChange, summary, title])
   const isMobileDevice =
     typeof navigator !== "undefined" &&
     (/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ||
@@ -109,10 +210,47 @@ export function NoteContent({
     window.addEventListener("resize", syncViewportWidth)
     return () => window.removeEventListener("resize", syncViewportWidth)
   }, [])
+  useEffect(() => {
+    const shell = shellRef.current
+    if (!shell || !contentEditable) return
+    return bindNotePointerSelection(shell)
+  }, [contentEditable])
+  useEffect(() => {
+    const shell = shellRef.current
+    if (!shell || !contentEditable) return
+    const handleBeforeInput = (event: InputEvent) => {
+      if (isNativeNoteEditorTarget(event.target)) return
+      const flow = selectedNoteFlow(shell)
+      if (!flow) return
+      const deletesSelection = event.inputType.startsWith("delete")
+      const insertsText = event.inputType === "insertText" ||
+        event.inputType === "insertReplacementText" ||
+        event.inputType === "insertCompositionText"
+      const insertsBreak = event.inputType === "insertParagraph" ||
+        event.inputType === "insertLineBreak"
+      const replacesSelection = insertsText || insertsBreak
+      if (!deletesSelection && !replacesSelection) return
+      event.preventDefault()
+      const replacement = insertsBreak
+        ? "<br>"
+        : (insertsText ? plainTextToRestrictedHtml(event.data ?? "") : "")
+      const next = deleteSelectedNoteFlow(
+        flow,
+        { title, ...(summary === undefined ? {} : { summary }), blocks },
+        replacement
+      )
+      if (!next) return
+       commitContinuousMutation(next, {
+         kind: replacesSelection ? "replace" : "delete",
+         source: "beforeinput"
+       }, noteFlowCrossesFields(flow), caretAfterNoteFlowMutation(flow, replacement, next))
+    }
+    shell.addEventListener("beforeinput", handleBeforeInput)
+    return () => shell.removeEventListener("beforeinput", handleBeforeInput)
+  }, [blocks, commitContinuousMutation, contentEditable, summary, title])
 
   blocksRef.current = blocks
   const bodyPaddingX = viewportWidth > 840 ? "4rem" : "1.5rem"
-  const contentEditable = editable && !selectMode
   const blockDragEnabled = contentEditable && onBlocksChange !== undefined
   const useBottomBar = isMobileDevice || viewportWidth < 840
   // shellStyle：注入主题色与可选的顶部/底部额外留白（px）。
@@ -181,6 +319,37 @@ export function NoteContent({
   // R7: 每次提交后检查是否有待恢复的行内转换光标 —— 与 SelectionPopover
   // 的 pendingRestore 同理，按块内纯文本偏移在重建后的 DOM 上恢复折叠光标。
   useLayoutEffect(() => {
+    const pendingNoteSelection = pendingNoteSelectionRef.current
+    if (pendingNoteSelection) {
+      const snapshotKey = noteSnapshotRenderKey({
+        title,
+        ...(summary === undefined ? {} : { summary }),
+        blocks
+      })
+      if (snapshotKey === pendingNoteSelection.snapshotKey) {
+        const shell = shellRef.current
+        if (
+          shell &&
+          restoreStableNoteSelection(shell, pendingNoteSelection.selection)
+        ) {
+          pendingNoteSelectionRef.current = null
+        }
+      }
+    }
+    const pendingNoteCaret = pendingNoteCaretRef.current
+    if (pendingNoteCaret) {
+      const snapshotKey = noteSnapshotRenderKey({
+        title,
+        ...(summary === undefined ? {} : { summary }),
+        blocks
+      })
+      if (snapshotKey === pendingNoteCaret.snapshotKey) {
+        const shell = shellRef.current
+        if (shell && restoreStableNoteCaret(shell, pendingNoteCaret.caret)) {
+          pendingNoteCaretRef.current = null
+        }
+      }
+    }
     const pending = pendingCaretRef.current
     if (!pending) return
     pendingCaretRef.current = null
@@ -246,16 +415,102 @@ export function NoteContent({
   return (
     <>
       <article
-        className={`hn-note-shell hn-note-shell--${theme}${isMobileDevice ? " hn-note-shell--mobile" : ""}`}
+        className={`hn-note-shell hn-note-shell--${theme}${isMobileDevice ? " hn-note-shell--mobile" : ""}${useBottomBar ? " hn-note-shell--bottom-toolbar" : ""}`}
         data-theme={theme}
         role={selectMode ? "listbox" : undefined}
         aria-label={selectMode ? "Note blocks" : undefined}
         ref={shellRef}
         style={shellStyle}
+        onCopy={(event) => {
+          if (isNativeNoteEditorTarget(event.target)) return
+          const flow = selectedNoteFlow(event.currentTarget)
+          if (!flow) return
+          const structured = createStructuredClipboard(flow, {
+            title,
+            ...(summary === undefined ? {} : { summary }),
+            blocks
+          })
+          const payload = noteFlowClipboardPayload(flow, JSON.stringify(structured), structured)
+          event.preventDefault()
+          event.clipboardData.setData("text/html", payload.html)
+          event.clipboardData.setData("text/plain", payload.text)
+          event.clipboardData.setData(
+            "application/x-hamsternote-fragment+json",
+            payload.internal
+          )
+        }}
+        onCut={(event) => {
+          if (!contentEditable) return
+          if (isNativeNoteEditorTarget(event.target)) return
+          const flow = selectedNoteFlow(event.currentTarget)
+          if (!flow) return
+          event.preventDefault()
+          const structured = createStructuredClipboard(flow, {
+            title,
+            ...(summary === undefined ? {} : { summary }),
+            blocks
+          })
+          const payload = noteFlowClipboardPayload(flow, JSON.stringify(structured), structured)
+          event.clipboardData.setData("text/html", payload.html)
+          event.clipboardData.setData("text/plain", payload.text)
+          event.clipboardData.setData(
+            "application/x-hamsternote-fragment+json",
+            payload.internal
+          )
+          const next = deleteSelectedNoteFlow(flow, {
+            title,
+            ...(summary === undefined ? {} : { summary }),
+            blocks
+          })
+          if (!next) return
+           commitContinuousMutation(next, {
+             kind: "cut",
+             source: "clipboard"
+            }, noteFlowCrossesFields(flow), caretAfterNoteFlowMutation(flow, "", next))
+        }}
+        onPaste={(event) => {
+          if (!contentEditable) return
+          if (isNativeNoteEditorTarget(event.target)) return
+          const flow = selectedNoteFlow(event.currentTarget)
+          if (!flow) return
+          event.preventDefault()
+          const snapshot = {
+            title,
+            ...(summary === undefined ? {} : { summary }),
+            blocks
+          }
+          const result = replaceNoteFlowFromTransfer(flow, snapshot, event.clipboardData)
+          if (!result) return
+          commitContinuousMutation(result.snapshot, {
+            kind: "replace",
+            source: "clipboard"
+          }, noteFlowCrossesFields(flow), result.caret)
+        }}
+        onDrop={(event) => {
+          if (!contentEditable) return
+          if (isNativeNoteEditorTarget(event.target)) return
+          const flow = selectedNoteFlow(event.currentTarget)
+          if (!flow) return
+          event.preventDefault()
+          const result = replaceNoteFlowFromTransfer(flow, {
+            title,
+            ...(summary === undefined ? {} : { summary }),
+            blocks
+          }, event.dataTransfer)
+          if (!result) return
+          commitContinuousMutation(result.snapshot, {
+            kind: "replace",
+            source: "clipboard"
+          }, noteFlowCrossesFields(flow), result.caret)
+        }}
         onFocusCapture={(event) => syncBottomBlockTarget(event.target)}
         onPointerDownCapture={(event) => syncBottomBlockTarget(event.target)}
         onClickCapture={(event) => {
-          if (contentEditable && event.target === bodyRef.current) {
+          if (
+            contentEditable &&
+            event.target === bodyRef.current &&
+            window.getSelection()?.isCollapsed !== false
+          ) {
             appendParagraphAtTail()
             return
           }
@@ -284,6 +539,16 @@ export function NoteContent({
           }
         }}
         onKeyDownCapture={(event) => {
+          if (isNativeNoteEditorTarget(event.target)) return
+          if (
+            contentEditable &&
+            event.key.toLowerCase() === "a" &&
+            (event.ctrlKey || event.metaKey) &&
+            expandSelectAllToNoteFlow(event.currentTarget, event.target)
+          ) {
+            event.preventDefault()
+            return
+          }
           // R7: Markdown 行内自动转换 —— 按下闭合字符（`、*、~）且与光标前
           // 起始标记配对时，直接把配对内容转换为行内 code/strong/em/s，
           // preventDefault 拦截该字符插入，并把块 innerHTML 同步回 React 状态。
@@ -363,24 +628,35 @@ export function NoteContent({
           {contentEditable ? (
             <h1
               {...editableProps((editable) =>
-                onTitleChange?.(editable.innerHTML)
+                onTitleChange?.(editable.innerHTML),
+                undefined,
+                "title"
               )}
-              {...richText(title)}
+              {...richText(title, "title")}
+              data-note-region-id="title"
+              data-editable-block-id="title"
             />
           ) : (
-            <h1 {...richText(title)} />
+            <h1 data-note-region-id="title" {...richText(title, "title")} />
           )}
           {summary ? (
             contentEditable ? (
               <p
                 {...editableProps(
-                  (editable) => onSummaryChange?.(editable.innerHTML),
-                  "hn-note-summary"
+                 (editable) => onSummaryChange?.(editable.innerHTML),
+                  "hn-note-summary",
+                  "title"
                 )}
-                {...richText(summary)}
+                {...richText(summary, "title")}
+                data-note-region-id="summary"
+                data-editable-block-id="summary"
               />
             ) : (
-              <p className="hn-note-summary" {...richText(summary)} />
+              <p
+                className="hn-note-summary"
+                data-note-region-id="summary"
+                {...richText(summary, "title")}
+              />
             )
           ) : null}
         </header>
@@ -462,6 +738,11 @@ export function NoteContent({
                   .join(" ")}
                 id={block.id}
                 key={block.id}
+                {...(["picture", "drawing", "card", "directory", "formula"].includes(
+                  block.kind
+                )
+                  ? { [NOTE_ATOMIC_ATTRIBUTE]: `block:${block.id}` }
+                  : {})}
                 {...(blockDragEnabled
                   ? {
                       "data-note-sortable-id": block.id,
@@ -501,7 +782,7 @@ export function NoteContent({
             edgeOffset={16}
             role="toolbar"
             aria-label="编辑操作"
-            style={{ zIndex: 10 }}
+            style={{ zIndex: 900 }}
           >
             <BottomBlockControls
               shellRef={shellRef}
@@ -516,6 +797,7 @@ export function NoteContent({
       {contentEditable && openBlockMenuId === null ? (
         <SelectionPopover
           containerRef={shellRef}
+          allowCrossFieldFormat={Boolean(onNoteTransaction)}
           portalContainerRef={useBottomBar ? bottomBarRef : undefined}
           onMagicLinkConfigure={onMagicLinkConfigure}
           onContentChange={(blockId, innerHtml) => {
@@ -531,6 +813,7 @@ export function NoteContent({
               )
             )
           }}
+          onRegionFormat={commitRegionFormat}
         />
       ) : null}
     </>

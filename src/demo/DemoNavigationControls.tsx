@@ -53,7 +53,8 @@ export const DemoNavigationControls = ({
           </button>
         </div>
         <p className="demo-hint">
-          通过 NoteContent ref 触发撤销/恢复，无历史记录时按钮自动禁用
+          通过 NoteContent ref 触发撤销/恢复，无历史记录时
+          <span className="demo-nowrap">按钮</span><span className="demo-nowrap">自动</span>禁用
         </p>
       </section>
 

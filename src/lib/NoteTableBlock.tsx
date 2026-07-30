@@ -50,6 +50,7 @@ const NoteTableBlock = ({ block, ctx }: NoteTableBlockProps): ReactElement => {
                   className={
                     rowIndex === 0 ? "hn-note-table-header-row" : undefined
                   }
+                  data-note-atomic-id={`table:${block.id}:row:${rowIndex}`}
                 >
                   {row.map((cell, colIndex) => (
                     <td
@@ -211,6 +212,7 @@ const NoteTableBlock = ({ block, ctx }: NoteTableBlockProps): ReactElement => {
             // biome-ignore lint/suspicious/noArrayIndexKey: 表格行是位置数据，索引键语义正确
             key={`row-${rowIndex}`}
             className={rowIndex === 0 ? "hn-note-table-header-row" : undefined}
+            data-note-atomic-id={`table:${block.id}:row:${rowIndex}`}
           >
             {row.map((cell, colIndex) => (
               <td

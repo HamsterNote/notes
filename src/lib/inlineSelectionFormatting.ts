@@ -56,6 +56,7 @@ export const EMPTY_SELECTION_FORMAT_STATE: SelectionFormatState =
  */
 export type NativeFormatCommand =
   | "bold"
+  | "foreColor"
   | "italic"
   | "underline"
   | "strikeThrough"
@@ -68,6 +69,8 @@ export type NativeFormatCommand =
 const INLINE_FORMULA_ATTR = "data-hn-inline-formula"
 const INLINE_FORMULA_CLASS = "hn-note-inline-formula"
 const INLINE_FORMULA_SELECTOR = `[${INLINE_FORMULA_ATTR}]`
+const CLEARABLE_FORMAT_SELECTOR =
+  `strong,b,em,i,u,s,strike,del,code,font,mark,sub,sup,span[data-hn-color],${INLINE_FORMULA_SELECTOR}`
 
 /**
  * 行内代码 `<code>` 的标记 class：新建包裹时写入，styles.css 据此提供
@@ -512,7 +515,8 @@ export const applyInlineFormula = (): void => {
  */
 export const runCrossBlockFormatCommand = (
   container: HTMLElement,
-  command: NativeFormatCommand
+  command: NativeFormatCommand,
+  value?: string,
 ): void => {
   const selection = window.getSelection()
   if (selection === null || selection.rangeCount === 0 || selection.isCollapsed) {
@@ -522,7 +526,11 @@ export const runCrossBlockFormatCommand = (
   forEachEditableRootInRange(outerRange, container, (sub) => {
     selection.removeAllRanges()
     selection.addRange(sub.cloneRange())
-    runNativeFormatCommand(command)
+    if (value === undefined) {
+      document.execCommand(command)
+    } else {
+      document.execCommand(command, false, value)
+    }
   })
   selection.removeAllRanges()
   selection.addRange(outerRange)
@@ -571,7 +579,7 @@ export const crossBlockToggleInlineCode = (container: HTMLElement): void => {
 /**
  * 跨块清除格式。每个 root 内独立扫描 strong/b/em/i/u/s/strike/del/code/
  * [data-hn-inline-formula]，凡落在该 root 的 sub 范围内则解包 / 移除。
- * 最后再对全 selection 调用一次 `removeFormat` 作为浏览器原生兜底。
+ * 不再对完整 Range 执行原生命令，避免误改位于原子选择单元内的编辑根。
  */
 export const crossBlockClearFormatting = (container: HTMLElement): void => {
   const selection = window.getSelection()
@@ -579,26 +587,51 @@ export const crossBlockClearFormatting = (container: HTMLElement): void => {
     return
   }
   const outerRange = selection.getRangeAt(0).cloneRange()
-  forEachEditableRootInRange(outerRange, container, (sub, root) => {
-    const candidates = Array.from(
-      root.querySelectorAll<HTMLElement>(
-        `strong,b,em,i,u,s,strike,del,code,${INLINE_FORMULA_SELECTOR}`
-      )
+  const offsets = {
+    start: rangeTextOffset(container, outerRange.startContainer, outerRange.startOffset),
+    end: rangeTextOffset(container, outerRange.endContainer, outerRange.endOffset),
+  }
+  let removedTextLength = 0
+  forEachEditableRootInRange(outerRange, container, (sub) => {
+    const root = elementEndpoint(sub.commonAncestorContainer)?.closest<HTMLElement>(
+      '[contenteditable="true"]',
     )
+    const splitWrappers = new Set<HTMLElement>()
+    for (const endpoint of [sub.startContainer, sub.endContainer]) {
+      let current = elementEndpoint(endpoint)
+      while (current && current !== root) {
+        if (current.matches(CLEARABLE_FORMAT_SELECTOR)) splitWrappers.add(current)
+        current = current.parentElement
+      }
+    }
+    const fragment = sub.extractContents()
+    const candidates = Array.from(
+      fragment.querySelectorAll<HTMLElement>(CLEARABLE_FORMAT_SELECTOR)
+    ).reverse()
     for (const el of candidates) {
-      // 用 intersectsNode 判断交集，避免 jsdom comparePoint 对 Element offset 0
-      // 与 Element 子节点 offset 0 的位置计算偏差。
-      if (!sub.intersectsNode(el)) continue
       if (el.hasAttribute(INLINE_FORMULA_ATTR)) {
+        removedTextLength += el.textContent?.length ?? 0
         el.remove()
       } else {
         unwrapElement(el)
       }
     }
+    sub.insertNode(fragment)
+    for (const empty of splitWrappers) {
+      if (
+        empty.isConnected &&
+        empty.textContent === "" &&
+        !empty.hasAttribute(INLINE_FORMULA_ATTR)
+      ) {
+        empty.remove()
+      }
+    }
   })
-  selection.removeAllRanges()
-  selection.addRange(outerRange)
-  runNativeFormatCommand("removeFormat")
+  restoreTextOffsets(
+    container,
+    offsets.start,
+    Math.max(offsets.start, offsets.end - removedTextLength),
+  )
 }
 
 /**

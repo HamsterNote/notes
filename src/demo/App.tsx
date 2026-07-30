@@ -245,7 +245,10 @@ export const App = () => {
           </label>
           <p className="demo-hint">
             {editable
-              ? "已开启：悬停标题/正文左侧可见格式按钮，点击文本可直接编辑"
+              ? <>
+                   已开启：选中文字后显示格式工具栏，点击文本可
+                   <span className="demo-nowrap">直接</span>编辑
+                 </>
               : "关闭：只读展示模式"}
           </p>
         </section>
@@ -265,7 +268,8 @@ export const App = () => {
             </button>
           </label>
           <p className="demo-hint">
-            开启后内容只读，点击任意 block 可查看 onBlockSelect 回调结果
+            开启后内容只读，点击任意 block <span className="demo-nowrap">可查看</span>{" "}
+            onBlockSelect <span className="demo-nowrap">回调</span>结果
           </p>
           <output className="demo-select-result" aria-live="polite">
             {selectedBlockId ?? "尚未选择 block"}
@@ -419,6 +423,14 @@ export const App = () => {
             }
             onBlocksChange={(nextBlocks) =>
               updateDocument((current) => ({ ...current, blocks: nextBlocks }))
+            }
+            onNoteTransaction={({ snapshot }) =>
+              updateDocument((current) => ({
+                ...current,
+                title: snapshot.title,
+                summary: snapshot.summary ?? "",
+                blocks: snapshot.blocks
+              }))
             }
             onPictureUpload={handlePictureUpload}
             undoRedoController={demoUndoRedoController}
