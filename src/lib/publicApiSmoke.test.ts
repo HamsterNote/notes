@@ -3,8 +3,10 @@ import { act, renderHook } from "@testing-library/react"
 import type { ComponentRef } from "react"
 import { describe, expect, it } from "vitest"
 import type {
+  ExternalNoteDragStartResult,
   NoteContent,
   NoteContentHandle,
+  NoteExternalItem,
   NoteContentUndoRedoController,
   NoteContentUndoRedoHandle,
   NoteContentUndoRedoSnapshot,
@@ -105,9 +107,20 @@ describe("public API smoke test — src/lib/index.ts exports", () => {
 
     const contentHandle: NoteContentHandle = {
       ...handle,
+      startExternalDrag: (): ExternalNoteDragStartResult => ({
+        ok: false,
+        reason: "not-editable"
+      }),
       scrollToBlock: () => true
     }
     expect(contentHandle.scrollToBlock("block-1")).toBe(true)
+
+    const externalItem: NoteExternalItem = {
+      id: "host-item",
+      content: "Linked content",
+      clickable: true
+    }
+    expect(externalItem.clickable).toBe(true)
 
     const inferredHandle: ComponentRef<typeof NoteContent> = contentHandle
     expect(inferredHandle.scrollToBlock("block-1")).toBe(true)

@@ -21,6 +21,7 @@ export type EditContext = {
   readonly requestFocus:
     ((blockId: string, caret: FocusCaret) => void) | undefined
   readonly onBlockMenuOpenChange: (blockId: string, open: boolean) => void
+  readonly externalItemsClickable: boolean
   /**
    * 是否处于内容块选择模式。
    * 选择模式下各块渲染为只读，子块渲染器可据此在自身边界上

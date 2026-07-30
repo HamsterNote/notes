@@ -26,7 +26,12 @@ export default defineConfig({
     },
     sourcemap: true,
     rollupOptions: {
-      external: ["react", "react-dom", "react/jsx-runtime"],
+      external: [
+        "@system-ui-js/multi-drag",
+        "react",
+        "react-dom",
+        "react/jsx-runtime"
+      ],
       output: {
         assetFileNames: "assets/[name]-[hash][extname]"
       }

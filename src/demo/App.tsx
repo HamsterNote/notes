@@ -4,11 +4,15 @@ import type {
   NoteBlock,
   NoteContentHandle,
   NoteContentUndoRedoController,
+  NoteExternalItem,
   NoteLink,
   NoteTheme
 } from "../lib"
 import { NoteContent } from "../lib"
+import { createExternalNoteBlock } from "../lib/externalNoteDrag"
+import { createNoteId } from "../lib/noteId"
 import { DemoNavigationControls } from "./DemoNavigationControls"
+import { ExternalItemDragSource } from "./ExternalItemDragSource"
 import type { DemoMarkdownDocument } from "./markdownDocument"
 import { parseMarkdownDocument, serializeMarkdownDocument } from "./markdownDocument"
 import { demoMarkdownDocument } from "./noteData"
@@ -58,6 +62,8 @@ export const App = () => {
   )
   // 魔法链接点击事件记录：展示在侧边栏，验证 onMagicLinkClick 回调链路
   const [magicLinkEvents, setMagicLinkEvents] = useState<string[]>([])
+  const [lastExternalItemId, setLastExternalItemId] = useState<string | null>(null)
+  const externalItemDemoEnabled = editable && !selectMode
 
   const updateDocument = useCallback(
     (update: (current: DemoMarkdownDocument) => DemoMarkdownDocument) => {
@@ -75,6 +81,23 @@ export const App = () => {
     },
     [documentActions]
   )
+
+  const insertDemoExternalItem = useCallback(() => {
+    updateDocument((current) => ({
+      ...current,
+      blocks: [
+        ...current.blocks,
+        createExternalNoteBlock(
+          {
+            id: "demo-linked-item",
+            content: "Dragged reference\nClick to open",
+            clickable: true
+          },
+          createNoteId()
+        )
+      ]
+    }))
+  }, [updateDocument])
 
   const demoUndoRedoController = useMemo<NoteContentUndoRedoController>(
     () => ({
@@ -155,6 +178,10 @@ export const App = () => {
   const handleMagicLinkClick = useCallback((url: string) => {
     const time = new Date().toLocaleTimeString("zh-CN", { hour12: false })
     setMagicLinkEvents((prev) => [...prev, `${time}  ${url}`])
+  }, [])
+
+  const handleExternalItemClick = useCallback((item: NoteExternalItem) => {
+    setLastExternalItemId(item.id)
   }, [])
 
   // 从 document 直接派生展示字段（不再使用独立 state，确保 UI 与文档始终一致）
@@ -282,6 +309,14 @@ export const App = () => {
           noteContentRef={noteContentRef}
         />
 
+        <ExternalItemDragSource
+          className="demo-external-item--sidebar"
+          disabled={!externalItemDemoEnabled}
+          lastActivatedItemId={lastExternalItemId}
+          noteContentRef={noteContentRef}
+          onInsert={insertDemoExternalItem}
+        />
+
         {/* 顶部 / 底部留白（px）—— 演示 topPadding / bottomPadding props */}
         <section className="demo-control-group">
           <label className="demo-control-label" htmlFor="top-padding">
@@ -400,6 +435,14 @@ export const App = () => {
           </p>
         </header>
 
+        <ExternalItemDragSource
+          className="demo-external-item--compact"
+          disabled={!externalItemDemoEnabled}
+          lastActivatedItemId={lastExternalItemId}
+          noteContentRef={noteContentRef}
+          onInsert={insertDemoExternalItem}
+        />
+
         <div ref={editorScopeRef} className={`demo-note-preview demo-note-preview--${theme}`}>
           <NoteContent
             ref={noteContentRef}
@@ -436,6 +479,7 @@ export const App = () => {
             undoRedoController={demoUndoRedoController}
             onMagicLinkConfigure={handleMagicLinkConfigure}
             onMagicLinkClick={handleMagicLinkClick}
+            onExternalItemClick={handleExternalItemClick}
             onBlockSelect={setSelectedBlockId}
           />
         </div>

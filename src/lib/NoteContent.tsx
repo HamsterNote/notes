@@ -41,6 +41,7 @@ import {
   editableProps,
   updateText
 } from "./NoteContentEditing"
+import type { NoteExternalItem } from "./externalNoteDrag"
 import { NoteListBlock } from "./NoteListBlock"
 import { NoteQuoteBlock } from "./NoteQuoteBlock"
 import { NoteTodoBlock } from "./NoteTodoBlock"
@@ -76,11 +77,13 @@ import type {
   NoteBlock,
   NoteContentProps,
   NoteContentTransactionOperation,
+  NoteContentHandle,
   NoteContentUndoRedoHandle,
   NoteContentUndoRedoSnapshot
 } from "./types"
 import { useBlockDrag } from "./useBlockDrag"
 import { useBlockEditing } from "./useBlockEditing"
+import { useExternalNoteDrag } from "./useExternalNoteDrag"
 
 type LegacyNoteContentProps = Omit<NoteContentProps, "ref"> & {
   readonly ref?: Ref<NoteContentUndoRedoHandle>
@@ -115,6 +118,7 @@ export function NoteContent({
   onMagicLinkConfigure,
   onMagicLinkClick,
   onLinkClick,
+  onExternalItemClick,
   ref: undoRedoRef,
   undoRedoController,
   topPadding,
@@ -249,7 +253,9 @@ export function NoteContent({
     return () => shell.removeEventListener("beforeinput", handleBeforeInput)
   }, [blocks, commitContinuousMutation, contentEditable, summary, title])
 
-  blocksRef.current = blocks
+  useLayoutEffect(() => {
+    blocksRef.current = blocks
+  }, [blocks])
   const bodyPaddingX = viewportWidth > 840 ? "4rem" : "1.5rem"
   const blockDragEnabled = contentEditable && onBlocksChange !== undefined
   const useBottomBar = isMobileDevice || viewportWidth < 840
@@ -262,10 +268,18 @@ export function NoteContent({
     ...(bottomPadding ? { "--hn-bottom-padding": `${bottomPadding}px` } : {})
   } as CSSProperties
   const controller = undoRedoController ?? DISABLED_CONTROLLER
+  const externalDragHandle = useExternalNoteDrag({
+    bodyRef,
+    blocks,
+    editable: contentEditable,
+    canCommit: onBlocksChange !== undefined,
+    commitBlocks: (nextBlocks) => onBlocksChange?.(nextBlocks)
+  })
   useImperativeHandle(
     undoRedoRef,
-    () => ({
+    (): NoteContentHandle => ({
       ...controller,
+      ...externalDragHandle,
       scrollToBlock: (blockId: string): boolean => {
         const body = bodyRef.current
         if (!body) return false
@@ -283,7 +297,7 @@ export function NoteContent({
         return true
       }
     }),
-    [controller]
+    [controller, externalDragHandle]
   )
   const { openBlockMenuId, requestFocus, handleBlockMenuOpenChange } =
     useBlockEditing(shellRef)
@@ -411,6 +425,30 @@ export function NoteContent({
     boundary.focus({ preventScroll: true })
     return true
   }
+  const externalItemFromTarget = (
+    target: EventTarget | null
+  ): NoteExternalItem | null => {
+    if (!(target instanceof Element)) return null
+    const externalItem = target.closest<HTMLElement>(
+      "[data-note-external-block-id]"
+    )
+    const blockId = externalItem?.getAttribute("data-note-external-block-id")
+    if (blockId === null || blockId === undefined) return null
+    const findBlock = (candidates: readonly NoteBlock[]): NoteBlock | undefined => {
+      for (const candidate of candidates) {
+        if (candidate.id === blockId) return candidate
+        if (candidate.kind === "collapsible") {
+          const nested = findBlock(candidate.blocks)
+          if (nested !== undefined) return nested
+        }
+      }
+      return undefined
+    }
+    const block = findBlock(blocksRef.current)
+    return block?.kind === "paragraph" && block.externalItem?.clickable === true
+      ? block.externalItem
+      : null
+  }
 
   return (
     <>
@@ -519,6 +557,13 @@ export function NoteContent({
             event.stopPropagation()
             return
           }
+          const externalItem = externalItemFromTarget(event.target)
+          if (externalItem !== null) {
+            event.preventDefault()
+            event.stopPropagation()
+            onExternalItemClick?.(externalItem)
+            return
+          }
           // 拦截 hnmagic:// 链接点击：禁止原生跳转，交给宿主处理
           if (!(event.target instanceof Element)) return
           const anchor = event.target.closest("a")
@@ -611,6 +656,14 @@ export function NoteContent({
             event.stopPropagation()
             return
           }
+          const externalItem = externalItemFromTarget(event.target)
+          if (externalItem !== null) {
+            if (event.key !== "Enter") return
+            event.preventDefault()
+            event.stopPropagation()
+            onExternalItemClick?.(externalItem)
+            return
+          }
           if (!(event.target instanceof Element)) return
           const anchor = event.target.closest("a")
           if (anchor) {
@@ -678,6 +731,8 @@ export function NoteContent({
               onPictureUpload,
               requestFocus,
               onBlockMenuOpenChange: handleBlockMenuOpenChange,
+              externalItemsClickable:
+                !selectMode && onExternalItemClick !== undefined,
               selectMode,
               selectedBlockId
             }

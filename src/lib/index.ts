@@ -2,6 +2,15 @@ export { NoteContent } from "./NoteContent"
 export { useNoteContentUndoRedo } from "./noteContentUndoRedo"
 export { createNoteId } from "./noteId"
 export type {
+  ExternalNoteDragCancellationReason,
+  ExternalNoteDragCompletion,
+  ExternalNoteDragInput,
+  ExternalNoteDragSession,
+  ExternalNoteDragStartFailureReason,
+  ExternalNoteDragStartResult,
+  NoteExternalItem
+} from "./externalNoteDrag"
+export type {
   NoteBlock,
   NoteCalloutBlock,
   NoteCalloutTone,

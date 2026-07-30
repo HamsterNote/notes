@@ -13,6 +13,8 @@ import type {
 export const blockDragClasses = {
   after: "hn-note-block-drop-after",
   before: "hn-note-block-drop-before",
+  externalAfter: "hn-note-external-drop-after",
+  externalBefore: "hn-note-external-drop-before",
   dragging: "hn-note-sortable-block--dragging"
 } as const
 
