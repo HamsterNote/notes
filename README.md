@@ -2,6 +2,8 @@
 
 一个基于 React 19 和 Vite 的笔记内容组件库项目，包含可本地预览的 Demo 页面，以及基于 Git Tag 的 GitHub Actions 发布流程。
 
+**[在线 Demo](https://hamsternote.github.io/notes/)**
+
 ## 特性
 
 - React 19 组件库入口，包名为 `@hamster-note/notes`
@@ -28,6 +30,144 @@ yarn build
 
 - `yarn build:lib` 生成组件库产物到 `dist/`
 - `yarn build:demo` 生成 Demo 静态站点到 `dist/demo/`
+
+## 典型使用场景
+
+### 1. 只读笔记展示
+
+最简单的用法，将笔记内容渲染为只读视图：
+
+```tsx
+import { NoteContent } from "@hamster-note/notes"
+import "@hamster-note/notes/styles.css"
+
+function NoteViewer({ note }) {
+  return (
+    <NoteContent
+      title={note.title}
+      summary={note.summary}
+      blocks={note.blocks}
+    />
+  )
+}
+```
+
+### 2. 可编辑笔记编辑器
+
+开启编辑模式，支持富文本编辑、图片上传等功能：
+
+```tsx
+import { useState } from "react"
+import { NoteContent, type NoteBlock } from "@hamster-note/notes"
+import "@hamster-note/notes/styles.css"
+
+function NoteEditor({ initialNote }) {
+  const [title, setTitle] = useState(initialNote.title)
+  const [blocks, setBlocks] = useState<NoteBlock[]>(initialNote.blocks)
+
+  return (
+    <NoteContent
+      editable
+      title={title}
+      blocks={blocks}
+      onTitleChange={setTitle}
+      onBlocksChange={setBlocks}
+      onPictureUpload={async (base64) => {
+        // 上传图片并返回 URL
+        const url = await uploadImage(base64)
+        return url
+      }}
+    />
+  )
+}
+```
+
+### 3. 带撤销/重做的笔记编辑器
+
+使用 `useNoteContentUndoRedo` hook 管理编辑历史：
+
+```tsx
+import { useRef } from "react"
+import {
+  NoteContent,
+  useNoteContentUndoRedo,
+  type NoteContentUndoRedoHandle,
+} from "@hamster-note/notes"
+import "@hamster-note/notes/styles.css"
+
+function NoteEditorWithUndoRedo({ initialNote }) {
+  const undoRedo = useNoteContentUndoRedo({
+    title: initialNote.title,
+    summary: initialNote.summary,
+    blocks: initialNote.blocks,
+  })
+
+  const noteRef = useRef<NoteContentUndoRedoHandle>(null)
+
+  return (
+    <>
+      <div className="toolbar">
+        <button disabled={!undoRedo.canUndo} onClick={() => noteRef.current?.undo()}>
+          撤销
+        </button>
+        <button disabled={!undoRedo.canRedo} onClick={() => noteRef.current?.redo()}>
+          重做
+        </button>
+      </div>
+      <NoteContent
+        ref={noteRef}
+        undoRedoController={undoRedo.controller}
+        editable
+        title={undoRedo.present.title}
+        summary={undoRedo.present.summary}
+        blocks={undoRedo.present.blocks}
+        onTitleChange={undoRedo.setTitle}
+        onSummaryChange={undoRedo.setSummary}
+        onBlocksChange={undoRedo.setBlocks}
+        onNoteTransaction={({ snapshot }) => undoRedo.commitTransaction(snapshot)}
+      />
+    </>
+  )
+}
+```
+
+### 4. 暗色主题笔记
+
+支持明暗主题切换：
+
+```tsx
+import { NoteContent } from "@hamster-note/notes"
+import "@hamster-note/notes/styles.css"
+
+function DarkNoteViewer({ note }) {
+  return (
+    <NoteContent
+      theme="dark"
+      title={note.title}
+      blocks={note.blocks}
+    />
+  )
+}
+```
+
+### 5. 自定义主题色
+
+通过 `themeColor` 属性自定义强调色：
+
+```tsx
+import { NoteContent } from "@hamster-note/notes"
+import "@hamster-note/notes/styles.css"
+
+function ThemedNoteViewer({ note }) {
+  return (
+    <NoteContent
+      themeColor="#10b981" // 绿色主题
+      title={note.title}
+      blocks={note.blocks}
+    />
+  )
+}
+```
 
 ## 使用方式
 
@@ -107,6 +247,21 @@ return (
 - `application/x-hamsternote-fragment+json`
 
 内部 MIME 当前版本为 v2，按阅读顺序保存富文本内容块、代码块、原子选择单元和表格行。粘贴到另一个 HamsterNote 实例时会保留中间结构、重建持久化 ID，并将首尾文本片段与目标残片融合；外部剪贴板则使用净化后的 HTML 或转义的纯文本。
+
+## Demo
+
+### 在线 Demo
+
+访问 [https://hamsternote.github.io/notes/](https://hamsternote.github.io/notes/) 查看在线演示。
+
+### 本地运行 Demo
+
+```bash
+yarn install
+yarn dev
+```
+
+默认会在 `0.0.0.0:9235` 启动 Demo 页面。
 
 ## 发布规则
 

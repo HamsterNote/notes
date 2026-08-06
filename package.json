@@ -4,6 +4,11 @@
   "description": "React components for note content rendering and presentation.",
   "type": "module",
   "license": "MIT",
+  "homepage": "https://hamsternote.github.io/notes/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HamsterNote/notes"
+  },
   "sideEffects": [
     "**/*.css"
   ],

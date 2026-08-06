@@ -5,10 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - 2026-07-20
+## [2.0.0] - 2026-08-03
+
+### Added
+- External item drag and drop support: drag files, images, links and text from outside the note into the editor
+- Card block with full Dialog editing interaction and card drawer / inspector
+- Drawing block with persistent bottom toolbar and @mention filtering
+- Inline Markdown shortcuts (quick input with conversion to structured blocks)
+- Cross-region selection and formatting across title, summary and blocks as one note text flow
+- Continuous text selection with atomic selection units (image, drawing, card, directory, standalone formula block, table row)
+- Structured clipboard: copy/paste preserves internal structure via `application/x-hamsternote-fragment+json` (v2)
+- `useNoteContentUndoRedo` hook and `NoteContentUndoRedoHandle` for undo/redo history
+- Restricted HTML sanitization for rich text at render and commit boundaries
+- Always show code editor when editable
+- Lock field on `NoteCardData`
+- `topPadding`/`bottomPadding` support kept for Docked mode scroll
+- ADR docs: restricted HTML for rich text, commit cross-region edits as note transactions
 
 ### Changed
-- Major version upgrade
+- Migrated Dialog/Popover/Button to `@hamster-note/components`, removed custom portal overlays
+- Switched package manager from pnpm to yarn
+- Clipboard & selection overhaul (pointer selection, region codec, snapshot mutation)
+- Refactored block editing into focused components with syntax highlight support
+- README and design docs updated for continuous text selection semantics
+
+### Fixed
+- Special block ID and mention boundary handling
+- Inline Markdown shortcut persistence for nested structures and popover style clearing
+- Dialog content area flex layout, theme/themeColor propagation to CardBlock Dialog
+- List keyboard shortcut type branch completion and multi-line input regression
+
+### BREAKING CHANGES
+- Package manager switched from pnpm to yarn (use `yarn install`)
+- Internal clipboard fragment MIME bumped to v2
 
 ## [1.2.0-beta] - 2026-07-20
 
