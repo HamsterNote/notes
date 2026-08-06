@@ -24,6 +24,7 @@ export const renderParagraphBlockLayout = ({
     ) : (
       <span
         className={`hn-note-text hn-note-text--${block.tone ?? "default"}`}
+        data-note-region-id={`block:${block.id}`}
         {...richText(block.text)}
       />
     )}

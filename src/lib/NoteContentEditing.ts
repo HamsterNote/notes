@@ -1,3 +1,8 @@
+import {
+  sanitizeBodyHtml,
+  sanitizeCodeHighlightHtml,
+  sanitizeTitleHtml
+} from "./restrictedHtml"
 import type { NoteBlock, NoteTheme } from "./types"
 import type { FocusCaret } from "./useBlockEditing"
 
@@ -39,9 +44,17 @@ export const commitEditableContent = (editable: HTMLElement) => {
 
 export const editableProps = (
   onCommit: (editable: HTMLElement) => void,
-  baseClassName?: string
+  baseClassName?: string,
+  profile: "body" | "title" = "body"
 ) => {
   let currentEditable: HTMLElement | null = null
+  const commit = (editable: HTMLElement) => {
+    const sanitized = profile === "title"
+      ? sanitizeTitleHtml(editable.innerHTML)
+      : sanitizeBodyHtml(editable.innerHTML)
+    if (sanitized !== editable.innerHTML) editable.innerHTML = sanitized
+    onCommit(editable)
+  }
 
   return {
     contentEditable: true,
@@ -54,7 +67,7 @@ export const editableProps = (
       if (currentEditable) editableCommitters.delete(currentEditable)
       currentEditable = editable
       if (editable) {
-        editableCommitters.set(editable, () => onCommit(editable))
+        editableCommitters.set(editable, () => commit(editable))
       }
     },
     onBlur: (event: React.FocusEvent<HTMLElement>) => {
@@ -63,7 +76,7 @@ export const editableProps = (
       // 导致 SelectionPopover 内保存的选区 Range 指向已被销毁的节点
       const related = event.relatedTarget as HTMLElement | null
       if (related?.closest(".hn-note-popover")) return
-      onCommit(event.currentTarget)
+      commit(event.currentTarget)
     }
   }
 }
@@ -79,15 +92,24 @@ const richTextCache = new Map<
 >()
 const richTextCacheLimit = 500
 
-export const richText = (value: string) => {
-  let cached = richTextCache.get(value)
+export const richText = (
+  value: string,
+  profile: "body" | "code" | "title" = "body"
+) => {
+  const sanitized = profile === "title"
+    ? sanitizeTitleHtml(value)
+    : profile === "code"
+      ? sanitizeCodeHighlightHtml(value)
+      : sanitizeBodyHtml(value)
+  const cacheKey = `${profile}\u0000${sanitized}`
+  let cached = richTextCache.get(cacheKey)
   if (!cached) {
     if (richTextCache.size >= richTextCacheLimit) {
       const oldestKey = richTextCache.keys().next().value
       if (oldestKey !== undefined) richTextCache.delete(oldestKey)
     }
-    cached = { dangerouslySetInnerHTML: { __html: value } }
-    richTextCache.set(value, cached)
+    cached = { dangerouslySetInnerHTML: { __html: sanitized } }
+    richTextCache.set(cacheKey, cached)
   }
   return cached
 }

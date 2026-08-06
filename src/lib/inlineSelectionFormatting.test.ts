@@ -562,6 +562,43 @@ describe("inlineSelectionFormatting - 跨块 helpers", () => {
     expect(block2.querySelector("code")).toBeNull()
   })
 
+  it("crossBlockClearFormatting only clears selected characters and persistent color", () => {
+    // Given: the first and last roots contain partially selected wrappers and persistent color.
+    const { container, block1, block2 } = mountTwoEditables()
+    block1.innerHTML = '<strong>alpha</strong> <span data-hn-color="#ef4444">beta</span>'
+    block2.innerHTML = '<em>gamma</em> delta'
+    const first = findTextIn(block1, "alpha")
+    const last = findTextIn(block2, "gamma")
+    selectCrossBlockRange(first, 2, last, 2)
+
+    // When: formatting is cleared across the partial boundary selection.
+    crossBlockClearFormatting(container)
+
+    // Then: selected text is plain while unselected boundary characters keep their wrappers.
+    expect(block1.innerHTML).toBe(
+      '<strong>al</strong>pha beta'
+    )
+    expect(block2.innerHTML).toBe('ga<em>mma</em> delta')
+    expect(block1.querySelector("[data-hn-color]")).toBeNull()
+  })
+
+  it("crossBlockClearFormatting restores the endpoint after removing a selected formula", () => {
+    // Given: a cross-block selection ends after an inline formula but before trailing text.
+    const { container, block1, block2 } = mountTwoEditables()
+    block1.innerHTML = "alpha"
+    block2.innerHTML = 'x<span data-hn-inline-formula="FORM" contenteditable="false">FORM</span>tail'
+    const first = findTextIn(block1, "alpha")
+    const tail = findTextIn(block2, "tail")
+    selectCrossBlockRange(first, 0, tail, 2)
+
+    // When: clear formatting removes the selected formula atom.
+    crossBlockClearFormatting(container)
+
+    // Then: the restored range still ends after "ta" and does not drift into trailing "il".
+    expect(block2.querySelector("[data-hn-inline-formula]")).toBeNull()
+    expect(window.getSelection()?.toString()).toBe("alphaxta")
+  })
+
   it("syncEditableBlocksFromRange 对每个受影响 root 各回调一次", () => {
     // Given: 跨块选区覆盖两个 block
     const { container, block1, block2 } = mountTwoEditables()

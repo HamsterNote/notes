@@ -69,8 +69,9 @@ describe("NoteContent responsive layout", () => {
       expect(bottomBar?.style.bottom).toBe("16px")
       expect(bottomBar?.style.left).toBe("50%")
       expect(bottomBar?.style.transform).toBe("translateX(-50%)")
-      expect(bottomBar?.style.zIndex).toBe("10")
+      expect(bottomBar?.style.zIndex).toBe("900")
       expect(shell?.classList.contains("hn-note-shell--mobile")).toBe(true)
+      expect(shell?.classList.contains("hn-note-shell--bottom-toolbar")).toBe(true)
     })
   })
 

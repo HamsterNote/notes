@@ -258,6 +258,33 @@ describe("useNoteContentUndoRedo", () => {
     })
   })
 
+  describe("commitTransaction", () => {
+    it("restores the complete previous note in one undo step", () => {
+      // Given: a note whose title, summary, and body all change together.
+      const initial = createSnapshot({
+        title: "Before",
+        summary: "Summary",
+        blocks: [makeBlock("before")],
+      })
+      const { result } = renderHook(() => useNoteContentUndoRedo(initial))
+
+      // When: the complete next snapshot is committed as one transaction.
+      act(() => {
+        result.current.commitTransaction({
+          title: "After",
+          blocks: [makeBlock("after")],
+        })
+      })
+      act(() => {
+        result.current.undo()
+      })
+
+      // Then: one undo restores every field from the prior snapshot.
+      expect(result.current.present).toEqual(initial)
+      expect(result.current.canUndo).toBe(false)
+    })
+  })
+
   describe("undo / redo", () => {
     it("undo() returns true and restores previous present", () => {
       const { result } = renderHook(() =>

@@ -199,10 +199,11 @@ const NoteQuoteLine = ({
               handleQuoteLineKeyDown({ block, ctx, event, lineIndex })
             }
             data-editable-block-id={lineId}
+            data-note-region-id={`block:${lineId}`}
             {...richText(line)}
           />
         ) : (
-          <p {...richText(line)} />
+          <p data-note-region-id={`block:${lineId}`} {...richText(line)} />
         )}
         {showAuthor && block.author ? (
           editable ? (
@@ -217,9 +218,13 @@ const NoteQuoteLine = ({
                 )
               )}
               {...richText(block.author)}
+              data-note-region-id={`block:${block.id}:author`}
             />
           ) : (
-            <footer {...richText(block.author)} />
+            <footer
+              data-note-region-id={`block:${block.id}:author`}
+              {...richText(block.author)}
+            />
           )
         ) : null}
       </div>

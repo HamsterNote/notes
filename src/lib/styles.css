@@ -138,6 +138,13 @@
   display: none;
 }
 
+/* 固定底栏会覆盖视口底部；仅在启用它时为正文追加可滚动到的安全区。 */
+.hn-note-shell--bottom-toolbar .hn-note-body {
+  padding-bottom: calc(
+    5rem + var(--hn-bottom-padding, 0px) + env(safe-area-inset-bottom, 0px)
+  );
+}
+
 .hn-note-bottom-control,
 .hn-note-selection-actions > * {
   flex: 0 0 auto;
@@ -150,6 +157,22 @@
 
 .hn-note-selection-actions {
   display: contents;
+}
+
+@media (max-width: 480px) {
+  .hn-note-bottom-toolbar {
+    width: calc(100vw - 1.5rem);
+    max-width: calc(100vw - 1.5rem);
+    flex-wrap: wrap;
+    justify-content: center;
+    overflow-x: visible;
+  }
+
+  .hn-note-shell--bottom-toolbar .hn-note-body {
+    padding-bottom: calc(
+      8rem + var(--hn-bottom-padding, 0px) + env(safe-area-inset-bottom, 0px)
+    );
+  }
 }
 
 .hn-note-block,
@@ -212,6 +235,12 @@
 
 .hn-note-selectable-block:focus-visible,
 .hn-note-selectable-block[aria-selected="true"] {
+  background-color: var(--hn-theme-soft);
+  box-shadow: 0 0 0 2px var(--hn-theme);
+}
+
+[data-note-atomic-selected="true"] {
+  border-radius: 8px;
   background-color: var(--hn-theme-soft);
   box-shadow: 0 0 0 2px var(--hn-theme);
 }
@@ -491,6 +520,21 @@
   outline-offset: 0;
 }
 
+.hn-note-code-edit-button {
+  border: 1px solid rgba(226, 232, 240, 0.24);
+  border-radius: 0.375rem;
+  background: rgba(15, 23, 42, 0.42);
+  color: #e2e8f0;
+  cursor: pointer;
+  font: inherit;
+  padding: 0.25rem 0.625rem;
+}
+
+.hn-note-code-edit-button:focus-visible {
+  outline: 2px solid var(--hn-theme);
+  outline-offset: 2px;
+}
+
 .hn-note-code-card pre,
 .hn-note-code-editor,
 .hn-note-code-preview,
@@ -516,6 +560,7 @@
 
 .hn-note-code-editing {
   display: grid;
+  border-top: 1px solid rgba(226, 232, 240, 0.12);
 }
 
 .hn-note-code-editor,
@@ -918,10 +963,11 @@
 
 /* 文字颜色色块按钮：圆形小色块，背景色由内联 style 注入，此处仅控制外形与描边 */
 .hn-note-popover-color {
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
   padding: 0;
-  border: 2px solid rgba(255, 255, 255, 0.25);
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  box-shadow: inset 0 0 0 2px #1e293b;
   border-radius: 50%;
   cursor: pointer;
   transition:
@@ -938,6 +984,12 @@
 .hn-note-popover-color--active {
   border-color: #ffffff;
 }
+
+[data-hn-color="#ef4444"] { color: #ef4444; }
+[data-hn-color="#3b82f6"] { color: #3b82f6; }
+[data-hn-color="#22c55e"] { color: #22c55e; }
+[data-hn-color="#000000"] { color: #000000; }
+[data-hn-color="#6b7280"] { color: #6b7280; }
 
 /* 链接按钮 */
 .hn-note-popover-btn--link {
@@ -1059,6 +1111,8 @@
   font-size: 0.9rem;
   line-height: 1;
   cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
   opacity: 0;
   pointer-events: none;
   /* 垂直偏移：首行行高的一半减去 handle 高度的一半，使 handle 中心对齐首行文本中心 */
@@ -1479,22 +1533,19 @@
   font-size: 0.85rem;
 }
 
-/* 画板编辑对话框：由 Dialog 组件提供遮罩 + 居中 + 焦点管理，此处仅覆盖面板外观。
-   中和 .hn-dialog__panel 默认 padding，让内容撑满面板。 */
-.hn-note-drawing-dialog {
+/* 画板编辑抽屉：由 Drawer 提供底部贴边、遮罩和焦点管理；默认占视口 60% 高度。 */
+.hn-note-drawing-drawer {
   display: flex;
   flex-direction: column;
-  width: min(720px, 100%);
-  height: min(560px, 100%);
+  width: 100%;
   padding: 0;
-  border-radius: 10px;
   background: #1e293b;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
   overflow: hidden;
 }
 
-/* 让 .hn-dialog__content 撑满面板，使内部 flex 子级（工具条 + 画布）正常工作 */
-.hn-note-drawing-dialog .hn-dialog__content {
+/* 让 Drawer 内容撑满面板，使内部 flex 子级（工具条 + 画布）正常工作。 */
+.hn-note-drawing-drawer .hn-drawer__content {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -1623,6 +1674,17 @@
   outline: none;
   word-break: break-word;
   border-radius: 0;
+}
+
+.hn-note-table-header-cell .hn-note-table-cell {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.hn-note-table tbody tr[data-note-atomic-selected="true"],
+.hn-note-table tbody tr[data-note-atomic-selected="true"]:hover,
+.hn-note-table tbody tr[data-note-atomic-selected="true"] > td {
+  background: var(--hn-theme-soft);
 }
 
 /* ===== 表格行列操作按钮 ===== */
@@ -1870,31 +1932,30 @@ td:hover > .hn-note-table-edge-btn {
   backdrop-filter: blur(8px);
 }
 
-/* 卡片编辑对话框：由 Dialog 组件提供遮罩 + 居中 + 焦点管理，此处仅覆盖面板外观。
-   中和 .hn-dialog__panel 默认 padding，让内容撑满面板。 */
-.hn-note-card-dialog {
+/* 卡片编辑抽屉：由 Drawer 提供底部贴边、遮罩和焦点管理；默认占视口 60% 高度。 */
+.hn-note-card-drawer {
+  position: fixed;
   display: flex;
   flex-direction: column;
-  width: min(1120px, 100%);
-  max-height: min(820px, calc(100dvh - 48px));
+  width: 100%;
   padding: 0;
   overflow: hidden;
   border: 1px solid var(--hn-border);
-  border-radius: 18px;
+  border-radius: 18px 18px 0 0;
   background: var(--hn-bg);
   color: var(--hn-text);
   box-shadow: 0 24px 72px rgba(15, 23, 42, 0.34);
 }
 
-/* 让 .hn-dialog__content 撑满面板，使内部 flex 子级（头部 + 正文）正常工作 */
-.hn-note-card-dialog .hn-dialog__content {
+/* 让 Drawer 内容撑满面板，使内部 flex 子级（头部 + 正文）正常工作。 */
+.hn-note-card-drawer .hn-drawer__content {
   display: flex;
   flex-direction: column;
   flex: 1;
   min-height: 0;
 }
 
-.hn-note-card-dialog-header {
+.hn-note-card-drawer-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1903,18 +1964,18 @@ td:hover > .hn-note-table-edge-btn {
   border-bottom: 1px solid var(--hn-border);
 }
 
-.hn-note-card-dialog-header h2,
-.hn-note-card-dialog-header p {
+.hn-note-card-drawer-header h2,
+.hn-note-card-drawer-header p {
   margin: 0;
 }
 
-.hn-note-card-dialog-header p {
+.hn-note-card-drawer-header p {
   margin-top: 3px;
   color: var(--hn-text-muted);
   font-size: 0.82rem;
 }
 
-.hn-note-card-dialog-header button {
+.hn-note-card-drawer-header button {
   padding: 8px 14px;
   border: 1px solid var(--hn-theme);
   border-radius: 8px;
@@ -1923,30 +1984,90 @@ td:hover > .hn-note-table-edge-btn {
   cursor: pointer;
 }
 
-.hn-note-card-dialog-header button:focus-visible,
+.hn-note-card-drawer-header button:focus-visible,
 .hn-note-card-inspector :is(input, textarea):focus-visible {
   outline: 2px solid var(--hn-theme);
   outline-offset: 2px;
 }
 
-.hn-note-card-dialog-body {
+.hn-note-card-drawer-body {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   min-height: 0;
 }
 
-.hn-note-card-dialog-body--with-inspector {
+.hn-note-card-drawer-body--with-inspector {
   grid-template-columns: minmax(0, 1fr) 260px;
 }
 
-.hn-note-card-dialog-canvas {
+.hn-note-card-drawer-canvas {
   min-height: 520px;
   overflow: auto;
   background: var(--hn-surface);
 }
 
-.hn-note-card-dialog-stage {
+.hn-note-card-drawer-stage {
   position: relative;
+}
+
+.hn-note-card-canvas {
+  --cards-card-selected-outline: var(--hn-card-theme);
+  --cards-card-selected-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.2),
+    0 0 0 4px color-mix(in srgb, var(--hn-card-theme) 24%, transparent);
+  --cards-link-button-color: var(--hn-card-theme);
+  --hn-card-theme: var(--hn-theme);
+  width: 100%;
+  height: 100%;
+}
+
+.hn-note-card-links {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hn-note-card-link {
+  stroke: transparent;
+  stroke-width: 3;
+  stroke-dasharray: 4 4;
+  pointer-events: none;
+}
+
+.hn-note-card-link--selected {
+  stroke: var(--hn-card-theme);
+}
+
+.hn-note-card-link-hit-area {
+  stroke: transparent;
+  stroke-width: 18;
+  pointer-events: stroke;
+  cursor: pointer;
+  outline: none;
+}
+
+.hn-note-card-link-hit-area:focus-visible {
+  stroke: color-mix(in srgb, var(--hn-card-theme) 28%, transparent);
+}
+
+.hn-note-card-link-popover {
+  overflow: visible;
+  pointer-events: auto;
+}
+
+.hn-note-card-link-popover .hn-popover {
+  position: relative;
+  z-index: 1000;
+  width: max-content;
+}
+
+.hn-note-card-link-delete {
+  width: 36px;
+  padding: 0;
+  color: var(--hn-color-danger);
 }
 
 .hn-note-card-inspector {
@@ -1984,18 +2105,13 @@ td:hover > .hn-note-table-edge-btn {
 }
 
 @media (max-width: 720px) {
-  .hn-note-card-dialog {
-    max-height: calc(100dvh - 24px);
-    border-radius: 14px;
-  }
-
-  .hn-note-card-dialog-body {
+  .hn-note-card-drawer-body {
     display: flex;
     flex-direction: column;
     overflow: auto;
   }
 
-  .hn-note-card-dialog-canvas {
+  .hn-note-card-drawer-canvas {
     min-height: 420px;
   }
 

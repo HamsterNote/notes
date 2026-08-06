@@ -68,7 +68,7 @@ const NoteChecklistItem = ({
       {showTitle && block.title ? (
         <div className="hn-note-section-header hn-note-structured-header hn-note-checklist-title">
           <span className="hn-note-chip">Checklist</span>
-          <h3>{block.title}</h3>
+          <h3 data-note-region-id={`block:${block.id}:title`}>{block.title}</h3>
         </div>
       ) : null}
       {renderBlockActionMenu(block, ctx, {
@@ -123,12 +123,13 @@ const NoteChecklistItem = ({
               })
             }
             data-editable-block-id={item.id}
+            data-note-region-id={`block:${item.id}`}
             role="textbox"
             tabIndex={0}
             {...richText(item.text)}
           />
         ) : (
-          <span {...richText(item.text)} />
+          <span data-note-region-id={`block:${item.id}`} {...richText(item.text)} />
         )}
       </div>
     </div>

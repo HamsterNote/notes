@@ -48,7 +48,7 @@ describe("NoteDrawingBlock", () => {
     expect(screen.queryByRole("img")).toBeNull()
   })
 
-  it("opens the drawing dialog from the editable preview and closes it", async () => {
+  it("opens the drawing drawer from the editable preview and closes it", async () => {
     render(
       <NoteContent
         blocks={[drawingBlock(sampleData)]}
@@ -64,7 +64,9 @@ describe("NoteDrawingBlock", () => {
     trigger.focus()
     fireEvent.click(trigger)
 
-    expect(screen.getByRole("dialog", { name: "画板编辑器" })).toBeDefined()
+    const drawer = screen.getByRole("dialog", { name: "画板编辑器" })
+    expect(drawer.classList.contains("hn-drawer__panel--bottom")).toBe(true)
+    expect(drawer.style.getPropertyValue("--hn-drawer-size")).toBe("60vh")
     for (const label of ["画笔", "直线", "矩形", "椭圆", "橡皮"]) {
       expect(screen.getByRole("button", { name: label })).toBeDefined()
     }

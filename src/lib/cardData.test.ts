@@ -60,4 +60,29 @@ describe("parseCardData", () => {
     expect(infiniteResult).toBeUndefined()
     expect(oversizedResult).toBeUndefined()
   })
+
+  it("preserves a valid card lock and rejects an invalid lock value", () => {
+    // Given: persisted cards contain either a boolean lock or an invalid lock.
+    const lockedCard = JSON.stringify([
+      {
+        id: "locked-card",
+        title: "Locked",
+        content: "",
+        x: 0,
+        y: 0,
+        width: 240,
+        height: 144,
+        lock: true
+      }
+    ])
+    const invalidLock = lockedCard.replace('"lock":true', '"lock":"true"')
+
+    // When: both values cross the persisted card-data boundary.
+    const lockedResult = parseCardData(lockedCard)
+    const invalidResult = parseCardData(invalidLock)
+
+    // Then: the boolean lock round-trips while the invalid value is rejected.
+    expect(lockedResult?.[0]?.lock).toBe(true)
+    expect(invalidResult).toBeUndefined()
+  })
 })

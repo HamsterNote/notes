@@ -1,18 +1,19 @@
+import { Drawer } from "@hamster-note/components"
+import "@hamster-note/components/styles.css"
 import {
   DrawingSurface,
+  type DrawingTool,
   normalizeDrawingValue,
-  StrokeRenderer,
-  type DrawingTool
+  StrokeRenderer
 } from "@hamster-note/painting"
 import {
+  type CSSProperties,
   type ReactElement,
   useEffect,
   useMemo,
   useRef,
   useState
 } from "react"
-import { Dialog } from "@hamster-note/components"
-import "@hamster-note/components/styles.css"
 
 import {
   DRAWING_FALLBACK_COLOR,
@@ -33,8 +34,8 @@ type NoteDrawingBlockProps = {
   readonly ctx: EditContext
 }
 
-/** 编辑对话框中可选的画笔工具。 */
-const DRAWING_DIALOG_TOOLS: readonly {
+/** 编辑抽屉中可选的画笔工具。 */
+const DRAWING_DRAWER_TOOLS: readonly {
   readonly tool: DrawingTool
   readonly label: string
 }[] = [
@@ -44,6 +45,14 @@ const DRAWING_DIALOG_TOOLS: readonly {
   { tool: "ellipse", label: "椭圆" },
   { tool: "eraser", label: "橡皮" }
 ]
+
+type DrawingDrawerStyle = CSSProperties & {
+  readonly "--hn-drawer-size": string
+}
+
+const DRAWING_DRAWER_STYLE: DrawingDrawerStyle = {
+  "--hn-drawer-size": "60vh"
+}
 
 type DrawingThumbnailProps = {
   /** 已规范化的画板数据；undefined 表示尚未绘制。 */
@@ -135,10 +144,12 @@ export const NoteDrawingBlock = ({
           </div>
         )}
       </div>
-      <Dialog
+      <Drawer
         open={dialogOpen}
         onClose={closeDialog}
-        className="hn-note-drawing-dialog"
+        placement="bottom"
+        className="hn-note-drawing-drawer"
+        style={DRAWING_DRAWER_STYLE}
         aria-label="画板编辑器"
       >
         <div
@@ -146,7 +157,7 @@ export const NoteDrawingBlock = ({
           role="toolbar"
           aria-label="画板工具"
         >
-          {DRAWING_DIALOG_TOOLS.map((item) => (
+          {DRAWING_DRAWER_TOOLS.map((item) => (
             <button
               key={item.tool}
               type="button"
@@ -180,7 +191,7 @@ export const NoteDrawingBlock = ({
             }
           />
         </div>
-      </Dialog>
+      </Drawer>
     </>
   )
 }

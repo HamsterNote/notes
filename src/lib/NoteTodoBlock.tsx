@@ -71,7 +71,7 @@ const NoteTodoItem = ({
       {showTitle && block.title ? (
         <div className="hn-note-section-header hn-note-structured-header hn-note-todo-title">
           <span className="hn-note-chip">Todo</span>
-          <h3>{block.title}</h3>
+          <h3 data-note-region-id={`block:${block.id}:title`}>{block.title}</h3>
         </div>
       ) : null}
       {renderBlockActionMenu(block, ctx, {
@@ -126,12 +126,13 @@ const NoteTodoItem = ({
               })
             }
             data-editable-block-id={item.id}
+            data-note-region-id={`block:${item.id}`}
             role="textbox"
             tabIndex={0}
             {...richText(item.text)}
           />
         ) : (
-          <span {...richText(item.text)} />
+          <span data-note-region-id={`block:${item.id}`} {...richText(item.text)} />
         )}
       </div>
     </div>

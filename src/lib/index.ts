@@ -11,6 +11,8 @@ export type {
   NoteCollapsibleBlock,
   NoteContentHandle,
   NoteContentProps,
+  NoteContentTransaction,
+  NoteContentTransactionOperation,
   NoteContentUndoRedoController,
   NoteContentUndoRedoHandle,
   NoteContentUndoRedoSnapshot,

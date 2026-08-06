@@ -110,12 +110,13 @@ export const NoteListBlock = ({
                   })
                 }
                 data-editable-block-id={block.id}
+                data-note-region-id={`block:${block.id}`}
                 role="textbox"
                 tabIndex={0}
                 {...richText(block.text)}
               />
             ) : (
-              <span {...richText(block.text)} />
+              <span data-note-region-id={`block:${block.id}`} {...richText(block.text)} />
             )}
           </div>
         </li>
