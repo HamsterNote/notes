@@ -162,10 +162,10 @@ describe("editable code styles", () => {
 
     // When: the native multiline editor is inspected.
     // Then: textarea semantics keep paste plain-text and IME handling native,
-    // while the active textbox retains the preview action's accessible name.
+    // while the always-active textbox retains an accessible editing name.
     expect(source).toMatch(/<textarea/)
     expect(source).not.toMatch(/handleEditableBlockKeyDown/)
-    expect(source).toMatch(/ref=\{editorRef\}\s*aria-label=\{.*编辑代码/s)
+    expect(source).toMatch(/<textarea\s+aria-label=\{.*编辑代码/s)
   })
 })
 

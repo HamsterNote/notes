@@ -77,6 +77,10 @@ select {
   color: #64748b;
 }
 
+.demo-external-item--compact {
+  display: none;
+}
+
 /* 主题色选择行 */
 .demo-color-row {
   display: flex;
@@ -437,6 +441,17 @@ select {
 
   .demo-main {
     padding: 2rem 1.25rem;
+  }
+
+  .demo-external-item--sidebar {
+    display: none;
+  }
+
+  .demo-external-item--compact {
+    display: flex;
+    width: 100%;
+    max-width: 60rem;
+    margin: 0 auto 1rem;
   }
 
   /* 窄屏减小面板高度，避免占据过多竖向空间 */

@@ -147,10 +147,7 @@ describe("editor regressions", () => {
       />
     )
 
-    // When: 聚焦代码预览进入编辑态。
-    fireEvent.focus(view.getByRole("button", { name: "编辑代码" }))
-
-    // Then: 编辑面使用浏览器原生多行输入控件，Enter 无需自定义插入两次。
+    // Then: 编辑面默认使用浏览器原生多行输入控件，Enter 无需自定义插入两次。
     await waitFor(() => {
       const editor = view.getByRole("textbox", { name: "编辑代码" })
       expect(editor.tagName).toBe("TEXTAREA")

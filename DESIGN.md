@@ -238,6 +238,14 @@ Table insertion and operation controls sit on cell boundaries rather than inside
 - The preview canvas is inert and has no independent pointer or keyboard interaction. One full-surface trigger is the only interactive layer; activating it opens the full-size card canvas in a component-library Drawer attached to the bottom edge.
 - Card and drawing editors use the component-library Drawer with `placement="bottom"` and `--hn-drawer-size: 60vh`, so the default editor height remains 60% of the current viewport as the viewport changes. Their content areas keep overflow scrollable rather than resizing persisted canvas coordinates.
 - The card Drawer uses `--hn-bg`, `--hn-surface`, `--hn-border`, `--hn-text`, and `--hn-theme` rather than introducing a separate palette.
+
+---
+
+## 16. External Item Drop
+
+- One host-owned `multi-drag` session per NoteContent previews insertion at top-level persisted block boundaries, using the same `3px` `--hn-theme` line and `--hn-theme-soft` edge as handle-based moves. The host passes the initiating `pointerId` and cancels the returned session before destroying its Drag.
+- Releasing inside the note inserts one paragraph at the previewed boundary; releasing outside, pointer cancellation, read-only transitions, and unmount remove transient feedback without changing content.
+- Clickable external items expose link semantics only when the host supplies `onExternalItemClick` and Select Mode is off. They use a dashed underline derived from `--hn-theme-border`, `--hn-theme-text`, and the standard `2px --hn-theme` keyboard focus ring. They remain host references rather than editable text surfaces.
 - Read-only notes open a full-size inspection view. Editable controlled notes additionally enable card selection, movement, resize, and title/content fields; every mutation is committed through `onBlocksChange` and therefore returns to Markdown JSON serialization.
 - Card canvases receive the note's explicit light/dark mode and expose `themeColor` through `--hn-card-theme`; canvas selection, link controls, and connector highlights resolve to that token.
 - Dashed card links have a transparent 18px pointer and keyboard target over the dependency-rendered connector. Selection highlights the connector with `--hn-card-theme` and opens a component-library Popover at its midpoint. Editable notes expose one icon-only delete action with an accessible label; read-only notes allow selection without mutation.

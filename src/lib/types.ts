@@ -1,5 +1,11 @@
 import type { Ref } from "react"
 
+import type {
+  ExternalNoteDragInput,
+  ExternalNoteDragStartResult,
+  NoteExternalItem
+} from "./externalNoteDrag"
+
 export const noteBlockKinds = {
   heading: "heading",
   paragraph: "paragraph",
@@ -34,6 +40,8 @@ export type NoteParagraphBlock = {
   readonly kind: "paragraph"
   readonly text: string
   readonly tone?: "default" | "muted" | "accent"
+  /** 由外部拖入项创建时保留的宿主数据快照。 */
+  readonly externalItem?: NoteExternalItem
 }
 
 export type NoteTodoItem = {
@@ -277,6 +285,8 @@ export type NoteContentProps = {
    * 参数为该 mention 对应的 NoteLink.id，由宿主决定后续跳转或展示逻辑。
    */
   readonly onLinkClick?: (id: string) => void
+  /** 点击或键盘激活可跳转的外部拖入项时触发。 */
+  readonly onExternalItemClick?: (item: NoteExternalItem) => void
   /** 撤销/重做控制器实例（外部注入模式） */
   readonly undoRedoController?: NoteContentUndoRedoController
   /**
@@ -332,6 +342,10 @@ export type NoteContentUndoRedoHandle = {
  */
 export type NoteContentHandle = NoteContentUndoRedoHandle & {
   readonly scrollToBlock: (blockId: string) => boolean
+  /** 使用宿主创建的 multi-drag 会话拖入一项内容。 */
+  readonly startExternalDrag: (
+    input: ExternalNoteDragInput
+  ) => ExternalNoteDragStartResult
 }
 
 /**

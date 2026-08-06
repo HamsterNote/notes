@@ -60,10 +60,7 @@ describe("NoteCodeBlock note text flow region", () => {
       />,
     )
 
-    // When: the dedicated native code editor is opened and changed.
-    const editButton = container.querySelector<HTMLButtonElement>('[aria-label="编辑代码"]')
-    if (!editButton) throw new Error("Expected code edit button")
-    fireEvent.click(editButton)
+    // When: the always-available native code editor is changed.
     const editor = container.querySelector<HTMLTextAreaElement>('textarea[aria-label="编辑代码"]')
     if (!editor) throw new Error("Expected native code editor")
     fireEvent.change(editor, { target: { value: "const value = 2" } })
@@ -154,9 +151,6 @@ describe("NoteCodeBlock note text flow region", () => {
     const back = container.querySelector<HTMLElement>('[data-note-region-id="block:back"]')
     if (!front || !back) throw new Error("Expected body regions")
     selectAcross(front, 2, back, 2)
-    const editButton = container.querySelector<HTMLButtonElement>('[aria-label="编辑代码"]')
-    if (!editButton) throw new Error("Expected code edit button")
-    fireEvent.click(editButton)
     const editor = container.querySelector<HTMLTextAreaElement>('textarea[aria-label="编辑代码"]')
     if (!editor) throw new Error("Expected native code editor")
 

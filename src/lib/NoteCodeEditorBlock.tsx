@@ -35,35 +35,19 @@ export const NoteCodeBlock = ({
   ctx
 }: NoteCodeBlockProps): ReactElement => {
   const { editable, blocks, onBlocksChange } = ctx
-  const [editing, setEditing] = useState(false)
   const [draftCode, setDraftCode] = useState(block.code)
-  const editorRef = useRef<HTMLTextAreaElement | null>(null)
-  const highlightRef = useRef<HTMLElement | null>(null)
+  const highlightRef = useRef<HTMLPreElement | null>(null)
   const highlightedCode = highlightCode(
-    editing ? draftCode : block.code,
+    editable ? draftCode : block.code,
     block.language
   )
-  const editorPanelId = `hn-note-code-editor-${block.id}`
   // PlainText（language="text"）不使用 hljs 类：语义上无语法高亮，
   // 避免任何依赖 .hljs 类的 CSS 或运行时逻辑误触发高亮样式
   const codeClassName = block.language === "text" ? "" : "hljs"
 
   useEffect(() => {
-    if (!editing) return
-    const editor = editorRef.current
-    if (!editor) return
-    editor.focus()
-    editor.setSelectionRange(editor.value.length, editor.value.length)
-  }, [editing])
-
-  const openEditor = (): void => {
-    if (editing) {
-      editorRef.current?.focus()
-      return
-    }
     setDraftCode(block.code)
-    setEditing(true)
-  }
+  }, [block.code])
 
   return (
     <>
@@ -101,17 +85,6 @@ export const NoteCodeBlock = ({
                   )
                 }
               />
-              <button
-                aria-controls={editorPanelId}
-                aria-expanded={editing}
-                aria-label="编辑代码"
-                className="hn-note-code-edit-button"
-                onClick={openEditor}
-                onFocus={openEditor}
-                type="button"
-              >
-                编辑
-              </button>
             </>
           ) : (
             <>
@@ -122,56 +95,61 @@ export const NoteCodeBlock = ({
             </>
           )}
         </div>
-        <pre
-          className="hn-note-code-preview"
-          data-note-region-id={`block:${block.id}`}
-          data-note-region-profile="code"
-        >
-          <code
-            className={codeClassName}
-            {...richText(highlightedCode, "code")}
-          />
-        </pre>
-        {editable && editing ? (
-            <div
-              aria-label={block.filename ? `代码编辑器：${block.filename}` : "代码编辑器"}
-              className="hn-note-code-editing"
-              data-note-editor-panel="code"
-              id={editorPanelId}
-              role="region"
+        {editable ? (
+          <div
+            aria-label={block.filename ? `代码编辑器：${block.filename}` : "代码编辑器"}
+            className="hn-note-code-editing"
+            data-note-editor-panel="code"
+            role="region"
+          >
+            <pre
+              ref={highlightRef}
+              aria-hidden="true"
+              className="hn-note-code-highlight"
+              data-note-region-id={`block:${block.id}`}
+              data-note-region-profile="code"
             >
               <code
-                ref={highlightRef}
-                aria-hidden="true"
-                className={`${codeClassName} hn-note-code-highlight`}
+                className={codeClassName}
                 {...richText(highlightedCode, "code")}
               />
-              <textarea
-                ref={editorRef}
-                aria-label={
-                  block.filename ? `编辑代码：${block.filename}` : "编辑代码"
-                }
-                className="hn-note-code-editor hn-note-editable"
-                rows={Math.max(1, draftCode.split("\n").length)}
-                spellCheck={false}
-                value={draftCode}
-                onBlur={(event) => {
-                  const code = normalizeLineEndings(event.currentTarget.value)
-                  setEditing(false)
-                  onBlocksChange?.(updateCode(ctx.getBlocks(), block.id, code))
-                }}
-                onChange={(event) =>
-                  setDraftCode(normalizeLineEndings(event.currentTarget.value))
-                }
-                onScroll={(event) => {
-                  const highlight = highlightRef.current
-                  if (!highlight) return
-                  highlight.scrollLeft = event.currentTarget.scrollLeft
-                  highlight.scrollTop = event.currentTarget.scrollTop
-                }}
-              />
-            </div>
-        ) : null}
+            </pre>
+            <textarea
+              aria-label={
+                block.filename ? `编辑代码：${block.filename}` : "编辑代码"
+              }
+              className="hn-note-code-editor hn-note-editable"
+              rows={Math.max(1, draftCode.split("\n").length)}
+              spellCheck={false}
+              value={draftCode}
+              onBlur={(event) => {
+                const code = normalizeLineEndings(event.currentTarget.value)
+                setDraftCode(code)
+                onBlocksChange?.(updateCode(ctx.getBlocks(), block.id, code))
+              }}
+              onChange={(event) =>
+                setDraftCode(normalizeLineEndings(event.currentTarget.value))
+              }
+              onScroll={(event) => {
+                const highlight = highlightRef.current
+                if (!highlight) return
+                highlight.scrollLeft = event.currentTarget.scrollLeft
+                highlight.scrollTop = event.currentTarget.scrollTop
+              }}
+            />
+          </div>
+        ) : (
+          <pre
+            className="hn-note-code-preview"
+            data-note-region-id={`block:${block.id}`}
+            data-note-region-profile="code"
+          >
+            <code
+              className={codeClassName}
+              {...richText(highlightedCode, "code")}
+            />
+          </pre>
+        )}
       </section>
     </>
   )

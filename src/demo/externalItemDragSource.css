@@ -1,0 +1,69 @@
+.demo-external-drag-source {
+  display: grid;
+  gap: 0.2rem;
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid rgba(59, 130, 246, 0.22);
+  border-radius: 10px;
+  background: rgba(59, 130, 246, 0.07);
+  color: #1e293b;
+  cursor: grab;
+  text-align: left;
+  touch-action: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+  user-select: none;
+}
+
+.demo-external-drag-source:hover {
+  border-color: rgba(59, 130, 246, 0.48);
+}
+
+.demo-external-drag-source:active {
+  cursor: grabbing;
+}
+
+.demo-external-drag-source--disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  touch-action: auto;
+}
+
+.demo-external-drag-source__title {
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.demo-external-drag-source__content {
+  color: #64748b;
+  font-size: 0.76rem;
+  line-height: 1.4;
+  white-space: pre-line;
+}
+
+.demo-external-insert-button {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid rgba(59, 130, 246, 0.28);
+  border-radius: 8px;
+  background: #ffffff;
+  color: #2563eb;
+  cursor: pointer;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.demo-external-insert-button:hover:not(:disabled) {
+  border-color: rgba(59, 130, 246, 0.5);
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.demo-external-insert-button:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.demo-external-insert-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}

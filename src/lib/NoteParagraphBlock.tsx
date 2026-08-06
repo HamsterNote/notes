@@ -16,17 +16,30 @@ export const renderParagraphBlockLayout = ({
   ctx,
   actionMenu,
   editableText
-}: RenderParagraphBlockInput): ReactElement => (
-  <>
-    {actionMenu}
-    {ctx.editable ? (
-      editableText
-    ) : (
-      <span
-        className={`hn-note-text hn-note-text--${block.tone ?? "default"}`}
-        data-note-region-id={`block:${block.id}`}
-        {...richText(block.text)}
-      />
-    )}
-  </>
-)
+}: RenderParagraphBlockInput): ReactElement => {
+  const className = `hn-note-text hn-note-text--${block.tone ?? "default"}`
+  const externalItem = block.externalItem
+  return (
+    <>
+      {actionMenu}
+      {externalItem?.clickable === true && ctx.externalItemsClickable ? (
+        <span
+          className={`${className} hn-note-external-item--clickable`}
+          data-note-external-block-id={block.id}
+          data-note-region-id={`block:${block.id}`}
+          role="link"
+          tabIndex={0}
+          {...richText(block.text)}
+        />
+      ) : ctx.editable ? (
+        editableText
+      ) : (
+        <span
+          className={className}
+          data-note-region-id={`block:${block.id}`}
+          {...richText(block.text)}
+        />
+      )}
+    </>
+  )
+}
