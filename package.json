@@ -92,7 +92,7 @@
     "vitest": "^4.0.10"
   },
   "dependencies": {
-    "@hamster-note/components": "1.1.0",
+    "@hamster-note/components": "^0.2.1-beta.2",
     "@hamster-note/painting": "0.2.0",
     "highlight.js": "^11.11.1",
     "katex": "^0.17.0",
