@@ -7,6 +7,8 @@ import {
 } from "react"
 import { createPortal } from "react-dom"
 
+import type { NoteTheme } from "./types"
+
 export type TableMenuItem = {
   readonly label: string
   readonly onClick: () => void
@@ -18,12 +20,14 @@ export type TableMenuItem = {
 type TableOperationMenuProps = {
   readonly items: readonly TableMenuItem[]
   readonly triggerRect: DOMRect
+  readonly theme: NoteTheme
   readonly onClose: () => void
 }
 
 export const TableOperationMenu = ({
   items,
   triggerRect,
+  theme,
   onClose
 }: TableOperationMenuProps): ReactElement => {
   const menuRef = useRef<HTMLDivElement | null>(null)
@@ -67,6 +71,7 @@ export const TableOperationMenu = ({
     <div
       ref={menuRef}
       className="hn-note-block-menu"
+      data-theme={theme}
       role="menu"
       style={menuStyle}
     >

@@ -4,7 +4,7 @@ import { useState } from "react"
 import { afterEach, describe, expect, it } from "vitest"
 
 import { NoteContent } from "./NoteContent"
-import type { NoteBlock, NoteTableBlock } from "./types"
+import type { NoteBlock, NoteTableBlock, NoteTheme } from "./types"
 
 const initialTable: NoteTableBlock = {
   id: "table",
@@ -16,7 +16,7 @@ const initialTable: NoteTableBlock = {
   ]
 }
 
-const renderEditableTable = () => {
+const renderEditableTable = (theme: NoteTheme = "light") => {
   const Harness = () => {
     const [blocks, setBlocks] = useState<readonly NoteBlock[]>([initialTable])
     return (
@@ -24,6 +24,7 @@ const renderEditableTable = () => {
         blocks={blocks}
         title="Table operations"
         editable
+        theme={theme}
         onBlocksChange={setBlocks}
       />
     )
@@ -57,6 +58,20 @@ const getTableValues = (container: HTMLElement): string[][] =>
 afterEach(cleanup)
 
 describe("NoteContent table operation menus", () => {
+  it("applies the note theme to the portaled operation menu", async () => {
+    // Given: an editable table is rendered inside a dark note.
+    const view = renderEditableTable("dark")
+    fireEvent.focus(getCell(view.container, 1, 1))
+
+    // When: the user opens a table operation menu rendered through a portal.
+    fireEvent.click(getOperationHandle(view.container, "行操作"))
+
+    // Then: the portal root carries the dark theme instead of using light defaults.
+    expect((await screen.findByRole("menu")).getAttribute("data-theme")).toBe(
+      "dark"
+    )
+  })
+
   it("inserts a row after the row whose operation menu is open", async () => {
     // Given: the second row has focus and exposes its row operation handle.
     const view = renderEditableTable()

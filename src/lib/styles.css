@@ -808,8 +808,8 @@
 }
 
 /* ===== Placeholder 占位提示 ===== */
-/* 标题占位：contentEditable 的 h1 为空时，通过 ::before 显示 data-placeholder 文案 */
-.hn-note-hero h1[data-placeholder]:empty::before {
+/* 标题占位：由编辑事件根据完整 childNodes 精确同步，避免 CSS 忽略文本节点 */
+.hn-note-hero h1[data-placeholder][data-placeholder-visible]::before {
   content: attr(data-placeholder);
   color: var(--hn-text-muted);
   opacity: 0.55;

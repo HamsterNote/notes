@@ -46,6 +46,20 @@ describe("editable text styles", () => {
     )
   })
 
+  it("shows the title placeholder only while its exact DOM state is marked empty", () => {
+    // Given: title emptiness is determined from childNodes rather than CSS element siblings.
+    const styles = readFileSync(
+      new URL("./styles.css", import.meta.url),
+      "utf8"
+    )
+
+    // Then: the placeholder depends on the explicit marker and not :only-child.
+    expect(styles).toMatch(
+      /\.hn-note-hero h1\[data-placeholder\]\[data-placeholder-visible\]::before\s*\{[^}]*content:\s*attr\(data-placeholder\);[^}]*\}/
+    )
+    expect(styles).not.toMatch(/\.hn-note-hero[^{]*br:only-child/)
+  })
+
   it("keeps editable content visually neutral on hover and focus", () => {
     // Given: row content must not gain a border, outline, or background while editing.
     const styles = readFileSync(

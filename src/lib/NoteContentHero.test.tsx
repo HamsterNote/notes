@@ -50,4 +50,31 @@ describe("NoteContent hero", () => {
     expect(onTitleChange).toHaveBeenCalledWith("Published title")
     expect(onSummaryChange).toHaveBeenCalledWith("Published summary")
   })
+
+  it("marks only a truly empty title for placeholder display", () => {
+    // Given: an editable title whose live DOM can contain text and break nodes.
+    const view = render(<NoteContent blocks={[]} title="Draft" editable />)
+    const title = view.getByRole("heading", { name: "Draft" })
+
+    // When: the browser represents the cleared title as one break.
+    title.innerHTML = "<br>"
+    fireEvent.input(title)
+
+    // Then: the title is marked empty so its placeholder remains visible.
+    expect(title.getAttribute("data-placeholder-visible")).toBe("")
+
+    // When: text exists beside a direct break node.
+    title.innerHTML = "Title<br>"
+    fireEvent.input(title)
+
+    // Then: text nodes prevent the title from being treated as empty.
+    expect(title.hasAttribute("data-placeholder-visible")).toBe(false)
+
+    // When: text surrounds the break node.
+    title.innerHTML = "Before<br>After"
+    fireEvent.input(title)
+
+    // Then: the non-empty title remains unmarked.
+    expect(title.hasAttribute("data-placeholder-visible")).toBe(false)
+  })
 })
