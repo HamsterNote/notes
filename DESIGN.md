@@ -115,7 +115,7 @@ The selection popover is a fixed-position dark surface on desktop and docks into
 - Shadow: `0 8px 24px rgba(15, 23, 42, 0.28)` (`src/lib/styles.css:366`).
 - Radius: `10px` (`src/lib/styles.css:364`).
 - Padding: `0.3rem`, internal gap `0.15rem` (`src/lib/styles.css:362-363`).
-- Bottom toolbar: one component-library `Popover` uses native `edge="bottom"` positioning, a `16px` edge offset, and native surface styling. It is the sole `role="toolbar"` surface for both active-block controls and selection formatting; selection state appends actions directly into that toolbar instead of mounting another Popover. Project CSS only constrains the toolbar to the viewport and enables single-line horizontal overflow. Its `z-index: 900` stays above note content but below component-library Popovers (`1000`) and Dialogs (`1100`).
+- Bottom toolbar: one component-library `Popover` uses native `edge="bottom"` positioning and native surface styling. Its default viewport-edge offset is `32px`, matching Reader; consumers may override it through `bottomBarOffset` without changing content padding. It is the sole `role="toolbar"` surface for both active-block controls and selection formatting; selection state appends actions directly into that toolbar instead of mounting another Popover. Project CSS only constrains the toolbar to the viewport and enables single-line horizontal overflow. Its `z-index: 900` stays above note content but below component-library Popovers (`1000`) and Dialogs (`1100`).
 
 Popover buttons:
 

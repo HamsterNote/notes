@@ -176,6 +176,12 @@ import { NoteContent } from "@hamster-note/notes"
 import "@hamster-note/notes/styles.css"
 ```
 
+窄视口或移动设备上的固定编辑底栏默认距视口底部 `32px`，与 Reader 保持一致。宿主可通过 `bottomBarOffset`（单位 px）覆盖该距离；内容底部留白仍由 `bottomPadding` 独立控制。
+
+```tsx
+<NoteContent editable bottomBarOffset={48} title={title} blocks={blocks} />
+```
+
 如果使用公式块，再按需导入 KaTeX 样式：
 
 ```tsx

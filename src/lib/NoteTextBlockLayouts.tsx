@@ -68,6 +68,7 @@ export const renderBlockActionMenuLayout = ({
   if (block.kind === "heading") {
     return (
       <BlockActionMenu
+        theme={ctx.theme}
         mode="convert"
         open={ctx.openBlockMenuId === convertMenuId}
         onOpenChange={(open) => ctx.onBlockMenuOpenChange(convertMenuId, open)}
@@ -81,6 +82,7 @@ export const renderBlockActionMenuLayout = ({
 
   return (
     <BlockActionMenu
+      theme={ctx.theme}
       mode="convert"
       open={ctx.openBlockMenuId === convertMenuId}
       onOpenChange={(open) => ctx.onBlockMenuOpenChange(convertMenuId, open)}

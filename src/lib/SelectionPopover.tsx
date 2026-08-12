@@ -1,4 +1,7 @@
 import { Button, Popover, PopoverSeparator } from "@hamster-note/components"
+// 组件库样式：使用 @layer hamster-note.components 分层，项目 src/lib/styles.css 未分层，
+// 未分层样式在冲突时优先，故现有 .hn-note-popover* 视觉会被保留
+import "@hamster-note/components/styles.css"
 import {
   type CSSProperties,
   type FormEvent,
@@ -9,9 +12,6 @@ import {
   useState
 } from "react"
 import { createPortal } from "react-dom"
-// 组件库样式：使用 @layer hamster-note.components 分层，项目 src/lib/styles.css 未分层，
-// 未分层样式在冲突时优先，故现有 .hn-note-popover* 视觉会被保留
-import "@hamster-note/components/styles.css"
 import "./styles.css"
 
 import {
@@ -32,18 +32,20 @@ import {
   syncEditableBlocksFromRange,
   wrapSelectionWithInlineFormula
 } from "./inlineSelectionFormatting"
+import { normalizeNoteRegionHtml } from "./noteRegionCodec"
 import {
   captureStableNoteSelection,
   restoreStableNoteSelection,
   type StableNoteSelection
 } from "./noteSelectionRestore"
-import { normalizeNoteRegionHtml } from "./noteRegionCodec"
 import type { NoteRegionUpdate } from "./noteSnapshotMutation"
 import { NOTE_REGION_ATTRIBUTE, rangeCrossesNoteFields } from "./noteTextFlow"
 import { sanitizeRestrictedHref } from "./restrictedHtml"
+import type { NoteTheme } from "./types"
 
 type SelectionPopoverProps = {
   readonly containerRef: RefObject<HTMLElement | null>
+  readonly theme: NoteTheme
   readonly allowCrossFieldFormat?: boolean | undefined
   readonly portalContainerRef?: RefObject<HTMLElement | null> | undefined
   readonly onMagicLinkConfigure?: (() => Promise<string>) | undefined
@@ -134,6 +136,7 @@ const queryActiveColor = (): string => {
 
 export const SelectionPopover = ({
   containerRef,
+  theme,
   allowCrossFieldFormat = true,
   portalContainerRef,
   onMagicLinkConfigure,
@@ -1001,6 +1004,7 @@ export const SelectionPopover = ({
     <Popover
       ref={popoverRef}
       className="hn-note-popover hn-note-popover--edit"
+      theme={theme}
       style={style}
       role="toolbar"
       aria-label="文字操作"

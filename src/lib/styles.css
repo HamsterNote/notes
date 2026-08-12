@@ -123,6 +123,13 @@
   background: transparent;
   cursor: text;
   text-align: left;
+  /* <button> 默认不继承正文字体，尾部提示文字需与段落排版一致 */
+  font: inherit;
+  /* 浏览器会把 <button> 的内容包进一个垂直居中的匿名盒；
+     显式声明 flex 布局可覆盖该行为，让尾部提示顶对齐到空白区域顶部 */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 .hn-note-bottom-toolbar {
@@ -800,6 +807,25 @@
   min-height: 1lh;
 }
 
+/* ===== Placeholder 占位提示 ===== */
+/* 标题占位：contentEditable 的 h1 为空时，通过 ::before 显示 data-placeholder 文案 */
+.hn-note-hero h1[data-placeholder]:empty::before {
+  content: attr(data-placeholder);
+  color: var(--hn-text-muted);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* 正文尾部提示：作为 .hn-note-body-tail 按钮的内容，始终追加在正文最后一行，
+   提示点击空白区域可新建一行；文字本身不可交互，点击穿透到所在按钮 */
+.hn-note-body-tail-hint {
+  display: block;
+  color: var(--hn-text-muted);
+  opacity: 0.55;
+  pointer-events: none;
+  user-select: none;
+}
+
 .hn-note-mention-menu {
   position: fixed;
   z-index: 10000;
@@ -881,7 +907,6 @@
   gap: 0.15rem;
   padding: 0.3rem;
   border-radius: 10px;
-  background: #1e293b;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
   animation: hn-popover-in 0.12s ease;
 }
@@ -1270,9 +1295,18 @@
 }
 
 /* ===== 区块菜单（portal 渲染到 document.body）===== */
-/* 复用 SelectionPopover 的暗色浮层外观：字面量颜色，不依赖 shell 变量。
-   定位坐标由组件内联 style 提供，此处仅负责外观。 */
+/* Portal 无法继承 shell 变量，因此在菜单根节点按 data-theme 定义同名语义。 */
 .hn-note-block-menu {
+  --hn-block-menu-bg: #ffffff;
+  --hn-block-menu-text: #334155;
+  --hn-block-menu-text-hover: #1e293b;
+  --hn-block-menu-text-disabled: rgba(51, 65, 85, 0.5);
+  --hn-block-menu-hover: #f1f5f9;
+  --hn-block-menu-danger: #b91c1c;
+  --hn-block-menu-danger-hover: rgba(239, 68, 68, 0.1);
+  --hn-block-menu-danger-hover-text: #b91c1c;
+  --hn-block-menu-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
+
   position: fixed;
   z-index: 9999;
   display: flex;
@@ -1281,10 +1315,22 @@
   width: 160px;
   padding: 4px;
   border-radius: 10px;
-  background: #1e293b;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
+  background: var(--hn-block-menu-bg);
+  box-shadow: var(--hn-block-menu-shadow);
   /* 复用已有淡入动画，避免与定位 transform 冲突 */
   animation: hn-popover-in 0.12s ease;
+}
+
+.hn-note-block-menu[data-theme="dark"] {
+  --hn-block-menu-bg: #1e293b;
+  --hn-block-menu-text: #e2e8f0;
+  --hn-block-menu-text-hover: #ffffff;
+  --hn-block-menu-text-disabled: rgba(226, 232, 240, 0.5);
+  --hn-block-menu-hover: rgba(255, 255, 255, 0.14);
+  --hn-block-menu-danger: #fca5a5;
+  --hn-block-menu-danger-hover: rgba(239, 68, 68, 0.15);
+  --hn-block-menu-danger-hover-text: #ffffff;
+  --hn-block-menu-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
 }
 
 /* 菜单项：button 行，默认透明背景 + 浅色文字（与 popover 按钮一致） */
@@ -1297,7 +1343,7 @@
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: #e2e8f0;
+  color: var(--hn-block-menu-text);
   font-size: 0.8rem;
   font-weight: 600;
   text-align: left;
@@ -1310,8 +1356,8 @@
 /* 菜单项 hover/focus：半透明白底 + 纯白文字 */
 .hn-note-block-menu-item:hover,
 .hn-note-block-menu-item:focus {
-  background: rgba(255, 255, 255, 0.14);
-  color: #ffffff;
+  background: var(--hn-block-menu-hover);
+  color: var(--hn-block-menu-text-hover);
   outline: none;
 }
 
@@ -1323,17 +1369,15 @@
 .hn-note-block-menu-item[aria-disabled="true"]:hover,
 .hn-note-block-menu-item[aria-disabled="true"]:focus {
   background: transparent;
-  color: #e2e8f0;
+  color: var(--hn-block-menu-text);
 }
 
-/* 当前格式项（--active）：弱化文字 + 默认光标，禁止重复选择。
-   菜单在 shell 外无法解析 --hn-text-muted，故用浮层基础文字 #e2e8f0 的
-   降透明度变体呈现“muted at reduced opacity”效果（DESIGN.md §9 Disabled）。 */
+/* 当前格式项（--active）：弱化文字 + 默认光标，禁止重复选择。 */
 .hn-note-block-menu-item--active,
 .hn-note-block-menu-item--active:hover,
 .hn-note-block-menu-item--active:focus {
   background: transparent;
-  color: rgba(226, 232, 240, 0.5);
+  color: var(--hn-block-menu-text-disabled);
   cursor: default;
 }
 
@@ -1371,7 +1415,7 @@
   flex-shrink: 0;
   margin-left: auto;
   padding-left: 0.25rem;
-  color: rgba(226, 232, 240, 0.6);
+  color: var(--hn-block-menu-text-disabled);
   font-size: 0.9rem;
   line-height: 1;
 }
@@ -1382,8 +1426,8 @@
 .hn-note-block-menu-item--has-submenu[aria-expanded="true"],
 .hn-note-block-menu-item--has-submenu[aria-expanded="true"]:hover,
 .hn-note-block-menu-item--has-submenu[aria-expanded="true"]:focus {
-  background: rgba(255, 255, 255, 0.14);
-  color: #ffffff;
+  background: var(--hn-block-menu-hover);
+  color: var(--hn-block-menu-text-hover);
 }
 
 /* ===== 公式块 ===== */
@@ -1870,13 +1914,13 @@ td:hover > .hn-note-table-edge-btn {
 
 /* 表格操作菜单复用 .hn-note-block-menu / .hn-note-block-menu-item 样式 */
 .hn-note-block-menu-item--danger {
-  color: #fca5a5;
+  color: var(--hn-block-menu-danger);
 }
 
 .hn-note-block-menu-item--danger:hover,
 .hn-note-block-menu-item--danger:focus {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ffffff;
+  background: var(--hn-block-menu-danger-hover);
+  color: var(--hn-block-menu-danger-hover-text);
 }
 
 .hn-note-card {

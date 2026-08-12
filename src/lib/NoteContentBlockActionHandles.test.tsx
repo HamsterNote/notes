@@ -1,10 +1,12 @@
 /** @vitest-environment jsdom */
-import { fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { useState } from "react"
-import { describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { NoteContent } from "./NoteContent"
 import type { NoteBlock } from "./types"
+
+afterEach(cleanup)
 
 const mixedBlocks: readonly NoteBlock[] = [
   { id: "h1", kind: "heading", level: 1, text: "Heading" },
@@ -80,6 +82,46 @@ describe("NoteContent block action handles", () => {
       expect(convert?.getAttribute("aria-haspopup")).toBe("menu")
     }
   })
+
+  it.each(["light", "dark"] as const)(
+    "keeps block handles and their portal menu in the %s theme",
+    async (theme) => {
+      // Given: an editable note with an explicitly selected theme.
+      const view = render(
+        <NoteContent
+          blocks={[findBlock("para")]}
+          title={`${theme} handles`}
+          theme={theme}
+          editable
+        />
+      )
+
+      // Then: both left-side controls stay inside the themed shell and inherit its tokens.
+      const add = findHandle(view.container, "para", "add")
+      const convert = findHandle(view.container, "para", "convert")
+      expect(
+        add?.closest(".hn-note-shell")?.classList.contains(
+          `hn-note-shell--${theme}`
+        )
+      ).toBe(true)
+      expect(
+        convert
+          ?.closest(".hn-note-shell")
+          ?.classList.contains(`hn-note-shell--${theme}`)
+      )
+        .toBe(true)
+
+      // When: the add control opens its menu outside the shell via createPortal.
+      if (!add) throw new Error("Expected paragraph add handle.")
+      fireEvent.click(add)
+
+      // Then: the portal root carries the same explicit theme selection.
+      const menu = await screen.findByRole("menu", {
+        name: "插入新区块类型"
+      })
+      expect(menu.getAttribute("data-theme")).toBe(theme)
+    }
+  )
 
   it("renders block-level handles for unordered and ordered lists", () => {
     // Given: editable note with list blocks.

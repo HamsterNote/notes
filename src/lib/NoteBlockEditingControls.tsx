@@ -274,6 +274,7 @@ export const renderBlockActionMenu = (
   return (
     <>
       <BlockActionMenu
+        theme={ctx.theme}
         mode="add"
         open={ctx.openBlockMenuId === addMenuId}
         onOpenChange={(open) => ctx.onBlockMenuOpenChange(addMenuId, open)}
@@ -283,6 +284,7 @@ export const renderBlockActionMenu = (
         onSelect={onAdd}
       />
       <BlockActionMenu
+        theme={ctx.theme}
         mode="convert"
         open={ctx.openBlockMenuId === convertMenuId}
         onOpenChange={(open) => ctx.onBlockMenuOpenChange(convertMenuId, open)}

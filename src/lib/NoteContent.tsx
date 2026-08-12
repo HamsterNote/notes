@@ -23,6 +23,7 @@ import {
 } from "./BottomBlockControls"
 import { isVisibleHtmlEmpty } from "./blockEditing"
 import { findEditableBlockById } from "./editableSelection"
+import type { NoteExternalItem } from "./externalNoteDrag"
 import { useInlineFormulaRendering } from "./inlineFormulaRendering"
 import {
   moveCaretOutsideTrailingFormat,
@@ -41,7 +42,6 @@ import {
   editableProps,
   updateText
 } from "./NoteContentEditing"
-import type { NoteExternalItem } from "./externalNoteDrag"
 import { NoteListBlock } from "./NoteListBlock"
 import { NoteQuoteBlock } from "./NoteQuoteBlock"
 import { NoteTodoBlock } from "./NoteTodoBlock"
@@ -66,18 +66,18 @@ import {
 import {
   caretAfterNoteFlowMutation,
   NOTE_ATOMIC_ATTRIBUTE,
-  noteFlowCrossesFields,
   noteFlowClipboardPayload,
+  noteFlowCrossesFields,
   selectedNoteFlow
 } from "./noteTextFlow"
+import { replaceNoteFlowFromTransfer } from "./noteTransferReplacement"
 import { plainTextToRestrictedHtml } from "./restrictedHtml"
 import { SelectionPopover } from "./SelectionPopover"
-import { replaceNoteFlowFromTransfer } from "./noteTransferReplacement"
 import type {
   NoteBlock,
+  NoteContentHandle,
   NoteContentProps,
   NoteContentTransactionOperation,
-  NoteContentHandle,
   NoteContentUndoRedoHandle,
   NoteContentUndoRedoSnapshot
 } from "./types"
@@ -122,7 +122,10 @@ export function NoteContent({
   ref: undoRedoRef,
   undoRedoController,
   topPadding,
-  bottomPadding
+  bottomPadding,
+  bottomBarOffset = 32,
+  titlePlaceholder = "请输入标题",
+  bodyTailHint = "点击空白处新增一行"
 }: NoteContentProps | LegacyNoteContentProps) {
   const contentEditable = editable && !selectMode
   const shellRef = useRef<HTMLElement>(null)
@@ -688,6 +691,7 @@ export function NoteContent({
               {...richText(title, "title")}
               data-note-region-id="title"
               data-editable-block-id="title"
+              data-placeholder={titlePlaceholder}
             />
           ) : (
             <h1 data-note-region-id="title" {...richText(title, "title")} />
@@ -825,7 +829,13 @@ export function NoteContent({
               aria-label="新建一行"
               className="hn-note-body-tail"
               onClick={appendParagraphAtTail}
-            />
+            >
+              {/* 尾部提示行：始终显示在正文最后一行，不可交互，
+                  pointer-events: none 使点击穿透到按钮本身 */}
+              <span className="hn-note-body-tail-hint" aria-hidden="true">
+                {bodyTailHint}
+              </span>
+            </button>
           ) : null}
         </div>
         {contentEditable && useBottomBar ? (
@@ -833,8 +843,9 @@ export function NoteContent({
             ref={bottomBarRef}
             className="hn-note-bottom-toolbar"
             data-note-bottom-bar
+            theme={theme}
             edge="bottom"
-            edgeOffset={16}
+            edgeOffset={bottomBarOffset}
             role="toolbar"
             aria-label="编辑操作"
             style={{ zIndex: 900 }}
@@ -852,6 +863,7 @@ export function NoteContent({
       {contentEditable && openBlockMenuId === null ? (
         <SelectionPopover
           containerRef={shellRef}
+          theme={theme}
           allowCrossFieldFormat={Boolean(onNoteTransaction)}
           portalContainerRef={useBottomBar ? bottomBarRef : undefined}
           onMagicLinkConfigure={onMagicLinkConfigure}
