@@ -1,3 +1,4 @@
+import { isVisibleHtmlEmpty } from "./blockEditing"
 import {
   sanitizeBodyHtml,
   sanitizeCodeHighlightHtml,
@@ -34,6 +35,13 @@ export type EditContext = {
 
 const editableCommitters = new WeakMap<HTMLElement, () => void>()
 
+const syncTitlePlaceholderVisibility = (editable: HTMLElement): void => {
+  editable.toggleAttribute(
+    "data-placeholder-visible",
+    isVisibleHtmlEmpty(editable.innerHTML)
+  )
+}
+
 /**
  * 立即提交指定 contenteditable 的当前 DOM 内容。
  * Markdown 快捷转换会在元素仍保持焦点时调用此入口，从而复用该 editable
@@ -54,6 +62,7 @@ export const editableProps = (
       ? sanitizeTitleHtml(editable.innerHTML)
       : sanitizeBodyHtml(editable.innerHTML)
     if (sanitized !== editable.innerHTML) editable.innerHTML = sanitized
+    if (profile === "title") syncTitlePlaceholderVisibility(editable)
     onCommit(editable)
   }
 
@@ -69,8 +78,14 @@ export const editableProps = (
       currentEditable = editable
       if (editable) {
         editableCommitters.set(editable, () => commit(editable))
+        if (profile === "title") syncTitlePlaceholderVisibility(editable)
       }
     },
+    onInput: profile === "title"
+      ? (event: React.FormEvent<HTMLElement>) => {
+          syncTitlePlaceholderVisibility(event.currentTarget)
+        }
+      : undefined,
     onBlur: (event: React.FocusEvent<HTMLElement>) => {
       // 焦点移向 SelectionPopover（如链接输入框）时跳过同步：
       // 避免 React 因 dangerouslySetInnerHTML 引用变化而替换 DOM 节点，

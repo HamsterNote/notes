@@ -66,7 +66,7 @@ describe("NoteContent responsive layout", () => {
       expect(bottomBar?.classList.contains("hn-popover")).toBe(true)
       expect(bottomBar?.classList.contains("hn-note-bottom-toolbar")).toBe(true)
       expect(bottomBar?.style.position).toBe("fixed")
-      expect(bottomBar?.style.bottom).toBe("16px")
+      expect(bottomBar?.style.bottom).toBe("32px")
       expect(bottomBar?.style.left).toBe("50%")
       expect(bottomBar?.style.transform).toBe("translateX(-50%)")
       expect(bottomBar?.style.zIndex).toBe("900")

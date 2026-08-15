@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { NoteContent } from "./NoteContent"
 import { SelectionPopover } from "./SelectionPopover"
-import type { NoteBlock } from "./types"
+import type { NoteBlock, NoteTheme } from "./types"
 
 // --- 待实现的 helper 模块 mock -----------
 const inlineSelectionFormatting = vi.hoisted(() => ({
@@ -36,7 +36,13 @@ const dispatchSelectionChange = () => {
 }
 
 // --- HEAD: TextHarness 用 NoteContent 集成测试 -----------
-const TextHarness = ({ initialBlock }: { initialBlock: NoteBlock }) => {
+const TextHarness = ({
+  initialBlock,
+  theme = "light"
+}: {
+  initialBlock: NoteBlock
+  theme?: NoteTheme
+}) => {
   const [blocks, setBlocks] = useState<readonly NoteBlock[]>([initialBlock])
   const containerRef = createRef<HTMLDivElement>()
 
@@ -46,6 +52,7 @@ const TextHarness = ({ initialBlock }: { initialBlock: NoteBlock }) => {
         blocks={blocks}
         title="Popover color"
         editable
+        theme={theme}
         onBlocksChange={setBlocks}
       />
     </div>
@@ -95,6 +102,35 @@ describe("SelectionPopover text color", () => {
     cleanup()
     vi.restoreAllMocks()
   })
+
+  it.each(["light", "dark"] as const)(
+    "uses the %s theme requested by the note",
+    async (theme) => {
+      // Given: editable text rendered in the requested note theme.
+      const block = { id: `theme-${theme}`, kind: "paragraph", text: "Theme me" } as const
+      const view = render(<TextHarness initialBlock={block} theme={theme} />)
+      const editable = editableBlockById(view.container, block.id)
+
+      // When: the user selects text and opens the formatting Popover.
+      editable.focus()
+      const range = document.createRange()
+      range.setStart(editable.firstChild ?? editable, 0)
+      range.setEnd(editable.firstChild ?? editable, 5)
+      const selection = window.getSelection()
+      selection?.removeAllRanges()
+      selection?.addRange(range)
+      dispatchSelectionChange()
+
+      // Then: the component-library Popover receives the same theme.
+      await waitFor(() => {
+        expect(
+          document.body
+            .querySelector('[aria-label="文字操作"]')
+            ?.getAttribute("data-theme")
+        ).toBe(theme)
+      })
+    }
+  )
 
   it("applies foreColor and syncs the owning block HTML when a color swatch is clicked", async () => {
     const block = { id: "p1", kind: "paragraph", text: "Hello world" } as const
@@ -348,6 +384,7 @@ const mountPopover = (overrides?: {
       </div>
       <SelectionPopover
         containerRef={containerRef}
+        theme="light"
         onContentChange={onContentChange}
       />
     </div>
@@ -476,6 +513,7 @@ describe("SelectionPopover 新增格式化按钮与行为", () => {
         />
         <SelectionPopover
           containerRef={containerRef}
+          theme="light"
           onContentChange={onContentChange}
         />
       </div>
@@ -688,6 +726,7 @@ const mountClampPopover = (selectionCenterLeft: number) => {
       </div>
       <SelectionPopover
         containerRef={containerRef}
+        theme="light"
         onContentChange={onContentChange}
       />
     </div>
@@ -787,6 +826,7 @@ const mountCrossBlockPopover = (): Promise<MountResult> => {
       </div>
       <SelectionPopover
         containerRef={containerRef}
+        theme="light"
         onContentChange={onContentChange}
       />
     </div>
@@ -886,6 +926,7 @@ const mountFormulaSpanPopover = () => {
       />
       <SelectionPopover
         containerRef={containerRef}
+        theme="light"
         onContentChange={onContentChange}
       />
     </div>

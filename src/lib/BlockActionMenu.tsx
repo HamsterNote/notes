@@ -21,7 +21,7 @@ import {
   type MenuItem
 } from "./BlockActionMenuTypes"
 import { PictureUploadMenuItem } from "./PictureUploadMenuItem"
-import type { NoteBlock } from "./types"
+import type { NoteBlock, NoteTheme } from "./types"
 import { focusEditableBlock } from "./useBlockEditing"
 
 // ===== 类型导出 =====
@@ -36,6 +36,8 @@ export type PictureUploadPayload = {
 }
 
 export type BlockActionMenuProps = {
+  /** Portal 菜单无法继承 NoteContent shell，需显式传入当前主题 */
+  readonly theme: NoteTheme
   /** 菜单是否打开，由父组件统一控制，便于和 SelectionPopover 互斥 */
   readonly open: boolean
   /** 受控开闭回调：handle、Escape、外部点击、格式选择都会通过它关闭菜单 */
@@ -108,6 +110,7 @@ export const triggerBlockActionMenu = (
  *   Escape 优先关子菜单，再次 Escape 关主菜单。
  */
 export const BlockActionMenu = ({
+  theme,
   open,
   onOpenChange,
   blockId,
@@ -449,6 +452,7 @@ export const BlockActionMenu = ({
       <div
         ref={submenuRef}
         className="hn-note-block-menu hn-note-block-menu-submenu"
+        data-theme={theme}
         role="menu"
         aria-label="转换成"
         tabIndex={-1}
@@ -504,6 +508,7 @@ export const BlockActionMenu = ({
       <div
         ref={menuRef}
         className="hn-note-block-menu"
+        data-theme={theme}
         role="menu"
         aria-label={mode === "convert" ? "区块格式选项" : "插入新区块类型"}
         tabIndex={mode === "add" ? -1 : undefined}

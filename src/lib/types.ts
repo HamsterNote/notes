@@ -299,6 +299,23 @@ export type NoteContentProps = {
    * 叠加在 body 默认底部内边距（2rem）之上，默认值: 0。
    */
   readonly bottomPadding?: number
+  /**
+   * 移动端或窄视口固定编辑底栏距离视口底部的距离（px），默认值: 32。
+   * 正文安全区会同步避让该距离，额外的内容留白仍由 bottomPadding 独立控制。
+   */
+  readonly bottomBarOffset?: number
+  /**
+   * 标题为空时显示的占位提示文字，仅在 editable 模式下生效。
+   * 默认值: "请输入标题"。
+   */
+  readonly titlePlaceholder?: string
+  /**
+   * 正文末尾始终追加的一行提示文字（无论正文是否有内容），
+   * 用于说明点击正文下方空白区域可新建一行。
+   * 文字本身不可交互，仅在 editable 且提供了 onBlocksChange 时显示。
+   * 默认值: "点击空白处新增一行"。
+   */
+  readonly bodyTailHint?: string
   /** React 19 ref 手柄；同时提供撤销/重做与按内容 id 跳转能力。 */
   readonly ref?: Ref<NoteContentHandle>
 }

@@ -34,4 +34,21 @@ describe("NoteContent theme contract", () => {
     expect(componentSource).toContain("hn-note-shell--$" + "{theme}")
     expect(styles).toContain(".hn-note-shell--dark")
   })
+
+  it("themes block-action menus that are portaled outside the note shell", () => {
+    // Given: block-action menus are rendered under document.body instead of the shell.
+    const menuSource = readSource("./BlockActionMenu.tsx")
+    const styles = readSource("./styles.css")
+
+    // When: the portal root and menu CSS are inspected.
+    // Then: the root carries the selected theme and CSS defines a dark override.
+    expect(menuSource).toContain("data-theme={theme}")
+    expect(styles).toContain('.hn-note-block-menu[data-theme="dark"]')
+    expect(styles).toContain("background: var(--hn-block-menu-bg)")
+    expect(styles).toContain("color: var(--hn-block-menu-text)")
+    expect(styles).toContain("color: var(--hn-block-menu-danger)")
+    expect(styles).toContain(
+      "background: var(--hn-block-menu-danger-hover)"
+    )
+  })
 })

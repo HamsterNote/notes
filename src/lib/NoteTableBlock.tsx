@@ -197,6 +197,7 @@ const NoteTableBlock = ({ block, ctx }: NoteTableBlockProps): ReactElement => {
           <TableOperationMenu
             items={openMenu.items}
             triggerRect={openMenu.triggerRect}
+            theme={ctx.theme}
             onClose={closeMenu}
           />
         ) : null}

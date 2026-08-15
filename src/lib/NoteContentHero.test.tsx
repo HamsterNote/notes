@@ -50,4 +50,60 @@ describe("NoteContent hero", () => {
     expect(onTitleChange).toHaveBeenCalledWith("Published title")
     expect(onSummaryChange).toHaveBeenCalledWith("Published summary")
   })
+
+  it("marks only a truly empty title for placeholder display", () => {
+    // Given: an editable title whose live DOM can contain text and break nodes.
+    const view = render(<NoteContent blocks={[]} title="Draft" editable />)
+    const title = view.getByRole("heading", { name: "Draft" })
+
+    // When: the browser represents the cleared title as one break.
+    title.innerHTML = "<br>"
+    fireEvent.input(title)
+
+    // Then: the title is marked empty so its placeholder remains visible.
+    expect(title.getAttribute("data-placeholder-visible")).toBe("")
+
+    // When: text exists beside a direct break node.
+    title.innerHTML = "Title<br>"
+    fireEvent.input(title)
+
+    // Then: text nodes prevent the title from being treated as empty.
+    expect(title.hasAttribute("data-placeholder-visible")).toBe(false)
+
+    // When: text surrounds the break node.
+    title.innerHTML = "Before<br>After"
+    fireEvent.input(title)
+
+    // Then: the non-empty title remains unmarked.
+    expect(title.hasAttribute("data-placeholder-visible")).toBe(false)
+  })
+
+  it.each(["<strong><br></strong>", "<strong></strong>"])(
+    "marks a visibly empty formatted title for placeholder display: %s",
+    (emptyTitleHtml) => {
+      // Given: an editable title whose formatting element remains after its text is cleared.
+      const view = render(<NoteContent blocks={[]} title="Draft" editable />)
+      const title = view.getByRole("heading", { name: "Draft" })
+
+      // When: the live title DOM contains formatting but no visible text.
+      title.innerHTML = emptyTitleHtml
+      fireEvent.input(title)
+
+      // Then: formatting-only markup does not suppress the title placeholder.
+      expect(title.getAttribute("data-placeholder-visible")).toBe("")
+    }
+  )
+
+  it("keeps the placeholder hidden for visible text inside formatting", () => {
+    // Given: an editable title containing formatted visible text.
+    const view = render(<NoteContent blocks={[]} title="Draft" editable />)
+    const title = view.getByRole("heading", { name: "Draft" })
+
+    // When: the live title DOM retains visible text inside the formatting node.
+    title.innerHTML = "<strong>Title</strong>"
+    fireEvent.input(title)
+
+    // Then: the visible formatted title is not marked as empty.
+    expect(title.hasAttribute("data-placeholder-visible")).toBe(false)
+  })
 })
