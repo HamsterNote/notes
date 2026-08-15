@@ -1,3 +1,4 @@
+import { isVisibleHtmlEmpty } from "./blockEditing"
 import {
   sanitizeBodyHtml,
   sanitizeCodeHighlightHtml,
@@ -35,11 +36,10 @@ export type EditContext = {
 const editableCommitters = new WeakMap<HTMLElement, () => void>()
 
 const syncTitlePlaceholderVisibility = (editable: HTMLElement): void => {
-  const onlyChild = editable.firstChild
-  const isEmpty =
-    onlyChild === null ||
-    (onlyChild === editable.lastChild && onlyChild.nodeName === "BR")
-  editable.toggleAttribute("data-placeholder-visible", isEmpty)
+  editable.toggleAttribute(
+    "data-placeholder-visible",
+    isVisibleHtmlEmpty(editable.innerHTML)
+  )
 }
 
 /**

@@ -301,7 +301,7 @@ export type NoteContentProps = {
   readonly bottomPadding?: number
   /**
    * 移动端或窄视口固定编辑底栏距离视口底部的距离（px），默认值: 32。
-   * 仅控制底栏位置，不改变正文的 bottomPadding。
+   * 正文安全区会同步避让该距离，额外的内容留白仍由 bottomPadding 独立控制。
    */
   readonly bottomBarOffset?: number
   /**

@@ -63,12 +63,16 @@ describe("NoteContent bottom toolbar", () => {
       />
     )
 
-    // Then: the component-library Popover receives that exact edge offset.
+    // Then: the Popover and the scrollable content safe area share that offset.
     await waitFor(() => {
       const bottomBar = view.container.querySelector<HTMLElement>(
         "[data-note-bottom-bar]"
       )
+      const shell = view.container.querySelector<HTMLElement>(".hn-note-shell")
       expect(bottomBar?.style.bottom).toBe("48px")
+      expect(shell?.style.getPropertyValue("--hn-bottom-bar-offset")).toBe(
+        "48px"
+      )
     })
   })
 })

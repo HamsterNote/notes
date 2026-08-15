@@ -148,7 +148,8 @@
 /* 固定底栏会覆盖视口底部；仅在启用它时为正文追加可滚动到的安全区。 */
 .hn-note-shell--bottom-toolbar .hn-note-body {
   padding-bottom: calc(
-    5rem + var(--hn-bottom-padding, 0px) + env(safe-area-inset-bottom, 0px)
+    5rem + var(--hn-bottom-bar-offset, 32px) - 32px +
+      var(--hn-bottom-padding, 0px) + env(safe-area-inset-bottom, 0px)
   );
 }
 
@@ -177,7 +178,8 @@
 
   .hn-note-shell--bottom-toolbar .hn-note-body {
     padding-bottom: calc(
-      8rem + var(--hn-bottom-padding, 0px) + env(safe-area-inset-bottom, 0px)
+      8rem + var(--hn-bottom-bar-offset, 32px) - 32px +
+        var(--hn-bottom-padding, 0px) + env(safe-area-inset-bottom, 0px)
     );
   }
 }

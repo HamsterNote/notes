@@ -268,7 +268,8 @@ export function NoteContent({
   const shellStyle = {
     ...(themeColor ? { "--hn-theme": themeColor } : {}),
     ...(topPadding ? { "--hn-top-padding": `${topPadding}px` } : {}),
-    ...(bottomPadding ? { "--hn-bottom-padding": `${bottomPadding}px` } : {})
+    ...(bottomPadding ? { "--hn-bottom-padding": `${bottomPadding}px` } : {}),
+    "--hn-bottom-bar-offset": `${bottomBarOffset}px`
   } as CSSProperties
   const controller = undoRedoController ?? DISABLED_CONTROLLER
   const externalDragHandle = useExternalNoteDrag({
