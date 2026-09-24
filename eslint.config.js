@@ -7,7 +7,12 @@ import tseslint from "typescript-eslint"
 
 export default tseslint.config(
   {
-    ignores: ["dist", "node_modules"]
+    ignores: [
+      "dist",
+      "node_modules",
+      // 非生产用 AST 守卫夹具，不在 tsconfig project 范围内，跳过类型感知检查
+      "scripts/fixtures/phase1-ast-guards/public-options.ts"
+    ]
   },
   {
     extends: [
