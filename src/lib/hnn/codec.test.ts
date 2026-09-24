@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest"
+import { TableMap } from "@tiptap/pm/tables"
 import { decodeHnn, encodeHnn, HnnCodecError } from "./codec"
 import { HNN_LIMITS, HNN_SCHEMA_VERSION } from "./limits"
 import { HNN_MARK_TYPES, HNN_NODE_TYPES, hnnSchema } from "./schema"
@@ -71,12 +72,12 @@ function richHnn(): Record<string, unknown> {
         { type: "heading", attrs: { nodeId: nodeId(), level: 1 }, content: [{ type: "text", text: "Title" }] },
         { type: "paragraph", attrs: { nodeId: nodeId() }, content: inline },
         { type: "bulletList", attrs: { nodeId: nodeId() }, content: [{ type: "listItem", attrs: { nodeId: nodeId() }, content: [blockParagraph("bullet")] }] },
-        { type: "orderedList", attrs: { nodeId: nodeId(), start: 2 }, content: [{ type: "listItem", attrs: { nodeId: nodeId() }, content: [blockParagraph("ordered")] }] },
+        { type: "orderedList", attrs: { nodeId: nodeId(), start: 2, type: null }, content: [{ type: "listItem", attrs: { nodeId: nodeId() }, content: [blockParagraph("ordered")] }] },
         { type: "taskList", attrs: { nodeId: nodeId() }, content: [{ type: "taskItem", attrs: { nodeId: nodeId(), checked: true }, content: [blockParagraph("task")] }] },
-        { type: "blockquote", attrs: { nodeId: nodeId() }, content: [blockParagraph("quote")] },
+        { type: "blockquote", attrs: { nodeId: nodeId(), author: "Ada" }, content: [blockParagraph("quote")] },
         { type: "codeBlock", attrs: { nodeId: nodeId(), language: "ts", filename: "note.ts" }, content: [{ type: "text", text: "const note = 1" }] },
         { type: "horizontalRule", attrs: { nodeId: nodeId() } },
-        { type: "table", attrs: { nodeId: nodeId() }, content: [{ type: "tableRow", attrs: { nodeId: nodeId() }, content: [{ type: "tableHeader", attrs: { nodeId: nodeId() }, content: [blockParagraph("head")] }, { type: "tableCell", attrs: { nodeId: nodeId() }, content: [blockParagraph("cell")] }] }] },
+        { type: "table", attrs: { nodeId: nodeId() }, content: [{ type: "tableRow", attrs: { nodeId: nodeId() }, content: [{ type: "tableHeader", attrs: { nodeId: nodeId(), colspan: 1, rowspan: 1, colwidth: null, align: "center" }, content: [blockParagraph("head")] }, { type: "tableCell", attrs: { nodeId: nodeId(), colspan: 2, rowspan: 1, colwidth: [120, 120], align: "left" }, content: [blockParagraph("cell")] }] }] },
         { type: "callout", attrs: { nodeId: nodeId(), tone: "info", title: "Note" }, content: [blockParagraph("callout")] },
         { type: "collapsible", attrs: { nodeId: nodeId(), title: "More", collapsed: false }, content: [blockParagraph("details")] },
         { type: "formula", attrs: { nodeId: nodeId(), latex: "E=mc^2" } },
@@ -84,7 +85,7 @@ function richHnn(): Record<string, unknown> {
         { type: "card", attrs: { nodeId: nodeId(), data: "{\"title\":\"Card\"}" } },
         { type: "drawing", attrs: { nodeId: nodeId(), data: "{\"version\":1}" } },
         { type: "directory", attrs: { nodeId: nodeId(), config: "headings" } },
-        { type: "resource", attrs: { nodeId: nodeId(), resourceId: "resource-1", name: "Resource" } },
+        { type: "paragraph", attrs: { nodeId: nodeId() }, content: [{ type: "resource", attrs: { nodeId: nodeId(), resourceId: "resource-1", name: "Resource" } }] },
         { type: "externalItem", attrs: { nodeId: nodeId(), resourceId: "external-1", name: "External" } }
       ]
     }
@@ -198,6 +199,10 @@ describe("HNN v1 codec", () => {
     ;(((badId["data"] as Record<string, unknown>)["content"] as Record<string, unknown>[])[0]?.["attrs"] as Record<string, unknown>)["nodeId"] = "123e4567-e89b-32d3-a456-426614174000"
     expect(diagnostics(badId).diagnostics.some((item) => item.code === "invalid-node-id")).toBe(true)
 
+    const emptyAuthor = validHnn()
+    ;((emptyAuthor["data"] as Record<string, unknown>)["content"] as unknown[])[0] = { type: "blockquote", attrs: { nodeId: ids[0], author: "" }, content: [paragraph("quote", ids[1])] }
+    expect(diagnostics(emptyAuthor).diagnostics.some((item) => item.path.endsWith("/author"))).toBe(true)
+
     const duplicate = validHnn()
     ;((duplicate["data"] as Record<string, unknown>)["content"] as unknown[]).push(paragraph("again", ids[0]))
     expect(diagnostics(duplicate).diagnostics.some((item) => item.code === "duplicate-node-id")).toBe(true)
@@ -233,6 +238,106 @@ describe("HNN v1 codec", () => {
     expect(diagnostics(unorderedMarks).diagnostics).toContainEqual(
       expect.objectContaining({ path: "/data/content/0/content/0/marks/1", code: "non-canonical-mark-order" })
     )
+  })
+
+  it("严格限制表格几何、colwidth 形状和空行，并接受有效表格", () => {
+    let nextId = 1
+    const tableId = () => generatedId(nextId++)
+    const cell = (attrs: Record<string, unknown>) => ({ type: "tableCell", attrs: { nodeId: tableId(), colspan: 1, rowspan: 1, colwidth: null, align: null, ...attrs }, content: [paragraph("cell", tableId())] })
+    const table = (rows: unknown[]) => ({ schemaVersion: 1, data: { type: "doc", content: [{ type: "table", attrs: { nodeId: ids[0] }, content: rows }] } })
+    const row = (cells: unknown[]) => ({ type: "tableRow", attrs: { nodeId: tableId() }, content: cells })
+    expect(() => decodeHnn(table([row([cell({})])] ))).not.toThrow()
+    expect(diagnostics(table([row([])])).diagnostics.some((item) => item.code === "invalid-content")).toBe(true)
+    expect(diagnostics(table([row([cell({ colspan: HNN_LIMITS.maxNodes })])])).diagnostics.some((item) => item.path.endsWith("/colspan"))).toBe(true)
+    expect(diagnostics(table([row([cell({ colspan: 2, colwidth: [100] })])])).diagnostics.some((item) => item.path.endsWith("/colwidth"))).toBe(true)
+    expect(diagnostics(table([row([cell({})]), row([cell({}), cell({})])])).diagnostics).toContainEqual(
+      expect.objectContaining({ path: "/data/content/0", code: "invalid-table-geometry" })
+    )
+  })
+
+  it("在 TableMap 分配前拒绝大跨度表格", () => {
+    let nextId = 1
+    const tableId = () => generatedId(nextId++)
+    const rows = Array.from({ length: 170 }, () => ({
+      type: "tableRow",
+      attrs: { nodeId: tableId() },
+      content: [{
+        type: "tableCell",
+        attrs: { nodeId: tableId(), colspan: 510, rowspan: 1, colwidth: null, align: null },
+        content: [paragraph("cell", tableId())]
+      }]
+    }))
+    const get = vi.spyOn(TableMap, "get")
+    try {
+      const error = diagnostics({ schemaVersion: 1, data: { type: "doc", content: [{ type: "table", attrs: { nodeId: ids[0] }, content: rows }] } })
+      expect(error.diagnostics).toContainEqual(
+        expect.objectContaining({ path: "/data/content/0", code: "invalid-table-geometry" })
+      )
+      expect(get).not.toHaveBeenCalled()
+    } finally {
+      get.mockRestore()
+    }
+  })
+
+  it("显式保留 v1 Phase2 省略的官方默认 attrs，并在输出时规范化", () => {
+    const input = { schemaVersion: 1, data: { type: "doc", content: [{ type: "orderedList", attrs: { nodeId: ids[0], start: 1 }, content: [{ type: "listItem", attrs: { nodeId: ids[1] }, content: [{ type: "paragraph", attrs: { nodeId: ids[2] }, content: [{ type: "text", text: "one" }] }] }] }, { type: "table", attrs: { nodeId: ids[3] }, content: [{ type: "tableRow", attrs: { nodeId: generatedId(4) }, content: [{ type: "tableCell", attrs: { nodeId: generatedId(5) }, content: [paragraph("legacy cell", generatedId(6))] }] }] }] } }
+    const output = encodeHnn(decodeHnn(input)).data
+    const content = output["content"] as Record<string, unknown>[]
+    const row = (content[1]?.["content"] as Record<string, unknown>[])[0]
+    const cell = (row?.["content"] as Record<string, unknown>[])[0]
+    expect(Array.isArray(content)).toBe(true)
+    expect(content[0]?.["attrs"]).toMatchObject({ type: null })
+    expect(cell?.["attrs"]).toMatchObject({ colspan: 1, rowspan: 1, colwidth: null, align: null })
+  })
+
+  it("按原始 v1 外壳计算字节上限，并对规范输出超限的两个编码入口统一失败", () => {
+    let nextId = 0
+    const nodeId = () => generatedId(nextId++)
+    const legacyCell = () => ({
+      type: "tableCell",
+      attrs: { nodeId: nodeId() },
+      content: [paragraph("cell", nodeId())]
+    })
+    const content: Record<string, unknown>[] = [{
+      type: "table",
+      attrs: { nodeId: nodeId() },
+      content: Array.from({ length: 2 }, () => ({
+        type: "tableRow",
+        attrs: { nodeId: nodeId() },
+        content: Array.from({ length: 64 }, legacyCell)
+      }))
+    }]
+    // 512 个节点正好用尽，避免测试本身依赖超过节点预算的填充方式。
+    for (let index = 0; index < 62; index += 1) content.push(paragraph("x", nodeId()))
+    const legacy = { schemaVersion: 1, data: { type: "doc", content } }
+    let remaining = HNN_LIMITS.maxShellBytes - shellBytes(legacy)
+    for (const block of content.slice(1)) {
+      const text = ((block["content"] as Record<string, unknown>[])[0]?.["text"] as string | undefined)
+      const addition = Math.min(remaining, HNN_LIMITS.maxAttrBytes - (text?.length ?? 0))
+      if (addition <= 0) continue
+      ;((block["content"] as Record<string, unknown>[])[0]!)["text"] = `${text}${"x".repeat(addition)}`
+      remaining -= addition
+    }
+    expect(remaining).toBe(0)
+    expect(shellBytes(legacy)).toBe(HNN_LIMITS.maxShellBytes)
+
+    const document = decodeHnn(legacy)
+    expect(document.textContent).toContain("cell")
+
+    // 两个入口必须一致：PM Node（canonical）与原始 record（旧 v1 data）都必须在最终
+    // canonical 输出超限时硬失败，不能返回不可再 decode 的 HNN。
+    for (const entry of [document, legacy["data"] as Record<string, unknown>] as const) {
+      const error = (() => {
+        try {
+          encodeHnn(entry)
+          throw new Error("expected canonical persistence limit failure")
+        } catch (caught) {
+          expect(caught).toBeInstanceOf(HnnCodecError)
+          return caught as HnnCodecError
+        }
+      })()
+      expect(error.diagnostics).toContainEqual(expect.objectContaining({ code: "shell-too-large" }))
+    }
   })
 
   it("takes one safe descriptor snapshot before validation and never re-reads a caller Proxy", () => {

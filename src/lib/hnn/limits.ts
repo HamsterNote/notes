@@ -14,6 +14,18 @@ export const HNN_LIMITS = {
   maxIdentifierBytes: 256
 } as const
 
+/**
+ * 表格几何独立受小于文档节点预算的固定上限约束。TableMap 会按 width * height
+ * 分配坐标网格，因此这些值必须在调用它之前由 HNN JSON 预检。
+ */
+export const HNN_TABLE_LIMITS = {
+  maxColumns: 64,
+  maxRows: 64,
+  maxGridCells: 64 * 64,
+  maxSpan: 64,
+  maxColumnWidth: HNN_LIMITS.maxAttrBytes
+} as const
+
 export const HNN_SCHEMA_VERSION = 1 as const
 
 /** 严格 UUID v4：版本 nibble 固定为 4，variant 仅接受 RFC 4122 的 8/9/a/b。 */

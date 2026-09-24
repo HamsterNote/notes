@@ -1,6 +1,8 @@
 import { Node as ProseMirrorNode } from "@tiptap/pm/model"
-import { HNN_LIMITS, HNN_SCHEMA_VERSION, UUID_V4_PATTERN } from "./limits"
+import { TableMap } from "@tiptap/pm/tables"
+import { HNN_LIMITS, HNN_SCHEMA_VERSION, HNN_TABLE_LIMITS, UUID_V4_PATTERN } from "./limits"
 import { HNN_MARK_TYPES, HNN_NODE_TYPES, hnnSchema } from "./schema"
+import { isSafeHnnUrl } from "./urlPolicy"
 
 export interface HnnDiagnostic {
   path: string
@@ -29,23 +31,23 @@ type JsonObject = { [key: string]: JsonValue }
 type SnapshotFrame = { source: object; target: JsonObject | JsonValue[]; path: string; depth: number; isArray: boolean }
 type ValidationFrame = { value: unknown; path: string; depth: number; parentType?: string; index?: number }
 type JsonCountAction = { kind: "value"; value: JsonValue }
+type TablePath = { path: string }
 
 const METADATA_KEYS = new Set(["title", "summary", "tag", "time"])
 const NODE_ID_TYPES = new Set([...HNN_NODE_TYPES].filter((type) => type !== "doc" && type !== "text"))
 const INLINE_TYPES = new Set(["text", "hardBreak", "inlineFormula", "mention"])
 const EMPTY_CONTENT_TYPES = new Set(["paragraph", "heading", "codeBlock"])
-const MARK_RANK = new Map(["bold", "italic", "strike", "code", "link"].map((type, rank) => [type, rank]))
+const MARK_RANK = new Map(Object.keys(hnnSchema.marks).map((type, rank) => [type, rank]))
 const ATOM_TYPES = new Set(["horizontalRule", "formula", "picture", "card", "drawing", "directory", "resource", "externalItem", "hardBreak", "inlineFormula", "mention"])
 const BLOCK_CONTENT_TYPES = new Set([
   "paragraph", "heading", "bulletList", "orderedList", "blockquote", "codeBlock",
   "horizontalRule", "table", "taskList", "callout", "collapsible", "formula",
-  "picture", "card", "drawing", "directory", "resource", "externalItem"
+  "picture", "card", "drawing", "directory", "externalItem"
 ])
 // JSON 结构会多于文档 node（attrs、marks 与 shell），但仍受固定预算限制。
 const SNAPSHOT_WORK_LIMIT = HNN_LIMITS.maxNodes * 16
 // 文档深度计 node，而 snapshot 还要经过 shell/data/content/attrs 数组与对象层。
 const SNAPSHOT_DEPTH_LIMIT = HNN_LIMITS.maxDepth * 3
-const UNSAFE_URL_CODE_POINT = /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}\p{Default_Ignorable_Code_Point}]/u
 
 function byteLength(value: string): number {
   let bytes = 0
@@ -367,25 +369,10 @@ function structuralEqual(left: unknown, right: unknown): boolean {
   return true
 }
 
-/** URL 输入已经是快照字符串；统一按 UTF-16 code unit 检查所有不允许字符。 */
-function hasUnsafeUrlCharacters(value: string): boolean {
-  for (let index = 0; index < value.length; index += 1) {
-    const unit = value.charCodeAt(index)
-    if (unit >= 0xd800 && unit <= 0xdbff) {
-      const next = value.charCodeAt(index + 1)
-      if (next < 0xdc00 || next > 0xdfff) return true
-      const character = value.slice(index, index + 2)
-      if (UNSAFE_URL_CODE_POINT.test(character)) return true
-      index += 1
-    } else if (unit >= 0xdc00 && unit <= 0xdfff) return true
-    else if (UNSAFE_URL_CODE_POINT.test(value[index] ?? "")) return true
-  }
-  return false
-}
-
 class Validator {
   readonly diagnostics: HnnDiagnostic[] = []
   readonly nodeIds = new Set<string>()
+  readonly tablePaths: TablePath[] = []
   nodeCount = 0
 
   error(path: string, code: string, message: string): void {
@@ -419,18 +406,7 @@ class Validator {
 
   validateUrl(value: unknown, path: string): void {
     if (!this.requiredString(value, path, HNN_LIMITS.maxAttrBytes, "URL")) return
-    if (hasUnsafeUrlCharacters(value) || value.trim() !== value) {
-      this.error(path, "unsafe-url", "URL 不得包含控制字符、默认忽略字符、双向控制字符、未配对代理项或首尾空白")
-      return
-    }
-    try {
-      const parsed = new URL(value)
-      if (!["http:", "https:", "mailto:", "hnmagic:"].includes(parsed.protocol) || !value.startsWith(parsed.protocol)) {
-        this.error(path, "unsafe-url", "URL 协议仅允许 http:、https:、mailto: 或 hnmagic:")
-      }
-    } catch {
-      this.error(path, "unsafe-url", "URL 必须为带白名单协议的绝对 URL")
-    }
+    if (!isSafeHnnUrl(value)) this.error(path, "unsafe-url", "URL 仅允许不含危险 Unicode 或首尾空白的 http:、https:、mailto: 或 hnmagic: 绝对地址")
   }
 
   validateAttrs(type: string, attrs: unknown, path: string): void {
@@ -438,22 +414,17 @@ class Validator {
       this.error(path, "invalid-attrs", "attrs 必须是纯对象")
       return
     }
-    const expected = ["nodeId"]
-    if (type === "heading") expected.push("level")
-    if (type === "orderedList") expected.push("start")
-    if (type === "taskItem") expected.push("checked")
-    if (type === "codeBlock") expected.push("language", "filename")
-    if (type === "callout") expected.push("tone", "title")
-    if (type === "collapsible") expected.push("title", "collapsed")
-    if (type === "formula" || type === "inlineFormula") expected.push("latex")
-    if (type === "picture") expected.push("src", "alt")
-    if (type === "card" || type === "drawing") expected.push("data")
-    if (type === "directory") expected.push("config")
-    if (type === "mention" || type === "resource" || type === "externalItem") expected.push("resourceId", "name")
+    // runtime schema 是 attrs 的唯一来源，避免 codec 与 extension 集合各自演化。
+    const expected = Object.keys(hnnSchema.nodes[type]?.spec.attrs ?? {})
     this.objectKeys(attrs, expected, path)
     for (const key of expected) {
-      if (!(key in attrs)) this.error(appendPath(path, key), "missing-attr", `缺少必填 attr ${key}`)
-      else this.attrSize(attrs[key], appendPath(path, key))
+      // v1 Phase2 文档允许官方节点的默认 attrs 省略；PM schema 会在建树时补默认值。
+      const optionalV1 = (type === "blockquote" && key === "author") || (type === "orderedList" && key === "type") || ((type === "tableCell" || type === "tableHeader") && ["colspan", "rowspan", "colwidth", "align"].includes(key))
+      if (!(key in attrs)) {
+        if (!optionalV1) this.error(appendPath(path, key), "missing-attr", `缺少必填 attr ${key}`)
+        continue
+      }
+      this.attrSize(attrs[key], appendPath(path, key))
     }
 
     const nodeId = attrs["nodeId"]
@@ -463,7 +434,12 @@ class Validator {
       else this.nodeIds.add(nodeId)
     }
     if (type === "heading" && !(Number.isInteger(attrs["level"]) && (attrs["level"] as number) >= 1 && (attrs["level"] as number) <= 6)) this.error(`${path}/level`, "invalid-attr", "heading level 必须为 1 到 6 的整数")
-    if (type === "orderedList" && !(Number.isInteger(attrs["start"]) && (attrs["start"] as number) >= 1)) this.error(`${path}/start`, "invalid-attr", "orderedList start 必须为正整数")
+    if (type === "orderedList") {
+      if (!(Number.isInteger(attrs["start"]) && (attrs["start"] as number) >= 1)) this.error(`${path}/start`, "invalid-attr", "orderedList start 必须为正整数")
+      const listType = attrs["type"] ?? null
+      if (!(listType === null || ["1", "a", "A", "i", "I"].includes(listType as string))) this.error(`${path}/type`, "invalid-attr", "orderedList type 必须为 null、1、a、A、i 或 I")
+    }
+    if (type === "blockquote" && attrs["author"] !== undefined && attrs["author"] !== null) this.requiredString(attrs["author"], `${path}/author`, HNN_LIMITS.maxLabelBytes, "blockquote author")
     if (type === "taskItem" && typeof attrs["checked"] !== "boolean") this.error(`${path}/checked`, "invalid-attr", "checked 必须是布尔值")
     if (type === "collapsible") {
       this.requiredString(attrs["title"], `${path}/title`, HNN_LIMITS.maxLabelBytes, "collapsible title")
@@ -487,6 +463,20 @@ class Validator {
     if (type === "mention" || type === "resource" || type === "externalItem") {
       this.requiredString(attrs["resourceId"], `${path}/resourceId`, HNN_LIMITS.maxIdentifierBytes, "resourceId")
       this.requiredString(attrs["name"], `${path}/name`, HNN_LIMITS.maxLabelBytes, "name")
+    }
+    if (type === "tableCell" || type === "tableHeader") {
+      const colspanValue = attrs["colspan"] ?? 1
+      const rowspanValue = attrs["rowspan"] ?? 1
+      const colwidthValue = attrs["colwidth"] ?? null
+      const alignValue = attrs["align"] ?? null
+      for (const attr of ["colspan", "rowspan"] as const) {
+        const value = attr === "colspan" ? colspanValue : rowspanValue
+        if (!(typeof value === "number" && Number.isInteger(value) && value >= 1 && value <= HNN_TABLE_LIMITS.maxSpan)) this.error(`${path}/${attr}`, "invalid-attr", `${attr} 必须为 1 到 ${HNN_TABLE_LIMITS.maxSpan} 的整数`)
+      }
+      if (!(colwidthValue === null || (Array.isArray(colwidthValue) && Number.isInteger(colspanValue) && colwidthValue.length === colspanValue && colwidthValue.every((width) => Number.isInteger(width) && width > 0 && width <= HNN_TABLE_LIMITS.maxColumnWidth)))) {
+        this.error(`${path}/colwidth`, "invalid-attr", "colwidth 必须为 null，或长度等于 colspan 且每项为有界正整数的数组")
+      }
+      if (!(alignValue === null || ["left", "right", "center"].includes(alignValue as string))) this.error(`${path}/align`, "invalid-attr", "align 必须为 null、left、right 或 center")
     }
   }
 
@@ -573,6 +563,7 @@ class Validator {
       if (type === "doc" && frame.value["attrs"] !== undefined) this.error(`${frame.path}/attrs`, "forbidden-attrs", "doc 不得包含 attrs")
       if (NODE_ID_TYPES.has(type)) this.validateAttrs(type, frame.value["attrs"], `${frame.path}/attrs`)
       if (frame.value["marks"] !== undefined) this.error(`${frame.path}/marks`, "forbidden-mark", `${type} 节点不得直接带 marks`)
+      if (type === "table") this.validateTableGeometry(frame.value, frame.path)
       const content = frame.value["content"]
       if (ATOM_TYPES.has(type)) {
         if (content !== undefined) this.error(`${frame.path}/content`, "invalid-content", `${type} 是原子节点且不得包含 content`)
@@ -597,6 +588,67 @@ class Validator {
     }
   }
 
+  /**
+   * 在 HNN JSON 上以至多 64 列的固定状态数组模拟表格布局。这个预检先于
+   * hnnSchema.nodeFromJSON/TableMap，避免恶意 rowspan/colspan 触发大网格分配。
+   */
+  validateTableGeometry(table: Record<string, unknown>, path: string): void {
+    this.tablePaths.push({ path })
+    const rows = table["content"]
+    if (!Array.isArray(rows)) return
+    if (rows.length > HNN_TABLE_LIMITS.maxRows) {
+      this.error(path, "invalid-table-geometry", `表格行数不得超过 ${HNN_TABLE_LIMITS.maxRows}`)
+      return
+    }
+
+    const activeRowspans = new Array<number>(HNN_TABLE_LIMITS.maxColumns).fill(0)
+    let width: number | undefined
+    for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
+      const row: unknown = rows[rowIndex]
+      const cells = isSnapshotObject(row) ? row["content"] : undefined
+      if (!Array.isArray(cells)) return
+      const nextRowspans = activeRowspans.map((span) => Math.max(0, span - 1))
+      let column = 0
+      let rowWidth = 0
+      for (const cell of cells) {
+        while (column < HNN_TABLE_LIMITS.maxColumns && activeRowspans[column] !== 0) column += 1
+        const attrs = isSnapshotObject(cell) && isSnapshotObject(cell["attrs"]) ? cell["attrs"] : undefined
+        const colspan = typeof attrs?.["colspan"] === "number" ? attrs["colspan"] : 1
+        const rowspan = typeof attrs?.["rowspan"] === "number" ? attrs["rowspan"] : 1
+        if (!Number.isInteger(colspan) || !Number.isInteger(rowspan) || colspan < 1 || rowspan < 1 || column + colspan > HNN_TABLE_LIMITS.maxColumns) {
+          this.error(path, "invalid-table-geometry", `表格列数不得超过 ${HNN_TABLE_LIMITS.maxColumns}`)
+          return
+        }
+        for (let offset = 0; offset < colspan; offset += 1) {
+          if (activeRowspans[column + offset] !== 0) {
+            this.error(path, "invalid-table-geometry", "表格单元格不得覆盖 rowspan 占用的坐标")
+            return
+          }
+          nextRowspans[column + offset] = rowspan - 1
+        }
+        column += colspan
+        rowWidth = Math.max(rowWidth, column)
+      }
+      for (let index = 0; index < HNN_TABLE_LIMITS.maxColumns; index += 1) {
+        if (activeRowspans[index] !== 0) rowWidth = Math.max(rowWidth, index + 1)
+      }
+      if (width === undefined) width = rowWidth
+      if (width === 0 || rowWidth !== width || width > HNN_TABLE_LIMITS.maxColumns || (rowIndex + 1) * width > HNN_TABLE_LIMITS.maxGridCells) {
+        this.error(path, "invalid-table-geometry", `表格必须是完整矩形，且网格面积不得超过 ${HNN_TABLE_LIMITS.maxGridCells}`)
+        return
+      }
+      for (let index = 0; index < width; index += 1) {
+        const coveredByCell = nextRowspans[index] !== 0 || activeRowspans[index] !== 0
+        if (!coveredByCell && index >= column) {
+          this.error(path, "invalid-table-geometry", "表格行存在未覆盖的网格坐标")
+          return
+        }
+      }
+      activeRowspans.splice(0, activeRowspans.length, ...nextRowspans)
+    }
+    if (activeRowspans.some((span) => span !== 0)) this.error(path, "invalid-table-geometry", "rowspan 不得超出表格末行")
+  }
+
   isAllowedChild(parent: string, childType: unknown, index: number): boolean {
     if (typeof childType !== "string") return false
     if (["doc", "blockquote", "callout", "collapsible", "tableCell", "tableHeader"].includes(parent)) return BLOCK_CONTENT_TYPES.has(childType)
@@ -605,14 +657,35 @@ class Validator {
     if (parent === "listItem" || parent === "taskItem") return index === 0 ? childType === "paragraph" : BLOCK_CONTENT_TYPES.has(childType)
     if (parent === "table") return childType === "tableRow"
     if (parent === "tableRow") return childType === "tableHeader" || childType === "tableCell"
-    if (parent === "paragraph" || parent === "heading") return INLINE_TYPES.has(childType)
+    if (parent === "paragraph" || parent === "heading") return INLINE_TYPES.has(childType) || childType === "resource"
     return parent === "codeBlock" && childType === "text"
   }
 }
 
-function validateShell(input: unknown): JsonObject {
-  const snapshot = snapshotJson(input)
-  if (!isSnapshotObject(snapshot)) throw diagnostic("/", "invalid-shell", "HNN 外壳必须是纯 JSON 对象")
+function validateTableGeometry(document: ProseMirrorNode, tablePaths: readonly TablePath[]): void {
+  let failure: HnnCodecError | undefined
+  let tableIndex = 0
+  document.descendants((node) => {
+    if (failure || node.type.name !== "table") return
+    const path = tablePaths[tableIndex++]?.path ?? "/data"
+    try {
+      const map = TableMap.get(node)
+      if (map.width < 1 || map.height < 1 || map.map.some((cell) => cell <= 0) || map.problems !== null) {
+        throw new Error(map.problems?.map((problem) => problem.type).join(", ") || "TableMap contains invalid coordinates")
+      }
+      for (let row = 0; row < map.height; row += 1) {
+        for (let column = 0; column < map.width; column += 1) {
+          if (map.map[row * map.width + column] === undefined) throw new Error("TableMap has an uncovered grid slot")
+        }
+      }
+    } catch (error) {
+      failure = diagnostic(path, "invalid-table-geometry", error instanceof Error ? `表格几何无效：${error.message}` : "表格几何无效")
+    }
+  })
+  if (failure) throw failure
+}
+
+function validateShell(snapshot: JsonObject): Validator {
   if (serializedJsonByteLength(snapshot, HNN_LIMITS.maxShellBytes) === undefined) {
     throw diagnostic("/", "shell-too-large", `HNN 外壳超过 ${HNN_LIMITS.maxShellBytes} UTF-8 字节`)
   }
@@ -628,17 +701,50 @@ function validateShell(input: unknown): JsonObject {
   }
   validator.validateDocument(data)
   if (validator.diagnostics.length > 0) throw new HnnCodecError(validator.diagnostics)
-  return snapshot
+  return validator
+}
+
+function normalizeV1Defaults(data: JsonObject): JsonObject {
+  const normalized = cloneJson(data) as JsonObject
+  const visit = (value: JsonValue): void => {
+    if (Array.isArray(value)) {
+      value.forEach(visit)
+      return
+    }
+    if (!isSnapshotObject(value)) return
+    const type = value["type"]
+    const attrs = value["attrs"]
+    if (isSnapshotObject(attrs)) {
+      if (type === "orderedList" && !("type" in attrs)) attrs["type"] = null
+      if (type === "blockquote" && !("author" in attrs)) attrs["author"] = null
+      if (type === "tableCell" || type === "tableHeader") {
+        if (!("colspan" in attrs)) attrs["colspan"] = 1
+        if (!("rowspan" in attrs)) attrs["rowspan"] = 1
+        if (!("colwidth" in attrs)) attrs["colwidth"] = null
+        if (!("align" in attrs)) attrs["align"] = null
+      }
+    }
+    const content = value["content"]
+    if (Array.isArray(content)) content.forEach(visit)
+  }
+  visit(normalized)
+  return normalized
 }
 
 /** 解码并以 ProseMirror 进行最终结构回退检查；失败永远抛出 HnnCodecError。 */
 export function decodeHnn(input: unknown): ProseMirrorNode {
-  const snapshot = validateShell(input)
-  const data = snapshot["data"] as JsonObject
+  const snapshot = snapshotJson(input)
+  if (!isSnapshotObject(snapshot)) throw diagnostic("/", "invalid-shell", "HNN 外壳必须是纯 JSON 对象")
+  // 兼容字段补全前，必须以调用方实际提交的 v1 外壳计算持久化字节上限。
+  const validator = validateShell(snapshot)
+  const dataValue = snapshot["data"]
+  const normalizedInput = { ...snapshot, data: isSnapshotObject(dataValue) ? normalizeV1Defaults(dataValue) : dataValue }
+  const data = normalizedInput["data"] as JsonObject
   try {
     const document = hnnSchema.nodeFromJSON(data)
     if (document.type !== hnnSchema.topNodeType) throw diagnostic("/data/type", "invalid-root", "ProseMirror 根节点必须为 schema topNode doc")
     document.check()
+    validateTableGeometry(document, validator.tablePaths)
     const canonical: unknown = document.toJSON()
     if (!structuralEqual(canonical, data)) throw diagnostic("/data", "non-canonical", "HNN data 不是该封闭 schema 的规范 JSON 形式；请使用 codec 输出的 JSON")
     return document
@@ -652,8 +758,17 @@ export function decodeHnn(input: unknown): ProseMirrorNode {
 export function encodeHnn(input: ProseMirrorNode | Record<string, unknown>): HnnDocument {
   const data = input instanceof ProseMirrorNode ? input.toJSON() as Record<string, unknown> : input
   const document = decodeHnn({ schemaVersion: HNN_SCHEMA_VERSION, data })
+  const canonical = document.toJSON() as JsonValue
+  // decode 为兼容旧 v1 输入会按调用方提交的原始外壳计算上限，并补全省略的官方默认
+  // attrs；补全后的 canonical JSON 可能更大。这里在返回前对最终
+  // {schemaVersion, data} 使用与 decode 一致的受限序列化大小检查，PM Node 入口与
+  // Record 入口统一，避免返回超过持久化上限、无法再被 decode 的 HNN。
+  const shell: JsonValue = { schemaVersion: HNN_SCHEMA_VERSION, data: canonical }
+  if (serializedJsonByteLength(shell, HNN_LIMITS.maxShellBytes) === undefined) {
+    throw diagnostic("/", "shell-too-large", `HNN 外壳超过 ${HNN_LIMITS.maxShellBytes} UTF-8 字节`)
+  }
   return {
     schemaVersion: HNN_SCHEMA_VERSION,
-    data: cloneJson(document.toJSON() as JsonValue) as Record<string, unknown>
+    data: cloneJson(canonical) as Record<string, unknown>
   }
 }
