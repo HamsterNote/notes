@@ -45,13 +45,14 @@ HNN 精确外壳为 `{ schemaVersion: 1, data: <纯 ProseMirror JSON doc> }`：`
 
 ### D3. 会话模型：`documentId` / `loadKey` / dirty / 保存 / 取消
 
-- **会话即 `documentId`**：组件挂载或 `documentId` 变化时，创建或销毁整个编辑会话（PM state、plugins、NodeView、监听器）。会话内一切异步任务（保存、上传）都绑定当前会话令牌。
-- **`loadKey`**：当 `documentId` 不变但需要按外部内容重新装载（reload）时，使用 `loadKey`。`loadKey` 变化即以传入的 HNN 重建文档与会话内容，而不只是替换文本。
-- **dirty**：以 `currentDoc.eq(savedBaseline)` 判定；`eq` 为 PM 结构等价，避免 JSON 字符串比较的键序问题。初始装载后 baseline 等于初始 doc（非 dirty）。
-- **保存**：触发保存时**捕获当前 doc 的快照**（deep snapshot），调用宿主 `onSave(snapshot)`；只有成功回调后，才把该快照设为新 baseline。保存期间的新编辑不影响在途快照，也不提前清除 dirty。失败保留原 baseline。
-- **会话切换**：`documentId`/`loadKey` 变化或卸载时，abort 在途保存与上传，并**忽略其陈旧结果**（通过会话令牌比对丢弃）。
-- **冲突**：检测到外部/远端已变化时**不自动合并**；将冲突态交给宿主/UI 决策，绝不静默覆盖。
-- **理由**：会话令牌 + 快照 baseline 能可靠处理竞态（切换后旧保存/旧上传返回）；不自动合并符合“无协作内核”的边界。
+- **会话键与初始装载**：`documentId` 与 `loadKey` 共同定义一次编辑会话。装载 HNN 时，必须先经 `decodeHnn` 的严格硬校验，再用成功解码结果创建 `EditorState`；不得以损坏输入构造降级会话。同一 `documentId` 与 `loadKey` 下，后续 `initialDocument` prop 的变化必须忽略，不能覆盖用户当前编辑。任一 `documentId` 或 `loadKey` 变化均以当次已验证 HNN 重建整个会话（PM state、plugins、NodeView、监听器）。
+- **初始 revision 与 baseline**：`initialRevision?` 必须与本次 `initialDocument` 和 `loadKey` 一同作为该会话的 CAS 基线。会话创建后，文档 baseline 必须取自当次 `editor.state.doc`，revision baseline 取自 `initialRevision`；二者都只在成功保存或下一次会话重建时更新。
+- **封闭 history**：undo/redo 使用库内封闭装配的 history 扩展及其状态；会话重建时清空。库不得向宿主暴露 schema、extensions 或 history 的注册、替换入口。
+- **dirty**：以 `currentDoc.eq(savedBaseline)` 判定；`eq` 为 PM 结构等价，避免 JSON 字符串比较的键序问题。初始装载后 `savedBaseline` 即为当次 `editor.state.doc`，因此非 dirty。
+- **保存与 CAS**：保存时捕获当前 doc 的深快照，以 `onSave(snapshot, { documentId, baseRevision, signal })` 交给宿主。每个会话同时最多一个在途保存；保存中再次触发不得新建并发请求。宿主返回判别结果 `{ kind: 'saved', revision?: string }` 或 `{ kind: 'conflict' }`：仅 `saved` 才将该快照设为新的文档 baseline，并在返回 revision 时更新 revision baseline；未返回 revision 时清除 revision baseline，避免把旧 revision 误当成已保存快照的 revision。保存期间的新编辑不影响在途快照，也不提前清除 dirty；失败保留原 baseline。
+- **会话令牌与取消**：每次会话和每个异步操作必须使用不可复用的令牌及独立 `AbortSignal`。`documentId`/`loadKey` 变化或卸载时 abort 在途保存与上传；库仅通过令牌比对在自身状态中忽略陈旧结果，不能保证宿主已停止 I/O。
+- **冲突与远端采用**：收到 `conflict` 时不自动合并、不替换当前文档、文档/revision baseline、选择或 history，只暴露冲突态。宿主若选择采用远端，必须以新的 `initialDocument` 加新的 `loadKey` 重载；若保留本地，宿主负责在后续策略中再次保存。宿主必须以 `documentId` 与 `baseRevision?` 实施 CAS，防止已被库忽略的旧请求仍实际覆盖存储。
+- **理由**：会话令牌 + 快照/revision baseline 能可靠隔离库内竞态（切换后旧保存/旧上传返回）；宿主 CAS 负责库无法控制的存储端竞态；不自动合并符合“无协作内核”的边界。
 - **替代方案**：以 `documentId` 内的 latest-write-wins 自动合并。放弃——无 CRDT 时合并语义不可靠，且掩盖冲突。以 JSON 字符串判 dirty。放弃——脆弱且开销大。
 
 ### D4. Markdown 方言与导出降级
@@ -149,12 +150,12 @@ HNN 与导入内容按不可信输入处理，至少包含：
 ## Migration Plan
 
 1. **落地 codec 与 schema**：先实现 HNN 外壳校验与无损编解码、封闭 extension 集合与安全限制（D2/D5/D12），建立可独立测试的格式契约。
-2. **搭建 `NoteEditor` 会话骨架**：实现 `documentId`/`loadKey` 驱动的会话创建销毁、dirty（`eq` baseline）、保存快照与取消/忽略陈旧结果（D3）。
+2. **搭建内部 `NoteEditor`/`EditorSession` 会话骨架**：实现 `documentId`/`loadKey` 驱动的会话创建销毁、严格初始 HNN 装载、封闭 history、dirty（`eq` baseline）、CAS 保存快照与取消/忽略陈旧结果（D3）。此阶段不改变冻结的根入口或公开 API。
 3. **迁移标准能力**：以标准/官方扩展覆盖段落、标题、列表、待办、引用、代码、表格等，并对齐 `DESIGN.md` 视觉与交互（D1/D6/D9）。
 4. **迁移自定义能力**：逐个实现 callout、collapsible、公式、picture、card、drawing、mention、外部拖入项；card/drawing 采用 atom + React NodeView + Drawer + transaction 提交（D6/D11）。
 5. **接入资源与拖拽**：宿主 `FileHandler` 上传、placeholder/decoration、失败重试与切换 abort（D8）；原生 `draggable` + `data-drag-handle` 重排（D10）。
 6. **Markdown 方言**：实现 GFM + 围栏导入、HNN 无损保存与可选导出 + 降级诊断及 UI 确认（D4）。
-7. **替换宿主 API 并清理旧代码**：更新库导出与 Demo，删除 `NoteBlock`/`restrictedHtml`/自研选区与剪贴板实现；不保留迁移/兼容层。
+7. **替换宿主 API 并清理旧代码**：在内容界面完成后，将根入口切换为公开的 `NoteEditor`、编解码与保存状态契约，更新 Demo；随后删除 `NoteBlock`/`restrictedHtml`/自研选区与剪贴板实现。Phase 5 的内部模块不得提前从 `src/lib/index.ts` 公开，且不保留迁移/兼容层。
 8. **验证**：按各 capability 规格补齐测试（格式往返、严格校验与硬错误不覆盖、会话竞态、dirty/保存、选择与剪贴板、Markdown 降级、安全限制）。
 
 **回滚策略**：本变更在功能分支推进，旧实现仅在移除步骤（第 7 步）一次性删除；若迁移受阻，回退该次删除提交即可恢复旧内核，格式/编辑器新代码可独立保留而暂不接入发布。

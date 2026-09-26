@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest"
 import { Editor } from "@tiptap/core"
 import { decodeHnn, encodeHnn } from "./codec"
-import { createHnnExtensions, HNN_MARK_TYPES, HNN_NODE_TYPES, hnnRuntimeSchema } from "./extensions"
+import { createHnnEditorExtensions, createHnnExtensions, HNN_MARK_TYPES, HNN_NODE_TYPES, hnnRuntimeSchema } from "./extensions"
 import { HNN_NODE_ID_TYPES } from "./nodeId"
 import { isSafeHnnUrl } from "./urlPolicy"
 
@@ -18,12 +18,27 @@ const ids = [
 describe("封闭 HNN extensions", () => {
   it("只从无宿主输入的 extension 集合构造唯一 runtime schema", () => {
     expect(createHnnExtensions).toHaveLength(0)
+    expect(createHnnEditorExtensions).toHaveLength(0)
     expect([...HNN_NODE_TYPES].sort()).toEqual([
       "blockquote", "bulletList", "callout", "card", "codeBlock", "collapsible", "directory", "doc", "drawing", "externalItem", "formula", "hardBreak", "heading", "horizontalRule", "inlineFormula", "listItem", "mention", "orderedList", "paragraph", "picture", "resource", "table", "tableCell", "tableHeader", "tableRow", "taskItem", "taskList", "text"
     ])
     expect([...HNN_MARK_TYPES].sort()).toEqual(["bold", "code", "italic", "link", "strike"])
     expect(Object.keys(hnnRuntimeSchema.marks["link"]?.spec.attrs ?? {})).toEqual(["href"])
     expect([...HNN_NODE_ID_TYPES].sort()).toEqual([...HNN_NODE_TYPES].filter((name) => name !== "doc" && name !== "text").sort())
+  })
+
+  it("编辑会话仅通过封闭 StarterKit 启用 UndoRedo，codec schema 不携带 history", () => {
+    const codecEditor = new Editor({ extensions: createHnnExtensions() })
+    const sessionEditor = new Editor({ extensions: createHnnEditorExtensions() })
+    try {
+      expect(codecEditor.extensionManager.extensions.map((extension) => extension.name)).not.toContain("undoRedo")
+      expect(sessionEditor.extensionManager.extensions.map((extension) => extension.name)).toContain("undoRedo")
+      expect(sessionEditor.extensionManager.extensions.map((extension) => extension.name)).not.toContain("hnnHistory")
+      expect(sessionEditor.extensionManager.extensions.map((extension) => extension.name)).not.toContain("hnnUndoRedoBeforeInput")
+    } finally {
+      codecEditor.destroy()
+      sessionEditor.destroy()
+    }
   })
 
   it("将标准复杂 attrs 与 custom attrs 以 runtime schema 的规范 JSON 往返", () => {

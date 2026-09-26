@@ -16,11 +16,29 @@
 - **THEN** 二者可协同工作并对外呈现编辑内容与当前保存状态
 
 ### Requirement: 宿主提供真实输入输出
-笔记库 SHALL 通过宿主提供的保存回调执行真实写出，库本身 MUST NOT 假设或自行访问宿主的存储介质；MUST 将待持久化的内容以快照方式交给宿主回调。
+笔记库 SHALL 通过宿主提供的保存回调执行真实写出，库本身 MUST NOT 假设或自行访问宿主的存储介质；MUST 将待持久化的内容以快照方式交给宿主回调。编辑器输入的 `initialRevision?` MUST 与同次初始 HNN 及 `loadKey` 一起构成保存基线。
 
 #### Scenario: 触发保存
 - **WHEN** 编辑器发起一次保存
 - **THEN** 库以当前内容的快照调用宿主提供的保存回调，由宿主决定实际写出位置与方式
+
+### Requirement: 保存使用宿主 CAS 与判别结果
+保存回调 SHALL 接收 `onSave(snapshot, { documentId, baseRevision?, signal })`，并返回判别结果 `{ kind: 'saved', revision?: string }` 或 `{ kind: 'conflict' }`。宿主 MUST 使用 `documentId` 与 `baseRevision?` 对实际存储执行 CAS；库内中止或忽略陈旧结果只保护库内状态，不能阻止已发出的旧请求覆盖宿主存储。
+
+#### Scenario: CAS 保存成功
+- **WHEN** 编辑器以当前 document baseline 的 `baseRevision?` 发起保存且宿主 CAS 成功
+- **THEN** 宿主返回 `{ kind: 'saved', revision? }`
+- **AND** 库仅将该次 snapshot 设为新的文档 baseline
+- **AND** 返回 `revision` 时库 SHALL 将其设为新的 revision baseline，未返回时 SHALL 清除 revision baseline
+
+#### Scenario: CAS 检测到版本冲突
+- **WHEN** 宿主发现 `baseRevision?` 不符合当前存储版本
+- **THEN** 宿主返回 `{ kind: 'conflict' }`
+- **AND** 宿主 SHALL NOT 以该请求覆盖当前存储内容
+
+#### Scenario: 保存已在进行
+- **WHEN** 同一编辑会话已有一次保存尚未完成又触发保存
+- **THEN** 库 SHALL 保持单飞，不得为该会话发起第二个并发保存回调
 
 #### Scenario: 宿主未提供保存回调
 - **WHEN** 宿主未提供保存回调而用户触发保存
@@ -101,7 +119,7 @@
 - **THEN** 状态仍为脏，且后续保存以未成功保存的内容为待写出内容
 
 ### Requirement: 会话切换与卸载中止或忽略陈旧回调
-当编辑会话被替换、装载标识变化或组件卸载时，库 MUST 中止在途保存与上传，或 MUST 忽略其陈旧结果；陈旧回调 MUST NOT 写入新会话的文档。
+当编辑会话被替换、装载标识变化或组件卸载时，库 MUST 中止在途保存与上传，并在库内忽略其陈旧结果；陈旧回调 MUST NOT 写入新会话的文档。每个会话令牌及每个异步操作的 `AbortSignal` MUST 不可复用。宿主仍 MUST 用 CAS 防止陈旧保存请求在存储端生效。
 
 #### Scenario: 保存中切换会话
 - **WHEN** 一次保存尚在途中时发生了会话切换或装载标识变化
@@ -112,11 +130,18 @@
 - **THEN** 上传被中止，其结果不影响任何会话文档
 
 ### Requirement: 冲突不自动合并
-检测到冲突时，笔记库 MUST NOT 自动合并内容，也 MUST NOT 静默覆盖任一侧；MUST 将冲突暴露给宿主或用户进行决策。
+检测到冲突时，笔记库 MUST NOT 自动合并内容，也 MUST NOT 静默覆盖任一侧；MUST 将冲突暴露给宿主或用户进行决策。冲突不得替换当前文档、document/revision baseline、选择或 history。
 
 #### Scenario: 外部变化与本地编辑冲突
 - **WHEN** 本地文档与外部内容在保存前均发生变化
 - **THEN** 编辑器不自动合并也不静默覆盖，而是呈现冲突并等待决策
+
+#### Scenario: 宿主采用远端或保留本地
+- **WHEN** 宿主在冲突后决定采用远端
+- **THEN** 宿主 SHALL 以新的 `initialDocument` 与新的 `loadKey` 使编辑器重载远端内容
+- **WHEN** 宿主决定保留本地
+- **THEN** 当前会话 SHALL 保持不变
+- **AND** 宿主 SHALL 通过后续保存策略处理该本地内容
 
 ### Requirement: 上传失败可重试或取消且临时态不持久化
 上传失败时用户 SHALL 能够重试或取消；上传临时态 MUST NOT 进入持久化内容；重试成功或取消后文档 MUST 进入确定的资源状态。
