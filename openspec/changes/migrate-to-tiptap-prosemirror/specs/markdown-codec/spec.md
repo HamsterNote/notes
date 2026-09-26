@@ -82,11 +82,29 @@ Markdown 方言 MUST 由 GFM 语法与 HamsterNote 围栏组成，且 MUST 不�
 - **THEN** 每类内容都以可读降级形式出现或带有指向该内容的诊断，导出报告中不出现未说明的内容缺失
 
 ### Requirement: 导入非法围栏或不可识别输入产生诊断
-当导入遇到语法非法的 HamsterNote 围栏或完全不可识别的输入时，导入 MUST 返回诊断说明问题所在，MUST NOT 静默忽略这些输入，且 MUST 保留可识别部分的内容。
+当导入遇到语法非法的 HamsterNote 围栏或完全不可识别的输入时，导入 MUST 返回诊断说明问题所在，MUST NOT 静默忽略这些输入，且 MUST 保留可识别部分的内容。对于损坏或非规范的 `hamster-note-json-b64` 等 HamsterNote 围栏或分片，导入后的候选文档及其完整保留该围栏或分片所需的降级表示 MUST 受 HNN v1 512 KiB UTF-8 严格容量限制约束。
 
 #### Scenario: 围栏语法非法
 - **WHEN** 输入中包含一个语法非法的 HamsterNote 围栏
-- **THEN** 导入返回指向该围栏的诊断，同时可识别的其余内容仍被导入
+- **AND** 将该围栏连同可识别部分完整、可编码地保留后的 HNN 不超过 512 KiB UTF-8
+- **THEN** 导入 SHALL 返回指向该围栏的诊断
+- **AND** 该围栏 SHALL 以局部可读降级表示被完整保留
+- **AND** 其余可识别内容 SHALL 仍被导入
+
+#### Scenario: 损坏或非规范 JSON-b64 围栏或分片在容量内局部保留
+- **WHEN** 输入包含损坏或非规范的 `hamster-note-json-b64` 围栏或分片
+- **AND** 将该围栏或分片及其余可识别内容完整、可编码地保留后的 HNN 不超过 512 KiB UTF-8
+- **THEN** 导入 SHALL 返回指向该围栏的诊断
+- **AND** 返回的文档 SHALL 保留该围栏或分片的完整内容作为局部降级表示
+- **AND** 返回的文档 SHALL 保留其余可识别内容
+
+#### Scenario: 损坏或非规范 JSON-b64 围栏或分片无法在 HNN 容量内完整保留
+- **WHEN** 输入包含损坏或非规范的 `hamster-note-json-b64` 围栏或分片
+- **AND** 将该围栏或分片及其余可识别内容完整、可编码地保留会使 HNN 超过 512 KiB UTF-8
+- **THEN** 导入 SHALL 返回明确的受控失败及容量超限诊断
+- **AND** 导入 SHALL NOT 返回文档、部分文档或任何可保存替代文档
+- **AND** 导入 SHALL NOT 截断、改写或生成替代的 Markdown
+- **AND** 调用方 SHALL 保留原始 Markdown 并拥有其后续处理权
 
 #### Scenario: 完全不可识别的输入
 - **WHEN** 输入无法被识别为任何受支持方言内容

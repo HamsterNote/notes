@@ -1,7 +1,7 @@
 /** HNN v1 的保守资源上限，所有大小均按 UTF-8 字节计。 */
 export const HNN_LIMITS = {
   /** 单个 HNN JSON 外壳的最大序列化大小，避免不可信输入占用过多内存。 */
-  maxShellBytes: 256 * 1024,
+  maxShellBytes: 512 * 1024,
   /** 文档节点树最大深度，doc 自身计为第一层。 */
   maxDepth: 32,
   /** 一个文档允许的节点总数，文本节点同样计数。 */

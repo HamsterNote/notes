@@ -28,10 +28,11 @@ export class HnnCodecError extends Error {
 
 type JsonValue = null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue }
 type JsonObject = { [key: string]: JsonValue }
-type SnapshotFrame = { source: object; target: JsonObject | JsonValue[]; path: string; depth: number; isArray: boolean }
+type SnapshotFrame = { source: object; target: JsonObject | JsonValue[]; path: string; depth: number; isArray: boolean; ancestors: readonly object[] }
 type ValidationFrame = { value: unknown; path: string; depth: number; parentType?: string; index?: number }
 type JsonCountAction = { kind: "value"; value: JsonValue }
 type TablePath = { path: string }
+type ProseMirrorPreflightFrame = { node: ProseMirrorNode; path: string; depth: number; nextChildIndex: number; childCount: number }
 
 const METADATA_KEYS = new Set(["title", "summary", "tag", "time"])
 const NODE_ID_TYPES = new Set([...HNN_NODE_TYPES].filter((type) => type !== "doc" && type !== "text"))
@@ -48,6 +49,10 @@ const BLOCK_CONTENT_TYPES = new Set([
 const SNAPSHOT_WORK_LIMIT = HNN_LIMITS.maxNodes * 16
 // 文档深度计 node，而 snapshot 还要经过 shell/data/content/attrs 数组与对象层。
 const SNAPSHOT_DEPTH_LIMIT = HNN_LIMITS.maxDepth * 3
+// PM Node 入口在 toJSON 前只允许最终 512 KiB 外壳的两倍线性扫描工作，另加每个
+// 节点的固定结构访问预算。一次字符扫描与固定字段访问会重叠，但该上界仍有界，且
+// 允许临界合法文档完成预检而不是因计数自身的常数开销被提前拒绝。
+const PROSEMIRROR_PREFLIGHT_WORK_LIMIT = HNN_LIMITS.maxShellBytes * 2 + HNN_LIMITS.maxNodes * 16
 
 function byteLength(value: string): number {
   let bytes = 0
@@ -154,6 +159,247 @@ function diagnostic(path: string, code: string, message: string): HnnCodecError 
   return new HnnCodecError([{ path, code, message }])
 }
 
+/**
+ * 在调用 ProseMirror 的 toJSON 前精确预计算 canonical JSON 的 UTF-8 大小。
+ *
+ * 这条路径只读取 Node、Mark 和 attr 的数据字段，绝不调用输入实例的 toJSON。attrs
+ * 若不能以有界的 JSON 原始值/原始值数组安全计数便直接失败；成功后的完整 schema 和
+ * canonical 校验仍由 decodeHnn 负责。
+ */
+function preflightProseMirrorNode(root: ProseMirrorNode): void {
+  const stack: ProseMirrorPreflightFrame[] = []
+  let nodeCount = 0
+  let work = 0
+  let serializedBytes = byteLength('{"schemaVersion":1,"data":}')
+
+  const consume = (path: string, amount = 1): void => {
+    work += amount
+    if (work > PROSEMIRROR_PREFLIGHT_WORK_LIMIT) {
+      throw diagnostic(path, "pm-preflight-work-limit", `ProseMirror 编码预检超过 ${PROSEMIRROR_PREFLIGHT_WORK_LIMIT} 项工作预算`)
+    }
+  }
+
+  const addBytes = (path: string, bytes: number): void => {
+    serializedBytes += bytes
+    if (serializedBytes > HNN_LIMITS.maxShellBytes) {
+      throw diagnostic(path, "shell-too-large", `HNN 外壳超过 ${HNN_LIMITS.maxShellBytes} UTF-8 字节`)
+    }
+  }
+
+  const boundedUtf8Bytes = (value: string, path: string, label: string): number => {
+    let bytes = 0
+    for (let index = 0; index < value.length; index += 1) {
+      consume(path)
+      const unit = value.charCodeAt(index)
+      if (unit < 0x80) bytes += 1
+      else if (unit < 0x800) bytes += 2
+      else if (unit >= 0xd800 && unit <= 0xdbff && index + 1 < value.length) {
+        const next = value.charCodeAt(index + 1)
+        if (next >= 0xdc00 && next <= 0xdfff) {
+          bytes += 4
+          index += 1
+        } else bytes += 3
+      } else bytes += 3
+      if (bytes > HNN_LIMITS.maxAttrBytes) throw diagnostic(path, "attr-too-large", `${label} 超过 ${HNN_LIMITS.maxAttrBytes} UTF-8 字节`)
+    }
+    return bytes
+  }
+
+  const boundedJsonStringBytes = (value: string, path: string, limit?: number): number => {
+    let bytes = 2
+    for (let index = 0; index < value.length; index += 1) {
+      consume(path)
+      const unit = value.charCodeAt(index)
+      if (unit === 0x22 || unit === 0x5c || unit === 0x08 || unit === 0x09 || unit === 0x0a || unit === 0x0c || unit === 0x0d) bytes += 2
+      else if (unit < 0x20) bytes += 6
+      else if (unit < 0x80) bytes += 1
+      else if (unit < 0x800) bytes += 2
+      else if (unit >= 0xd800 && unit <= 0xdbff) {
+        const next = value.charCodeAt(index + 1)
+        if (next >= 0xdc00 && next <= 0xdfff) {
+          bytes += 4
+          index += 1
+        } else bytes += 6
+      } else if (unit >= 0xdc00 && unit <= 0xdfff) bytes += 6
+      else bytes += 3
+      if (limit !== undefined && bytes > limit) throw diagnostic(path, "attr-too-large", `attr 超过 ${HNN_LIMITS.maxAttrBytes} UTF-8 字节`)
+    }
+    return bytes
+  }
+
+  /** attrs 的闭合 schema 当前只需要 JSON 原始值和 colwidth 的原始值数组。 */
+  const attrValueBytes = (value: unknown, path: string): number => {
+    if (typeof value === "string") return boundedJsonStringBytes(value, path, HNN_LIMITS.maxAttrBytes)
+    const primitiveBytes = value === null || typeof value === "boolean" || (typeof value === "number" && Number.isFinite(value))
+      ? jsonPrimitiveByteLength(value)
+      : undefined
+    if (primitiveBytes !== undefined) return primitiveBytes
+    if (!Array.isArray(value)) throw diagnostic(path, "unsafe-pm-attrs", "ProseMirror attr 必须是有限 JSON 原始值或原始值数组")
+    let length: number
+    try {
+      const descriptor = Object.getOwnPropertyDescriptor(value, "length")
+      if (!descriptor || "get" in descriptor || "set" in descriptor || typeof descriptor.value !== "number" || !Number.isSafeInteger(descriptor.value) || descriptor.value < 0) {
+        throw diagnostic(path, "unsafe-pm-attrs", "ProseMirror attr 数组 length 必须是非负安全整数数据属性")
+      }
+      length = descriptor.value
+    } catch (error) {
+      if (error instanceof HnnCodecError) throw error
+      throw diagnostic(path, "unsafe-pm-attrs", "无法安全读取 ProseMirror attr 数组 length")
+    }
+
+    // 每项至少一个 JSON 字节；先排除伪造的大 length，避免进入长循环。
+    if (length > Math.floor((HNN_LIMITS.maxAttrBytes - 2) / 2) + 1) {
+      throw diagnostic(path, "attr-too-large", `attr 超过 ${HNN_LIMITS.maxAttrBytes} UTF-8 字节`)
+    }
+    let attrBytes = 2
+    for (let index = 0; index < length; index += 1) {
+      consume(path)
+      const itemPath = `${path}/${index}`
+      let descriptor: PropertyDescriptor | undefined
+      try {
+        descriptor = Object.getOwnPropertyDescriptor(value, String(index))
+      } catch {
+        throw diagnostic(itemPath, "unsafe-pm-attrs", "无法安全读取 ProseMirror attr 数组项")
+      }
+      if (!descriptor || "get" in descriptor || "set" in descriptor) throw diagnostic(itemPath, "unsafe-pm-attrs", "ProseMirror attr 数组项必须是数据属性")
+      if (index > 0) {
+        attrBytes += 1
+      }
+      const item: unknown = descriptor.value
+      if (item === null || typeof item === "boolean" || (typeof item === "number" && Number.isFinite(item)) || typeof item === "string") {
+        const itemBytes = typeof item === "string" ? boundedJsonStringBytes(item, itemPath, HNN_LIMITS.maxAttrBytes) : jsonPrimitiveByteLength(item)
+        if (itemBytes === undefined) throw diagnostic(itemPath, "unsafe-pm-attrs", "无法计算 ProseMirror attr 数组项大小")
+        attrBytes += itemBytes
+        if (attrBytes > HNN_LIMITS.maxAttrBytes) throw diagnostic(path, "attr-too-large", `attr 超过 ${HNN_LIMITS.maxAttrBytes} UTF-8 字节`)
+      } else throw diagnostic(itemPath, "unsafe-pm-attrs", "ProseMirror attr 数组项必须是有限 JSON 原始值")
+    }
+    // JSON.stringify 会忽略非索引属性；预检选择 fail closed，避免未知数据路径。
+    for (const key of Reflect.ownKeys(value)) {
+      consume(path)
+      if (key === "length") continue
+      if (typeof key !== "string" || !/^(?:0|[1-9]\d*)$/u.test(key) || Number(key) >= length) {
+        throw diagnostic(path, "unsafe-pm-attrs", "ProseMirror attr 数组不得包含 symbol 或非索引字段")
+      }
+    }
+    return attrBytes
+  }
+
+  /** 不复制 attrs；逐个数据描述符计数，并拒绝未知或继承字段。 */
+  const attrsBytes = (value: unknown, expectedAttrs: Record<string, unknown>, path: string): number | undefined => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) throw diagnostic(path, "unsafe-pm-attrs", "ProseMirror attrs 必须是对象")
+    let bytes = 2
+    let count = 0
+    try {
+      // Node.toJSON 使用 for...in；先单独检查 own keys，避免非枚举或 symbol 字段在
+      // 实例被篡改时逃过“严格可 JSON 表达”的预检。
+      for (const key of Reflect.ownKeys(value)) {
+        consume(path)
+        if (typeof key !== "string" || !(key in expectedAttrs)) throw diagnostic(path, "unsafe-pm-attrs", "ProseMirror attrs 不得包含 symbol 或未知字段")
+        const descriptor = Object.getOwnPropertyDescriptor(value, key)
+        if (!descriptor || "get" in descriptor || "set" in descriptor || !descriptor.enumerable) throw diagnostic(`${path}/${key}`, "unsafe-pm-attrs", "ProseMirror attr 必须是可枚举数据属性")
+      }
+      for (const key in value) {
+        consume(path)
+        if (!Object.hasOwn(value, key) || !(key in expectedAttrs)) throw diagnostic(`${path}/${key}`, "unsafe-pm-attrs", "ProseMirror attrs 包含未知或继承字段")
+        const descriptor = Object.getOwnPropertyDescriptor(value, key)
+        if (!descriptor || "get" in descriptor || "set" in descriptor || !descriptor.enumerable) throw diagnostic(`${path}/${key}`, "unsafe-pm-attrs", "ProseMirror attr 必须是可枚举数据属性")
+        const valueBytes = attrValueBytes(descriptor.value, `${path}/${key}`)
+        bytes += (count > 0 ? 1 : 0) + jsonStringByteLength(key) + 1 + valueBytes
+        count += 1
+      }
+    } catch (error) {
+      if (error instanceof HnnCodecError) throw error
+      throw diagnostic(path, "unsafe-pm-attrs", "无法安全读取 ProseMirror attrs")
+    }
+    return count > 0 ? bytes : undefined
+  }
+
+  const markBytes = (mark: unknown, path: string): number => {
+    if (!mark || typeof mark !== "object") throw diagnostic(path, "unsafe-pm-node", "ProseMirror mark 必须是对象")
+    const markValue = mark as { type?: { name?: unknown }; attrs?: unknown }
+    const type = markValue.type?.name
+    if (typeof type !== "string" || !HNN_MARK_TYPES.has(type)) throw diagnostic(`${path}/type`, "unknown-mark", `不支持的 mark ${String(type)}`)
+    const expectedAttrs = hnnSchema.marks[type]?.spec.attrs ?? {}
+    const attrs = attrsBytes(markValue.attrs, expectedAttrs, `${path}/attrs`)
+    return 2 + jsonStringByteLength("type") + 1 + jsonStringByteLength(type) + (attrs === undefined ? 0 : 1 + jsonStringByteLength("attrs") + 1 + attrs)
+  }
+
+  const enter = (node: ProseMirrorNode, path: string, depth: number): ProseMirrorPreflightFrame => {
+    consume(path)
+    nodeCount += 1
+    if (nodeCount > HNN_LIMITS.maxNodes) throw diagnostic(path, "node-limit", `节点总数超过 ${HNN_LIMITS.maxNodes}`)
+    if (depth > HNN_LIMITS.maxDepth) throw diagnostic(path, "depth-limit", `文档深度超过 ${HNN_LIMITS.maxDepth}`)
+
+    const type = node.type.name
+    if (!HNN_NODE_TYPES.has(type)) throw diagnostic(`${path}/type`, "unknown-node", `不支持的节点 ${type}`)
+    let nodeBytes = 2 + jsonStringByteLength("type") + 1 + jsonStringByteLength(type)
+    let properties = 1
+
+    if (node.isText) {
+      const value = node.text
+      if (typeof value !== "string") throw diagnostic(`${path}/text`, "unsafe-pm-node", "ProseMirror text 节点必须包含字符串")
+      boundedUtf8Bytes(value, `${path}/text`, "text")
+      nodeBytes += 1 + jsonStringByteLength("text") + 1 + boundedJsonStringBytes(value, `${path}/text`)
+      properties += 1
+    }
+
+    const attrs = attrsBytes(node.attrs, hnnSchema.nodes[type]?.spec.attrs ?? {}, `${path}/attrs`)
+    if (attrs !== undefined) {
+      nodeBytes += 1 + jsonStringByteLength("attrs") + 1 + attrs
+      properties += 1
+    }
+
+    const childCount = node.childCount
+    if (!Number.isSafeInteger(childCount) || childCount < 0) throw diagnostic(`${path}/content`, "unsafe-pm-node", "ProseMirror childCount 必须是非负安全整数")
+    // 先以 childCount 判断，宽树不读取子节点、更不会为每个子节点创建栈帧。
+    if (childCount > HNN_LIMITS.maxNodes - nodeCount) throw diagnostic(`${path}/content`, "node-limit", `节点总数超过 ${HNN_LIMITS.maxNodes}`)
+    if (childCount > 0) {
+      nodeBytes += 1 + jsonStringByteLength("content") + 1 + 2 + childCount - 1
+      properties += 1
+    }
+
+    const marks = node.marks
+    if (!Array.isArray(marks) || !Number.isSafeInteger(marks.length) || marks.length < 0) throw diagnostic(`${path}/marks`, "unsafe-pm-node", "ProseMirror marks 必须是数组")
+    if (marks.length > 0) {
+      // 每个 mark 至少为 {"type":"x"}，先拦住不可能装入 shell 的伪造 length。
+      if (marks.length > Math.floor((HNN_LIMITS.maxShellBytes - serializedBytes) / 12)) throw diagnostic(`${path}/marks`, "shell-too-large", `HNN 外壳超过 ${HNN_LIMITS.maxShellBytes} UTF-8 字节`)
+      let marksBytes = 2 + marks.length - 1
+      for (let index = 0; index < marks.length; index += 1) {
+        consume(`${path}/marks/${index}`)
+        marksBytes += markBytes(marks[index], `${path}/marks/${index}`)
+        if (marksBytes > HNN_LIMITS.maxShellBytes - serializedBytes) throw diagnostic(`${path}/marks`, "shell-too-large", `HNN 外壳超过 ${HNN_LIMITS.maxShellBytes} UTF-8 字节`)
+      }
+      nodeBytes += 1 + jsonStringByteLength("marks") + 1 + marksBytes
+      properties += 1
+    }
+    // properties 的累计保留在这里，明确 object field 的逗号已由上述每个可选字段计入。
+    void properties
+    addBytes(path, nodeBytes)
+    return { node, path, depth, nextChildIndex: 0, childCount }
+  }
+
+  stack.push(enter(root, "/data", 1))
+  while (stack.length > 0) {
+    const frame = stack.at(-1)
+    if (!frame) break
+    if (frame.nextChildIndex >= frame.childCount) {
+      stack.pop()
+      continue
+    }
+    const index = frame.nextChildIndex
+    frame.nextChildIndex += 1
+    const childPath = `${frame.path}/content/${index}`
+    consume(childPath)
+    let child: ProseMirrorNode
+    try {
+      child = frame.node.child(index)
+    } catch {
+      throw diagnostic(childPath, "unsafe-pm-node", "无法安全读取 ProseMirror 子节点")
+    }
+    stack.push(enter(child, childPath, frame.depth + 1))
+  }
+}
+
 function isSnapshotObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value)
 }
@@ -174,7 +420,6 @@ function isArrayIndex(key: string): boolean {
  * accessor、符号键、洞、循环和非 JSON 图都会以 HnnCodecError 硬失败。
  */
 function snapshotJson(input: unknown): JsonValue {
-  const seen = new WeakSet<object>()
   let work = 0
   // 每项都是最终 JSON 输出的独立 token，因此该和是安全下界而非猜测。
   let lowerBoundBytes = 0
@@ -202,11 +447,11 @@ function snapshotJson(input: unknown): JsonValue {
     throw diagnostic(path, "unsafe-input", "输入必须是有限 JSON 原始值或纯 JSON 容器")
   }
 
-  const copyContainer = (value: unknown, path: string, depth: number): { target: JsonObject | JsonValue[]; frame: SnapshotFrame } => {
+  const copyContainer = (value: unknown, path: string, depth: number, ancestors: readonly object[]): { target: JsonObject | JsonValue[]; frame: SnapshotFrame } => {
     if (typeof value !== "object" || value === null) throw diagnostic(path, "unsafe-input", "容器必须是对象或数组")
     if (depth > SNAPSHOT_DEPTH_LIMIT) throw diagnostic(path, "snapshot-depth-limit", `输入结构深度超过 ${SNAPSHOT_DEPTH_LIMIT}`)
-    if (seen.has(value)) throw diagnostic(path, "unsafe-input", "输入含循环或重复对象引用，不能作为 JSON 快照")
-    seen.add(value)
+    // 仅检查活动祖先链。重复引用是合法的 JSON.stringify 输入，必须在每个分支复制。
+    if (ancestors.includes(value)) throw diagnostic(path, "unsafe-input", "输入含循环引用，不能作为 JSON 快照")
 
     try {
       const isArray = Array.isArray(value)
@@ -236,7 +481,7 @@ function snapshotJson(input: unknown): JsonValue {
         }
       }
       const target: JsonObject | JsonValue[] = isArray ? [] : Object.create(null) as JsonObject
-      return { target, frame: { source: value, target, path, depth, isArray } }
+      return { target, frame: { source: value, target, path, depth, isArray, ancestors } }
     } catch (error) {
       if (error instanceof HnnCodecError) throw error
       throw diagnostic(path, "unsafe-input", "无法安全检查输入对象的原型")
@@ -246,7 +491,7 @@ function snapshotJson(input: unknown): JsonValue {
   let root: JsonValue
   const frames: SnapshotFrame[] = []
   if (typeof input === "object" && input !== null) {
-    const container = copyContainer(input, "", 0)
+    const container = copyContainer(input, "", 0, [])
     root = container.target
     frames.push(container.frame)
   } else {
@@ -256,25 +501,39 @@ function snapshotJson(input: unknown): JsonValue {
   while (frames.length > 0) {
     const frame = frames.pop()
     if (!frame) break
+    // dense array 的 length 可以远大于实际 JSON/HNN 预算。必须在 ownKeys 前读取它，
+    // 以免 Proxy/大数组仅靠枚举字段就消耗无界工作。
+    let arrayLength: number | undefined
+    if (frame.isArray) {
+      try {
+        const lengthDescriptor = Object.getOwnPropertyDescriptor(frame.source, "length")
+        if (!lengthDescriptor || "get" in lengthDescriptor || "set" in lengthDescriptor || typeof lengthDescriptor.value !== "number" || !Number.isSafeInteger(lengthDescriptor.value) || lengthDescriptor.value < 0) {
+          throw diagnostic(frame.path, "unsafe-input", "数组 length 必须是普通非负整数数据属性")
+        }
+        arrayLength = lengthDescriptor.value
+      } catch (error) {
+        if (error instanceof HnnCodecError) throw error
+        throw diagnostic(frame.path, "unsafe-input", "无法安全检查数组 length")
+      }
+      // 每个元素至少需要一次描述符读取，非空 JSON array 至少为 2n + 1 个字节。
+      if (arrayLength > SNAPSHOT_WORK_LIMIT - work) {
+        throw diagnostic(frame.path, "snapshot-work-limit", `输入结构超过 ${SNAPSHOT_WORK_LIMIT} 项工作预算`)
+      }
+      const minimumBytes = arrayLength === 0 ? 2 : arrayLength * 2 + 1
+      if (minimumBytes > HNN_LIMITS.maxShellBytes - lowerBoundBytes) {
+        throw diagnostic(frame.path, "shell-too-large", `HNN 外壳超过 ${HNN_LIMITS.maxShellBytes} UTF-8 字节`)
+      }
+      // 这里只是尽早拒绝；随后每个元素仍会把其精确 primitive 下界加入全局累计，
+      // 因而不能把同一数组的最小逗号/元素预算重复加进去。
+    }
     let keys: readonly PropertyKey[]
     try {
       keys = Reflect.ownKeys(frame.source)
     } catch {
       throw diagnostic(frame.path, "unsafe-input", "无法安全枚举输入对象字段")
     }
-
     if (frame.isArray) {
-      let length = 0
-      try {
-        const lengthDescriptor = Object.getOwnPropertyDescriptor(frame.source, "length")
-        if (!lengthDescriptor || "get" in lengthDescriptor || "set" in lengthDescriptor || typeof lengthDescriptor.value !== "number" || !Number.isSafeInteger(lengthDescriptor.value) || lengthDescriptor.value < 0) {
-          throw diagnostic(frame.path, "unsafe-input", "数组 length 必须是普通非负整数数据属性")
-        }
-        length = lengthDescriptor.value
-      } catch (error) {
-        if (error instanceof HnnCodecError) throw error
-        throw diagnostic(frame.path, "unsafe-input", "无法安全检查数组 length")
-      }
+      const length = arrayLength!
       for (const key of keys) {
         if (key === "length") continue
         if (typeof key !== "string" || !isArrayIndex(key) || Number(key) >= length) {
@@ -298,7 +557,7 @@ function snapshotJson(input: unknown): JsonValue {
         const childPath = appendPath(frame.path, key)
         const value: unknown = descriptor.value
         if (typeof value === "object" && value !== null) {
-          const child = copyContainer(value, childPath, frame.depth + 1)
+          const child = copyContainer(value, childPath, frame.depth + 1, [...frame.ancestors, frame.source])
           ;(frame.target as JsonValue[])[index] = child.target
           frames.push(child.frame)
         } else {
@@ -325,7 +584,7 @@ function snapshotJson(input: unknown): JsonValue {
       if (work > SNAPSHOT_WORK_LIMIT) throw diagnostic(appendPath(frame.path, key), "snapshot-work-limit", `输入结构超过 ${SNAPSHOT_WORK_LIMIT} 项工作预算`)
       const value: unknown = descriptor.value
       if (typeof value === "object" && value !== null) {
-        const child = copyContainer(value, childPath, frame.depth + 1)
+        const child = copyContainer(value, childPath, frame.depth + 1, [...frame.ancestors, frame.source])
         Object.defineProperty(frame.target, key, { value: child.target, enumerable: true, configurable: true, writable: true })
         frames.push(child.frame)
       } else {
@@ -756,6 +1015,7 @@ export function decodeHnn(input: unknown): ProseMirrorNode {
 
 /** 编码接受 PM Node 或 closed JSON doc；输出始终经同一严格 decode 验证并深拷贝。 */
 export function encodeHnn(input: ProseMirrorNode | Record<string, unknown>): HnnDocument {
+  if (input instanceof ProseMirrorNode) preflightProseMirrorNode(input)
   const data = input instanceof ProseMirrorNode ? input.toJSON() as Record<string, unknown> : input
   const document = decodeHnn({ schemaVersion: HNN_SCHEMA_VERSION, data })
   const canonical = document.toJSON() as JsonValue

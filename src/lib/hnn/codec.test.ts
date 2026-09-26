@@ -365,6 +365,31 @@ describe("HNN v1 codec", () => {
     expect(document.toJSON()).toEqual(safeData)
   })
 
+  it("为跨文本重复的 immutable mark attrs 创建独立快照，同时仍拒绝实际循环", () => {
+    const sharedLink = { type: "link", attrs: { href: "https://example.test/shared" } }
+    const input = {
+      schemaVersion: 1,
+      data: {
+        type: "doc",
+        content: [{
+          type: "paragraph",
+          attrs: { nodeId: ids[0] },
+          content: [
+            { type: "text", text: "first", marks: [sharedLink] },
+            { type: "hardBreak", attrs: { nodeId: ids[1] } },
+            { type: "text", text: "second", marks: [sharedLink] }
+          ]
+        }]
+      }
+    }
+    expect(() => encodeHnn(input.data)).not.toThrow()
+
+    const cycle = validHnn()
+    const data = cycle["data"] as Record<string, unknown>
+    data["self"] = data
+    expect(diagnostics(cycle).diagnostics[0]).toMatchObject({ code: "unsafe-input" })
+  })
+
   it("rejects unsafe descriptors, custom properties, cycles and pathological depth as codec errors", () => {
     const accessor = validHnn()
     const accessorGet = () => validHnn()["data"]
@@ -510,9 +535,14 @@ describe("HNN v1 codec", () => {
     ;((oversized["data"] as Record<string, unknown>)["content"] as unknown[])[0] = paragraph("x".repeat(HNN_LIMITS.maxShellBytes))
     expect(diagnostics(oversized).diagnostics.some((item) => item.code === "shell-too-large")).toBe(true)
 
-    const shellAtLimit = shellAtBytes(HNN_LIMITS.maxShellBytes)
+    // 512 KiB 是 v1 当前契约，但保留原 256 KiB 回归，避免未来边界回退成旧值。
+    const shellAtFormerLimit = shellAtBytes(256 * 1024)
+    expect(() => decodeHnn(shellAtFormerLimit)).not.toThrow()
+
+    const shellAtLimit = shellAtBytes(512 * 1024)
     expect(() => decodeHnn(shellAtLimit)).not.toThrow()
-    const shellOneOver = shellAtBytes(HNN_LIMITS.maxShellBytes + 1)
+    expect(HNN_LIMITS.maxShellBytes).toBe(512 * 1024)
+    const shellOneOver = shellAtBytes(512 * 1024 + 1)
     expect(diagnostics(shellOneOver).diagnostics.some((item) => item.code === "shell-too-large")).toBe(true)
 
     const input = validHnn()
@@ -542,6 +572,99 @@ describe("HNN v1 codec", () => {
     } finally {
       stringify.mockRestore()
       encode.mockRestore()
+    }
+  })
+
+  it("在枚举 ownKeys 前以数组 length 下界拒绝超大 dense array", () => {
+    const dense = Array.from({ length: HNN_LIMITS.maxNodes * 32 }, () => 0)
+    const ownKeys = vi.spyOn(Reflect, "ownKeys")
+    try {
+      const error = diagnostics({ schemaVersion: 1, data: { type: "doc", content: dense } })
+      expect(error.diagnostics).toContainEqual(expect.objectContaining({ code: "snapshot-work-limit", path: "/data/content" }))
+      // root/data 的普通对象会被枚举；数组自身必须在枚举前被 length 预算拒绝。
+      expect(ownKeys.mock.calls.some(([value]) => value === dense)).toBe(false)
+    } finally {
+      ownKeys.mockRestore()
+    }
+  })
+
+  it("在调用 PM Node.toJSON 前有界拒绝远超节点上限的文档", () => {
+    const children = Array.from(
+      { length: HNN_LIMITS.maxNodes * 4 },
+      (_, index) => hnnSchema.node("horizontalRule", { nodeId: generatedId(index) })
+    )
+    const document = hnnSchema.node("doc", null, children)
+    const toJson = vi.spyOn(document, "toJSON")
+    try {
+      expect(() => encodeHnn(document)).toThrow(HnnCodecError)
+      try {
+        encodeHnn(document)
+      } catch (error) {
+        expect(error).toBeInstanceOf(HnnCodecError)
+        expect((error as HnnCodecError).diagnostics).toContainEqual(expect.objectContaining({ code: "node-limit" }))
+      }
+      expect(toJson).not.toHaveBeenCalled()
+    } finally {
+      toJson.mockRestore()
+    }
+  })
+
+  it("PM 入口精确接受 512 KiB canonical 外壳，并在超出一字节前拒绝", () => {
+    const exact = decodeHnn(shellAtBytes(HNN_LIMITS.maxShellBytes))
+    expect(() => encodeHnn(exact)).not.toThrow()
+
+    // shellAtBytes 的最后一个段落为精确填充的短文本；直接多一个 ASCII 字符即得到
+    // canonical shell 的 512 KiB + 1 PM Node，且整个构造过程不调用该实例 toJSON。
+    const oneOverShell = shellAtBytes(HNN_LIMITS.maxShellBytes)
+    const blocks = (oneOverShell["data"] as Record<string, unknown>)["content"] as Record<string, unknown>[]
+    const finalText = ((blocks.at(-1)! ["content"] as Record<string, unknown>[])[0]! ["text"] as string)
+    ;((blocks.at(-1)! ["content"] as Record<string, unknown>[])[0]!)["text"] = `${finalText}x`
+    const oneOver = hnnSchema.nodeFromJSON(oneOverShell["data"])
+    const toJson = vi.spyOn(oneOver, "toJSON")
+    try {
+      expect(() => encodeHnn(oneOver)).toThrow(HnnCodecError)
+      try {
+        encodeHnn(oneOver)
+      } catch (error) {
+        expect((error as HnnCodecError).diagnostics).toContainEqual(expect.objectContaining({ code: "shell-too-large" }))
+      }
+      expect(toJson).not.toHaveBeenCalled()
+    } finally {
+      toJson.mockRestore()
+    }
+  })
+
+  it("PM 入口在超长 link href 与极宽树前拒绝，不调用根节点 toJSON", () => {
+    const href = `https://example.test/${"x".repeat(HNN_LIMITS.maxAttrBytes)}`
+    const link = hnnSchema.marks["link"]!.create({ href })
+    const linked = hnnSchema.node("doc", null, [hnnSchema.node("paragraph", { nodeId: ids[0] }, [hnnSchema.text("x", [link])])])
+    const linkedToJson = vi.spyOn(linked, "toJSON")
+    try {
+      expect(() => encodeHnn(linked)).toThrow(HnnCodecError)
+      try {
+        encodeHnn(linked)
+      } catch (error) {
+        expect((error as HnnCodecError).diagnostics).toContainEqual(expect.objectContaining({ code: "attr-too-large" }))
+      }
+      expect(linkedToJson).not.toHaveBeenCalled()
+    } finally {
+      linkedToJson.mockRestore()
+    }
+
+    const wide = hnnSchema.node("doc", null, Array.from(
+      { length: HNN_LIMITS.maxNodes + 1 },
+      (_, index) => hnnSchema.node("horizontalRule", { nodeId: generatedId(index) })
+    ))
+    const wideToJson = vi.spyOn(wide, "toJSON")
+    const child = vi.spyOn(wide, "child")
+    try {
+      expect(() => encodeHnn(wide)).toThrow(HnnCodecError)
+      expect(wideToJson).not.toHaveBeenCalled()
+      // childCount 的预判应在展开任何宽树子节点或构建同宽 frame stack 前失败。
+      expect(child).not.toHaveBeenCalled()
+    } finally {
+      child.mockRestore()
+      wideToJson.mockRestore()
     }
   })
 })
