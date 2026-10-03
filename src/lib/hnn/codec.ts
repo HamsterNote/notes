@@ -2,6 +2,7 @@ import { Node as ProseMirrorNode } from "@tiptap/pm/model"
 import { TableMap } from "@tiptap/pm/tables"
 import { HNN_LIMITS, HNN_SCHEMA_VERSION, HNN_TABLE_LIMITS, UUID_V4_PATTERN } from "./limits"
 import { HNN_MARK_TYPES, HNN_NODE_TYPES, hnnSchema } from "./schema"
+import { jsonCharBytes, jsonStringBytes, utf8Bytes, utf8CharBytes } from "./stringBytes"
 import { isSafeHnnUrl } from "./urlPolicy"
 
 export interface HnnDiagnostic {
@@ -54,57 +55,11 @@ const SNAPSHOT_DEPTH_LIMIT = HNN_LIMITS.maxDepth * 3
 // 允许临界合法文档完成预检而不是因计数自身的常数开销被提前拒绝。
 const PROSEMIRROR_PREFLIGHT_WORK_LIMIT = HNN_LIMITS.maxShellBytes * 2 + HNN_LIMITS.maxNodes * 16
 
-function byteLength(value: string): number {
-  let bytes = 0
-  for (let index = 0; index < value.length; index += 1) {
-    const unit = value.charCodeAt(index)
-    if (unit < 0x80) bytes += 1
-    else if (unit < 0x800) bytes += 2
-    else if (unit >= 0xd800 && unit <= 0xdbff && index + 1 < value.length) {
-      const next = value.charCodeAt(index + 1)
-      if (next >= 0xdc00 && next <= 0xdfff) {
-        bytes += 4
-        index += 1
-      } else bytes += 3
-    } else bytes += 3
-  }
-  return bytes
-}
-
-/** 精确计算 JSON.stringify 对字符串产出的 UTF-8 大小，不分配转义后的字符串。 */
-function jsonStringByteLength(value: string): number {
-  let bytes = 2 // opening and closing quotes
-  for (let index = 0; index < value.length; index += 1) {
-    const unit = value.charCodeAt(index)
-    if (unit === 0x22 || unit === 0x5c || unit === 0x08 || unit === 0x09 || unit === 0x0a || unit === 0x0c || unit === 0x0d) {
-      bytes += 2
-    } else if (unit < 0x20) {
-      bytes += 6
-    } else if (unit < 0x80) {
-      bytes += 1
-    } else if (unit < 0x800) {
-      bytes += 2
-    } else if (unit >= 0xd800 && unit <= 0xdbff) {
-      const next = value.charCodeAt(index + 1)
-      if (next >= 0xdc00 && next <= 0xdfff) {
-        bytes += 4
-        index += 1
-      } else {
-        // Well-formed JSON.stringify emits an escaped surrogate for unpaired units.
-        bytes += 6
-      }
-    } else if (unit >= 0xdc00 && unit <= 0xdfff) {
-      bytes += 6
-    } else {
-      bytes += 3
-    }
-  }
-  return bytes
-}
+// 字符串字节宽度表统一定义在 ./stringBytes（codec 严格校验与编辑器 UI 预检共用，避免口径漂移）。
 
 function jsonPrimitiveByteLength(value: JsonValue): number | undefined {
-  if (typeof value === "string") return jsonStringByteLength(value)
-  if (typeof value === "number") return Object.is(value, -0) ? 1 : byteLength(String(value))
+  if (typeof value === "string") return jsonStringBytes(value)
+  if (typeof value === "number") return Object.is(value, -0) ? 1 : utf8Bytes(String(value))
   if (typeof value === "boolean") return value ? 4 : 5
   if (value === null) return 4
   return undefined
@@ -146,7 +101,7 @@ function serializedJsonByteLength(value: JsonValue, limit: number): number | und
       const key = keys[index]
       if (key === undefined) return undefined
       if (index < keys.length - 1 && !add(1)) return undefined
-      if (!add(jsonStringByteLength(key) + 1)) return undefined
+      if (!add(jsonStringBytes(key) + 1)) return undefined
       const child = object[key]
       if (child === undefined) return undefined
       actions.push({ kind: "value", value: child })
@@ -170,7 +125,7 @@ function preflightProseMirrorNode(root: ProseMirrorNode): void {
   const stack: ProseMirrorPreflightFrame[] = []
   let nodeCount = 0
   let work = 0
-  let serializedBytes = byteLength('{"schemaVersion":1,"data":}')
+  let serializedBytes = utf8Bytes('{"schemaVersion":1,"data":}')
 
   const consume = (path: string, amount = 1): void => {
     work += amount
@@ -186,20 +141,14 @@ function preflightProseMirrorNode(root: ProseMirrorNode): void {
     }
   }
 
+  // 宽度表来自 ./stringBytes 共享工具；此处只保留逐字符 consume 预算与超限即停的流式外壳。
   const boundedUtf8Bytes = (value: string, path: string, label: string): number => {
     let bytes = 0
-    for (let index = 0; index < value.length; index += 1) {
+    for (let index = 0; index < value.length;) {
       consume(path)
-      const unit = value.charCodeAt(index)
-      if (unit < 0x80) bytes += 1
-      else if (unit < 0x800) bytes += 2
-      else if (unit >= 0xd800 && unit <= 0xdbff && index + 1 < value.length) {
-        const next = value.charCodeAt(index + 1)
-        if (next >= 0xdc00 && next <= 0xdfff) {
-          bytes += 4
-          index += 1
-        } else bytes += 3
-      } else bytes += 3
+      const step = utf8CharBytes(value, index)
+      bytes += step.bytes
+      index += step.units
       if (bytes > HNN_LIMITS.maxAttrBytes) throw diagnostic(path, "attr-too-large", `${label} 超过 ${HNN_LIMITS.maxAttrBytes} UTF-8 字节`)
     }
     return bytes
@@ -207,21 +156,11 @@ function preflightProseMirrorNode(root: ProseMirrorNode): void {
 
   const boundedJsonStringBytes = (value: string, path: string, limit?: number): number => {
     let bytes = 2
-    for (let index = 0; index < value.length; index += 1) {
+    for (let index = 0; index < value.length;) {
       consume(path)
-      const unit = value.charCodeAt(index)
-      if (unit === 0x22 || unit === 0x5c || unit === 0x08 || unit === 0x09 || unit === 0x0a || unit === 0x0c || unit === 0x0d) bytes += 2
-      else if (unit < 0x20) bytes += 6
-      else if (unit < 0x80) bytes += 1
-      else if (unit < 0x800) bytes += 2
-      else if (unit >= 0xd800 && unit <= 0xdbff) {
-        const next = value.charCodeAt(index + 1)
-        if (next >= 0xdc00 && next <= 0xdfff) {
-          bytes += 4
-          index += 1
-        } else bytes += 6
-      } else if (unit >= 0xdc00 && unit <= 0xdfff) bytes += 6
-      else bytes += 3
+      const step = jsonCharBytes(value, index)
+      bytes += step.bytes
+      index += step.units
       if (limit !== undefined && bytes > limit) throw diagnostic(path, "attr-too-large", `attr 超过 ${HNN_LIMITS.maxAttrBytes} UTF-8 字节`)
     }
     return bytes
@@ -304,7 +243,7 @@ function preflightProseMirrorNode(root: ProseMirrorNode): void {
         const descriptor = Object.getOwnPropertyDescriptor(value, key)
         if (!descriptor || "get" in descriptor || "set" in descriptor || !descriptor.enumerable) throw diagnostic(`${path}/${key}`, "unsafe-pm-attrs", "ProseMirror attr 必须是可枚举数据属性")
         const valueBytes = attrValueBytes(descriptor.value, `${path}/${key}`)
-        bytes += (count > 0 ? 1 : 0) + jsonStringByteLength(key) + 1 + valueBytes
+        bytes += (count > 0 ? 1 : 0) + jsonStringBytes(key) + 1 + valueBytes
         count += 1
       }
     } catch (error) {
@@ -321,7 +260,7 @@ function preflightProseMirrorNode(root: ProseMirrorNode): void {
     if (typeof type !== "string" || !HNN_MARK_TYPES.has(type)) throw diagnostic(`${path}/type`, "unknown-mark", `不支持的 mark ${String(type)}`)
     const expectedAttrs = hnnSchema.marks[type]?.spec.attrs ?? {}
     const attrs = attrsBytes(markValue.attrs, expectedAttrs, `${path}/attrs`)
-    return 2 + jsonStringByteLength("type") + 1 + jsonStringByteLength(type) + (attrs === undefined ? 0 : 1 + jsonStringByteLength("attrs") + 1 + attrs)
+    return 2 + jsonStringBytes("type") + 1 + jsonStringBytes(type) + (attrs === undefined ? 0 : 1 + jsonStringBytes("attrs") + 1 + attrs)
   }
 
   const enter = (node: ProseMirrorNode, path: string, depth: number): ProseMirrorPreflightFrame => {
@@ -332,20 +271,20 @@ function preflightProseMirrorNode(root: ProseMirrorNode): void {
 
     const type = node.type.name
     if (!HNN_NODE_TYPES.has(type)) throw diagnostic(`${path}/type`, "unknown-node", `不支持的节点 ${type}`)
-    let nodeBytes = 2 + jsonStringByteLength("type") + 1 + jsonStringByteLength(type)
+    let nodeBytes = 2 + jsonStringBytes("type") + 1 + jsonStringBytes(type)
     let properties = 1
 
     if (node.isText) {
       const value = node.text
       if (typeof value !== "string") throw diagnostic(`${path}/text`, "unsafe-pm-node", "ProseMirror text 节点必须包含字符串")
       boundedUtf8Bytes(value, `${path}/text`, "text")
-      nodeBytes += 1 + jsonStringByteLength("text") + 1 + boundedJsonStringBytes(value, `${path}/text`)
+      nodeBytes += 1 + jsonStringBytes("text") + 1 + boundedJsonStringBytes(value, `${path}/text`)
       properties += 1
     }
 
     const attrs = attrsBytes(node.attrs, hnnSchema.nodes[type]?.spec.attrs ?? {}, `${path}/attrs`)
     if (attrs !== undefined) {
-      nodeBytes += 1 + jsonStringByteLength("attrs") + 1 + attrs
+      nodeBytes += 1 + jsonStringBytes("attrs") + 1 + attrs
       properties += 1
     }
 
@@ -354,7 +293,7 @@ function preflightProseMirrorNode(root: ProseMirrorNode): void {
     // 先以 childCount 判断，宽树不读取子节点、更不会为每个子节点创建栈帧。
     if (childCount > HNN_LIMITS.maxNodes - nodeCount) throw diagnostic(`${path}/content`, "node-limit", `节点总数超过 ${HNN_LIMITS.maxNodes}`)
     if (childCount > 0) {
-      nodeBytes += 1 + jsonStringByteLength("content") + 1 + 2 + childCount - 1
+      nodeBytes += 1 + jsonStringBytes("content") + 1 + 2 + childCount - 1
       properties += 1
     }
 
@@ -369,7 +308,7 @@ function preflightProseMirrorNode(root: ProseMirrorNode): void {
         marksBytes += markBytes(marks[index], `${path}/marks/${index}`)
         if (marksBytes > HNN_LIMITS.maxShellBytes - serializedBytes) throw diagnostic(`${path}/marks`, "shell-too-large", `HNN 外壳超过 ${HNN_LIMITS.maxShellBytes} UTF-8 字节`)
       }
-      nodeBytes += 1 + jsonStringByteLength("marks") + 1 + marksBytes
+      nodeBytes += 1 + jsonStringBytes("marks") + 1 + marksBytes
       properties += 1
     }
     // properties 的累计保留在这里，明确 object field 的逗号已由上述每个可选字段计入。
@@ -579,7 +518,7 @@ function snapshotJson(input: unknown): JsonValue {
         throw diagnostic(appendPath(frame.path, key), "unsafe-input", "对象字段必须是可枚举数据属性，不能使用 accessor")
       }
       const childPath = appendPath(frame.path, key)
-      addLowerBound(jsonStringByteLength(key) + 1, childPath)
+      addLowerBound(jsonStringBytes(key) + 1, childPath)
       work += 1
       if (work > SNAPSHOT_WORK_LIMIT) throw diagnostic(appendPath(frame.path, key), "snapshot-work-limit", `输入结构超过 ${SNAPSHOT_WORK_LIMIT} 项工作预算`)
       const value: unknown = descriptor.value
@@ -653,13 +592,13 @@ class Validator {
       this.error(path, "invalid-attr", `${label} 不得为空`)
       return false
     }
-    if (byteLength(value) > maxBytes) this.error(path, "attr-too-large", `${label} 超过 ${maxBytes} UTF-8 字节`)
+    if (utf8Bytes(value) > maxBytes) this.error(path, "attr-too-large", `${label} 超过 ${maxBytes} UTF-8 字节`)
     return true
   }
 
   attrSize(value: unknown, path: string): void {
     // value 来自受控 snapshot，因此 stringify 不会读调用方对象或遭遇无界图。
-    const bytes = byteLength(JSON.stringify(value))
+    const bytes = utf8Bytes(JSON.stringify(value))
     if (bytes > HNN_LIMITS.maxAttrBytes) this.error(path, "attr-too-large", `attr 超过 ${HNN_LIMITS.maxAttrBytes} UTF-8 字节`)
   }
 
@@ -812,7 +751,7 @@ class Validator {
       if (type === "text") {
         const text = frame.value["text"]
         if (typeof text !== "string" || text.length === 0) this.error(`${frame.path}/text`, "invalid-text", "text 节点必须包含非空字符串 text")
-        else if (byteLength(text) > HNN_LIMITS.maxAttrBytes) this.error(`${frame.path}/text`, "attr-too-large", `text 超过 ${HNN_LIMITS.maxAttrBytes} UTF-8 字节`)
+        else if (utf8Bytes(text) > HNN_LIMITS.maxAttrBytes) this.error(`${frame.path}/text`, "attr-too-large", `text 超过 ${HNN_LIMITS.maxAttrBytes} UTF-8 字节`)
         if (frame.value["marks"] !== undefined) {
           if (frame.parentType === "codeBlock") this.error(`${frame.path}/marks`, "forbidden-mark", "codeBlock 内 text 不得包含 marks")
           else this.validateMarks(frame.value["marks"], `${frame.path}/marks`)

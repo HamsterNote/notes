@@ -515,6 +515,30 @@ describe("HNN v1 codec", () => {
     expect(diagnostics(oneOverDepth).diagnostics.some((item) => item.code === "depth-limit")).toBe(true)
   })
 
+  it("attr 双重限制：原始 UTF-8 与转义后 JSON 字节均需不超上限", () => {
+    // 4095 个引号：原始 4095 字节通过 requiredString，JSON 序列化恰好 2+2×4095 = 8192 → 接受
+    const atJsonLimit = validHnn()
+    ;((atJsonLimit["data"] as Record<string, unknown>)["content"] as unknown[])[0] = {
+      type: "card",
+      attrs: { nodeId: ids[0], data: "\"".repeat(HNN_LIMITS.maxAttrBytes / 2 - 1) }
+    }
+    expect(() => decodeHnn(atJsonLimit)).not.toThrow()
+
+    // 4096 个引号：原始 4096 仍未超原始上限，但 JSON 序列化 8194 > 8192 → attr-too-large
+    const overJsonLimit = structuredClone(atJsonLimit)
+    ;((((overJsonLimit["data"] as Record<string, unknown>)["content"] as Record<string, unknown>[])[0]?.["attrs"] as Record<string, unknown>)["data"]) = "\"".repeat(HNN_LIMITS.maxAttrBytes / 2)
+    expect(diagnostics(overJsonLimit).diagnostics.some((item) => item.code === "attr-too-large")).toBe(true)
+
+    // 未配对代理项：原始各计 3 字节，JSON 转义后各计 6 字节，双重口径同时生效
+    const surrogatePair = validHnn()
+    ;((surrogatePair["data"] as Record<string, unknown>)["content"] as unknown[])[0] = {
+      type: "card",
+      attrs: { nodeId: ids[0], data: "\udc00\udc00".repeat(Math.floor(HNN_LIMITS.maxAttrBytes / 6)) }
+    }
+    // 每个 "\udc00\udc00" 原始 6 字节、JSON 12 字节 + 2 外层引号：repeat(1365) → 原始 8190、JSON 16382
+    expect(diagnostics(surrogatePair).diagnostics.some((item) => item.code === "attr-too-large")).toBe(true)
+  })
+
   it("rejects noncanonical JSON, oversized shells, and preserves failed JSON input bytes", () => {
     const noncanonical = validHnn()
     ;(((noncanonical["data"] as Record<string, unknown>)["content"] as Record<string, unknown>[])[0]?.["content"] as Record<string, unknown>[])[0]!["marks"] = []

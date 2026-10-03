@@ -44,16 +44,28 @@
 - **WHEN** 宿主未提供保存回调而用户触发保存
 - **THEN** 库不自行写出任何内容，并以可观察的方式表明保存不可执行
 
-### Requirement: 宿主提供图片与资源上传
-图片及卡片、画板等资源 SHALL 由宿主提供的上传回调落盘，库 MUST NOT 直接访问真实存储；上传过程 MUST 在文档内以不可持久化的临时态呈现，完成后才以真实资源替换。
+### Requirement: 宿主提供仅图片上传回调
+库的上传能力 SHALL 仅处理 `picture` 节点的图片文件，不覆盖卡片、画板或其他资源。库 SHALL 以图片文件及 `{ uploadId, attempt, signal }` 调用宿主图片上传回调；每个文件的 `uploadId` MUST 在 retry 间保持不变，首次 `attempt` MUST 为 1、每次 retry MUST 递增。宿主 MUST 按 `uploadId` 实施幂等，并在成功时返回可持久化的 `http` 或 `https` `src` 及可选 `alt`；库 MUST NOT 直接访问真实存储。
 
 #### Scenario: 上传图片成功
 - **WHEN** 用户插入一张图片并完成宿主上传
-- **THEN** 文档中以真实图片取代先前显示的临时态，且该真实资源可由宿主存储解析
+- **THEN** 宿主返回 `http` 或 `https` `src` 及可选 `alt`
+- **AND** 文档中以一次 transaction 写入真实图片取代先前显示的临时态
+- **AND** 该真实资源可由宿主存储解析
+
+#### Scenario: 重试保持幂等上传标识
+- **WHEN** 同一个图片文件的首次上传失败后用户选择重试
+- **THEN** 库 SHALL 以相同 `uploadId` 和递增的 `attempt` 调用宿主
+- **AND** 宿主 SHALL 将其视为同一逻辑上传的幂等重试
 
 #### Scenario: 保存时不持久化临时态
 - **WHEN** 某资源仍处于上传临时态时用户触发保存
 - **THEN** 交给宿主的快照中不包含该临时态作为持久内容
+
+#### Scenario: 上传被取消或会话切换
+- **WHEN** 用户取消图片上传，或 `documentId`、`loadKey` 变化或编辑器卸载
+- **THEN** 库 SHALL abort 该上传独立的 `AbortSignal` 并在库内忽略陈旧结果
+- **AND** 宿主仍负责正确处理已收到的请求与 signal
 
 ### Requirement: 宿主提供提及与资源的候选、激活与解析回调
 对于提及与资源引用，库 SHALL 通过宿主提供的回调获得候选项、处理激活并解析引用；文档内只保存资源标识与展示所需的最小信息，真实内容 MUST 由宿主回调解析。
@@ -143,16 +155,17 @@
 - **THEN** 当前会话 SHALL 保持不变
 - **AND** 宿主 SHALL 通过后续保存策略处理该本地内容
 
-### Requirement: 上传失败可重试或取消且临时态不持久化
-上传失败时用户 SHALL 能够重试或取消；上传临时态 MUST NOT 进入持久化内容；重试成功或取消后文档 MUST 进入确定的资源状态。
+### Requirement: 图片上传失败可重试或取消且临时态不持久化
+图片上传失败时用户 SHALL 能够重试或取消；每个图片文件 SHALL 对应一个不可持久化的 decoration placeholder。上传状态、`uploadId`、`attempt` 与文件数据 MUST NOT 进入 HNN；重试成功或取消后文档 MUST 进入确定的图片状态。
 
 #### Scenario: 重试上传
 - **WHEN** 一次上传失败而用户选择重试
-- **THEN** 对该资源重新发起上传，成功后以真实资源替换临时态
+- **THEN** 对该图片以相同 `uploadId` 和递增 `attempt` 重新发起上传
+- **AND** 成功后以单个 transaction 的真实图片替换对应临时态
 
 #### Scenario: 取消上传
 - **WHEN** 一次上传失败或进行中而用户选择取消
-- **THEN** 临时态从文档中移除，且不产生任何持久化的资源记录
+- **THEN** 对应临时态从文档中移除，且不产生任何持久化的图片记录
 
 ### Requirement: 文档文件打开界面由宿主提供
 笔记库 MUST NOT 提供新建空白文档、选择文档文件或将 Markdown/HNN 文档文件拖入编辑器的界面；宿主 SHALL 负责提供内容或已解析的文档并决定其打开流程。库提供的图片等资源插入交互不构成文档文件打开界面。

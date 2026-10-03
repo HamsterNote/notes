@@ -2169,3 +2169,1180 @@ td:hover > .hn-note-table-edge-btn {
     border-left: 0;
   }
 }
+
+/* ===== 内部 NoteEditor（Phase 6.1 标准内容块呈现） =====
+ * 只作用于内部 TipTap 编辑会话。编辑壳保持透明：border、radius、background、shadow
+ * 全部由消费布局拥有（DESIGN.md §1）。主题只走显式 .hn-editor--light /
+ * .hn-editor--dark 修饰类，不响应媒体查询；两个修饰类都声明完整 token 集，
+ * 因此 light 主题在暗色祖先下也能覆盖回浅色 token。--hn-theme 只能由宿主注入，
+ * 此处绝不重声明，避免覆盖宿主主题色。
+ */
+.hn-editor {
+  position: relative;
+  box-sizing: border-box;
+  padding: 1.5rem 4rem 2rem;
+  color: var(--hn-text, #1e293b);
+}
+
+/* 与 .hn-note-shell 完全一致的浅色 token 集；显式声明使 light 可覆盖暗色祖先 */
+.hn-editor--light {
+  --hn-theme-soft: color-mix(in srgb, var(--hn-theme, #3b82f6) 12%, white);
+  --hn-theme-border: color-mix(in srgb, var(--hn-theme, #3b82f6) 30%, transparent);
+  --hn-theme-text: color-mix(in srgb, var(--hn-theme, #3b82f6) 75%, #1e293b);
+  --hn-bg: #ffffff;
+  --hn-surface: #f8fafc;
+  --hn-surface-hover: #f1f5f9;
+  --hn-border: rgba(15, 23, 42, 0.08);
+  --hn-border-strong: rgba(15, 23, 42, 0.14);
+  --hn-text: #1e293b;
+  --hn-text-muted: rgba(51, 65, 85, 0.65);
+  --hn-text-soft: rgba(51, 65, 85, 0.85);
+  color-scheme: light;
+}
+
+/* 与 .hn-note-shell--dark 完全一致的深色 token 集 */
+.hn-editor--dark {
+  --hn-theme-soft: color-mix(in srgb, var(--hn-theme, #3b82f6) 18%, #111827);
+  --hn-theme-border: color-mix(in srgb, var(--hn-theme, #3b82f6) 48%, transparent);
+  --hn-theme-text: color-mix(in srgb, var(--hn-theme, #3b82f6) 55%, #f8fafc);
+  --hn-bg: #0f172a;
+  --hn-surface: #172033;
+  --hn-surface-hover: #202b3f;
+  --hn-border: rgba(226, 232, 240, 0.12);
+  --hn-border-strong: rgba(226, 232, 240, 0.22);
+  --hn-text: #f1f5f9;
+  --hn-text-muted: rgba(203, 213, 225, 0.72);
+  --hn-text-soft: rgba(226, 232, 240, 0.88);
+  color-scheme: dark;
+}
+
+/* 编辑根：可编辑行内容保持无框，焦点由光标传达（DESIGN.md §5、§8） */
+.hn-editor .hn-editor-content {
+  outline: none;
+  min-height: 8rem;
+  caret-color: var(--hn-text, #1e293b);
+  font-size: 1rem;
+  line-height: 1.85;
+  color: var(--hn-text-soft, rgba(51, 65, 85, 0.85));
+  word-break: break-word;
+}
+
+/* 顶层块间距沿用 --hn-body-gap（0.625rem），标题前后额外留白建立层级 */
+.hn-editor-content > * + * {
+  margin-top: 0.625rem;
+}
+
+.hn-editor-content p {
+  margin: 0;
+}
+
+.hn-editor-content h1,
+.hn-editor-content h2,
+.hn-editor-content h3,
+.hn-editor-content h4,
+.hn-editor-content h5,
+.hn-editor-content h6 {
+  margin: 0;
+  font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  color: var(--hn-text, #1e293b);
+  line-height: 1.3;
+}
+
+.hn-editor-content * + h1,
+.hn-editor-content * + h2,
+.hn-editor-content * + h3,
+.hn-editor-content * + h4,
+.hn-editor-content * + h5,
+.hn-editor-content * + h6 {
+  margin-top: 1.1rem;
+}
+
+.hn-editor-content h1 {
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+}
+
+.hn-editor-content h2 {
+  font-size: 1.4rem;
+}
+
+.hn-editor-content h3 {
+  font-size: 1.1rem;
+}
+
+.hn-editor-content h4 {
+  font-size: 1rem;
+}
+
+.hn-editor-content h5 {
+  font-size: 0.95rem;
+}
+
+.hn-editor-content h6 {
+  font-size: 0.9rem;
+}
+
+/* 普通无序/有序列表 */
+.hn-editor-content ul:not([data-type="taskList"]),
+.hn-editor-content ol {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.hn-editor-content li {
+  margin: 0.15rem 0;
+}
+
+.hn-editor-content li::marker {
+  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
+}
+
+.hn-editor-content li > ul,
+.hn-editor-content li > ol {
+  margin-top: 0.15rem;
+}
+
+/* 任务列表：原生 checkbox 保持键盘可达，勾选调色与光标变化不只依赖颜色（DESIGN.md §8） */
+.hn-editor-content ul[data-type="taskList"] {
+  list-style: none;
+  margin: 0;
+  padding-left: 0.25rem;
+}
+
+.hn-editor-content li[data-checked] {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.hn-editor-content li[data-checked] > label {
+  /* 与 1.85 行高的首行文字垂直居中对齐 */
+  margin-top: 0.45rem;
+  cursor: pointer;
+}
+
+.hn-editor-content li[data-checked] input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  accent-color: var(--hn-theme, #3b82f6);
+  cursor: pointer;
+}
+
+.hn-editor-content li[data-checked] input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--hn-theme, #3b82f6);
+  outline-offset: 2px;
+}
+
+.hn-editor-content li[data-checked][data-checked="true"] > div {
+  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
+}
+
+/* 引用块：沿用 hn-note-quote 的主题左边条、右圆角与 soft 底 */
+.hn-editor-content blockquote {
+  margin: 0;
+  padding: 1.25rem 1.35rem;
+  border-left: 4px solid var(--hn-theme, #3b82f6);
+  border-radius: 0 20px 20px 0;
+  background: var(--hn-theme-soft, color-mix(in srgb, var(--hn-theme, #3b82f6) 12%, white));
+}
+
+.hn-editor-content blockquote p {
+  font-size: 1.1rem;
+  line-height: 1.7;
+}
+
+.hn-editor-content blockquote * + * {
+  margin-top: 0.5rem;
+}
+
+/* 引用署名输入：沿用 hn-note-quote footer 的主题色与字重，保持无框可编辑 */
+.hn-editor-content .hn-editor-quote-footer {
+  margin-top: 0.8rem;
+}
+
+.hn-editor-content .hn-editor-quote-author {
+  width: 100%;
+  padding: 0.15rem 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--hn-theme-text, color-mix(in srgb, var(--hn-theme, #3b82f6) 75%, #1e293b));
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.hn-editor-content .hn-editor-quote-author::placeholder {
+  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
+  font-weight: 400;
+}
+
+.hn-editor-content .hn-editor-quote-author:focus-visible {
+  outline: 2px solid var(--hn-theme, #3b82f6);
+  outline-offset: 2px;
+}
+
+/* 代码块卡片：与 hn-note-code-card 共享深色底、浅字与等宽栈，两种主题下保持一致 */
+.hn-editor-content .hn-editor-code-card {
+  border: 1px solid var(--hn-border-strong, rgba(15, 23, 42, 0.14));
+  border-radius: var(--hn-radius, 24px);
+  background: #0f172a;
+  overflow: hidden;
+}
+
+.hn-editor-content .hn-editor-code-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hn-editor-content .hn-editor-code-lang {
+  padding: 0.2rem 0.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hn-editor-content .hn-editor-code-filename {
+  flex: 0 1 auto;
+  width: 10rem;
+  min-width: 12px;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+  font-family: var(--hn-code-font, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: right;
+}
+
+.hn-editor-content .hn-editor-code-filename::placeholder {
+  color: rgba(226, 232, 240, 0.4);
+}
+
+.hn-editor-content .hn-editor-code-lang:focus-visible,
+.hn-editor-content .hn-editor-code-filename:focus-visible {
+  outline: 2px solid var(--hn-theme, #3b82f6);
+  outline-offset: 0;
+}
+
+/* 高亮层与编辑层同网格叠放：字体度量完全一致，编辑层文字透明、光标可见 */
+.hn-editor-content .hn-editor-code-editing {
+  display: grid;
+}
+
+.hn-editor-content .hn-editor-code-highlight,
+.hn-editor-content .hn-editor-code-editor {
+  grid-area: 1 / 1;
+  margin: 0;
+  padding: 1rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-family: var(--hn-code-font, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  text-align: left;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.hn-editor-content .hn-editor-code-highlight {
+  color: #e2e8f0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hn-editor-content .hn-editor-code-editor {
+  color: transparent;
+  caret-color: #e2e8f0;
+}
+
+.hn-editor-content .hn-editor-code-editor ::selection,
+.hn-editor-content .hn-editor-code-editor::selection {
+  background: color-mix(in srgb, var(--hn-theme, #3b82f6) 35%, transparent);
+}
+
+.hn-editor-content .hn-editor-code-card code {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* 安全 token 着色：复用 hn-note-code-card 的 hljs 调色板 */
+.hn-editor-content .hn-editor-code-highlight .hljs-comment {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.hn-editor-content .hn-editor-code-highlight .hljs-string {
+  color: #86efac;
+}
+
+.hn-editor-content .hn-editor-code-highlight .hljs-number {
+  color: #fbbf24;
+}
+
+.hn-editor-content .hn-editor-code-highlight .hljs-keyword {
+  color: #c084fc;
+}
+
+/* 行内 code mark：pill 底色，不影响 pre 内的代码 */
+.hn-editor-content :not(pre) > code {
+  padding: 0.1em 0.35em;
+  border-radius: 6px;
+  background: var(--hn-surface, #f8fafc);
+  font-family: var(--hn-code-font, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
+  font-size: 0.9em;
+}
+
+/* 表格：沿用 hn-note-table 的边框、表头底色与斑马纹语言 */
+.hn-editor-content .hn-editor-table-wrapper {
+  position: relative;
+  margin: 0;
+  /* 为边缘圆形控件留出空间（DESIGN.md §10：控件压在边界上而非单元格内） */
+  padding: 0.9rem;
+}
+
+/* 行/列操作入口：圆形按钮，复用 --hn-bg/--hn-border-strong/--hn-text-muted/--hn-theme，
+ * 不引入任何表格专属色；默认隐藏，悬停或键盘聚焦时显现。
+ */
+.hn-editor-content .hn-editor-table-btn {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--hn-border-strong, rgba(15, 23, 42, 0.14));
+  border-radius: 999px;
+  background: var(--hn-bg, #ffffff);
+  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.hn-editor-content .hn-editor-table-wrapper:hover .hn-editor-table-btn,
+.hn-editor-content .hn-editor-table-wrapper:focus-within .hn-editor-table-btn {
+  opacity: 1;
+}
+
+.hn-editor-content .hn-editor-table-btn:hover {
+  border-color: var(--hn-theme, #3b82f6);
+  color: var(--hn-theme, #3b82f6);
+}
+
+.hn-editor-content .hn-editor-table-btn:focus-visible {
+  outline: 2px solid var(--hn-theme, #3b82f6);
+  outline-offset: 1px;
+  opacity: 1;
+}
+
+.hn-editor-content .hn-editor-table-btn:disabled {
+  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
+  cursor: default;
+  opacity: 0.35;
+}
+
+/* 删除两步确认态：DESIGN.md §10 要求删除操作需显著确认，确认中控件保持显现并强调主题色 */
+.hn-editor-content .hn-editor-table-btn.is-confirming {
+  border-color: var(--hn-theme, #3b82f6);
+  background: var(--hn-theme-soft, color-mix(in srgb, var(--hn-theme, #3b82f6) 12%, white));
+  color: var(--hn-theme, #3b82f6);
+  opacity: 1;
+}
+
+/* 添加列/删除列控件压在右/上边界，添加行/删除行控件压在下/左边界 */
+.hn-editor-content .hn-editor-table-btn--add-column {
+  top: 50%;
+  right: 0.45rem;
+  transform: translate(50%, -50%);
+}
+
+.hn-editor-content .hn-editor-table-btn--delete-column {
+  top: 0.45rem;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.hn-editor-content .hn-editor-table-btn--add-row {
+  bottom: 0.45rem;
+  left: 50%;
+  transform: translate(-50%, 50%);
+}
+
+.hn-editor-content .hn-editor-table-btn--delete-row {
+  top: 50%;
+  left: 0.45rem;
+  transform: translate(-50%, -50%);
+}
+
+.hn-editor-content table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--hn-border-strong, rgba(15, 23, 42, 0.14));
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.hn-editor-content th,
+.hn-editor-content td {
+  position: relative;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--hn-border-strong, rgba(15, 23, 42, 0.14));
+  vertical-align: top;
+}
+
+.hn-editor-content th {
+  background: var(--hn-surface, #f8fafc);
+  font-weight: 600;
+  text-align: left;
+}
+
+.hn-editor-content th p,
+.hn-editor-content td p {
+  line-height: 1.5;
+}
+
+/* 单元格多选反馈复用主题 soft 底色 */
+.hn-editor-content .selectedCell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: var(--hn-theme-soft, color-mix(in srgb, var(--hn-theme, #3b82f6) 12%, white));
+  pointer-events: none;
+}
+
+.hn-editor-content hr {
+  margin: 0;
+  border: none;
+  border-top: 1px solid var(--hn-border-strong, rgba(15, 23, 42, 0.14));
+}
+
+.hn-editor-content a {
+  color: var(--hn-theme-text, color-mix(in srgb, var(--hn-theme, #3b82f6) 75%, #1e293b));
+  text-decoration: underline;
+  text-decoration-color: var(--hn-theme-border, color-mix(in srgb, var(--hn-theme, #3b82f6) 30%, transparent));
+}
+
+/* ===== Phase 6.2 自定义块界面 =====
+ * 全部为封闭 NodeView 样式；token 全部走 var(--hn-*) 并带兜底，兼容暗色主题。 */
+
+/* 原子节点整体选中反馈（PM 为 NodeSelection 添加 .ProseMirror-selectednode） */
+.hn-editor-content .ProseMirror-selectednode {
+  outline: 2px solid var(--hn-theme, #3b82f6);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* 自定义块头部共用的低调控件：悬停显现边界，聚焦给主题色焦点环 */
+.hn-editor-content .hn-editor-callout-tone,
+.hn-editor-content .hn-editor-callout-title,
+.hn-editor-content .hn-editor-collapsible-title,
+.hn-editor-content .hn-editor-picture-alt {
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--hn-text, #1e293b);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0.2rem 0.45rem;
+}
+
+.hn-editor-content .hn-editor-callout-tone:hover,
+.hn-editor-content .hn-editor-callout-title:hover,
+.hn-editor-content .hn-editor-collapsible-title:hover,
+.hn-editor-content .hn-editor-picture-alt:hover {
+  border-color: var(--hn-border, rgba(15, 23, 42, 0.08));
+}
+
+.hn-editor-content .hn-editor-callout-tone:focus-visible,
+.hn-editor-content .hn-editor-callout-title:focus-visible,
+.hn-editor-content .hn-editor-collapsible-title:focus-visible,
+.hn-editor-content .hn-editor-picture-alt:focus-visible {
+  outline: 2px solid var(--hn-theme, #3b82f6);
+  outline-offset: 1px;
+  background: var(--hn-surface, #f8fafc);
+}
+
+/* 控件校验错误：role=alert 提供 aria-live 播报；空文本时整体隐藏 */
+.hn-editor-content .hn-editor-field-error {
+  align-self: flex-start;
+  max-width: 100%;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--hn-danger, #dc2626);
+  overflow-wrap: anywhere;
+}
+
+.hn-editor-content .hn-editor-field-error:empty {
+  display: none;
+}
+
+.hn-editor-content .hn-editor-inline-formula .hn-editor-field-error {
+  margin-left: 0.3rem;
+}
+
+/* 提示块：圆角 surface 卡片，色调只体现在左边框色（info 用主题色） */
+.hn-editor-content .hn-editor-callout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1.1rem 1.2rem;
+  border: 1px solid var(--hn-theme-border, color-mix(in srgb, var(--hn-theme, #3b82f6) 30%, transparent));
+  border-radius: 22px;
+  background: var(--hn-surface, #f8fafc);
+}
+
+.hn-editor-content .hn-editor-callout--success {
+  border-color: rgba(22, 163, 74, 0.28);
+}
+
+.hn-editor-content .hn-editor-callout--warning {
+  border-color: rgba(217, 119, 6, 0.28);
+}
+
+.hn-editor-content .hn-editor-callout-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.hn-editor-content .hn-editor-callout-title {
+  flex: 1;
+  font-weight: 600;
+}
+
+/* 折叠块：标题行常驻，折叠时正文整体隐藏 */
+.hn-editor-content .hn-editor-collapsible {
+  border: 1px solid var(--hn-border, rgba(15, 23, 42, 0.08));
+  border-radius: 14px;
+  background: var(--hn-surface, #f8fafc);
+}
+
+.hn-editor-content .hn-editor-collapsible-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.8rem;
+}
+
+.hn-editor-content .hn-editor-collapsible-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
+  cursor: pointer;
+}
+
+.hn-editor-content .hn-editor-collapsible-toggle:hover {
+  background: var(--hn-surface-hover, rgba(15, 23, 42, 0.04));
+}
+
+.hn-editor-content .hn-editor-collapsible-toggle:focus-visible {
+  outline: 2px solid var(--hn-theme, #3b82f6);
+  outline-offset: 1px;
+}
+
+.hn-editor-content .hn-editor-collapsible-caret {
+  display: inline-block;
+  font-size: 0.7rem;
+  transform: rotate(90deg);
+  transition: transform 0.15s ease;
+}
+
+.hn-editor-content .hn-editor-collapsible.is-collapsed .hn-editor-collapsible-caret {
+  transform: rotate(0deg);
+}
+
+.hn-editor-content .hn-editor-collapsible-title {
+  flex: 1;
+}
+
+.hn-editor-content .hn-editor-collapsible-body {
+  padding: 0 1rem 0.75rem 3rem;
+}
+
+.hn-editor-content .hn-editor-collapsible.is-collapsed .hn-editor-collapsible-body {
+  display: none;
+}
+
+/* 公式块：整行是可激活预览按钮（DESIGN.md §11），KaTeX 渲染在其内部 */
+.hn-editor-content .hn-editor-formula-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 3.25rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--hn-text, #1e293b);
+  font: inherit;
+  cursor: pointer;
+}
+
+.hn-editor-content .hn-editor-formula-preview:hover {
+  background: color-mix(in srgb, var(--hn-theme, #3b82f6) 5%, transparent);
+}
+
+.hn-editor-content .hn-editor-formula-preview:focus-visible {
+  outline: 2px solid var(--hn-theme, #3b82f6);
+  outline-offset: 2px;
+}
+
+.hn-editor-content .hn-editor-formula-rendered .katex-display {
+  margin: 0;
+}
+
+/* 行内公式：随文排布的按钮，衬线斜体回退与 KaTeX 渲染一致 */
+.hn-editor-content .hn-editor-inline-formula {
+  display: inline-block;
+  padding: 0 0.2em;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--hn-text, #1e293b);
+  font-family: Georgia, "Times New Roman", serif;
+  font-style: italic;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+.hn-editor-content .hn-editor-inline-formula:hover {
+  background: color-mix(in srgb, var(--hn-theme, #3b82f6) 6%, transparent);
+}
+
+.hn-editor-content .hn-editor-inline-formula:focus-visible {
+  outline: 2px solid var(--hn-theme, #3b82f6);
+  outline-offset: 1px;
+}
+
+/* 最小弹出编辑器：深色 popover + 等宽 textarea（公式/card/drawing 数据共用） */
+.hn-editor-mini-popover {
+  position: fixed;
+  z-index: 60;
+  width: min(520px, calc(100vw - 16px));
+  padding: 8px;
+  border-radius: 10px;
+  background: #1e293b;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
+}
+
+.hn-editor-mini-textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.hn-editor-mini-textarea:focus-visible {
+  outline: 2px solid var(--hn-theme, #3b82f6);
+  outline-offset: 1px;
+}
+
+/* 图片块：surface 边框 + 8px 圆角（DESIGN.md §12），alt 输入低调随图 */
+.hn-editor-content .hn-editor-picture {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.hn-editor-content .hn-editor-picture-img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--hn-border, rgba(15, 23, 42, 0.08));
+  border-radius: 8px;
+}
+
+.hn-editor-content .hn-editor-picture-placeholder {
+  padding: 1.5rem;
+  border: 1px dashed var(--hn-border-strong, rgba(15, 23, 42, 0.14));
+  border-radius: 8px;
+  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.hn-editor-content .hn-editor-picture-alt {
+  width: 100%;
+  box-sizing: border-box;
+  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
+}
+
+/* card/drawing 最小预览入口：surface 卡片 + 右下提示 pill；画板用虚线占位 */
+.hn-editor-content .hn-editor-data-preview {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  width: 100%;
+  min-height: 160px;
+  padding: 1rem;
+  border: 1px solid var(--hn-border, rgba(15, 23, 42, 0.08));
+  border-radius: 10px;
+  background: var(--hn-surface, #f8fafc);
+  color: var(--hn-text, #1e293b);
+  font: inherit;
+  cursor: pointer;
+}
+
+.hn-editor-content .hn-editor-data-block--drawing .hn-editor-data-preview {
+  border-style: dashed;
+}
+
+.hn-editor-content .hn-editor-data-preview:hover {
+  border-color: var(--hn-border-strong, rgba(15, 23, 42, 0.14));
+}
+
+.hn-editor-content .hn-editor-data-preview:focus-visible {
+  outline: 2px solid var(--hn-theme, #3b82f6);
+  outline-offset: 3px;
+}
+
+.hn-editor-content .hn-editor-data-title {
+  font-weight: 600;
+}
+
+.hn-editor-content .hn-editor-data-meta {
+  font-size: 0.8rem;
+  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
+}
+
+.hn-editor-content .hn-editor-data-hint {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  padding: 0.15rem 0.6rem;
+  border: 1px solid var(--hn-border, rgba(15, 23, 42, 0.08));
+  border-radius: 999px;
+  background: var(--hn-surface, #f8fafc);
+  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
+  font-size: 0.72rem;
+}
+
+/* 目录：只读展示持久 config 与位置语义（实时条目派生属后续 lane） */
+.hn-editor-content .hn-editor-directory {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--hn-border, rgba(15, 23, 42, 0.08));
+  border-radius: 14px;
+  background: var(--hn-surface, #f8fafc);
+}
+
+.hn-editor-content .hn-editor-directory-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--hn-text, #1e293b);
+}
+
+.hn-editor-content .hn-editor-directory-config {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.8rem;
+  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
+}
+
+/* mention：主题色 pill（DESIGN.md §14），resource：中性 pill；均为宿主引用 */
+.hn-editor-content .hn-editor-mention {
+  display: inline-block;
+  padding: 0 0.2em;
+  border-radius: 999px;
+  background: var(--hn-theme-soft, color-mix(in srgb, var(--hn-theme, #3b82f6) 12%, white));
+  color: var(--hn-theme-text, color-mix(in srgb, var(--hn-theme, #3b82f6) 75%, #1e293b));
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.hn-editor-content .hn-editor-resource {
+  display: inline-block;
+  padding: 0 0.45em;
+  border: 1px solid var(--hn-border, rgba(15, 23, 42, 0.08));
+  border-radius: 999px;
+  background: var(--hn-surface, #f8fafc);
+  color: var(--hn-text-soft, rgba(51, 65, 85, 0.85));
+  font-size: 0.92em;
+  white-space: nowrap;
+}
+
+/* 外部条目：主题色文本 + 虚线下划线（DESIGN.md §16 的可点击视觉，无宿主回调时不响应点击） */
+.hn-editor-content .hn-editor-external-item {
+  padding: 0.35rem 0.5rem;
+}
+
+.hn-editor-content .hn-editor-external-item-name {
+  color: var(--hn-theme-text, color-mix(in srgb, var(--hn-theme, #3b82f6) 75%, #1e293b));
+  text-decoration: underline dashed;
+  text-decoration-color: var(--hn-theme-border, color-mix(in srgb, var(--hn-theme, #3b82f6) 30%, transparent));
+  text-underline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* 840px 紧凑断点（含边界）：编辑壳内边距对齐 DESIGN.md §3 的紧凑排版 */
+@media (max-width: 840px) {
+  .hn-editor {
+    padding: 1.5rem 1.5rem 2rem;
+  }
+
+  .hn-editor-content blockquote {
+    padding: 1rem 1.1rem;
+  }
+
+  .hn-editor-content .hn-editor-code-card {
+    border-radius: 16px;
+  }
+
+  .hn-editor-content .hn-editor-callout {
+    padding: 1rem;
+  }
+
+  .hn-editor-content .hn-editor-collapsible-body {
+    padding-left: 2.5rem;
+  }
+
+  .hn-editor-content .hn-editor-data-preview {
+    min-height: 140px;
+  }
+
+  .hn-editor-content .hn-editor-directory {
+    padding: 0.85rem 1rem;
+  }
+}
+
+/* ===== Phase 6.3 card/drawing 底部 Drawer =====
+ * 组件库 Drawer 渲染在 body portal 中，拿不到 .hn-editor 祖先的 token；面板
+ * 自带 hn-editor--light/dark 修饰类（见 HnnDataDrawer），这里再把组件库的
+ * --hn-color-* 映射到编辑壳调色板（DESIGN.md §15：不引入独立调色板）。 */
+.hn-editor-data-drawer {
+  --hn-color-surface: var(--hn-bg, #ffffff);
+  --hn-color-surface-hover: var(--hn-surface-hover, #f1f5f9);
+  --hn-color-text: var(--hn-text, #1e293b);
+  --hn-color-text-muted: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
+  --hn-color-border: var(--hn-border, rgba(15, 23, 42, 0.08));
+  --hn-color-border-strong: var(--hn-border-strong, rgba(15, 23, 42, 0.14));
+  --hn-color-accent: var(--hn-theme, #3b82f6);
+  --hn-color-accent-hover: var(--hn-theme-text, #1d4ed8);
+  --hn-color-danger: var(--hn-danger, #dc2626);
+}
+
+.hn-editor-data-drawer .hn-drawer__content {
+  display: flex;
+  flex-direction: column;
+}
+
+.hn-editor-data-drawer-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 0;
+}
+
+/* 提交失败错误：role=alert 提供 aria-live 播报 */
+.hn-editor-data-drawer-error {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--hn-danger, #dc2626);
+  overflow-wrap: anywhere;
+}
+
+.hn-editor-data-drawer-error[hidden] {
+  display: none;
+}
+
+/* 非法既有 payload 的只读保护说明与原始 JSON */
+.hn-editor-data-drawer-note {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
+}
+
+.hn-editor-data-drawer-raw {
+  box-sizing: border-box;
+  width: 100%;
+  resize: vertical;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--hn-border, rgba(15, 23, 42, 0.08));
+  border-radius: 8px;
+  background: var(--hn-surface, #f8fafc);
+  color: var(--hn-text-soft, rgba(51, 65, 85, 0.85));
+  font-family: var(--hn-code-font, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+/* ---- card Drawer：卡片草稿列表 ---- */
+.hn-editor-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+}
+
+.hn-editor-card-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--hn-border, rgba(15, 23, 42, 0.08));
+  border-radius: 10px;
+  background: var(--hn-surface, #f8fafc);
+}
+
+.hn-editor-card-item-head {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.4rem;
+}
+
+.hn-editor-card-title {
+  flex: 1;
+  min-width: 0;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--hn-text, #1e293b);
+  font: inherit;
+  font-weight: 600;
+}
+
+.hn-editor-card-title:hover {
+  border-color: var(--hn-border, rgba(15, 23, 42, 0.08));
+}
+
+.hn-editor-card-title:focus-visible {
+  outline: 2px solid var(--hn-theme, #3b82f6);
+  outline-offset: 1px;
+  background: var(--hn-bg, #ffffff);
+}
+
+.hn-editor-card-meta {
+  align-self: center;
+  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
+  font-family: var(--hn-code-font, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  font-size: 0.72rem;
+}
+
+.hn-editor-card-content {
+  box-sizing: border-box;
+  width: 100%;
+  resize: vertical;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--hn-border, rgba(15, 23, 42, 0.08));
+  border-radius: 8px;
+  background: var(--hn-bg, #ffffff);
+  color: var(--hn-text-soft, rgba(51, 65, 85, 0.85));
+  font: inherit;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.hn-editor-card-content:focus-visible {
+  outline: 2px solid var(--hn-theme, #3b82f6);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+/* ---- drawing Drawer：工具条 + 画布 ---- */
+.hn-editor-drawing-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.hn-editor-drawing-tool {
+  padding: 0.3rem 0.8rem;
+  border: 1px solid var(--hn-border, rgba(15, 23, 42, 0.08));
+  border-radius: 999px;
+  background: var(--hn-surface, #f8fafc);
+  color: var(--hn-text-soft, rgba(51, 65, 85, 0.85));
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.hn-editor-drawing-tool:hover {
+  border-color: var(--hn-border-strong, rgba(15, 23, 42, 0.14));
+}
+
+.hn-editor-drawing-tool[aria-pressed="true"] {
+  border-color: var(--hn-theme-border, color-mix(in srgb, var(--hn-theme, #3b82f6) 30%, transparent));
+  background: var(--hn-theme-soft, color-mix(in srgb, var(--hn-theme, #3b82f6) 12%, white));
+  color: var(--hn-theme-text, color-mix(in srgb, var(--hn-theme, #3b82f6) 75%, #1e293b));
+}
+
+.hn-editor-drawing-tool:focus-visible {
+  outline: 2px solid var(--hn-theme, #3b82f6);
+  outline-offset: 2px;
+}
+
+.hn-editor-drawing-canvas {
+  flex: 1;
+  min-height: 240px;
+  overflow: hidden;
+  border: 1px solid var(--hn-border, rgba(15, 23, 42, 0.08));
+  border-radius: 10px;
+  background: var(--hn-bg, #ffffff);
+}
+
+/* ---- 底栏：预算展示 + 操作按钮 ---- */
+.hn-editor-data-drawer-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 0.75rem;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--hn-border, rgba(15, 23, 42, 0.08));
+}
+
+.hn-editor-data-drawer-budget {
+  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
+  font-family: var(--hn-code-font, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  font-size: 0.72rem;
+}
+
+.hn-editor-data-drawer-budget--over {
+  color: var(--hn-danger, #dc2626);
+}
+
+.hn-editor-data-drawer-actions {
+  display: inline-flex;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+/* 840px 紧凑断点（含边界）：底栏纵排，卡片头部控件占满整行 */
+@media (max-width: 840px) {
+  .hn-editor-data-drawer-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hn-editor-data-drawer-actions {
+    justify-content: flex-end;
+    margin-left: 0;
+  }
+}
+
+/* 840px 以上：卡片头部标题/id/删除同一行 */
+@media (min-width: 841px) {
+  .hn-editor-card-item-head {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+/* ===== Phase 6.4 目录派生条目 =====
+ * 条目由正文 heading 实时派生（只读）；点击仅纯 DOM 定位/临时高亮，无 PM 事务。 */
+.hn-editor-content .hn-editor-directory-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin: 0.2rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hn-editor-content .hn-editor-directory-item {
+  display: block;
+}
+
+/* 按标题层级递进缩进（level 1 不缩进，封顶 6 级） */
+.hn-editor-content .hn-editor-directory-item[data-level="2"] { padding-left: 1rem; }
+.hn-editor-content .hn-editor-directory-item[data-level="3"] { padding-left: 2rem; }
+.hn-editor-content .hn-editor-directory-item[data-level="4"] { padding-left: 3rem; }
+.hn-editor-content .hn-editor-directory-item[data-level="5"] { padding-left: 4rem; }
+.hn-editor-content .hn-editor-directory-item[data-level="6"] { padding-left: 5rem; }
+
+.hn-editor-content .hn-editor-directory-entry {
+  display: block;
+  width: 100%;
+  padding: 0.35rem 0.6rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  font-size: 0.9rem;
+  text-align: left;
+  color: var(--hn-text, #1e293b);
+  cursor: pointer;
+}
+
+.hn-editor-content .hn-editor-directory-entry:hover {
+  background: var(--hn-surface-hover, #f1f5f9);
+}
+
+.hn-editor-content .hn-editor-directory-entry:focus-visible {
+  outline: 2px solid var(--hn-theme, #3b82f6);
+  outline-offset: 1px;
+}
+
+.hn-editor-content .hn-editor-directory-empty {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.85rem;
+  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
+}
+
+/* 点击条目后目标 heading 的临时高亮（DOM 层反馈，随超时移除） */
+.hn-editor-content .hn-editor-directory-target {
+  background: var(--hn-surface-hover, #f1f5f9);
+  border-radius: 6px;
+  transition: background 0.3s ease;
+}
+
+/* 840px 紧凑断点（含边界）：层级缩进减半，避免深层条目溢出 */
+@media (max-width: 840px) {
+  .hn-editor-content .hn-editor-directory-item[data-level="2"] { padding-left: 0.5rem; }
+  .hn-editor-content .hn-editor-directory-item[data-level="3"] { padding-left: 1rem; }
+  .hn-editor-content .hn-editor-directory-item[data-level="4"] { padding-left: 1.5rem; }
+  .hn-editor-content .hn-editor-directory-item[data-level="5"] { padding-left: 2rem; }
+  .hn-editor-content .hn-editor-directory-item[data-level="6"] { padding-left: 2.5rem; }
+}

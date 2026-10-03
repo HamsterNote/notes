@@ -1,11 +1,15 @@
 import { EditorContent } from "@tiptap/react"
 import { Component, useCallback, useLayoutEffect, useRef, useState, type ReactNode } from "react"
 import { decodeHnn, encodeHnn, type HnnDocument } from "../hnn/codec"
+import { HnnDataDrawer } from "./HnnDataDrawer"
 import { createEditorSession, type EditorSession } from "./session"
 import { encodeNoteEditorSessionKey } from "./sessionKey"
 import type { EditorSessionOptions, InitialLoadErrorHandler, NoteSave } from "./types"
 
-type NoteEditorProps = EditorSessionOptions
+type NoteEditorProps = EditorSessionOptions & Readonly<{
+  /** 显式主题只切换 hn-* token 修饰类，不进入会话或保存语义；缺省为 light。 */
+  theme?: "light" | "dark"
+}>
 
 type VerifiedInitial = Readonly<{
   sessionKey: string
@@ -18,6 +22,16 @@ type VerifiedInitial = Readonly<{
 type AcceptedInitial = VerifiedInitial & Readonly<{
   onSave: NoteSave | undefined
   onChange: EditorSessionOptions["onChange"]
+}>
+
+/**
+ * 原子挂载态：sessionKey 与 session 在创建会话的同一个 layout effect 里成对提交。
+ * Drawer 的 key 与 editor 都必须取自这同一个对象——任何 render 都不允许出现
+ * “最新 accepted key 配旧 session” 的错位组合（Gate 6.3 会话切换安全约束）。
+ */
+type MountedSession = Readonly<{
+  sessionKey: string
+  session: EditorSession
 }>
 
 /** HNN 已通过 codec 的容量与深度限制，接受候选时可安全冻结其独立 JSON 快照。 */
@@ -101,14 +115,14 @@ function InitialValidator(props: InitialValidatorProps) {
 }
 
 /**
- * Phase 5 内部最薄呈现层。键变化通过 React remount 使旧会话 abort + destroy；同键的
+ * Phase 5/6.1 内部呈现层。键变化通过 React remount 使旧会话 abort + destroy；同键的
  * initialDocument/initialRevision 更新不会触碰既有 session。此组件暂不提供工具栏、
  * NodeView、上传、抽屉或拖拽等正式内容界面。
  */
 function NoteEditorSession(props: NoteEditorProps) {
   const callbacks = useRef<{ onSave: NoteSave | undefined; onChange: EditorSessionOptions["onChange"] }>({ onSave: undefined, onChange: undefined })
   const [acceptedInitial, setAcceptedInitial] = useState<AcceptedInitial | null>(null)
-  const [session, setSession] = useState<EditorSession | null>(null)
+  const [mounted, setMounted] = useState<MountedSession | null>(null)
   const sessionKey = encodeNoteEditorSessionKey(props.documentId, props.loadKey)
   const acceptInitial = useCallback((initial: AcceptedInitial) => {
     setAcceptedInitial((current) => current?.sessionKey === initial.sessionKey ? current : initial)
@@ -135,7 +149,8 @@ function NoteEditorSession(props: NoteEditorProps) {
       },
       onChange: (snapshot) => callbacks.current.onChange?.(snapshot)
     })
-    setSession(created)
+    // 创建会话时一次性提交原子挂载态：key 与 session 永远来自同一次创建。
+    setMounted({ sessionKey: acceptedInitial.sessionKey, session: created })
     return () => {
       created.destroy()
     }
@@ -162,7 +177,20 @@ function NoteEditorSession(props: NoteEditorProps) {
         onVerified={acceptInitial}
       />
     </InitialValidationBoundary>}
-    <EditorContent editor={session?.editor ?? null} />
+    {/* 编辑壳：透明无框（DESIGN.md §1），仅承载显式 light/dark token 修饰类，不参与会话生命周期。 */}
+    <div className={props.theme === "dark" ? "hn-editor hn-editor--dark" : "hn-editor hn-editor--light"}>
+      <EditorContent editor={mounted?.session.editor ?? null} />
+      {/* card/drawing 底部 Drawer（portal 到 body）。key 与 editor 取自同一原子挂载态：
+          会话切换 A→B 时 React 按 key remount，A 的 portal/草稿/request/anchor 随卸载整体
+          丢弃（不提交、不触发旧保存、焦点不还旧 anchor），B 再以全新状态注册自己的 bridge。 */}
+      {mounted && (
+        <HnnDataDrawer
+          key={mounted.sessionKey}
+          editor={mounted.session.editor}
+          theme={props.theme === "dark" ? "dark" : "light"}
+        />
+      )}
+    </div>
   </>
 }
 

@@ -2,6 +2,7 @@ import { Editor } from "@tiptap/core"
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model"
 import { encodeHnn, decodeHnn, type HnnDocument } from "../hnn/codec"
 import { createHnnEditorExtensions } from "../hnn/extensions"
+import { installHnnClipboardHistoryBoundary } from "./nativeClipboard"
 import type { EditorSessionOptions, EditorSessionState, NoteSaveResult } from "./types"
 
 type Listener = () => void
@@ -36,6 +37,7 @@ export class EditorSession {
   #destroyed = false
   #pending: PendingSave | undefined
   #listeners = new Set<Listener>()
+  #removeClipboardHistoryBoundary: (() => void) | undefined
 
   constructor(options: EditorSessionOptions) {
     // 不持有调用方 options 对象，避免构造后外部突变改变这次会话的 CAS 语义。
@@ -51,8 +53,18 @@ export class EditorSession {
       // codec schema 与会话 schema 分别构造；必须用 JSON 跨 schema 重新物化 document。
       content: decodedDocument.toJSON() as unknown as Record<string, unknown>,
       enableContentCheck: true,
+      // 编辑根节点只补充可访问性与样式钩子，不改变文档、selection 或保存语义。
+      editorProps: {
+        attributes: {
+          class: "hn-editor-content",
+          role: "textbox",
+          "aria-multiline": "true",
+          "aria-label": "笔记内容编辑区"
+        }
+      },
       onUpdate: () => this.#handleUpdate()
     })
+    this.#removeClipboardHistoryBoundary = installHnnClipboardHistoryBoundary(this.editor)
     this.#baseline = this.editor.state.doc
     this.#revision = initialRevision
   }
@@ -129,6 +141,7 @@ export class EditorSession {
     this.#destroyed = true
     this.#pending?.controller.abort()
     this.#listeners.clear()
+    this.#removeClipboardHistoryBoundary?.()
     this.editor.destroy()
   }
 

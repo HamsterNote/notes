@@ -1,7 +1,11 @@
+// @vitest-environment jsdom
+
 import { describe, expect, it, vi } from "vitest"
 import { Editor } from "@tiptap/core"
 import { decodeHnn, encodeHnn } from "./codec"
-import { createHnnEditorExtensions, createHnnExtensions, HNN_MARK_TYPES, HNN_NODE_TYPES, hnnRuntimeSchema } from "./extensions"
+import { HNN_CARD_EMPTY_DATA, parseCardPayload, serializeCardPayload } from "./cardPayload"
+import { HNN_DRAWING_EMPTY_DATA, parseDrawingPayload, serializeDrawingPayload } from "./drawingPayload"
+import { createHnnEditorExtensions, createHnnExtensions, HNN_MARK_TYPES, HNN_NODE_TYPES, hnnRuntimeSchema, parseHnnClipboardNode } from "./extensions"
 import { HNN_NODE_ID_TYPES } from "./nodeId"
 import { isSafeHnnUrl } from "./urlPolicy"
 
@@ -38,6 +42,50 @@ describe("封闭 HNN extensions", () => {
     } finally {
       codecEditor.destroy()
       sessionEditor.destroy()
+    }
+  })
+
+  it("custom clipboard 声明拒绝未知 marker、tag/attrs 越权与非法 payload", () => {
+    const parse = (html: string) => parseHnnClipboardNode(new DOMParser().parseFromString(html, "text/html").body.firstElementChild as HTMLElement)
+    expect(parse('<div data-hnn-node="formula" latex="x^2"></div>')).toMatchObject({ name: "formula", attrs: { latex: "x^2" } })
+    expect(parse('<div data-hnn-node="unknown"></div>')).toBeNull()
+    expect(parse('<span data-hnn-node="formula" latex="x"></span>')).toBeNull()
+    expect(parse('<div data-hnn-node="formula" latex="x" onclick="alert(1)"></div>')).toBeNull()
+    expect(parse('<div data-hnn-node="callout" tone="danger" title="bad"></div>')).toBeNull()
+    expect(parse('<div data-hnn-node="card" data="{}"></div>')).toBeNull()
+    expect(parse('<div data-hnn-node="drawing" data="{}"></div>')).toBeNull()
+    expect(parse('<figure data-hnn-node="picture" src="javascript:alert(1)" alt="unsafe"></figure>')).toBeNull()
+  })
+
+  it("marker-aware addAttributes 保留严格 validator 的字符串 attrs，外部 pre 忽略伪造 attrs", () => {
+    const editor = new Editor({ extensions: createHnnExtensions() })
+    try {
+      editor.commands.setContent('<div data-hnn-node="formula" latex="0"></div>')
+      expect(editor.state.doc.firstChild?.attrs["latex"]).toBe("0")
+
+      editor.commands.setContent('<div data-hnn-node="callout" tone="info" title="0"><p>x</p></div>')
+      expect(editor.state.doc.firstChild?.attrs).toMatchObject({ tone: "info", title: "0" })
+
+      editor.commands.setContent('<div data-hnn-node="collapsible" title="0" collapsed="true"><p>x</p></div>')
+      expect(editor.state.doc.firstChild?.attrs).toMatchObject({ title: "0", collapsed: true })
+
+      editor.commands.setContent('<figure data-hnn-node="picture" src="https://example.test/p.png" alt="0"></figure>')
+      expect(editor.state.doc.firstChild?.attrs).toMatchObject({ src: "https://example.test/p.png", alt: "0" })
+
+      editor.commands.setContent('<div data-hnn-node="directory" config="true"></div>')
+      expect(editor.state.doc.firstChild?.attrs).toMatchObject({ config: "true" })
+
+      editor.commands.setContent('<pre language="true" filename="0"><code>  preserved\n  text</code></pre>')
+      expect(editor.state.doc.firstChild).toMatchObject({ attrs: { language: "plaintext", filename: "untitled" } })
+      expect(editor.state.doc.firstChild?.textContent).toBe("  preserved\n  text")
+
+      editor.commands.setContent('<p><span data-hnn-node="mention" resourceid="0" name="true"></span></p>')
+      expect(editor.state.doc.firstChild?.firstChild?.attrs).toMatchObject({ resourceId: "0", name: "true" })
+
+      editor.commands.setContent('<div data-hnn-node="externalItem" resourceid="0" name="true"></div>')
+      expect(editor.state.doc.firstChild?.attrs).toMatchObject({ resourceId: "0", name: "true" })
+    } finally {
+      editor.destroy()
     }
   })
 
@@ -118,6 +166,28 @@ describe("封闭 HNN extensions", () => {
     } finally {
       editor.destroy()
     }
+  })
+
+  it("新建 card/drawing attrs 使用 payload canonical 空 data，且可严格编码", () => {
+    const card = hnnRuntimeSchema.nodes["card"]?.create()
+    const drawing = hnnRuntimeSchema.nodes["drawing"]?.create()
+    const cardData: unknown = card?.attrs["data"]
+    const drawingData: unknown = drawing?.attrs["data"]
+    expect(cardData).toBe(HNN_CARD_EMPTY_DATA)
+    expect(drawingData).toBe(HNN_DRAWING_EMPTY_DATA)
+    expect(parseCardPayload(HNN_CARD_EMPTY_DATA)).toMatchObject({ ok: true })
+    expect(parseDrawingPayload(HNN_DRAWING_EMPTY_DATA)).toMatchObject({ ok: true })
+    expect(serializeCardPayload(JSON.parse(HNN_CARD_EMPTY_DATA) as unknown)).toEqual({ ok: true, value: HNN_CARD_EMPTY_DATA })
+    expect(serializeDrawingPayload(JSON.parse(HNN_DRAWING_EMPTY_DATA) as unknown)).toEqual({ ok: true, value: HNN_DRAWING_EMPTY_DATA })
+
+    const data = {
+      type: "doc",
+      content: [
+        { type: "card", attrs: { nodeId: ids[0], data: cardData } },
+        { type: "drawing", attrs: { nodeId: ids[1], data: drawingData } }
+      ]
+    }
+    expect(encodeHnn(decodeHnn({ schemaVersion: 1, data }))).toEqual({ schemaVersion: 1, data })
   })
 
   it("接收 decodeHnn 返回的同实例 PM Node，保留内容且不产生初始化历史", () => {

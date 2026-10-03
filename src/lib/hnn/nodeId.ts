@@ -74,9 +74,9 @@ function collectValidNodeIds(document: ProseMirrorNode): Set<string> {
   return ids
 }
 
-/** 将 Slice 内每个持久节点重写为新 UUID，确保粘贴内容不复用任何源文档身份。 */
-export function rewritePastedHnnNodeIds(slice: Slice): Slice {
-  const used = new Set<string>()
+/** 将 Slice 内每个持久节点重写为新 UUID，确保不复用源或当前目标文档的身份。 */
+export function rewritePastedHnnNodeIds(slice: Slice, existingIds: ReadonlySet<string> = new Set()): Slice {
+  const used = new Set(existingIds)
   const rewrite = (node: ProseMirrorNode): ProseMirrorNode => {
     if (node.isText) return node
     const content = node.content.size === 0
@@ -94,7 +94,7 @@ export function rewritePastedHnnNodeIds(slice: Slice): Slice {
  * 修复新建、缺失、非法或重复 nodeId。它只在发现问题时返回 transaction，并标记
  * addToHistory=false，因此初始化与自动修复不产生用户可撤销历史步。
  */
-export function createHnnNodeIdPlugin(): Plugin {
+export function createHnnNodeIdPlugin(getExistingIds?: () => ReadonlySet<string>): Plugin {
   return new Plugin({
     key: new PluginKey("hnnNodeIds"),
     state: {
@@ -110,7 +110,9 @@ export function createHnnNodeIdPlugin(): Plugin {
       return repairHnnDocument(newState)
     },
     props: {
-      transformPasted: rewritePastedHnnNodeIds
+      transformPasted(slice) {
+        return rewritePastedHnnNodeIds(slice, getExistingIds?.() ?? new Set())
+      }
     }
   })
 }
@@ -127,7 +129,8 @@ export function repairHnnDocument(state: EditorState): Transaction | null {
     if (persistent && legalId) seen.add(nodeId)
     const attrs = persistent && !legalId ? { ...node.attrs, nodeId: uniqueNodeId(seen) } : node.attrs
     const marks = node.isInline && node.isAtom && node.marks.length > 0 ? [] : node.marks
-    if (!legalId && persistent || marks !== node.marks) {
+    // text 节点没有 nodeId，不能 setNodeMarkup；只对持久节点与带 mark 的 inline atom 修复。
+    if (persistent && !legalId || node.isInline && node.isAtom && marks !== node.marks) {
       transaction = transaction.setNodeMarkup(position, undefined, attrs, marks)
       changed = true
     }

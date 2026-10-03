@@ -89,14 +89,14 @@ HNN 精确外壳为 `{ schemaVersion: 1, data: <纯 ProseMirror JSON doc> }`：`
 - **理由**：保留用户放置目录的位置，同时避免派生条目与真实结构不一致或把瞬时视图固化进格式。
 - **替代方案**：持久化目录项。放弃——必然出现陈旧目录。
 
-### D8. FileHandler / 资源上传 / placeholder / 重试 / 取消
+### D8. 仅图片上传 / placeholder / 重试 / 取消
 
-- 图片、卡片、画板等资源由**宿主**通过 `FileHandler`（上传回调）落盘，库不直接接触真实存储。
-- 上传中在文档内以 **placeholder / decoration** 表现（不可持久化的临时态），完成后再以 transaction 替换为真实资源节点/attrs。
-- 失败可**重试**；`documentId`/`loadKey` 切换或卸载时 **abort 上传并忽略陈旧结果**（与会话令牌一致）。
-- 上传的结果写入必须走 PM transaction，占位态不进入 HNN。
-- **理由**：资源 I/O 属宿主职责；decoration 能在不污染文档的前提下表达临时态；会话令牌避免把旧会话资源写进新文档。
-- **替代方案**：库内直传。放弃——越界且无法适配宿主存储。把上传态写进节点 attrs。放弃——会污染持久化与 undo。
+- **范围与入口**：本变更的上传能力仅覆盖 `picture` 节点。库提供显式图片选择器，以及粘贴或拖入图片文件的入口；不为 card、drawing 或其他资源提供上传流程。文档文件拖入仍不在库内处理。
+- **宿主协议**：每个图片文件创建一个稳定的 `uploadId`，首次上传 `attempt` 为 1，每次 retry 仅递增 `attempt` 而不得更换 `uploadId`。库调用宿主图片上传回调时传入文件与 `{ uploadId, attempt, signal }`；宿主必须以 `uploadId` 实施幂等，并成功返回可持久化的 `http` 或 `https` `src` 及可选 `alt`。库不直接接触真实存储。
+- **临时态与提交**：每个文件对应一个不可持久化的 decoration placeholder；上传状态、`uploadId`、`attempt` 与 File 均不得进入 HNN。成功后仅以一个 PM transaction 将对应 placeholder 替换为 `picture` 节点并写入宿主返回的 `src`/`alt`。
+- **重试与取消**：失败可重试；`documentId`/`loadKey` 切换、卸载或用户取消时，库 abort 对应独立 `AbortSignal` 并在库内忽略陈旧结果。宿主应响应 signal，但库不能保证已发请求的 I/O 实际停止。
+- **理由**：资源 I/O 属宿主职责；每文件 decoration 可并行呈现且不污染持久化；稳定 `uploadId` 让宿主可安全去重，单 transaction 保持文档与 history 的原子性。
+- **替代方案**：库内直传。放弃——越界且无法适配宿主存储。把上传态写进节点 attrs。放弃——会污染持久化与 undo。为所有资源类型统一上传。放弃——card/drawing 的编辑和持久化协议另有边界，超出本阶段范围。
 
 ### D9. 保持 `DESIGN.md` 视觉基线
 
@@ -105,11 +105,11 @@ HNN 精确外壳为 `{ schemaVersion: 1, data: <纯 ProseMirror JSON doc> }`：`
 - **理由**：这是能力迁移而非重设计，视觉回归会破坏既有用户体验与验收。
 - **替代方案**：借机重做视觉。放弃——超出本变更范围，应由设计角色单独立项。
 
-### D10. 拖拽手柄：原生 `draggable` + `data-drag-handle`
+### D10. 顶层内容块重排：桌面原生拖拽、移动端 Pointer Events
 
-块级重排使用浏览器原生 `draggable` 与 `data-drag-handle` 属性驱动，保留“手柄 / 移动端长按 500ms 启动”的既有交互；**禁止**采用官方 DragHandle 扩展（因其绑定 Yjs/peers 协作假设，与本变更无协作内核的边界冲突）。
+重排仅适用于 PM doc 的**顶层内容块**，不得把嵌套列表项、表格内部节点或其他非顶层结构作为独立重排目标。桌面端使用浏览器原生 `draggable` 与 `data-drag-handle` 手柄属性。移动端使用 Pointer Events，在手柄按住 500ms 后启动拖拽；两端均须复用同一套位置计算与重排逻辑，并将一次完整重排提交为单个 PM transaction。**禁止**采用官方 DragHandle 扩展（因其绑定 Yjs/peers 协作假设，与本变更无协作内核的边界冲突）。
 
-- **理由**：原生方案无协作依赖、可控且贴合 `DESIGN.md` 的块移动规格。
+- **理由**：顶层范围避免破坏嵌套结构；桌面原生拖拽与移动端 Pointer Events 分别符合平台事件模型，共享 transaction 语义可保证一致撤销行为并贴合 `DESIGN.md` 的手柄规格。
 - **替代方案**：官方 DragHandle。放弃——引入不需要的协作语义与依赖。
 
 ### D11. mention / link / resource 语义
@@ -153,7 +153,7 @@ HNN 与导入内容按不可信输入处理，至少包含：
 2. **搭建内部 `NoteEditor`/`EditorSession` 会话骨架**：实现 `documentId`/`loadKey` 驱动的会话创建销毁、严格初始 HNN 装载、封闭 history、dirty（`eq` baseline）、CAS 保存快照与取消/忽略陈旧结果（D3）。此阶段不改变冻结的根入口或公开 API。
 3. **迁移标准能力**：以标准/官方扩展覆盖段落、标题、列表、待办、引用、代码、表格等，并对齐 `DESIGN.md` 视觉与交互（D1/D6/D9）。
 4. **迁移自定义能力**：逐个实现 callout、collapsible、公式、picture、card、drawing、mention、外部拖入项；card/drawing 采用 atom + React NodeView + Drawer + transaction 提交（D6/D11）。
-5. **接入资源与拖拽**：宿主 `FileHandler` 上传、placeholder/decoration、失败重试与切换 abort（D8）；原生 `draggable` + `data-drag-handle` 重排（D10）。
+5. **接入图片上传与拖拽**：显式 picker、图片粘贴/拖入、宿主幂等上传、每文件 placeholder/decoration、失败重试与切换 abort（D8）；桌面端原生 `draggable` + `data-drag-handle` 与移动端 500ms Pointer Events 长按的顶层内容块重排（D10）。
 6. **Markdown 方言**：实现 GFM + 围栏导入、HNN 无损保存与可选导出 + 降级诊断及 UI 确认（D4）。
 7. **替换宿主 API 并清理旧代码**：在内容界面完成后，将根入口切换为公开的 `NoteEditor`、编解码与保存状态契约，更新 Demo；随后删除 `NoteBlock`/`restrictedHtml`/自研选区与剪贴板实现。Phase 5 的内部模块不得提前从 `src/lib/index.ts` 公开，且不保留迁移/兼容层。
 8. **验证**：按各 capability 规格补齐测试（格式往返、严格校验与硬错误不覆盖、会话竞态、dirty/保存、选择与剪贴板、Markdown 降级、安全限制）。

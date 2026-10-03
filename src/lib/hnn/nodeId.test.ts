@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 import { EditorState, TextSelection } from "@tiptap/pm/state"
 import { Slice } from "@tiptap/pm/model"
 import { hnnRuntimeSchema } from "./extensions"
@@ -77,5 +77,24 @@ describe("HNN nodeId", () => {
 
     expect([0, 1, 2].map((index) => paragraphNode.child(index).marks)).toEqual([[], [], []])
     expect(paragraphNode.lastChild?.marks.map((mark) => mark.type.name)).toEqual(["bold"])
+  })
+
+  it("显式 existingIds 避开目标文档 UUID 碰撞，且不会改写旧 document identity", () => {
+    const source = documentWith(paragraph(originalId)).slice(0, documentWith(paragraph(originalId)).content.size)
+    const collision = Uint8Array.from([0x12, 0x3e, 0x45, 0x67, 0xe8, 0x9b, 0x42, 0xd3, 0xa4, 0x56, 0x42, 0x66, 0x14, 0x17, 0x40, 0x00])
+    const fresh = Uint8Array.from([0x22, 0x3e, 0x45, 0x67, 0xe8, 0x9b, 0x42, 0xd3, 0xa4, 0x56, 0x42, 0x66, 0x14, 0x17, 0x40, 0x01])
+    let calls = 0
+    const random = vi.spyOn(globalThis.crypto, "getRandomValues").mockImplementation((array) => {
+      new Uint8Array(array.buffer, array.byteOffset, array.byteLength).set(calls++ === 0 ? collision : fresh)
+      return array
+    })
+    try {
+      const rewritten = rewritePastedHnnNodeIds(source, new Set([originalId]))
+      const pasted: unknown = rewritten.content.firstChild?.attrs["nodeId"]
+      expect(pasted).toBe("223e4567-e89b-42d3-a456-426614174001")
+      expect(pasted).not.toBe(originalId)
+    } finally {
+      random.mockRestore()
+    }
   })
 })
