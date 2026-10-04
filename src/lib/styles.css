@@ -1,15 +1,10 @@
-/* ===== @property 注册 ===== */
-/* 注册为 <length> 类型使 1lh 在设置元素（区块）上计算为绝对长度，
-   而非在使用元素（handle）上计算（handle 的 line-height 不同会导致值错误） */
-@property --hn-row-leading {
-  syntax: "<length>";
-  initial-value: 0px;
-  inherits: true;
-}
-
-/* ===== 主题变量 ===== */
-/* --hn-theme 由组件 props 注入到根节点，默认蓝色 */
-.hn-note-shell {
+/* ===== Hamster Note 主题 token（根级契约，DESIGN.md §1/§2） =====
+ * 旧实现（.hn-note-*，Phase 8.1 已随旧模块删除）的规则已全部移除；此处只保留
+ * 宿主可依赖的 token 默认值。--hn-theme 由宿主经组件 props 注入到壳元素，这里
+ * 仅提供缺省色；派生色与中性色全部可通过同名 token 覆盖。显式 light/dark 完整
+ * token 集见下方 .hn-editor--light / .hn-editor--dark（不响应媒体查询）。
+ */
+:root {
   --hn-theme: #3b82f6;
 
   /* 从主题色派生的语义色（使用 color-mix 自动计算） */
@@ -30,949 +25,11 @@
   --hn-code-font:
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
-
-  position: relative;
-  color-scheme: light;
-  color: var(--hn-text);
-}
-
-.hn-note-shell--dark {
-  --hn-theme-soft: color-mix(in srgb, var(--hn-theme) 18%, #111827);
-  --hn-theme-border: color-mix(in srgb, var(--hn-theme) 48%, transparent);
-  --hn-theme-text: color-mix(in srgb, var(--hn-theme) 55%, #f8fafc);
-  --hn-bg: #0f172a;
-  --hn-surface: #172033;
-  --hn-surface-hover: #202b3f;
-  --hn-border: rgba(226, 232, 240, 0.12);
-  --hn-border-strong: rgba(226, 232, 240, 0.22);
-  --hn-text: #f1f5f9;
-  --hn-text-muted: rgba(203, 213, 225, 0.72);
-  --hn-text-soft: rgba(226, 232, 240, 0.88);
-  color-scheme: dark;
-}
-
-.hn-note-hero,
-.hn-note-body {
-  position: relative;
-  z-index: 1;
-}
-
-.hn-note-hero {
-  /* 左右 padding 需容纳左侧的加号/转换按钮（handle 最远在内容左边缘外 56px），
-     避免加号按钮被容器边缘裁切 */
-  /* 顶部 padding 叠加 --hn-top-padding（由 topPadding prop 注入，单位 px） */
-  padding: calc(2rem + var(--hn-top-padding, 0px)) 3.5rem 1.25rem;
-  border-bottom: 1px solid var(--hn-border);
-}
-
-.hn-note-badge,
-.hn-note-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.4rem 0.7rem;
-  border-radius: 999px;
-  background: var(--hn-theme-soft);
-  color: var(--hn-theme-text);
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.hn-note-chip--strong {
-  background: var(--hn-surface-hover);
-  color: var(--hn-text);
-}
-
-.hn-note-hero h1,
-.hn-note-heading {
-  margin: 0;
-  font-family:
-    "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, serif;
-}
-
-.hn-note-hero h1 {
-  margin-top: 1rem;
-  font-size: clamp(2.2rem, 4vw, 3.5rem);
-  line-height: 1.02;
-}
-
-.hn-note-summary {
-  max-width: 56ch;
-  margin-top: 1rem;
-  color: var(--hn-text-muted);
-  font-size: 1.04rem;
-  line-height: 1.8;
-}
-
-.hn-note-body {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 0.625rem;
-  /* 底部 padding 叠加 --hn-bottom-padding（由 bottomPadding prop 注入，单位 px） */
-  padding: 1.5rem var(--hn-body-padding-x, 4rem) calc(2rem + var(--hn-bottom-padding, 0px));
-}
-
-/* 正文下方可点击空白区域：点击新建空段落，同时为页面底部留出 1/3 屏幕高度 */
-.hn-note-body-tail {
-  width: 100%;
-  min-height: 33vh;
-  padding: 0;
-  border: none;
-  background: transparent;
-  cursor: text;
-  text-align: left;
-  /* <button> 默认不继承正文字体，尾部提示文字需与段落排版一致 */
-  font: inherit;
-  /* 浏览器会把 <button> 的内容包进一个垂直居中的匿名盒；
-     显式声明 flex 布局可覆盖该行为，让尾部提示顶对齐到空白区域顶部 */
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-}
-
-.hn-note-bottom-toolbar {
-  max-width: calc(100vw - 2rem);
-  justify-content: flex-start;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scrollbar-width: none;
-  white-space: nowrap;
-}
-
-.hn-note-bottom-toolbar::-webkit-scrollbar {
-  display: none;
-}
-
-/* 固定底栏会覆盖视口底部；仅在启用它时为正文追加可滚动到的安全区。 */
-.hn-note-shell--bottom-toolbar .hn-note-body {
-  padding-bottom: calc(
-    5rem + var(--hn-bottom-bar-offset, 32px) - 32px +
-      var(--hn-bottom-padding, 0px) + env(safe-area-inset-bottom, 0px)
-  );
-}
-
-.hn-note-bottom-control,
-.hn-note-selection-actions > * {
-  flex: 0 0 auto;
-}
-
-.hn-note-bottom-control svg {
-  width: 1rem;
-  height: 1rem;
-}
-
-.hn-note-selection-actions {
-  display: contents;
-}
-
-@media (max-width: 480px) {
-  .hn-note-bottom-toolbar {
-    width: calc(100vw - 1.5rem);
-    max-width: calc(100vw - 1.5rem);
-    flex-wrap: wrap;
-    justify-content: center;
-    overflow-x: visible;
-  }
-
-  .hn-note-shell--bottom-toolbar .hn-note-body {
-    padding-bottom: calc(
-      8rem + var(--hn-bottom-bar-offset, 32px) - 32px +
-        var(--hn-bottom-padding, 0px) + env(safe-area-inset-bottom, 0px)
-    );
-  }
-}
-
-.hn-note-block,
-.hn-note-quote,
-.hn-note-code-card,
-.hn-note-callout {
-  margin: 0;
-}
-
-.hn-note-block {
-  position: relative;
-  min-width: 0;
-  --hn-row-leading: 1lh;
-}
-
-/* 嵌套块（todo/quote）外层 wrapper 不带 hn-note-block，
-   但仍需 position:relative 作为 drop indicator（::after absolute）的定位上下文 */
-.hn-note-sortable-block {
-  position: relative;
-}
-
-.hn-note-selectable-block {
-  min-width: 0;
-  border-radius: 8px;
-  outline: none;
-  cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-.hn-note-sortable-block--dragging {
-  cursor: grabbing;
-}
-
-.hn-note-block-drop-before::after,
-.hn-note-block-drop-after::after,
-.hn-note-external-drop-before::after,
-.hn-note-external-drop-after::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  z-index: 3;
-  height: 3px;
-  background: var(--hn-theme);
-  box-shadow: 0 0 0 1px var(--hn-theme-soft);
-  pointer-events: none;
-}
-
-.hn-note-block-drop-before::after,
-.hn-note-external-drop-before::after {
-  top: -0.4rem;
-}
-
-.hn-note-block-drop-after::after,
-.hn-note-external-drop-after::after {
-  bottom: -0.4rem;
-}
-
-.hn-note-external-item--clickable {
-  border-radius: 4px;
-  color: var(--hn-theme-text);
-  cursor: pointer;
-  text-decoration-color: var(--hn-theme-border);
-  text-decoration-line: underline;
-  text-decoration-style: dashed;
-  text-underline-offset: 0.18em;
-}
-
-.hn-note-external-item--clickable:focus-visible {
-  outline: 2px solid var(--hn-theme);
-  outline-offset: 3px;
-}
-
-.hn-note-selectable-block:hover {
-  background-color: color-mix(in srgb, var(--hn-theme) 6%, transparent);
-}
-
-.hn-note-selectable-block:focus-visible,
-.hn-note-selectable-block[aria-selected="true"] {
-  background-color: var(--hn-theme-soft);
-  box-shadow: 0 0 0 2px var(--hn-theme);
-}
-
-[data-note-atomic-selected="true"] {
-  border-radius: 8px;
-  background-color: var(--hn-theme-soft);
-  box-shadow: 0 0 0 2px var(--hn-theme);
-}
-
-.hn-note-eyebrow {
-  display: inline-block;
-  margin-bottom: 0.65rem;
-  color: var(--hn-theme);
-  font-size: 0.8rem;
-  font-weight: 700;
-  line-height: 1.5;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-.hn-note-block:has(> .hn-note-eyebrow) {
-  --hn-row-offset: calc(0.8rem * 1.5 + 0.65rem);
-}
-
-.hn-note-heading--1 {
-  font-size: clamp(1.8rem, 3vw, 2.6rem);
-}
-
-.hn-note-heading--2 {
-  font-size: 1.4rem;
-}
-
-.hn-note-heading--3 {
-  font-size: 1.1rem;
-}
-
-.hn-note-heading--4,
-.hn-heading-level-4 {
-  color: var(--hn-text);
-  font-size: 1rem;
-}
-
-.hn-note-heading--5,
-.hn-heading-level-5 {
-  color: var(--hn-text-soft);
-  font-size: 0.9rem;
-}
-
-.hn-note-text {
-  display: block;
-  max-width: 66ch;
-  color: var(--hn-text-soft);
-  line-height: 1.85;
-}
-
-.hn-note-text--muted {
-  color: var(--hn-text-muted);
-}
-
-.hn-note-text--accent {
-  color: var(--hn-text);
-  font-size: 1.05rem;
-}
-
-.hn-note-section-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.8rem;
-  margin-bottom: 1rem;
-}
-
-.hn-note-section-header h3 {
-  margin: 0;
-  font-size: 1.1rem;
-}
-
-.hn-note-todo-item {
-  position: relative;
-}
-
-.hn-note-todo-content {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  column-gap: 0.75rem;
-  row-gap: 0.25rem;
-  align-items: flex-start;
-  padding: 0.95rem 1rem;
-  border: 1px solid var(--hn-border);
-  border-radius: 18px;
-  background: var(--hn-surface);
-}
-
-.hn-note-todo-title {
-  margin-bottom: 0.5rem;
-}
-
-.hn-note-todo-empty {
-  min-height: 3rem;
-}
-
-.hn-note-checkbox {
-  flex-shrink: 0;
-  padding: 0;
-  border: none;
-  background: none;
-  font-size: 1rem;
-  line-height: 1.5;
-  /* 未勾选圆点：主题色的柔和变体，随主题色变化 */
-  color: color-mix(in srgb, var(--hn-theme) 35%, var(--hn-text-muted));
-  cursor: default;
-  user-select: none;
-}
-
-.hn-note-checkbox--checked {
-  /* 已勾选圆点：完整主题色 */
-  color: var(--hn-theme);
-}
-
-.hn-note-checkbox--editable {
-  cursor: pointer;
-}
-
-.hn-note-checkbox--editable:hover {
-  color: var(--hn-theme);
-}
-
-.hn-note-checkbox--editable.hn-note-checkbox--checked:hover {
-  /* 勾选态 hover：主题色加深，保持可感知的反馈 */
-  color: color-mix(in srgb, var(--hn-theme) 85%, black);
-}
-
-/* ── 无序/有序列表块 ──────────────────────────────────────────────────────
- * 列表块整体容器：与 todo-content 保持一致的卡片化视觉，
- * 但使用原生 <ul>/<ol> + <li> 语义结构，浏览器自动渲染列表标记。
- */
-.hn-note-unordered-list,
-.hn-note-ordered-list {
-  margin: 0;
-  padding: 0.6rem 1rem 0.6rem 2.2rem;
-  border: 1px solid var(--hn-border);
-  border-radius: 18px;
-  background: var(--hn-surface);
-  list-style-position: outside;
-}
-
-/* 无序列表使用圆点标记 */
-.hn-note-unordered-list {
-  list-style-type: disc;
-}
-
-/* 有序列表使用数字标记 */
-.hn-note-ordered-list {
-  list-style-type: decimal;
-}
-
-/* 列表项：每个块只包含一行，留出舒适垂直间距 */
-.hn-note-list-item {
-  position: relative;
-  padding: 0.35rem 0;
-  line-height: 1.6;
-}
-
-.hn-note-list-item-content {
-  display: block;
-  min-height: 1.5rem;
-}
-
-/* 标记颜色随主题色，与 todo 圆点视觉协调 */
-.hn-note-unordered-list .hn-note-list-item::marker,
-.hn-note-ordered-list .hn-note-list-item::marker {
-  color: color-mix(in srgb, var(--hn-theme) 70%, var(--hn-text-muted));
-}
-
-/* 空列表占位：保持最小高度便于点击落点 */
-.hn-note-list-empty {
-  min-height: 3rem;
-}
-
-/* 列表块 wrapper：handle 需要与第一个列表项文本中心对齐。
- * 列表顶部有 0.6rem padding，第一项还有 0.35rem padding，
- * 用 --hn-row-offset 把 handle 中心推到首行文本中心。
- */
-.hn-note-list-block {
-  --hn-row-offset: calc(0.6rem + 0.35rem);
-}
-
-.hn-note-quote {
-  position: relative;
-}
-
-.hn-note-quote-content {
-  padding: 1.25rem 1.35rem;
-  border-left: 4px solid var(--hn-theme);
-  border-radius: 0 20px 20px 0;
-  background: var(--hn-theme-soft);
-}
-
-.hn-note-quote-content:not(.hn-note-quote-line--final) {
-  padding-bottom: 0.5rem;
-  border-bottom-right-radius: 0;
-}
-
-.hn-note-quote-content.hn-note-quote-line--continuation {
-  margin-top: -0.625rem;
-  padding-top: 0.5rem;
-  border-top-right-radius: 0;
-}
-
-.hn-note-quote-content.hn-note-quote-line--final {
-  border-bottom-right-radius: 20px;
-}
-
-.hn-note-quote-content p {
-  margin: 0;
-  font-size: 1.1rem;
-  line-height: 1.7;
-}
-
-.hn-note-quote-content footer {
-  margin-top: 0.8rem;
-  color: var(--hn-theme-text);
-  font-weight: 600;
-}
-
-.hn-note-code-card {
-  border: 1px solid var(--hn-border-strong);
-  border-radius: var(--hn-radius);
-  background: #0f172a;
-}
-
-.hn-note-code-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.8rem;
-  padding: 0.9rem 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  color: var(--hn-theme);
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-.hn-note-code-lang-select {
-  padding: 0.2rem 0.4rem;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.06);
-  color: #e2e8f0;
-  font-family: inherit;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.hn-note-code-lang-select:focus {
-  outline: 2px solid var(--hn-theme);
-  outline-offset: 0;
-}
-
-.hn-note-code-filename-input {
-  flex: 0 0 auto;
-  width: auto;
-  min-width: 12px;
-  padding: 0.2rem 0.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.06);
-  color: #e2e8f0;
-  font-family: var(--hn-code-font);
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-align: right;
-}
-
-.hn-note-code-filename-input::placeholder {
-  color: rgba(226, 232, 240, 0.4);
-}
-
-.hn-note-code-filename-input:focus {
-  outline: 2px solid var(--hn-theme);
-  outline-offset: 0;
-}
-
-.hn-note-code-card pre,
-.hn-note-code-editor,
-.hn-note-code-preview,
-.hn-note-code-highlight {
-  display: block;
-  width: 100%;
-  overflow-x: auto;
-  padding: 1rem;
-  margin: 0;
-  border: 0;
-  background: transparent;
-  color: #e2e8f0;
-  font-family: var(--hn-code-font);
-  font-size: 0.9rem;
-  line-height: 1.7;
-  text-align: left;
-  white-space: pre;
-}
-
-.hn-note-code-card code {
-  font-family: var(--hn-code-font);
-}
-
-.hn-note-code-editing {
-  display: grid;
-}
-
-.hn-note-code-editor,
-.hn-note-code-highlight {
-  grid-area: 1 / 1;
-}
-
-.hn-note-code-highlight {
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.hn-note-code-editor {
-  z-index: 1;
-  overflow: auto;
-  box-sizing: border-box;
-  min-height: calc(1.7em + 2rem);
-  resize: none;
-  color: transparent;
-  caret-color: #e2e8f0;
-}
-
-.hn-note-code-card .hljs-keyword,
-.hn-note-code-card .hljs-selector-tag,
-.hn-note-code-card .hljs-literal {
-  color: #c084fc;
-}
-
-.hn-note-code-card .hljs-string,
-.hn-note-code-card .hljs-attr,
-.hn-note-code-card .hljs-template-tag,
-.hn-note-code-card .hljs-template-variable {
-  color: #86efac;
-}
-
-.hn-note-code-card .hljs-title,
-.hn-note-code-card .hljs-section,
-.hn-note-code-card .hljs-type,
-.hn-note-code-card .hljs-built_in {
-  color: #7dd3fc;
-}
-
-.hn-note-code-card .hljs-number,
-.hn-note-code-card .hljs-symbol,
-.hn-note-code-card .hljs-variable,
-.hn-note-code-card .hljs-params {
-  color: #fbbf24;
-}
-
-.hn-note-code-card .hljs-comment,
-.hn-note-code-card .hljs-quote {
-  color: #94a3b8;
-  font-style: italic;
-}
-
-.hn-note-callout {
-  padding: 1.1rem 1.2rem;
-  border-radius: 22px;
-  background: var(--hn-surface);
-}
-
-.hn-note-callout--info {
-  border: 1px solid var(--hn-theme-border);
-}
-
-.hn-note-callout--success {
-  border: 1px solid rgba(22, 163, 74, 0.28);
-}
-
-.hn-note-callout--warning {
-  border: 1px solid rgba(217, 119, 6, 0.28);
-}
-
-.hn-note-callout-title-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-.hn-note-callout p {
-  margin: 0.75rem 0 0;
-  color: var(--hn-text-soft);
-  line-height: 1.7;
-}
-
-/* ===== Collapsible 块（可收缩/展开的容器型块，内部嵌套任意子块） ===== */
-.hn-note-collapsible {
-  border: 1px solid var(--hn-border);
-  border-radius: 14px;
-  background: var(--hn-surface);
-  overflow: hidden;
-}
-
-.hn-note-collapsible-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-}
-
-.hn-note-collapsible-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.1rem;
-  height: 1.1rem;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--hn-text-muted);
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.hn-note-collapsible-toggle:hover {
-  color: var(--hn-text);
-}
-
-.hn-note-collapsible-caret {
-  display: inline-block;
-  font-size: 0.7em;
-  line-height: 1;
-  transition: transform 0.15s ease;
-}
-
-/* 展开时 caret 旋转 90deg（▶ 变为 ↓ 方向） */
-.hn-note-collapsible:not(.hn-note-collapsible--collapsed) .hn-note-collapsible-caret {
-  transform: rotate(90deg);
-}
-
-.hn-note-collapsible-title {
-  flex: 1;
-  min-width: 0;
-  color: var(--hn-text);
-  font-weight: 500;
-  line-height: 1.5;
-  outline: none;
-  word-break: break-word;
-}
-
-.hn-note-collapsible-body {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 0.625rem;
-  /* 左侧留白 3.5rem(56px)：为子块的 handle(⋮⋮, 距左边 4~28px) 和加号(+, 距左边 32~56px)
-     留出完整空间，避免被 .hn-note-collapsible 的 overflow:hidden 裁剪；
-     同时形成嵌套缩进，视觉上区分 collapsible 内部子块与顶层块 */
-  padding: 0 1rem 0.75rem 3.5rem;
-}
-
-.hn-note-directory {
-  padding: 1rem 1.15rem;
-  border: 1px solid var(--hn-border);
-  border-radius: 14px;
-  background: var(--hn-surface);
-}
-
-.hn-note-directory-title {
-  display: block;
-  color: var(--hn-text);
-  font-size: 0.9rem;
-  letter-spacing: 0.02em;
-}
-
-.hn-note-directory-list {
-  display: grid;
-  gap: 0.35rem;
-  margin: 0.75rem 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.hn-note-directory-item a {
-  display: inline-flex;
-  min-width: 0;
-  max-width: 100%;
-  color: var(--hn-text-soft);
-  line-height: 1.55;
-  overflow-wrap: anywhere;
-  text-decoration: none;
-}
-
-.hn-note-directory-item a > span {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.hn-note-directory-item a:hover {
-  color: var(--hn-theme-text);
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
-}
-
-.hn-note-directory-item a:focus-visible {
-  border-radius: 4px;
-  box-shadow: 0 0 0 2px var(--hn-theme-soft);
-  outline: 2px solid var(--hn-theme);
-  outline-offset: 2px;
-}
-
-.hn-note-directory-item--2 {
-  padding-inline-start: 1rem;
-}
-
-.hn-note-directory-item--3 {
-  padding-inline-start: 2rem;
-}
-
-.hn-note-directory-item--4 {
-  padding-inline-start: 3rem;
-}
-
-.hn-note-directory-item--5 {
-  padding-inline-start: 4rem;
-}
-
-.hn-note-directory-empty {
-  margin: 0.65rem 0 0;
-  color: var(--hn-text-soft);
-  font-size: 0.9rem;
-}
-
-/* ===== 可编辑状态样式 ===== */
-.hn-note-editable {
-  display: block;
-  flex: 1 1 auto;
-  max-width: none;
-  outline: none;
-}
-
-.hn-note-editable:empty,
-.hn-note-editable:has(> br:only-child) {
-  min-height: 1lh;
-}
-
-/* ===== Placeholder 占位提示 ===== */
-/* 标题占位：由编辑事件根据完整 childNodes 精确同步，避免 CSS 忽略文本节点 */
-.hn-note-hero h1[data-placeholder][data-placeholder-visible]::before {
-  content: attr(data-placeholder);
-  color: var(--hn-text-muted);
-  opacity: 0.55;
-  pointer-events: none;
-}
-
-/* 正文尾部提示：作为 .hn-note-body-tail 按钮的内容，始终追加在正文最后一行，
-   提示点击空白区域可新建一行；文字本身不可交互，点击穿透到所在按钮 */
-.hn-note-body-tail-hint {
-  display: block;
-  color: var(--hn-text-muted);
-  opacity: 0.55;
-  pointer-events: none;
-  user-select: none;
-}
-
-.hn-note-mention-menu {
-  position: fixed;
-  z-index: 10000;
-  display: grid;
-  width: min(260px, calc(100vw - 24px));
-  max-height: min(18rem, calc(100vh - 24px));
-  gap: 0.15rem;
-  padding: 0.3rem;
-  overflow-y: auto;
-  border-radius: 10px;
-  background: #1e293b;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
-  animation: hn-popover-in 0.12s ease;
-}
-
-.hn-note-mention-option {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  gap: 0.55rem;
-  padding: 0.5rem 0.65rem;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  color: #e2e8f0;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.hn-note-mention-option:hover,
-.hn-note-mention-option[aria-selected="true"] {
-  background: rgba(255, 255, 255, 0.14);
-  color: #ffffff;
-}
-
-.hn-note-mention-option:focus-visible {
-  outline: 2px solid var(--hn-theme);
-  outline-offset: -2px;
-}
-
-.hn-note-mention-mark {
-  font-weight: 700;
-}
-
-/* 空态提示：过滤后无匹配（或 links 本身为空）时展示，非交互元素。
-   复用现有 popover 视觉语言——#e2e8f0 降透明度，不引入新色板。 */
-.hn-note-mention-empty {
-  padding: 0.5rem 0.65rem;
-  color: rgba(226, 232, 240, 0.6);
-  font-size: 0.8rem;
-  text-align: left;
-  cursor: default;
-}
-
-.hn-note-link-mention {
-  padding: 0 0.2em;
-  border-radius: 999px;
-  background: var(--hn-theme-soft);
-  color: var(--hn-theme-text);
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-@media (max-width: 840px) {
-  .hn-note-hero {
-    padding-right: 3.5rem;
-    padding-left: 3.5rem;
-  }
-}
-
-/* ===== 选区弹出层（SelectionPopover）===== */
-/* position:fixed 相对视口定位，不受 .hn-note-shell 的 overflow:hidden 裁切 */
-.hn-note-popover {
-  position: fixed;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  gap: 0.15rem;
-  padding: 0.3rem;
-  border-radius: 10px;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
-  animation: hn-popover-in 0.12s ease;
-}
-
-.hn-note-popover-btn {
-  min-width: 30px;
-  padding-inline: 0.55rem;
-}
-/* 复制按钮：文字更紧凑 */
-.hn-note-popover-btn--copy {
-  min-width: auto;
-  font-size: 0.78rem;
-}
-
-.hn-note-popover-glyph {
-  display: inline-block;
-  line-height: 1;
-  font-size: 0.85rem;
-}
-
-.hn-note-popover-glyph--bold {
-  font-weight: 800;
-}
-
-.hn-note-popover-glyph--italic {
-  font-style: italic;
-  font-family: Georgia, "Times New Roman", serif;
-}
-
-.hn-note-popover-glyph--underline {
-  text-decoration: underline;
-}
-
-.hn-note-popover-glyph--strikethrough {
-  text-decoration: line-through;
-}
-
-.hn-note-popover-glyph--code {
-  font-family: var(--hn-code-font, ui-monospace, monospace);
-}
-
-.hn-note-popover-glyph--formula {
-  font-family: Georgia, "Times New Roman", serif;
-  font-style: italic;
-}
-
-.hn-note-popover-glyph--clear {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: line-through;
-  text-decoration-thickness: 2px;
-  opacity: 0.85;
-}
-
-.hn-note-popover-btn--clear {
-  color: #fca5a5;
-}
-
-.hn-note-popover-btn--clear:hover {
-  color: #f87171;
 }
 
-/* 仅做淡入，避免与定位 transform 冲突 */
+/* ===== 弹层动效语言（DESIGN.md §6/§9/§14） =====
+ * 仅做淡入，避免与定位 transform 冲突。新编辑器的 mini popover（§11）与
+ * HostReferenceUI 的 hn-reference-popover-in 镜像同一语言。 */
 @keyframes hn-popover-in {
   from {
     opacity: 0;
@@ -983,1190 +40,11 @@
   }
 }
 
-/* 格式按钮与链接按钮之间的分隔线 */
-.hn-note-popover-divider {
-  width: 1px;
-  height: 20px;
-  align-self: center;
-  background: rgba(255, 255, 255, 0.18);
-}
-
-/* 文字颜色色块按钮：圆形小色块，背景色由内联 style 注入，此处仅控制外形与描边 */
-.hn-note-popover-color {
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: 3px solid rgba(255, 255, 255, 0.25);
-  box-shadow: inset 0 0 0 2px #1e293b;
-  border-radius: 50%;
-  cursor: pointer;
-  transition:
-    transform 0.12s ease,
-    border-color 0.12s ease;
-}
-
-.hn-note-popover-color:hover {
-  transform: scale(1.12);
-  border-color: rgba(255, 255, 255, 0.55);
-}
-
-/* 当前选区颜色匹配的色块：纯白描边高亮 */
-.hn-note-popover-color--active {
-  border-color: #ffffff;
-}
-
-[data-hn-color="#ef4444"] { color: #ef4444; }
-[data-hn-color="#3b82f6"] { color: #3b82f6; }
-[data-hn-color="#22c55e"] { color: #22c55e; }
-[data-hn-color="#000000"] { color: #000000; }
-[data-hn-color="#6b7280"] { color: #6b7280; }
-
-/* 链接按钮 */
-.hn-note-popover-btn--link {
-  min-width: auto;
-}
-
-.hn-note-popover-glyph--link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* 链接配置表单 */
-.hn-note-popover-link-form {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-}
-
-.hn-note-popover-link-input {
-  width: 200px;
-  padding: 0.35rem 0.55rem;
-  border: none;
-  border-radius: 6px;
-  background: rgba(15, 23, 42, 0.55);
-  color: #f1f5f9;
-  font-size: 0.8rem;
-  outline: none;
-  transition:
-    background 0.12s ease,
-    box-shadow 0.12s ease;
-}
-
-.hn-note-popover-link-input:focus {
-  background: rgba(15, 23, 42, 0.8);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
-}
-
-.hn-note-popover-link-input:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.hn-note-popover-link-input::placeholder {
-  color: rgba(226, 232, 240, 0.45);
-}
-
-.hn-note-popover-btn--magic {
-  white-space: nowrap;
-  font-size: 0.78rem;
-}
-
-.hn-note-popover-btn--confirm {
-  min-width: auto;
-  font-size: 0.95rem;
-}
-
-.hn-note-popover-btn--cancel {
-  min-width: auto;
-  color: #fca5a5;
-  font-size: 0.9rem;
-}
-
-.hn-note-popover-btn--cancel:hover {
-  color: #f87171;
-}
-
-/* 魔法链接：以 hnmagic:// 开头的链接在内容中可视化区分 */
-.hn-note-shell a[href^="hnmagic://"] {
-  color: var(--hn-theme, #3b82f6);
-  text-decoration: underline;
-  text-decoration-style: dashed;
-  text-underline-offset: 3px;
-  cursor: pointer;
-}
-
-.hn-note-shell a[href^="hnmagic://"]:hover {
-  filter: brightness(1.1);
-}
-
-/* ===== 区块编辑交互（BlockActionMenu / 区块）===== */
-/* handle 与区块渲染在 .hn-note-shell 内部，可使用 --hn-* 变量；
-   菜单通过 portal 渲染到 document.body，脱离 shell 作用域，
-   因此菜单样式必须使用字面量颜色（与 SelectionPopover 一致）。 */
-
-/*
-  左侧 hover 感应区：覆盖加号/操作按钮以及它们与正文之间的间隙。
-  它是区块的一部分，鼠标进入该区域仍然算作区块 hover，保证两个按钮
-  在从正文移向按钮或穿越间隙时不会闪烁消失。
-  z-index 低于 handle，所以不会遮挡按钮点击。
-*/
-.hn-note-block:has(> .hn-note-block-handle)::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 100%;
-  width: 60px;
-  height: 100%;
-  background: transparent;
-  pointer-events: auto;
-  z-index: 0;
-}
-
-/* handle 按钮：24px 方形，绝对定位在内容左侧的 gutter 中，不占用正文宽度 */
-.hn-note-block-handle {
-  position: absolute;
-  top: 0;
-  z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--hn-text-muted);
-  font-size: 0.9rem;
-  line-height: 1;
-  cursor: pointer;
-  -webkit-user-select: none;
-  user-select: none;
-  opacity: 0;
-  pointer-events: none;
-  /* 垂直偏移：首行行高的一半减去 handle 高度的一半，使 handle 中心对齐首行文本中心 */
-  margin-top: calc(
-    var(--hn-row-offset, 0px) + var(--hn-row-leading, 0px) / 2 - 12px
-  );
-  transition:
-    background 0.15s ease,
-    color 0.15s ease,
-    box-shadow 0.15s ease,
-    opacity 0.15s ease;
-}
-
-.hn-note-block-handle--convert {
-  right: calc(100% + 4px);
-}
-
-.hn-note-block-handle--add {
-  right: calc(100% + 32px);
-  font-size: 1rem;
-  font-weight: 500;
-}
-
-.hn-note-block-handle-glyph {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  letter-spacing: -0.18em;
-  transform: translateX(-0.03em);
-}
-
-/* 区块 hover、区块内聚焦、handle 自身 hover/focus 或菜单打开时显现并可交互 */
-.hn-note-block:hover > .hn-note-block-handle,
-.hn-note-block:focus-within > .hn-note-block-handle,
-.hn-note-block-handle:hover,
-.hn-note-block-handle:focus,
-.hn-note-block-handle--open {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* handle hover：浅色背景 + 正文色文字（DESIGN.md §9 Hover） */
-.hn-note-block-handle:hover {
-  background: var(--hn-surface-hover);
-  color: var(--hn-text);
-}
-
-/* handle focus：与可编辑字段一致的 2px 主题色描边（DESIGN.md §9 Focus） */
-.hn-note-block-handle:focus {
-  box-shadow: 0 0 0 2px var(--hn-theme);
-  outline: none;
-}
-
-/* 菜单打开时 handle 保持 active 视觉，标明菜单所属区块（DESIGN.md §9 Open） */
-.hn-note-block-handle--open {
-  background: var(--hn-theme-soft);
-  color: var(--hn-theme-text);
-}
-
-.hn-note-todo-item > .hn-note-block-handle {
-  margin-top: calc(0.95rem + 1px);
-}
-
-.hn-note-block:has(> .hn-note-callout) > .hn-note-block-handle {
-  margin-top: 1.1rem;
-}
-
-.hn-note-block:has(> .hn-note-collapsible) > .hn-note-block-handle {
-  margin-top: 0.75rem;
-}
-
-.hn-note-block:has(> .hn-note-code-card) > .hn-note-block-handle {
-  margin-top: 0.9rem;
-}
-
-.hn-note-quote-line {
-  --hn-row-leading: 1.7rem;
-}
-
-.hn-note-quote-line:has(> .hn-note-quote-content:not(.hn-note-quote-line--continuation)) {
-  --hn-row-offset: 1.25rem;
-}
-
-.hn-note-quote-line:has(> .hn-note-quote-line--continuation) {
-  --hn-row-offset: calc(-0.625rem + 0.5rem);
-}
-
-.hn-note-block:has(> .hn-note-table-wrapper) > .hn-note-block-handle {
-  margin-top: 0.35rem;
-}
-
-.hn-note-block:has(> .hn-note-formula) > .hn-note-block-handle {
-  margin-top: 0.7rem;
-}
-
-.hn-note-block:has(> .hn-note-picture) > .hn-note-block-handle {
-  margin-top: 0.35rem;
-}
-
-@media (max-width: 839px) {
-  .hn-note-block:has(> .hn-note-block-handle)::before,
-  .hn-note-block-handle {
-    display: none;
-  }
-  /* 窄屏下 handle 隐藏，collapsible-body 不需要为它留 3.5rem 空间 */
-  .hn-note-collapsible-body {
-    padding-left: 1.5rem;
-  }
-}
-
-.hn-note-shell--mobile .hn-note-block:has(> .hn-note-block-handle)::before,
-.hn-note-shell--mobile .hn-note-block-handle {
-  display: none;
-}
-
-.hn-note-picture {
-  margin: 0;
-}
-
-.hn-note-picture img {
-  display: block;
-  max-width: 100%;
-  height: auto;
-  border: 1px solid var(--hn-border);
-  border-radius: 8px;
-}
-
-.hn-note-picture-input {
-  display: none;
-}
-
-/* heading 各级别：区块的 font-size(16px) ≠ heading 的 font-size，
-   1lh 基于区块而非 heading 计算，需用 :has 覆盖为正确行高（font-size × 1.5） */
-.hn-note-block:has(> .hn-note-heading--1) {
-  --hn-row-leading: calc(clamp(1.8rem, 3vw, 2.6rem) * 1.5);
-}
-
-.hn-note-block:has(> .hn-note-heading--2) {
-  --hn-row-leading: calc(1.4rem * 1.5);
-}
-
-.hn-note-block:has(> .hn-note-heading--3) {
-  --hn-row-leading: calc(1.1rem * 1.5);
-}
-
-.hn-note-block:has(> .hn-note-heading--4) {
-  --hn-row-leading: calc(1rem * 1.5);
-}
-
-.hn-note-block:has(> .hn-note-heading--5) {
-  --hn-row-leading: calc(0.9rem * 1.5);
-}
-
-/* ===== 区块菜单（portal 渲染到 document.body）===== */
-/* Portal 无法继承 shell 变量，因此在菜单根节点按 data-theme 定义同名语义。 */
-.hn-note-block-menu {
-  --hn-block-menu-bg: #ffffff;
-  --hn-block-menu-text: #334155;
-  --hn-block-menu-text-hover: #1e293b;
-  --hn-block-menu-text-disabled: rgba(51, 65, 85, 0.5);
-  --hn-block-menu-hover: #f1f5f9;
-  --hn-block-menu-danger: #b91c1c;
-  --hn-block-menu-danger-hover: rgba(239, 68, 68, 0.1);
-  --hn-block-menu-danger-hover-text: #b91c1c;
-  --hn-block-menu-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
-
-  position: fixed;
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  width: 160px;
-  padding: 4px;
-  border-radius: 10px;
-  background: var(--hn-block-menu-bg);
-  box-shadow: var(--hn-block-menu-shadow);
-  /* 复用已有淡入动画，避免与定位 transform 冲突 */
-  animation: hn-popover-in 0.12s ease;
-}
-
-.hn-note-block-menu[data-theme="dark"] {
-  --hn-block-menu-bg: #1e293b;
-  --hn-block-menu-text: #e2e8f0;
-  --hn-block-menu-text-hover: #ffffff;
-  --hn-block-menu-text-disabled: rgba(226, 232, 240, 0.5);
-  --hn-block-menu-hover: rgba(255, 255, 255, 0.14);
-  --hn-block-menu-danger: #fca5a5;
-  --hn-block-menu-danger-hover: rgba(239, 68, 68, 0.15);
-  --hn-block-menu-danger-hover-text: #ffffff;
-  --hn-block-menu-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
-}
-
-/* 菜单项：button 行，默认透明背景 + 浅色文字（与 popover 按钮一致） */
-.hn-note-block-menu-item {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  width: 100%;
-  padding: 0.4rem 0.55rem;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--hn-block-menu-text);
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-align: left;
-  cursor: pointer;
-  transition:
-    background 0.12s ease,
-    color 0.12s ease;
-}
-
-/* 菜单项 hover/focus：半透明白底 + 纯白文字 */
-.hn-note-block-menu-item:hover,
-.hn-note-block-menu-item:focus {
-  background: var(--hn-block-menu-hover);
-  color: var(--hn-block-menu-text-hover);
-  outline: none;
-}
-
-.hn-note-block-menu-item[aria-disabled="true"] {
-  cursor: wait;
-  opacity: 0.7;
-}
-
-.hn-note-block-menu-item[aria-disabled="true"]:hover,
-.hn-note-block-menu-item[aria-disabled="true"]:focus {
-  background: transparent;
-  color: var(--hn-block-menu-text);
-}
-
-/* 当前格式项（--active）：弱化文字 + 默认光标，禁止重复选择。 */
-.hn-note-block-menu-item--active,
-.hn-note-block-menu-item--active:hover,
-.hn-note-block-menu-item--active:focus {
-  background: transparent;
-  color: var(--hn-block-menu-text-disabled);
-  cursor: default;
-}
-
-/* 勾选标记：仅当前格式项显示 */
-.hn-note-block-menu-check {
-  display: inline-flex;
-  flex-shrink: 0;
-  font-size: 0.75rem;
-  line-height: 1;
-}
-
-/* 菜单项文字标签：占满剩余宽度 */
-.hn-note-block-menu-item-label {
-  flex: 1 1 0%;
-  min-width: 0;
-}
-
-/* ===== convert 模式主菜单 + 子菜单样式扩展 ===== */
-/* 子菜单沿用 .hn-note-block-menu 复合类，外观与主菜单一致；
-   这里仅覆盖小细节：宽度对齐主菜单、内嵌动画与暗色风格统一。 */
-.hn-note-block-menu-submenu {
-  /* 子菜单与主菜单宽度一致，保持视觉对齐 */
-  width: 160px;
-}
-
-/* "转换成"主菜单项：右侧带一个 › 箭头提示有子菜单 */
-.hn-note-block-menu-item--has-submenu {
-  /* 复用基础 menu-item 样式，仅扩展箭头列布局 */
-  position: relative;
-}
-
-/* 子菜单指示箭头：靠右排列，符号 › 用纯字符即可，无需 SVG */
-.hn-note-block-menu-submenu-arrow {
-  display: inline-flex;
-  flex-shrink: 0;
-  margin-left: auto;
-  padding-left: 0.25rem;
-  color: var(--hn-block-menu-text-disabled);
-  font-size: 0.9rem;
-  line-height: 1;
-}
-
-/* 展开子菜单时，主菜单"转换成"项保持 hover 风格的半透明白底+白字，
-   用以表示"当前所在分支"；鼠标 hover/focus 上去不再叠加更深一层变化
-   （子菜单本身的存在已说明分支，主菜单项维持稳定视觉反馈即可）。 */
-.hn-note-block-menu-item--has-submenu[aria-expanded="true"],
-.hn-note-block-menu-item--has-submenu[aria-expanded="true"]:hover,
-.hn-note-block-menu-item--has-submenu[aria-expanded="true"]:focus {
-  background: var(--hn-block-menu-hover);
-  color: var(--hn-block-menu-text-hover);
-}
-
-/* ===== 公式块 ===== */
-.hn-note-formula-preview {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-height: 3.25rem;
-  padding: 0.65rem 0.9rem;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--hn-text);
-  overflow-x: auto;
-}
-
-.hn-note-formula-preview--editable {
-  font: inherit;
-  cursor: text;
-  transition:
-    background 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-.hn-note-formula-preview--editable:hover {
-  background: color-mix(in srgb, var(--hn-theme) 5%, transparent);
-  box-shadow: 0 0 0 1px var(--hn-theme-border);
-}
-
-.hn-note-formula-preview--editable:focus {
-  background: color-mix(in srgb, var(--hn-theme) 8%, transparent);
-  box-shadow: 0 0 0 2px var(--hn-theme);
-  outline: none;
-}
-
-.hn-note-formula-rendered {
-  max-width: 100%;
-}
-
-.hn-note-formula-rendered .katex-display {
-  margin: 0;
-}
-
-.hn-note-formula-placeholder {
-  color: var(--hn-text-muted);
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 1.1rem;
-  font-style: italic;
-}
-
-/* 锚定模式浮层：经 Portal 渲染到 body，坐标由包内 useAnchorPosition 计算。
-   中和 .hn-popover 的 inline-flex 布局，改为 block 容器以容纳 textarea + 预览。 */
-.hn-note-formula-popover {
-  display: block;
-  gap: normal;
-  width: min(520px, calc(100vw - 16px));
-  z-index: 9999;
-  padding: 8px;
-  border-radius: 10px;
-  background: #1e293b;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
-}
-
-.hn-note-formula-textarea {
-  display: block;
-  box-sizing: border-box;
-  width: 100%;
-  min-height: 8rem;
-  resize: vertical;
-  padding: 0.7rem 0.8rem;
-  border: 1px solid rgba(226, 232, 240, 0.16);
-  border-radius: 6px;
-  background: rgba(15, 23, 42, 0.55);
-  color: #f1f5f9;
-  font-family: var(--hn-code-font, ui-monospace, monospace);
-  font-size: 0.88rem;
-  line-height: 1.55;
-  outline: none;
-  transition:
-    background 0.12s ease,
-    border-color 0.12s ease,
-    box-shadow 0.12s ease;
-}
-
-.hn-note-formula-textarea:focus {
-  border-color: var(--hn-theme);
-  background: rgba(15, 23, 42, 0.8);
-  box-shadow: 0 0 0 2px var(--hn-theme);
-}
-
-.hn-note-formula-textarea::placeholder {
-  color: rgba(226, 232, 240, 0.45);
-}
-
-/* ===== 画板块 ===== */
-/* 预览态外观对齐公式块：整块可点击区域 + 主题色 hover/focus 反馈 */
-.hn-note-drawing-preview {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-height: 3.25rem;
-  padding: 0;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  background: transparent;
-}
-
-.hn-note-drawing-preview--editable {
-  font: inherit;
-  cursor: pointer;
-  transition:
-    background 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-.hn-note-drawing-preview--editable:hover {
-  outline: 2px solid var(--hn-theme);
-}
-
-.hn-note-drawing-preview--editable:focus {
-  background: color-mix(in srgb, var(--hn-theme) 8%, transparent);
-  box-shadow: 0 0 0 2px var(--hn-theme);
-  outline: none;
-}
-
-/* 缩略图视觉对齐图片块：白底 + 细边框 + 8px 圆角，宽度撑满、高度按 viewBox 等比 */
-.hn-note-drawing-thumbnail {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  height: auto;
-  max-height: 320px;
-  border: 1px solid var(--hn-border);
-  border-radius: 8px;
-  background: #ffffff;
-}
-
-/* 未绘制占位：虚线框提示，与图片上传前的空态语义一致 */
-.hn-note-drawing-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-height: 3.25rem;
-  border: 1px dashed var(--hn-border-strong);
-  border-radius: 8px;
-  color: var(--hn-text-muted);
-  font-size: 0.85rem;
-}
-
-/* 画板编辑抽屉：由 Drawer 提供底部贴边、遮罩和焦点管理；默认占视口 60% 高度。 */
-.hn-note-drawing-drawer {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  padding: 0;
-  background: #1e293b;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
-  overflow: hidden;
-}
-
-/* 让 Drawer 内容撑满面板，使内部 flex 子级（工具条 + 画布）正常工作。 */
-.hn-note-drawing-drawer .hn-drawer__content {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-}
-
-.hn-note-drawing-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 8px;
-}
-
-/* 工具条按钮复用块菜单项的暗色按钮外观 */
-.hn-note-drawing-tool {
-  padding: 0.35rem 0.6rem;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: #e2e8f0;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    background 0.12s ease,
-    color 0.12s ease;
-}
-
-.hn-note-drawing-tool:hover,
-.hn-note-drawing-tool:focus {
-  background: rgba(255, 255, 255, 0.14);
-  color: #ffffff;
-  outline: none;
-}
-
-.hn-note-drawing-tool[aria-pressed="true"] {
-  background: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-}
-
-/* "完成"按钮推到工具条最右侧 */
-.hn-note-drawing-close {
-  margin-left: auto;
-}
-
-/* 画布区域：DrawingSurface 宿主 div 为 100% 宽高，这里给白底与剩余空间 */
-.hn-note-drawing-canvas {
-  flex: 1;
-  min-height: 0;
-  background: #ffffff;
-}
-
-/* ===== 行内公式与行内代码 ===== */
-/* 行内公式基础态：富文本 HTML 中存储的未渲染占位，衬线斜体以区别于正文。
-   与块级 .hn-note-formula-* 系列平行，但走独立的 BEM 命名。 */
-.hn-note-inline-formula {
-  display: inline-block;
-  padding: 0 0.2em;
-  color: var(--hn-text);
-  font-family: Georgia, "Times New Roman", serif;
-  font-style: italic;
-}
-
-/* 行内公式渲染态：KaTeX 已替换内容，重置 padding/字体为正常排版 */
-.hn-note-inline-formula--rendered {
-  padding: 0;
-  font-family: inherit;
-  font-style: normal;
-}
-
-/* 行内代码：边框 + 浅色背景胶囊 + 等宽字体，与块级 .hn-note-code-card 的深色卡片独立。
-   作用域为正文内 <code class="hn-note-inline-code">；存量无 class 的行内 <code>
-   由 [data-editable-block-id] code:not([class]) 兜底（语法高亮代码带语言 class，不受影响）。 */
-.hn-note-inline-code,
-[data-editable-block-id] code:not([class]) {
-  padding: 0.15em 0.35em;
-  border: 1px solid var(--hn-border-strong);
-  border-radius: 4px;
-  background: var(--hn-surface);
-  color: var(--hn-text);
-  font-family: var(--hn-code-font);
-  font-size: 0.88em;
-}
-
-/* ===== 表格块 ===== */
-.hn-note-table-wrapper {
-  width: 100%;
-  overflow: visible;
-}
-
-.hn-note-table {
-  width: 100%;
-  border-collapse: collapse;
-  border: 1px solid var(--hn-border-strong);
-  font-size: 0.95rem;
-  line-height: 1.5;
-  overflow: visible;
-}
-
-.hn-note-table td {
-  border: 1px solid var(--hn-border-strong);
-  padding: 0;
-  vertical-align: top;
-  position: relative;
-}
-
-.hn-note-table-header-row .hn-note-table-header-cell {
-  background: var(--hn-surface);
-  font-weight: 600;
-  border-bottom: 2px solid var(--hn-border-strong);
-}
-
-/* 隔行斑马纹：表头以下的偶数行加浅色背景，让行边界更清晰 */
-.hn-note-table tbody tr:not(.hn-note-table-header-row):nth-child(even) {
-  background: color-mix(in srgb, var(--hn-surface) 60%, transparent);
-}
-
-/* 行 hover 高亮 */
-.hn-note-table tbody tr:hover {
-  background: var(--hn-surface-hover);
-}
-
-.hn-note-table-cell {
-  padding: 0.6rem 0.8rem;
-  min-height: 2.2rem;
-  outline: none;
-  word-break: break-word;
-  border-radius: 0;
-}
-
-.hn-note-table-header-cell .hn-note-table-cell {
-  overflow-wrap: normal;
-  word-break: normal;
-}
-
-.hn-note-table tbody tr[data-note-atomic-selected="true"],
-.hn-note-table tbody tr[data-note-atomic-selected="true"]:hover,
-.hn-note-table tbody tr[data-note-atomic-selected="true"] > td {
-  background: var(--hn-theme-soft);
-}
-
-/* ===== 表格行列操作按钮 ===== */
-/* 行操作按钮：中心压在焦点行的左边界上 */
-.hn-note-table-row-op {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  border: none;
-  border-radius: 4px;
-  background: var(--hn-theme);
-  color: #ffffff;
-  font-size: 0.75rem;
-  line-height: 1;
-  cursor: grab;
-  touch-action: none;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
-}
-
-.hn-note-table-row-op--visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.hn-note-table-row-op:hover {
-  background: color-mix(in srgb, var(--hn-theme) 85%, black);
-}
-
-/* 列操作按钮：中心压在焦点列的上边界上 */
-.hn-note-table-col-op {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  border: none;
-  border-radius: 4px;
-  background: var(--hn-theme);
-  color: #ffffff;
-  font-size: 0.75rem;
-  line-height: 1;
-  cursor: grab;
-  touch-action: none;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
-}
-
-.hn-note-table-col-op--visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.hn-note-table-col-op:hover {
-  background: color-mix(in srgb, var(--hn-theme) 85%, black);
-}
-
-.hn-note-table-drag-handle--dragging {
-  cursor: grabbing;
-  filter: brightness(0.85);
-}
-
-.hn-note-table-drop-preview--row-before::after,
-.hn-note-table-drop-preview--row-after::after,
-.hn-note-table-drop-preview--column-before::after,
-.hn-note-table-drop-preview--column-after::after {
-  content: "";
-  position: absolute;
-  z-index: 3;
-  background: var(--hn-theme);
-  box-shadow: 0 0 0 1px var(--hn-theme-soft);
-  pointer-events: none;
-}
-
-.hn-note-table-drop-preview--row-before::after,
-.hn-note-table-drop-preview--row-after::after {
-  left: -1px;
-  right: -1px;
-  height: 3px;
-}
-
-.hn-note-table-drop-preview--row-before::after {
-  top: -2px;
-}
-
-.hn-note-table-drop-preview--row-after::after {
-  bottom: -2px;
-}
-
-.hn-note-table-drop-preview--column-before::after,
-.hn-note-table-drop-preview--column-after::after {
-  top: -1px;
-  bottom: -1px;
-  width: 3px;
-}
-
-.hn-note-table-drop-preview--column-before::after {
-  left: -2px;
-}
-
-.hn-note-table-drop-preview--column-after::after {
-  right: -2px;
-}
-
-/* 单元格边界操作按钮：中心压在对应边线上 */
-.hn-note-table-edge-btn {
-  position: absolute;
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  padding: 0;
-  border: 1px solid var(--hn-border-strong);
-  border-radius: 50%;
-  background: var(--hn-bg);
-  color: var(--hn-text-muted);
-  font-size: 0.7rem;
-  line-height: 1;
-  cursor: pointer;
-  opacity: 0;
-  pointer-events: none;
-  transition:
-    opacity 0.15s ease,
-    background 0.15s ease;
-}
-
-/* 左右按钮只添加列，上下按钮只添加行。 */
-.hn-note-table-edge-btn--left {
-  left: 0;
-  top: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.hn-note-table-edge-btn--right {
-  right: 0;
-  top: 50%;
-  transform: translate(50%, -50%);
-}
-
-.hn-note-table-edge-btn--top {
-  top: 0;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.hn-note-table-edge-btn--bottom {
-  bottom: 0;
-  left: 50%;
-  transform: translate(-50%, 50%);
-}
-
-td:hover > .hn-note-table-edge-btn {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.hn-note-table-edge-btn:hover {
-  background: var(--hn-theme);
-  color: #ffffff;
-  border-color: var(--hn-theme);
-}
-
-/* 表格操作菜单复用 .hn-note-block-menu / .hn-note-block-menu-item 样式 */
-.hn-note-block-menu-item--danger {
-  color: var(--hn-block-menu-danger);
-}
-
-.hn-note-block-menu-item--danger:hover,
-.hn-note-block-menu-item--danger:focus {
-  background: var(--hn-block-menu-danger-hover);
-  color: var(--hn-block-menu-danger-hover-text);
-}
-
-.hn-note-card {
-  width: 100%;
-}
-
-.hn-note-card-preview {
-  position: relative;
-  width: 100%;
-  height: 220px;
-  overflow: hidden;
-  border: 1px solid var(--hn-border);
-  border-radius: 10px;
-  background: var(--hn-surface);
-  color: var(--hn-text);
-  cursor: pointer;
-  isolation: isolate;
-}
-
-.hn-note-card-preview:hover {
-  border-color: var(--hn-border-strong);
-}
-
-.hn-note-card-preview:focus-visible {
-  outline: 2px solid var(--hn-theme);
-  outline-offset: 3px;
-}
-
-.hn-note-card-preview-stage {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform-origin: center;
-  translate: -50% -50%;
-  pointer-events: none;
-}
-
-.hn-note-card-empty {
-  display: grid;
-  height: 100%;
-  place-items: center;
-  color: var(--hn-text-muted);
-}
-
-.hn-note-card-preview-hint {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
-  padding: 6px 9px;
-  border: 1px solid var(--hn-border);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--hn-bg) 88%, transparent);
-  color: var(--hn-text-muted);
-  font-size: 0.75rem;
-  line-height: 1;
-  backdrop-filter: blur(8px);
-}
-
-/* 卡片编辑抽屉：由 Drawer 提供底部贴边、遮罩和焦点管理；默认占视口 60% 高度。 */
-.hn-note-card-drawer {
-  position: fixed;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  padding: 0;
-  overflow: hidden;
-  border: 1px solid var(--hn-border);
-  border-radius: 18px 18px 0 0;
-  background: var(--hn-bg);
-  color: var(--hn-text);
-  box-shadow: 0 24px 72px rgba(15, 23, 42, 0.34);
-}
-
-/* 让 Drawer 内容撑满面板，使内部 flex 子级（头部 + 正文）正常工作。 */
-.hn-note-card-drawer .hn-drawer__content {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-}
-
-.hn-note-card-drawer-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 18px 20px;
-  border-bottom: 1px solid var(--hn-border);
-}
-
-.hn-note-card-drawer-header h2,
-.hn-note-card-drawer-header p {
-  margin: 0;
-}
-
-.hn-note-card-drawer-header p {
-  margin-top: 3px;
-  color: var(--hn-text-muted);
-  font-size: 0.82rem;
-}
-
-.hn-note-card-drawer-header button {
-  padding: 8px 14px;
-  border: 1px solid var(--hn-theme);
-  border-radius: 8px;
-  background: var(--hn-theme);
-  color: #ffffff;
-  cursor: pointer;
-}
-
-.hn-note-card-drawer-header button:focus-visible,
-.hn-note-card-inspector :is(input, textarea):focus-visible {
-  outline: 2px solid var(--hn-theme);
-  outline-offset: 2px;
-}
-
-.hn-note-card-drawer-body {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  min-height: 0;
-}
-
-.hn-note-card-drawer-body--with-inspector {
-  grid-template-columns: minmax(0, 1fr) 260px;
-}
-
-.hn-note-card-drawer-canvas {
-  min-height: 520px;
-  overflow: auto;
-  background: var(--hn-surface);
-}
-
-.hn-note-card-drawer-stage {
-  position: relative;
-}
-
-.hn-note-card-canvas {
-  --cards-card-selected-outline: var(--hn-card-theme);
-  --cards-card-selected-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.2),
-    0 0 0 4px color-mix(in srgb, var(--hn-card-theme) 24%, transparent);
-  --cards-link-button-color: var(--hn-card-theme);
-  --hn-card-theme: var(--hn-theme);
-  width: 100%;
-  height: 100%;
-}
-
-.hn-note-card-links {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.hn-note-card-link {
-  stroke: transparent;
-  stroke-width: 3;
-  stroke-dasharray: 4 4;
-  pointer-events: none;
-}
-
-.hn-note-card-link--selected {
-  stroke: var(--hn-card-theme);
-}
-
-.hn-note-card-link-hit-area {
-  stroke: transparent;
-  stroke-width: 18;
-  pointer-events: stroke;
-  cursor: pointer;
-  outline: none;
-}
-
-.hn-note-card-link-hit-area:focus-visible {
-  stroke: color-mix(in srgb, var(--hn-card-theme) 28%, transparent);
-}
-
-.hn-note-card-link-popover {
-  overflow: visible;
-  pointer-events: auto;
-}
-
-.hn-note-card-link-popover .hn-popover {
-  position: relative;
-  z-index: 1000;
-  width: max-content;
-}
-
-.hn-note-card-link-delete {
-  width: 36px;
-  padding: 0;
-  color: var(--hn-color-danger);
-}
-
-.hn-note-card-inspector {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 18px;
-  border-left: 1px solid var(--hn-border);
-  background: var(--hn-bg);
-}
-
-.hn-note-card-inspector label {
-  display: grid;
-  gap: 7px;
-  color: var(--hn-text-muted);
-  font-size: 0.78rem;
-  font-weight: 600;
-}
-
-.hn-note-card-inspector :is(input, textarea) {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 9px 10px;
-  border: 1px solid var(--hn-border);
-  border-radius: 8px;
-  background: var(--hn-surface);
-  color: var(--hn-text);
-  font: inherit;
-  font-weight: 400;
-}
-
-.hn-note-card-inspector textarea {
-  min-height: 132px;
-  resize: vertical;
-}
-
-@media (max-width: 720px) {
-  .hn-note-card-drawer-body {
-    display: flex;
-    flex-direction: column;
-    overflow: auto;
-  }
-
-  .hn-note-card-drawer-canvas {
-    min-height: 420px;
-  }
-
-  .hn-note-card-inspector {
-    border-top: 1px solid var(--hn-border);
-    border-left: 0;
+/* 系统要求减少动态时取消淡入（DESIGN.md §8 可访问性约束） */
+@media (prefers-reduced-motion: reduce) {
+  .hn-editor-mini-popover,
+  .hn-editor-menu {
+    animation: none;
   }
 }
 
@@ -2184,7 +62,9 @@ td:hover > .hn-note-table-edge-btn {
   color: var(--hn-text, #1e293b);
 }
 
-/* 与 .hn-note-shell 完全一致的浅色 token 集；显式声明使 light 可覆盖暗色祖先 */
+/* 浅色完整 token 集（值与根级 :root 缺省一致）；显式声明使 light 可覆盖暗色祖先。
+ * --hn-danger / --hn-code-font 一并入集：旧实现只在 .hn-note-shell 上定义
+ * --hn-code-font 且从未定义 --hn-danger（消费者各自带不一致兜底），7.5 起补齐。 */
 .hn-editor--light {
   --hn-theme-soft: color-mix(in srgb, var(--hn-theme, #3b82f6) 12%, white);
   --hn-theme-border: color-mix(in srgb, var(--hn-theme, #3b82f6) 30%, transparent);
@@ -2197,10 +77,14 @@ td:hover > .hn-note-table-edge-btn {
   --hn-text: #1e293b;
   --hn-text-muted: rgba(51, 65, 85, 0.65);
   --hn-text-soft: rgba(51, 65, 85, 0.85);
+  --hn-danger: #dc2626;
+  --hn-code-font:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
   color-scheme: light;
 }
 
-/* 与 .hn-note-shell--dark 完全一致的深色 token 集 */
+/* 深色完整 token 集；--hn-danger 换用浅红以保证深底对比度 */
 .hn-editor--dark {
   --hn-theme-soft: color-mix(in srgb, var(--hn-theme, #3b82f6) 18%, #111827);
   --hn-theme-border: color-mix(in srgb, var(--hn-theme, #3b82f6) 48%, transparent);
@@ -2213,6 +97,10 @@ td:hover > .hn-note-table-edge-btn {
   --hn-text: #f1f5f9;
   --hn-text-muted: rgba(203, 213, 225, 0.72);
   --hn-text-soft: rgba(226, 232, 240, 0.88);
+  --hn-danger: #f87171;
+  --hn-code-font:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
   color-scheme: dark;
 }
 
@@ -2516,83 +404,104 @@ td:hover > .hn-note-table-edge-btn {
   padding: 0.9rem;
 }
 
-/* 行/列操作入口：圆形按钮，复用 --hn-bg/--hn-border-strong/--hn-text-muted/--hn-theme，
- * 不引入任何表格专属色；默认隐藏，悬停或键盘聚焦时显现。
+/* DESIGN.md §10 表格控件：边界圆形 +（hover 所在单元格显现）、焦点行/列操作
+ * 按钮（⋮/⋯，选区在本表期间常驻）。一律复用 --hn-bg/--hn-border-strong/
+ * --hn-text-muted/--hn-theme 令牌，不引入表格专属色；可见性由 JS 以 is-visible
+ * 类驱动（哪个单元格的哪条边可用是逻辑网格判断，纯 CSS 表达不了）。
  */
-.hn-editor-content .hn-editor-table-btn {
+.hn-editor-content .hn-editor-table-edge,
+.hn-editor-content .hn-editor-table-op {
   position: absolute;
   z-index: 3;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
   padding: 0;
   border: 1px solid var(--hn-border-strong, rgba(15, 23, 42, 0.14));
-  border-radius: 999px;
   background: var(--hn-bg, #ffffff);
   color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
   font-size: 0.85rem;
   font-weight: 600;
   line-height: 1;
   cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.15s ease;
 }
 
-.hn-editor-content .hn-editor-table-wrapper:hover .hn-editor-table-btn,
-.hn-editor-content .hn-editor-table-wrapper:focus-within .hn-editor-table-btn {
-  opacity: 1;
+.hn-editor-content .hn-editor-table-edge.is-visible,
+.hn-editor-content .hn-editor-table-op.is-visible {
+  display: flex;
 }
 
-.hn-editor-content .hn-editor-table-btn:hover {
+/* 边界 + 控件压在单元格边界上（中心对齐边界点），20px 圆形 */
+.hn-editor-content .hn-editor-table-edge {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+}
+
+/* 行/列操作按钮：小胶囊形，同样居中压在首单元格左/表头上边界 */
+.hn-editor-content .hn-editor-table-op {
+  min-width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+  letter-spacing: 1px;
+}
+
+.hn-editor-content .hn-editor-table-edge:hover,
+.hn-editor-content .hn-editor-table-op:hover {
   border-color: var(--hn-theme, #3b82f6);
   color: var(--hn-theme, #3b82f6);
 }
 
-.hn-editor-content .hn-editor-table-btn:focus-visible {
+.hn-editor-content .hn-editor-table-edge:focus-visible,
+.hn-editor-content .hn-editor-table-op:focus-visible {
   outline: 2px solid var(--hn-theme, #3b82f6);
   outline-offset: 1px;
-  opacity: 1;
 }
 
-.hn-editor-content .hn-editor-table-btn:disabled {
-  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
-  cursor: default;
-  opacity: 0.35;
-}
-
-/* 删除两步确认态：DESIGN.md §10 要求删除操作需显著确认，确认中控件保持显现并强调主题色 */
-.hn-editor-content .hn-editor-table-btn.is-confirming {
+/* 拖动中/菜单打开的操作按钮保持 token 激活态（DESIGN.md §9 同一处理） */
+.hn-editor-content .hn-editor-table-op.is-dragging,
+.hn-editor-content .hn-editor-table-op.is-menu-open {
   border-color: var(--hn-theme, #3b82f6);
   background: var(--hn-theme-soft, color-mix(in srgb, var(--hn-theme, #3b82f6) 12%, white));
   color: var(--hn-theme, #3b82f6);
-  opacity: 1;
 }
 
-/* 添加列/删除列控件压在右/上边界，添加行/删除行控件压在下/左边界 */
-.hn-editor-content .hn-editor-table-btn--add-column {
-  top: 50%;
-  right: 0.45rem;
-  transform: translate(50%, -50%);
+/* 行/列拖动期间的插入边界预览：沿逻辑边界的 --hn-theme 实线。
+ * 相邻两侧单元格都挂线（before 顶/左边 + after 底/右边），合并单元格跨边界处
+ * 自然断线，视觉上仍是一条精确落线。用 box-shadow inset 不占布局。
+ */
+.hn-editor-content .hn-editor-table-preview--row-before {
+  box-shadow: inset 0 2px 0 0 var(--hn-theme, #3b82f6);
 }
 
-.hn-editor-content .hn-editor-table-btn--delete-column {
-  top: 0.45rem;
-  left: 50%;
-  transform: translate(-50%, -50%);
+.hn-editor-content .hn-editor-table-preview--row-after {
+  box-shadow: inset 0 -2px 0 0 var(--hn-theme, #3b82f6);
 }
 
-.hn-editor-content .hn-editor-table-btn--add-row {
-  bottom: 0.45rem;
-  left: 50%;
-  transform: translate(-50%, 50%);
+.hn-editor-content .hn-editor-table-preview--col-before {
+  box-shadow: inset 2px 0 0 0 var(--hn-theme, #3b82f6);
 }
 
-.hn-editor-content .hn-editor-table-btn--delete-row {
-  top: 50%;
-  left: 0.45rem;
-  transform: translate(-50%, -50%);
+.hn-editor-content .hn-editor-table-preview--col-after {
+  box-shadow: inset -2px 0 0 0 var(--hn-theme, #3b82f6);
+}
+
+/* 行/列拖动期间控件不吃指针命中：elementFromPoint 始终落在单元格上 */
+.hn-editor-content .hn-editor-table-wrapper--reordering .hn-editor-table-edge,
+.hn-editor-content .hn-editor-table-wrapper--reordering .hn-editor-table-op {
+  pointer-events: none;
+}
+
+/* 只读会话（contenteditable=false 由 PM 写在编辑根上，setEditable 即时生效，
+ * 无需 JS 感知）：不渲染任何表格控件；变更处理器另有 isEditable 守卫兜底。
+ */
+.hn-editor-content[contenteditable="false"] .hn-editor-table-edge,
+.hn-editor-content[contenteditable="false"] .hn-editor-table-op {
+  display: none;
 }
 
 .hn-editor-content table {
@@ -2844,7 +753,9 @@ td:hover > .hn-note-table-edge-btn {
   outline-offset: 1px;
 }
 
-/* 最小弹出编辑器：深色 popover + 等宽 textarea（公式/card/drawing 数据共用） */
+/* 最小弹出编辑器：深色 popover + 等宽 textarea（公式/card/drawing 数据共用）。
+ * 淡入沿用 hn-popover-in 动效语言（DESIGN.md §11：surface/radius/shadow/fade 一致），
+ * reduced-motion 下由根级媒体查询关闭。 */
 .hn-editor-mini-popover {
   position: fixed;
   z-index: 60;
@@ -2853,6 +764,7 @@ td:hover > .hn-note-table-edge-btn {
   border-radius: 10px;
   background: #1e293b;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
+  animation: hn-popover-in 0.12s ease;
 }
 
 .hn-editor-mini-textarea {
@@ -2873,6 +785,82 @@ td:hover > .hn-note-table-edge-btn {
 .hn-editor-mini-textarea:focus-visible {
   outline: 2px solid var(--hn-theme, #3b82f6);
   outline-offset: 1px;
+}
+
+/* 锚定菜单（块操作菜单/表格行列操作菜单共用，DESIGN.md §9/§10）：深色 surface +
+ * 10px 圆角 + popover 阴影，与 mini popover 同一动效语言；菜单挂在 .hn-editor
+ * 根内（fixed 定位），样式不依赖 .hn-editor-content 祖先。 */
+.hn-editor-menu {
+  position: fixed;
+  z-index: 60;
+  min-width: 168px;
+  padding: 6px;
+  border-radius: 10px;
+  background: #1e293b;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
+  animation: hn-popover-in 0.12s ease;
+}
+
+/* 视口过短、翻转也放不下时：菜单限高并内部滚动，全部条目保持可达
+ * （内部滚动不触发“滚动即关”，见 menuPopover.ts 的目标区分）。 */
+.hn-editor-menu--scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.hn-editor-menu-item {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.45rem 0.7rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #e2e8f0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* hover/focus 复用 popover 按钮语言（DESIGN.md §9：0.14 白底 + 纯白文字） */
+.hn-editor-menu-item:hover,
+.hn-editor-menu-item:focus-visible {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  outline: none;
+}
+
+.hn-editor-menu-item:disabled {
+  color: rgba(226, 232, 240, 0.38);
+  cursor: default;
+}
+
+.hn-editor-menu-item:disabled:hover {
+  background: transparent;
+}
+
+/* 危险项（删除行/列）：红色文字；in-menu 两步确认中反转为实心红底（§10） */
+.hn-editor-menu-item--danger {
+  color: #fca5a5;
+}
+
+.hn-editor-menu-item--danger:hover,
+.hn-editor-menu-item--danger:focus-visible {
+  background: rgba(220, 38, 38, 0.22);
+  color: #fecaca;
+}
+
+.hn-editor-menu-item.is-confirming {
+  background: var(--hn-danger, #dc2626);
+  color: #ffffff;
+}
+
+.hn-editor-menu-divider {
+  height: 1px;
+  margin: 4px 6px;
+  background: rgba(255, 255, 255, 0.12);
 }
 
 /* 图片块：surface 边框 + 8px 圆角（DESIGN.md §12），alt 输入低调随图 */
@@ -3017,10 +1005,174 @@ td:hover > .hn-note-table-edge-btn {
   border-radius: 4px;
 }
 
+/* ===== Phase 6.5 顶层块重排（handle widget + drop indicator，DESIGN.md §9/§13） =====
+ * handle 是 PM widget decoration，与顶层块同为 .hn-editor-content 的直接子节点，
+ * 以绝对定位落在左侧 gutter（.hn-editor 的 4rem 内边距内）；top:auto 取其静态
+ * 位置（紧邻所属块之前的间距带），再以 translateY 对齐首行文本中心。
+ * 定位与指示线全部复用 --hn-* token，不引入新颜色。 */
+.hn-editor-content {
+  position: relative;
+}
+
+/* 顶层块建立定位上下文：drop 指示线（::after absolute）与 handle 悬停桥都相对它定位 */
+.hn-editor-content > * {
+  position: relative;
+}
+
+/* handle widget 作为首子节点时，其后第一个正文块不再保留块间距（保持首块顶对齐） */
+.hn-editor-content > .hn-editor-block-handle:first-child + * {
+  margin-top: 0;
+}
+
+.hn-editor-block-handle {
+  position: absolute;
+  left: -2.5rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: grab;
+  /* 只允许手柄自身接管触摸手势：浏览器不得把落在手柄上的触摸解释为原生
+   * 平移/滚动（否则移动端长按 500ms 后 native pan 接管、pointercancel，
+   * 拖拽永远无法激活——bug-7.5-1）。正文区域不挂此属性，正常滚动不受影响；
+   * 手柄仅 24×24（≤840px 时 20×20），滚动操作的着陆面不变。 */
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  opacity: 0;
+  pointer-events: none;
+  /* 静态位置随块间距（> * + * 的 0.625rem 对 handle 同样生效）落在所属块顶；
+     再下移“首行行高一半 - handle 半高”，对齐首行文本中心 */
+  transform: translateY(calc(0.925rem - 12px));
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.hn-editor-block-handle-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: -0.18em;
+  transform: translateX(-0.03em);
+}
+
+/* 悬停桥：覆盖 handle 与正文之间的 gutter，鼠标从正文移向 handle 时不闪烁 */
+.hn-editor-content > .hn-editor-block-handle + *::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 100%;
+  width: 2.5rem;
+  height: 100%;
+  background: transparent;
+  pointer-events: auto;
+}
+
+/* 块 hover、块内聚焦、handle 自身 hover/focus、拖拽中或菜单打开时显现并可交互（DESIGN.md §9） */
+.hn-editor-block-handle:has(+ :hover),
+.hn-editor-block-handle:has(+ :focus-within),
+.hn-editor-block-handle:hover,
+.hn-editor-block-handle:focus-visible,
+.hn-editor-block-handle--dragging,
+.hn-editor-block-handle--menu-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 只读模式（PM 会把 view.dom 的 contenteditable 置为 "false"）：handle 不可交互，
+   直接隐藏而不是留下可 hover 的假手柄；优先级高于 840px 断点的常显规则。 */
+.hn-editor-content[contenteditable="false"] .hn-editor-block-handle {
+  display: none;
+}
+
+/* handle hover：浅色背景 + 正文色文字（DESIGN.md §9 Hover） */
+.hn-editor-block-handle:hover {
+  background: var(--hn-surface-hover, #f1f5f9);
+  color: var(--hn-text, #1e293b);
+}
+
+/* handle focus：与可编辑字段一致的 2px 主题色描边（DESIGN.md §9 Focus） */
+.hn-editor-block-handle:focus-visible {
+  box-shadow: 0 0 0 2px var(--hn-theme, #3b82f6);
+  outline: none;
+}
+
+/* 拖拽中的 handle 与源块：源块保持原位渲染，只换抓取光标（DESIGN.md §13） */
+.hn-editor-block-handle--dragging {
+  cursor: grabbing;
+  background: var(--hn-theme-soft, color-mix(in srgb, #3b82f6 12%, white));
+  color: var(--hn-theme-text, color-mix(in srgb, #3b82f6 75%, #1e293b));
+}
+
+/* 块菜单打开期间手柄保持同一 token 激活态（DESIGN.md §9 open/active 处理） */
+.hn-editor-block-handle--menu-open {
+  background: var(--hn-theme-soft, color-mix(in srgb, #3b82f6 12%, white));
+  color: var(--hn-theme-text, color-mix(in srgb, #3b82f6 75%, #1e293b));
+}
+
+.hn-editor-block-dragging {
+  cursor: grabbing;
+}
+
+/* 插入边界预览：3px --hn-theme 线 + --hn-theme-soft 描边（DESIGN.md §13） */
+.hn-editor-block-drop-before::after,
+.hn-editor-block-drop-after::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  height: 3px;
+  background: var(--hn-theme, #3b82f6);
+  box-shadow: 0 0 0 1px var(--hn-theme-soft, color-mix(in srgb, #3b82f6 12%, white));
+  pointer-events: none;
+}
+
+.hn-editor-block-drop-before::after {
+  top: -0.4rem;
+}
+
+.hn-editor-block-drop-after::after {
+  bottom: -0.4rem;
+}
+
 /* 840px 紧凑断点（含边界）：编辑壳内边距对齐 DESIGN.md §3 的紧凑排版 */
 @media (max-width: 840px) {
   .hn-editor {
     padding: 1.5rem 1.5rem 2rem;
+  }
+
+  /* 触屏没有 hover：handle 保持常显半透明，作为 500ms 长按重排的唯一入口（任务 6.5/D10）。
+     缩小到 20px 并收进 1.5rem 的紧凑内边距内；不新增颜色。 */
+  .hn-editor-content > .hn-editor-block-handle {
+    left: -1.375rem;
+    width: 20px;
+    height: 20px;
+    opacity: 0.55;
+    pointer-events: auto;
+    transform: translateY(calc(0.925rem - 10px));
+  }
+
+  .hn-editor-content > .hn-editor-block-handle + *::before {
+    content: none;
+  }
+
+  /* 菜单打开/拖拽中的 handle 在触屏常显态上提到全不透明，激活态可辨 */
+  .hn-editor-content > .hn-editor-block-handle--menu-open,
+  .hn-editor-content > .hn-editor-block-handle--dragging {
+    opacity: 1;
   }
 
   .hn-editor-content blockquote {
@@ -3045,6 +1197,106 @@ td:hover > .hn-note-table-edge-btn {
 
   .hn-editor-content .hn-editor-directory {
     padding: 0.85rem 1rem;
+  }
+}
+
+/* ===== 会话控件栏（6.7 图片上传 / 7.3 保存状态 / 7.6 Markdown 导出） =====
+ * 编辑壳底部的轻量控件行：只负责排布 NoteSaveStatus / PictureUploadControls /
+ * MarkdownExport 三个自带样式的组件，不改变它们的视觉；全部颜色/间距复用
+ * --hn-* token，按钮语言与 hn-save-status__button 的 pill 约定保持一致。 */
+.hn-editor-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--hn-border, rgba(15, 23, 42, 0.08));
+}
+
+/* 上传控件与状态/导出按钮同排对齐；列表占满整行以免挤压状态文案 */
+.hn-editor-uploads {
+  display: contents;
+}
+
+.hn-editor-uploads__picker,
+.hn-editor-uploads__retry,
+.hn-editor-uploads__cancel {
+  appearance: none;
+  margin: 0;
+  padding: 0.22rem 0.85rem;
+  border: 1px solid var(--hn-border-strong, rgba(15, 23, 42, 0.14));
+  border-radius: 999px;
+  background: transparent;
+  color: var(--hn-text-soft, rgba(51, 65, 85, 0.85));
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.5;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.hn-editor-uploads__picker:hover,
+.hn-editor-uploads__retry:hover,
+.hn-editor-uploads__cancel:hover {
+  background: var(--hn-surface-hover, #f1f5f9);
+  color: var(--hn-text, #1e293b);
+}
+
+.hn-editor-uploads__picker:focus-visible,
+.hn-editor-uploads__retry:focus-visible,
+.hn-editor-uploads__cancel:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--hn-theme, #3b82f6);
+}
+
+/* 每文件一行的上传进度列表：只在存在上传项时渲染（组件侧条件渲染） */
+.hn-editor-uploads__list {
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hn-editor-uploads__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.5rem;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--hn-text-soft, rgba(51, 65, 85, 0.85));
+}
+
+.hn-editor-uploads__name {
+  max-width: 16rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.hn-editor-uploads__status {
+  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
+}
+
+.hn-editor-uploads__error {
+  color: var(--hn-danger, #dc2626);
+}
+
+/* 840px 紧凑断点（含边界）：控件行允许纵排对齐，上传列表行间隙略收 */
+@media (max-width: 840px) {
+  .hn-editor-controls {
+    gap: 0.375rem 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .hn-editor-uploads__name {
+    max-width: 10rem;
   }
 }
 

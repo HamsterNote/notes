@@ -478,4 +478,60 @@ describe("原生 PM clipboard", () => {
       session.destroy()
     }
   })
+
+  it("粘贴紧邻的前后快速输入各自独立成 undo 步：closeHistory 隔离前序，后序相邻输入合并为一段", async () => {
+    const session = textSession("base")
+    try {
+      const appendText = (text: string) => {
+        const position = session.editor.state.doc.content.size - 1
+        session.editor.view.dispatch(session.editor.state.tr.insertText(text, position))
+      }
+      appendText(" pre")
+      session.editor.view.dispatch(session.editor.state.tr.setSelection(TextSelection.create(session.editor.state.doc, 2)))
+      dispatchClipboard(session, "paste", new Map([["text/plain", "PASTED"]]))
+      const afterPaste = session.editor.getText()
+      // 让 armPaste 的 queueMicrotask 清理 activeClipboard（模拟真实事件循环；同一 tick 的后续
+      // dispatch 会仍被当作 clipboard transaction，不能代表粘贴后的普通输入）。
+      await Promise.resolve()
+      // 同一 tick 连续两次后序输入：closeFollowingInput 只对第一条 closeHistory，第二条正常并入，
+      // 因此二者同属粘贴之后的一段历史，而不会污染粘贴步或 pre 步。
+      appendText(" post1")
+      appendText(" post2")
+      expect(session.undo()).toBe(true)
+      expect(session.editor.getText()).toBe(afterPaste)
+      expect(session.undo()).toBe(true)
+      expect(session.editor.getText()).not.toContain("PASTED")
+      expect(session.undo()).toBe(true)
+      expect(session.editor.getText()).not.toContain("pre")
+      expect(session.editor.getText()).toContain("base")
+    } finally {
+      session.destroy()
+    }
+  })
+
+  it("cut 与紧邻前后快速输入各自独立成 undo 步", async () => {
+    const session = textSession("cutme")
+    try {
+      const appendText = (text: string) => {
+        const position = session.editor.state.doc.content.size - 1
+        session.editor.view.dispatch(session.editor.state.tr.insertText(text, position))
+      }
+      appendText(" pre")
+      session.editor.view.dispatch(session.editor.state.tr.setSelection(TextSelection.create(session.editor.state.doc, 1, 2)))
+      dispatchClipboard(session, "cut")
+      const afterCut = session.editor.getText()
+      await Promise.resolve()
+      appendText(" post1")
+      appendText(" post2")
+      expect(session.undo()).toBe(true)
+      expect(session.editor.getText()).toBe(afterCut)
+      expect(session.undo()).toBe(true)
+      expect(session.editor.getText()).toContain("cutme")
+      expect(session.editor.getText()).toContain("pre")
+      expect(session.undo()).toBe(true)
+      expect(session.editor.getText()).toBe("cutme")
+    } finally {
+      session.destroy()
+    }
+  })
 })

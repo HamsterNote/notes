@@ -107,7 +107,9 @@ describe("内部 NoteEditor 最低呈现", () => {
     expect(editable).not.toBeNull()
     expect(editable?.getAttribute("contenteditable")).toBe("true")
     expect(editable?.textContent).toContain("editable text")
-    expect(container.querySelector("[role='dialog'], [data-drag-handle], input[type='file']")).toBeNull()
+    // 顶层块重排手柄（任务 6.5）随会话挂载：每个顶层块各一个 data-drag-handle。
+    expect(container.querySelectorAll("[data-drag-handle]")).toHaveLength(1)
+    expect(container.querySelector("[role='dialog'], input[type='file']")).toBeNull()
   })
 
   it("custom node 渲染为封闭 NodeView 界面，未激活时不产生 dialog 或危险交互入口", () => {
@@ -125,7 +127,8 @@ describe("内部 NoteEditor 最低呈现", () => {
     expect(formula?.getAttribute("contenteditable")).toBe("false")
     const preview = formula?.querySelector(".hn-editor-formula-preview")
     expect(preview?.getAttribute("aria-label")).toBe("编辑公式")
-    expect(container.querySelector("[role='dialog'], [data-drag-handle], input[type='file']")).toBeNull()
+    // 重排手柄（任务 6.5）不属于 custom node 的交互界面，但会随会话挂载存在。
+    expect(container.querySelector("[role='dialog'], input[type='file']")).toBeNull()
   })
 
   it("组件 props 没有 schema、extensions 或 history 注入入口", () => {
@@ -802,7 +805,45 @@ describe("内部 NoteEditor 标准块控件（Phase 6.1 Gate）", () => {
     expect(view.container.querySelector<HTMLSelectElement>("select.hn-editor-code-lang")!.value).toBe("wren")
   })
 
-  it("table NodeView：添加行/列作用于逻辑末边界，单事务可撤销，保存重载保留", async () => {
+  // ===== 表格边缘控件（§10）集成测试 helpers：新设计无包装级四按钮，
+  // 结构操作走「边界 +」（hover 显现）与「行/列操作菜单」（选区在表内常驻） =====
+
+  /** jsdom 无 PointerEvent：以结构性字段构造 pointerover，驱动边界 + 的 hover 显现。 */
+  function pointerEvent(type: string): Event {
+    const event = new window.Event(type, { bubbles: true, cancelable: true })
+    Object.assign(event, { pointerId: 1, pointerType: "mouse", button: 0, clientX: 0, clientY: 0 })
+    return event
+  }
+
+  /** hover 含指定文本的单元格：按 §10 规则显现其四边可用的边界 +。 */
+  function hoverCell(wrapper: Element, text: string): void {
+    const cell = Array.from(wrapper.querySelectorAll("td, th")).find((c) => c.textContent === text)
+    expect(cell).not.toBeUndefined()
+    cell!.dispatchEvent(pointerEvent("pointerover"))
+  }
+
+  const edgeButton = (wrapper: Element, label: string): HTMLButtonElement =>
+    wrapper.querySelector(`[aria-label="${label}"]`)!
+
+  const opButton = (wrapper: Element, label: "行操作" | "列操作"): HTMLButtonElement =>
+    wrapper.querySelector(`[aria-label="${label}"]`)!
+
+  /** 行列操作菜单挂在锚点最近的 .hn-editor 根内（NoteEditor 容器内）。 */
+  const menu = (): HTMLElement | null => document.querySelector(".hn-editor-menu")
+
+  const menuItem = (label: string): HTMLButtonElement => {
+    const item = Array.from(document.querySelectorAll<HTMLButtonElement>('.hn-editor-menu [role="menuitem"]'))
+      .find((b) => b.textContent === label)
+    expect(item).not.toBeUndefined()
+    return item!
+  }
+
+  /** Escape 必须派发到菜单元素本身（监听挂在菜单上，且阻止冒泡到编辑器）。 */
+  const escapeMenu = (): void => {
+    menu()!.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }))
+  }
+
+  it("table NodeView：边缘 + 在逻辑末边界添加行/列，单事务可撤销，保存重载保留", async () => {
     const changes: HnnDocument[] = []
     const saved: HnnDocument[] = []
     const view = render(
@@ -816,19 +857,20 @@ describe("内部 NoteEditor 标准块控件（Phase 6.1 Gate）", () => {
     )
     const session = createdSessions.at(-1)!
     const wrapper = view.container.querySelector(".hn-editor-table-wrapper")!
-    const buttonByLabel = (label: string): HTMLButtonElement => wrapper.querySelector(`[aria-label="${label}"]`)!
-    const addRow = buttonByLabel("添加行")
-    const addColumn = buttonByLabel("添加列")
     const rowCount = () => session.editor.state.doc.firstChild!.childCount
     const colCount = () => session.editor.state.doc.firstChild!.firstChild!.childCount
     const snapshotTable = () => snapshotBlocks(changes)[0]!
 
-    // 添加行落在真实逻辑末行之后：原有行文本保持原位，新行追加在末尾
-    fireEvent.click(addRow)
+    // hover 末行单元格：下边界 + 显现，点击在真实逻辑末行之后追加，原文本保持原位
+    hoverCell(wrapper, "r2c1")
+    expect(edgeButton(wrapper, "在下方插入行").classList.contains("is-visible")).toBe(true)
+    fireEvent.click(edgeButton(wrapper, "在下方插入行"))
     expect(rowCount()).toBe(3)
     expect(snapshotTable().content).toHaveLength(3)
     expect(session.editor.getText()).toMatch(/r1c1[\s\S]*r2c2/)
-    fireEvent.click(addColumn)
+    // hover 末列单元格：右边界 + 在其后插入列
+    hoverCell(wrapper, "r2c2")
+    fireEvent.click(edgeButton(wrapper, "在右侧插入列"))
     expect(colCount()).toBe(3)
     expect(snapshotTable().content?.[0]?.content).toHaveLength(3)
 
@@ -845,40 +887,40 @@ describe("内部 NoteEditor 标准块控件（Phase 6.1 Gate）", () => {
     expect(reloaded.querySelectorAll("tr")[0]!.querySelectorAll("td")).toHaveLength(2)
   })
 
-  it("table NodeView：删除行/列需两步确认，作用于当前选区所在逻辑行/列", () => {
+  it("table NodeView：行/列操作菜单 in-menu 两步删除，作用于当前选区所在逻辑行/列", () => {
     const view = render(<NoteEditor documentId="TB3" loadKey="t5" initialDocument={textTableDocument(3, 3) as never} />)
     const session = createdSessions.at(-1)!
     const wrapper = view.container.querySelector(".hn-editor-table-wrapper")!
     const rowCount = () => session.editor.state.doc.firstChild!.childCount
     const colCount = () => session.editor.state.doc.firstChild!.firstChild!.childCount
-    const deleteRow = (): HTMLButtonElement => wrapper.querySelector('[aria-label="删除行"]')!
-    const deleteColumn = (): HTMLButtonElement => wrapper.querySelector('[aria-label="删除列"]')!
 
-    // 聚焦第 2 行：首次点击只进入确认态，结构不变
+    // 聚焦第 2 行：菜单「删除行」首次激活只切确认文案，结构不变、菜单不关
     focusText(session.editor, "r2c2")
-    expect(deleteRow().disabled).toBe(false)
-    fireEvent.click(deleteRow())
+    fireEvent.click(opButton(wrapper, "行操作"))
+    expect(menu()!.getAttribute("aria-label")).toBe("行操作菜单")
+    expect(menuItem("删除行").disabled).toBe(false)
+    fireEvent.click(menuItem("删除行"))
     expect(rowCount()).toBe(3)
-    const armedRow = wrapper.querySelector<HTMLButtonElement>('[aria-label="确认删除行（再次点击）"]')!
-    expect(armedRow.classList.contains("is-confirming")).toBe(true)
-    // 第二次点击才执行：删除选区所在的逻辑第 2 行
-    fireEvent.click(armedRow)
+    expect(menuItem("确认删除行").classList.contains("is-confirming")).toBe(true)
+    expect(menu()).not.toBeNull()
+    // 第二次激活才执行：删除选区所在的逻辑第 2 行，菜单关闭、确认态随菜单消失
+    fireEvent.click(menuItem("确认删除行"))
     expect(rowCount()).toBe(2)
     expect(session.editor.getText()).not.toContain("r2c1")
     expect(session.editor.getText()).toContain("r1c1")
     expect(session.editor.getText()).toContain("r3c1")
-    // 执行后确认态复位
-    expect(wrapper.querySelector(".is-confirming")).toBeNull()
+    expect(menu()).toBeNull()
 
-    // 聚焦（新）第 2 行第 3 列，两次点击删除该逻辑列
+    // 聚焦（新）第 2 行第 3 列，列菜单两步删除该逻辑列
     focusText(session.editor, "r3c3")
-    fireEvent.click(deleteColumn())
-    fireEvent.click(wrapper.querySelector<HTMLButtonElement>('[aria-label="确认删除列（再次点击）"]')!)
+    fireEvent.click(opButton(wrapper, "列操作"))
+    fireEvent.click(menuItem("删除列"))
+    fireEvent.click(menuItem("确认删除列"))
     expect(colCount()).toBe(2)
     expect(session.editor.getText()).not.toContain("r1c3")
     expect(session.editor.getText()).toContain("r1c1")
 
-    // 删除仍是简单 undo：一步恢复整行结构
+    // 删除仍是简单 undo：一步恢复整行/列结构
     session.editor.commands.undo()
     expect(colCount()).toBe(3)
     session.editor.commands.undo()
@@ -886,174 +928,180 @@ describe("内部 NoteEditor 标准块控件（Phase 6.1 Gate）", () => {
     expect(session.editor.getText()).toContain("r2c2")
   })
 
-  it("table NodeView：删除确认态在失焦、超时或其它操作时复位", () => {
-    vi.useFakeTimers()
-    try {
-      const view = render(<NoteEditor documentId="TB4" loadKey="t6" initialDocument={textTableDocument(2, 2) as never} />)
-      const session = createdSessions.at(-1)!
-      const wrapper = view.container.querySelector(".hn-editor-table-wrapper")!
-      const rowCount = () => session.editor.state.doc.firstChild!.childCount
-      focusText(session.editor, "r1c1")
-      const deleteRow = (): HTMLButtonElement => wrapper.querySelector('[aria-label="删除行"]')!
+  it("table NodeView：确认态随焦点离开条目、菜单关闭或其它菜单操作复位（无超时设计）", () => {
+    const view = render(<NoteEditor documentId="TB4" loadKey="t6" initialDocument={textTableDocument(2, 2) as never} />)
+    const session = createdSessions.at(-1)!
+    const wrapper = view.container.querySelector(".hn-editor-table-wrapper")!
+    const rowCount = () => session.editor.state.doc.firstChild!.childCount
+    focusText(session.editor, "r1c1")
 
-      // 失焦复位：armed 后 blur，再点击仍只是进入确认态
-      fireEvent.click(deleteRow())
-      expect(wrapper.querySelector(".is-confirming")).not.toBeNull()
-      fireEvent.blur(wrapper.querySelector(".is-confirming")!)
-      expect(wrapper.querySelector(".is-confirming")).toBeNull()
-      fireEvent.click(deleteRow())
-      expect(rowCount()).toBe(2)
+    // 焦点离开条目复位：arm 后焦点移到其它条目，确认文案回落、结构不变
+    fireEvent.click(opButton(wrapper, "行操作"))
+    fireEvent.click(menuItem("删除行"))
+    expect(menuItem("确认删除行").classList.contains("is-confirming")).toBe(true)
+    fireEvent.focus(menuItem("在下方插入行"))
+    expect(menuItem("删除行").classList.contains("is-confirming")).toBe(false)
+    expect(rowCount()).toBe(2)
 
-      // 超时复位：armed 后超过 4s，确认态消失，结构不变
-      fireEvent.blur(wrapper.querySelector(".is-confirming")!)
-      fireEvent.click(deleteRow())
-      vi.advanceTimersByTime(4500)
-      expect(wrapper.querySelector(".is-confirming")).toBeNull()
-      expect(rowCount()).toBe(2)
+    // 其它菜单操作不复用确认态：重新 arm 删除行后激活插入项，执行的是插入而非删除
+    fireEvent.click(menuItem("删除行"))
+    expect(menuItem("确认删除行")).toBeTruthy()
+    fireEvent.click(menuItem("在下方插入行"))
+    expect(rowCount()).toBe(3)
+    expect(menu()).toBeNull()
 
-      // 其它操作复位：armed 删除行后点击添加列，确认态消失且不删除
-      fireEvent.click(deleteRow())
-      fireEvent.click(wrapper.querySelector('[aria-label="添加列"]')!)
-      expect(wrapper.querySelector(".is-confirming")).toBeNull()
-      expect(rowCount()).toBe(2)
-      expect(session.editor.state.doc.firstChild!.firstChild!.childCount).toBe(3)
-    } finally {
-      vi.useRealTimers()
-    }
+    // 菜单关闭即取消确认：arm 后 Escape 关闭，重开菜单需重新 arm（首次仍只切文案）
+    fireEvent.click(opButton(wrapper, "行操作"))
+    fireEvent.click(menuItem("删除行"))
+    expect(menuItem("确认删除行")).toBeTruthy()
+    escapeMenu()
+    expect(menu()).toBeNull()
+    expect(rowCount()).toBe(3)
+    fireEvent.click(opButton(wrapper, "行操作"))
+    fireEvent.click(menuItem("删除行"))
+    expect(rowCount()).toBe(3)
+    expect(menuItem("确认删除行")).toBeTruthy()
   })
 
-  it("table NodeView：确认期间选区移动取消确认，第二次点击只重新 arm、绝不删除新目标（行/列对称）", () => {
+  it("table NodeView：确认期间选区移动关闭菜单，重开后首次点击只重新 arm、绝不删除新目标（行/列对称）", () => {
     const view = render(<NoteEditor documentId="TBD" loadKey="td1" initialDocument={textTableDocument(3, 3) as never} />)
     const session = createdSessions.at(-1)!
     const wrapper = view.container.querySelector(".hn-editor-table-wrapper")!
     const rowCount = () => session.editor.state.doc.firstChild!.childCount
     const colCount = () => session.editor.state.doc.firstChild!.firstChild!.childCount
-    const deleteRow = (): HTMLButtonElement => wrapper.querySelector('[aria-label="删除行"]')!
-    const deleteColumn = (): HTMLButtonElement => wrapper.querySelector('[aria-label="删除列"]')!
 
-    // 行：arm 第 2 行后把选区移到第 1 行
+    // 行：arm 第 2 行后把选区移到第 1 行 → transaction 驱动 refresh 整体关闭菜单
     focusText(session.editor, "r2c2")
-    fireEvent.click(deleteRow())
-    expect(wrapper.querySelector(".is-confirming")).not.toBeNull()
+    fireEvent.click(opButton(wrapper, "行操作"))
+    fireEvent.click(menuItem("删除行"))
+    expect(menuItem("确认删除行")).toBeTruthy()
     focusText(session.editor, "r1c1")
-    // 任意 transaction（选区移动）立即取消确认
-    expect(wrapper.querySelector(".is-confirming")).toBeNull()
-    // 第二次点击只能重新 arm，绝不能删除新选区所在的第 1 行
-    fireEvent.click(deleteRow())
+    expect(menu()).toBeNull()
+    // 重开菜单首次点击只能重新 arm，绝不能删除新选区所在的第 1 行
+    fireEvent.click(opButton(wrapper, "行操作"))
+    fireEvent.click(menuItem("删除行"))
     expect(rowCount()).toBe(3)
     expect(session.editor.getText()).toContain("r1c1")
     expect(session.editor.getText()).toContain("r2c2")
-    expect(wrapper.querySelector(".is-confirming")).not.toBeNull()
+    expect(menuItem("确认删除行")).toBeTruthy()
+    escapeMenu()
 
     // 列：arm 第 2 列后把选区移到第 1 列
     focusText(session.editor, "r2c2")
-    fireEvent.click(deleteColumn())
-    expect(wrapper.querySelector(".is-confirming")).not.toBeNull()
+    fireEvent.click(opButton(wrapper, "列操作"))
+    fireEvent.click(menuItem("删除列"))
+    expect(menuItem("确认删除列")).toBeTruthy()
     focusText(session.editor, "r2c1")
-    expect(wrapper.querySelector(".is-confirming")).toBeNull()
-    fireEvent.click(deleteColumn())
+    expect(menu()).toBeNull()
+    fireEvent.click(opButton(wrapper, "列操作"))
+    fireEvent.click(menuItem("删除列"))
     expect(colCount()).toBe(3)
     expect(session.editor.getText()).toContain("r2c1")
     expect(session.editor.getText()).toContain("r2c2")
-    expect(wrapper.querySelector(".is-confirming")).not.toBeNull()
+    expect(menuItem("确认删除列")).toBeTruthy()
   })
 
-  it("table NodeView：Escape、外部 pointerdown、scroll、resize 均取消删除确认", () => {
+  it("table NodeView：Escape、外部 pointerdown、scroll、resize 均关闭菜单并取消删除确认", () => {
     const view = render(<NoteEditor documentId="TBC" loadKey="tc1" initialDocument={textTableDocument(2, 2) as never} />)
     const session = createdSessions.at(-1)!
     const wrapper = view.container.querySelector(".hn-editor-table-wrapper")!
     const rowCount = () => session.editor.state.doc.firstChild!.childCount
     focusText(session.editor, "r1c1")
-    const deleteRow = (): HTMLButtonElement => wrapper.querySelector('[aria-label="删除行"]')!
     const arm = (): void => {
-      fireEvent.click(deleteRow())
-      expect(wrapper.querySelector(".is-confirming")).not.toBeNull()
+      fireEvent.click(opButton(wrapper, "行操作"))
+      fireEvent.click(menuItem("删除行"))
+      expect(menuItem("确认删除行")).toBeTruthy()
     }
     const expectCancelled = (): void => {
-      expect(wrapper.querySelector(".is-confirming")).toBeNull()
+      expect(menu()).toBeNull()
       expect(rowCount()).toBe(2)
     }
 
     arm()
-    fireEvent.keyDown(document, { key: "Escape" })
+    escapeMenu()
     expectCancelled()
 
     arm()
-    fireEvent.pointerDown(document.body)
+    document.body.dispatchEvent(new window.Event("pointerdown", { bubbles: true }))
     expectCancelled()
 
     arm()
-    fireEvent.scroll(window)
+    window.dispatchEvent(new window.Event("scroll"))
     expectCancelled()
 
     arm()
-    fireEvent(window, new Event("resize"))
+    window.dispatchEvent(new window.Event("resize"))
     expectCancelled()
   })
 
-  it("table NodeView：destroy 移除全部取消监听器与确认定时器", () => {
-    vi.useFakeTimers()
+  it("table NodeView：destroy 关闭菜单并移除全部取消监听器与控件 DOM（无确认定时器）", () => {
     const docRemove = vi.spyOn(document, "removeEventListener")
     const winRemove = vi.spyOn(window, "removeEventListener")
-    const clearTimeoutSpy = vi.spyOn(globalThis, "clearTimeout")
     try {
       const view = render(<NoteEditor documentId="TBX" loadKey="tx1" initialDocument={textTableDocument(2, 2) as never} />)
       const session = createdSessions.at(-1)!
       const wrapper = view.container.querySelector(".hn-editor-table-wrapper")!
       focusText(session.editor, "r1c1")
-      // arm 产生确认定时器，随后卸载触发 NodeView destroy
-      fireEvent.click(wrapper.querySelector('[aria-label="删除行"]')!)
-      expect(wrapper.querySelector(".is-confirming")).not.toBeNull()
+      // arm 确认态后卸载触发 NodeView destroy：菜单连同确认态一起关闭
+      fireEvent.click(opButton(wrapper, "行操作"))
+      fireEvent.click(menuItem("删除行"))
+      expect(menuItem("确认删除行")).toBeTruthy()
       view.unmount()
 
-      expect(docRemove).toHaveBeenCalledWith("keydown", expect.any(Function), true)
+      expect(menu()).toBeNull()
+      expect(document.querySelector(".hn-editor-table-wrapper")).toBeNull()
       expect(docRemove).toHaveBeenCalledWith("pointerdown", expect.any(Function), true)
       expect(winRemove).toHaveBeenCalledWith("scroll", expect.any(Function), true)
       expect(winRemove).toHaveBeenCalledWith("resize", expect.any(Function))
-      expect(clearTimeoutSpy).toHaveBeenCalled()
+      // 卸载后窗口事件不再触达已销毁控件（不抛错即通过）
+      window.dispatchEvent(new window.Event("resize"))
     } finally {
       vi.restoreAllMocks()
-      vi.useRealTimers()
     }
   })
 
-  it("table NodeView：选区不在本表格时禁用删除，进入本表后启用", () => {
+  it("table NodeView：选区不在本表格时行列操作控件隐藏，进入本表后常驻", () => {
     const view = render(<NoteEditor documentId="TB5" loadKey="t7" initialDocument={paragraphThenTableDocument() as never} />)
     const session = createdSessions.at(-1)!
     const wrapper = view.container.querySelector(".hn-editor-table-wrapper")!
-    const deleteRow = wrapper.querySelector<HTMLButtonElement>('[aria-label="删除行"]')!
-    const deleteColumn = wrapper.querySelector<HTMLButtonElement>('[aria-label="删除列"]')!
+    const rowOp = opButton(wrapper, "行操作")
+    const columnOp = opButton(wrapper, "列操作")
 
-    // 初始选区在前置段落：删除入口禁用，点击无副作用
-    expect(deleteRow.disabled).toBe(true)
-    expect(deleteColumn.disabled).toBe(true)
-    fireEvent.click(deleteRow)
-    expect(wrapper.querySelector(".is-confirming")).toBeNull()
+    // 初始选区在前置段落：操作控件不显现，点击无副作用（不开菜单）
+    expect(rowOp.classList.contains("is-visible")).toBe(false)
+    expect(columnOp.classList.contains("is-visible")).toBe(false)
+    fireEvent.click(rowOp)
+    expect(menu()).toBeNull()
 
     focusText(session.editor, "表格外")
-    expect(deleteRow.disabled).toBe(true)
+    expect(rowOp.classList.contains("is-visible")).toBe(false)
 
-    // 选区进入本表单元格后启用（表格单元格为空文本，直接定位首个单元格段落）
+    // 选区进入本表单元格后常驻（表格单元格为空文本，直接定位首个单元格段落）
     const cellPos = posOfFirst(session.editor, "tableCell")
     expect(session.editor.commands.setTextSelection(cellPos + 2)).toBe(true)
-    expect(deleteRow.disabled).toBe(false)
-    expect(deleteColumn.disabled).toBe(false)
+    expect(rowOp.classList.contains("is-visible")).toBe(true)
+    expect(columnOp.classList.contains("is-visible")).toBe(true)
 
-    // 选区再次离开本表后立即禁用
+    // 选区再次离开本表后立即隐藏
     focusText(session.editor, "表格外")
-    expect(deleteRow.disabled).toBe(true)
-    expect(deleteColumn.disabled).toBe(true)
+    expect(rowOp.classList.contains("is-visible")).toBe(false)
+    expect(columnOp.classList.contains("is-visible")).toBe(false)
   })
 
-  it("table NodeView：colspan 单元格按 TableMap 逻辑宽度计算禁用态", () => {
+  it("table NodeView：colspan 单元格按 TableMap 逻辑宽度计算菜单禁用态", () => {
     const view = render(<NoteEditor documentId="TB6" loadKey="t8" initialDocument={colspanTableDocument() as never} />)
     const session = createdSessions.at(-1)!
     const wrapper = view.container.querySelector(".hn-editor-table-wrapper")!
 
     focusText(session.editor, "wide")
-    // 行 childCount 为 1，但逻辑宽度是 2：删除行因逻辑高度 1 禁用，删除列保持可用
-    expect(wrapper.querySelector<HTMLButtonElement>('[aria-label="删除行"]')!.disabled).toBe(true)
-    expect(wrapper.querySelector<HTMLButtonElement>('[aria-label="删除列"]')!.disabled).toBe(false)
+    // 逻辑高度 1：删除行禁用并注明原因
+    fireEvent.click(opButton(wrapper, "行操作"))
+    expect(menuItem("删除行").disabled).toBe(true)
+    expect(menuItem("删除行").title).toContain("至少保留一行")
+    escapeMenu()
+    // 行 childCount 为 1，但 TableMap 逻辑宽度是 2：删除列保持可用
+    fireEvent.click(opButton(wrapper, "列操作"))
+    expect(menuItem("删除列").disabled).toBe(false)
   })
 
   it("table NodeView：删除选区所在逻辑列会正确收缩跨列单元格", () => {
@@ -1061,11 +1109,11 @@ describe("内部 NoteEditor 标准块控件（Phase 6.1 Gate）", () => {
     const session = createdSessions.at(-1)!
     const wrapper = view.container.querySelector(".hn-editor-table-wrapper")!
 
-    // 聚焦逻辑第 2 列（wide 的右半格 / b2 所在列），两次点击删除该列
+    // 聚焦逻辑第 2 列（wide 的右半格 / b2 所在列），列菜单两步删除该列
     focusText(session.editor, "b2")
-    const deleteColumn = wrapper.querySelector<HTMLButtonElement>('[aria-label="删除列"]')!
-    fireEvent.click(deleteColumn)
-    fireEvent.click(wrapper.querySelector<HTMLButtonElement>('[aria-label="确认删除列（再次点击）"]')!)
+    fireEvent.click(opButton(wrapper, "列操作"))
+    fireEvent.click(menuItem("删除列"))
+    fireEvent.click(menuItem("确认删除列"))
 
     // 逻辑宽度 3 → 2：wide 的 colspan 收缩为 1，b2 被移除，其余单元格保留
     expect(session.editor.getText()).not.toContain("b2")
@@ -1077,18 +1125,35 @@ describe("内部 NoteEditor 标准块控件（Phase 6.1 Gate）", () => {
     expect(session.editor.state.doc.firstChild!.childCount).toBe(2)
   })
 
-  it("table NodeView：达到 HNN_TABLE_LIMITS 边界时禁用添加控件", () => {
+  it("table NodeView：达到 HNN_TABLE_LIMITS 边界时 + 不显现、菜单插入项禁用并注明原因", () => {
+    // 64 行 × 1 列：行数达上限，行方向 + 不显现；加列后网格 64×2 未超限，列方向 + 可用
     const maxRows = render(<NoteEditor documentId="TB7" loadKey="t9" initialDocument={tableDocument(64, 1) as never} />)
+    const maxRowsSession = createdSessions.at(-1)!
     const maxRowsWrapper = maxRows.container.querySelector(".hn-editor-table-wrapper")!
-    // 64 行 × 1 列：行数达上限禁用添加行；加列后网格 64×2 未超限，添加列可用
-    expect(maxRowsWrapper.querySelector<HTMLButtonElement>('[aria-label="添加行"]')!.disabled).toBe(true)
-    expect(maxRowsWrapper.querySelector<HTMLButtonElement>('[aria-label="添加列"]')!.disabled).toBe(false)
+    maxRowsWrapper.querySelector("td")!.dispatchEvent(pointerEvent("pointerover"))
+    expect(edgeButton(maxRowsWrapper, "在下方插入行").classList.contains("is-visible")).toBe(false)
+    expect(edgeButton(maxRowsWrapper, "在右侧插入列").classList.contains("is-visible")).toBe(true)
+    // 菜单路径给出解释而不是静默消失：行插入项禁用并注明上限原因
+    const maxRowsCell = posOfFirst(maxRowsSession.editor, "tableCell")
+    expect(maxRowsSession.editor.commands.setTextSelection(maxRowsCell + 2)).toBe(true)
+    fireEvent.click(opButton(maxRowsWrapper, "行操作"))
+    expect(menuItem("在下方插入行").disabled).toBe(true)
+    expect(menuItem("在下方插入行").title).toContain("已达表格行数或单元格总量上限")
+    escapeMenu()
     maxRows.unmount()
 
+    // 1 行 × 64 列：列数达上限，列方向 + 不显现；行方向 + 可用；列菜单插入项禁用
     const maxCols = render(<NoteEditor documentId="TB8" loadKey="t10" initialDocument={tableDocument(1, 64) as never} />)
+    const maxColsSession = createdSessions.at(-1)!
     const maxColsWrapper = maxCols.container.querySelector(".hn-editor-table-wrapper")!
-    expect(maxColsWrapper.querySelector<HTMLButtonElement>('[aria-label="添加列"]')!.disabled).toBe(true)
-    expect(maxColsWrapper.querySelector<HTMLButtonElement>('[aria-label="添加行"]')!.disabled).toBe(false)
+    maxColsWrapper.querySelector("td")!.dispatchEvent(pointerEvent("pointerover"))
+    expect(edgeButton(maxColsWrapper, "在右侧插入列").classList.contains("is-visible")).toBe(false)
+    expect(edgeButton(maxColsWrapper, "在下方插入行").classList.contains("is-visible")).toBe(true)
+    const maxColsCell = posOfFirst(maxColsSession.editor, "tableCell")
+    expect(maxColsSession.editor.commands.setTextSelection(maxColsCell + 2)).toBe(true)
+    fireEvent.click(opButton(maxColsWrapper, "列操作"))
+    expect(menuItem("在右侧插入列").disabled).toBe(true)
+    expect(menuItem("在右侧插入列").title).toContain("已达表格列数或单元格总量上限")
   })
 
   it("table NodeView：紧邻单元格输入后的表格操作是独立 undo step，一步 undo 只撤结构", () => {
@@ -1097,10 +1162,11 @@ describe("内部 NoteEditor 标准块控件（Phase 6.1 Gate）", () => {
     const wrapper = view.container.querySelector(".hn-editor-table-wrapper")!
     const rowCount = () => session.editor.state.doc.firstChild!.childCount
 
-    // 单元格输入与随后的添加行必须被 closeHistory 切分为两个 undo step
+    // 单元格输入与随后的边界插入必须被 closeHistory 切分为两个 undo step
     insertIntoBlock(session.editor, "tableCell", "改")
     expect(session.editor.getText()).toContain("改")
-    fireEvent.click(wrapper.querySelector('[aria-label="添加行"]')!)
+    hoverCell(wrapper, "改")
+    fireEvent.click(edgeButton(wrapper, "在下方插入行"))
     expect(rowCount()).toBe(3)
 
     session.editor.commands.undo()
@@ -1112,11 +1178,20 @@ describe("内部 NoteEditor 标准块控件（Phase 6.1 Gate）", () => {
     expect(session.editor.getText()).not.toContain("改")
   })
 
-  it("table NodeView：单行单列时禁用删除行/列入口", () => {
+  it("table NodeView：单行单列时菜单删除行/列入口禁用并注明原因", () => {
     const view = render(<NoteEditor documentId="TB2" loadKey="t3" initialDocument={tableDocument(1, 1) as never} />)
+    const session = createdSessions.at(-1)!
     const wrapper = view.container.querySelector(".hn-editor-table-wrapper")!
-    expect(wrapper.querySelector<HTMLButtonElement>('[aria-label="删除行"]')!.disabled).toBe(true)
-    expect(wrapper.querySelector<HTMLButtonElement>('[aria-label="删除列"]')!.disabled).toBe(true)
+    const cellPos = posOfFirst(session.editor, "tableCell")
+    expect(session.editor.commands.setTextSelection(cellPos + 2)).toBe(true)
+
+    fireEvent.click(opButton(wrapper, "行操作"))
+    expect(menuItem("删除行").disabled).toBe(true)
+    expect(menuItem("删除行").title).toContain("至少保留一行")
+    escapeMenu()
+    fireEvent.click(opButton(wrapper, "列操作"))
+    expect(menuItem("删除列").disabled).toBe(true)
+    expect(menuItem("删除列").title).toContain("至少保留一列")
   })
 })
 

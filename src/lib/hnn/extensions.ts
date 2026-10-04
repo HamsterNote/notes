@@ -5,13 +5,12 @@ import { TaskItem, TaskList } from "@tiptap/extension-list"
 import { Table, TableKit } from "@tiptap/extension-table"
 import { closeHistory } from "@tiptap/pm/history"
 import type { Node as PmNode } from "@tiptap/pm/model"
-import { TextSelection } from "@tiptap/pm/state"
-import { TableMap, selectionCell } from "@tiptap/pm/tables"
 import StarterKit from "@tiptap/starter-kit"
 import { HNN_CARD_EMPTY_DATA, parseCardPayload } from "./cardPayload"
 import { deriveHnnDirectoryEntries } from "./directoryEntries"
 import { HNN_DRAWING_EMPTY_DATA, parseDrawingPayload } from "./drawingPayload"
-import { HNN_LIMITS, HNN_TABLE_LIMITS } from "./limits"
+import { HNN_LIMITS } from "./limits"
+import { installTableEdgeControls } from "./tableEdgeControls"
 import { jsonStringBytes, utf8Bytes } from "./stringBytes"
 import { collectHnnNodeIds, createHnnNodeIdPlugin, HNN_NODE_ID_TYPES, normalizeInitialHnnContent } from "./nodeId"
 import { isSafeHnnUrl } from "./urlPolicy"
@@ -1456,10 +1455,12 @@ function buildHnnExtensions(includeUndoRedo: boolean): Extensions {
 
   const HnnTable = Table.extend({
     addNodeView() {
-      // 封闭表格行/列操作入口（DESIGN.md §10 边缘圆形控件）。所有结构判断以
-      // @tiptap/pm/tables 的 TableMap 逻辑网格为准（colspan/rowspan 感知，绝不
-      // 用 childCount）；所有操作只透传 TableKit 命令到一个 PM transaction，
-      // closeHistory 令其与紧邻的单元格输入/相邻控件操作切分为独立 undo step。
+      // 表格行/列结构与操作入口（DESIGN.md §10）：单元格边界 + 控件、焦点行/列
+      // 操作控件（in-menu 两步删除 + 拖动重排，中点推进插入边界、实线预览精确落线）
+      // 全部由 tableEdgeControls 承担。结构判断以 TableMap 逻辑网格为准（colspan/
+      // rowspan 感知，绝不用 childCount）；所有变更只透传 TableKit/prosemirror-tables
+      // 命令，每个完整手势恰好一个 PM transaction（closeHistory 切分 undo step）；
+      // 只读模式不渲染、不响应。
       return ({ node, HTMLAttributes, getPos, editor }) => {
         const dom = document.createElement("div")
         applyDomAttrs(dom, HTMLAttributes)
@@ -1467,185 +1468,30 @@ function buildHnnExtensions(includeUndoRedo: boolean): Extensions {
         const table = document.createElement("table")
         const tbody = document.createElement("tbody")
         table.append(tbody)
+        dom.append(table)
 
-        type Axis = "row" | "column"
-        const BASE_LABELS: Record<Axis, string> = { row: "删除行", column: "删除列" }
-        const CONFIRM_LABELS: Record<Axis, string> = { row: "确认删除行（再次点击）", column: "确认删除列（再次点击）" }
-        const CONFIRM_TIMEOUT_MS = 4000
-
-        const createControl = (suffix: string, label: string, glyph: string): HTMLButtonElement => {
-          const button = document.createElement("button")
-          button.type = "button"
-          button.className = `hn-editor-table-btn hn-editor-table-btn--${suffix}`
-          button.setAttribute("aria-label", label)
-          button.textContent = glyph
-          // 指针按下不夺走编辑器焦点，键盘 Tab 聚焦不受影响。
-          button.addEventListener("mousedown", (event) => event.preventDefault())
-          return button
-        }
-        const addRowButton = createControl("add-row", "添加行", "+")
-        const deleteRowButton = createControl("delete-row", BASE_LABELS.row, "−")
-        const addColumnButton = createControl("add-column", "添加列", "+")
-        const deleteColumnButton = createControl("delete-column", BASE_LABELS.column, "−")
-        dom.append(table, addRowButton, deleteRowButton, addColumnButton, deleteColumnButton)
-
-        const deleteButtons: Record<Axis, HTMLButtonElement> = { row: deleteRowButton, column: deleteColumnButton }
-
-        // ===== 可访问两步确认：首次点击只进入确认态（改 aria-label/样式），
-        // 第二次点击才执行；失焦、超时或其它操作一律复位。 =====
-        let confirming: Axis | null = null
-        let confirmTimer: ReturnType<typeof setTimeout> | null = null
-        const clearConfirm = (): void => {
-          if (confirmTimer !== null) {
-            clearTimeout(confirmTimer)
-            confirmTimer = null
-          }
-          if (confirming === null) return
-          const button = deleteButtons[confirming]
-          confirming = null
-          button.classList.remove("is-confirming")
-          button.setAttribute("aria-label", BASE_LABELS[button === deleteRowButton ? "row" : "column"])
-        }
-        const armConfirm = (axis: Axis): void => {
-          clearConfirm()
-          confirming = axis
-          const button = deleteButtons[axis]
-          button.classList.add("is-confirming")
-          button.setAttribute("aria-label", CONFIRM_LABELS[axis])
-          confirmTimer = setTimeout(clearConfirm, CONFIRM_TIMEOUT_MS)
-        }
-        /** 所有取消机制的统一出口。 */
-        const cancelConfirm = (): void => { if (confirming !== null) clearConfirm() }
-
-        /** 当前表格节点 + TableMap；NodeView 失活或位置漂移时返回 null。 */
-        const currentTable = (): { tablePos: number; tableNode: typeof node; map: TableMap } | null => {
-          if (typeof getPos !== "function") return null
-          const tablePos = getPos()
-          if (typeof tablePos !== "number") return null
-          const tableNode = editor.state.doc.nodeAt(tablePos)
-          if (!tableNode || tableNode.type !== node.type) return null
-          return { tablePos, tableNode, map: TableMap.get(tableNode) }
-        }
-
-        /** 选区是否落在本表格的单元格内；不在本表时返回 false（不得暗中改选最后项）。 */
-        const selectionInsideThisTable = (): boolean => {
-          const current = currentTable()
-          if (!current) return false
-          const { tablePos, tableNode } = current
-          const { $anchor } = editor.state.selection
-          if ($anchor.pos <= tablePos || $anchor.pos >= tablePos + tableNode.nodeSize) return false
-          try {
-            const cell = selectionCell(editor.state)
-            return cell.pos > tablePos && cell.pos < tablePos + tableNode.nodeSize
-          } catch {
-            return false
-          }
-        }
-
-        /** 添加行/列：把选区移入逻辑末边界的单元格（span 感知），同一事务完成结构变更。 */
-        const runAdd = (axis: Axis): void => {
-          const current = currentTable()
-          if (!current) return
-          clearConfirm() // 其它操作复位确认态
-          const { tablePos, map } = current
-          const row = axis === "row" ? map.height - 1 : 0
-          const column = axis === "row" ? 0 : map.width - 1
-          // map 槽位存的是相对 tablePos + 1 的单元格起点。
-          const cellPos = tablePos + 1 + map.map[row * map.width + column]!
-          const chain = editor.chain().command(({ state, tr }) => {
-            tr.setSelection(TextSelection.near(state.doc.resolve(cellPos + 1), 1))
-            closeHistory(tr)
-            return true
-          })
-          if (axis === "row") chain.addRowAfter().run()
-          else chain.addColumnAfter().run()
-        }
-
-        /** 删除行/列：两次点击确认后，对本表当前选区所在逻辑行/列执行 TableKit 命令。 */
-        const runDelete = (axis: Axis): void => {
-          if (confirming !== axis) {
-            armConfirm(axis)
-            return
-          }
-          const inTable = selectionInsideThisTable()
-          clearConfirm()
-          if (!inTable) return
-          const chain = editor.chain().command(({ tr }) => {
-            closeHistory(tr)
-            return true
-          })
-          if (axis === "row") chain.deleteRow().run()
-          else chain.deleteColumn().run()
-        }
-
-        addRowButton.addEventListener("click", () => { if (!addRowButton.disabled) runAdd("row") })
-        addColumnButton.addEventListener("click", () => { if (!addColumnButton.disabled) runAdd("column") })
-        deleteRowButton.addEventListener("click", () => { if (!deleteRowButton.disabled) runDelete("row") })
-        deleteColumnButton.addEventListener("click", () => { if (!deleteColumnButton.disabled) runDelete("column") })
-        deleteRowButton.addEventListener("blur", () => { if (confirming === "row") clearConfirm() })
-        deleteColumnButton.addEventListener("blur", () => { if (confirming === "column") clearConfirm() })
-
-        /** 依据 TableMap 逻辑宽高与 HNN_TABLE_LIMITS / 本表选区刷新控件可用态。 */
-        const refresh = (): void => {
-          const current = currentTable()
-          if (!current) return
-          const { map } = current
-          const inTable = selectionInsideThisTable()
-          addRowButton.disabled =
-            map.height >= HNN_TABLE_LIMITS.maxRows ||
-            (map.height + 1) * map.width > HNN_TABLE_LIMITS.maxGridCells
-          addColumnButton.disabled =
-            map.width >= HNN_TABLE_LIMITS.maxColumns ||
-            map.height * (map.width + 1) > HNN_TABLE_LIMITS.maxGridCells
-          deleteRowButton.disabled = map.height <= 1 || !inTable
-          deleteColumnButton.disabled = map.width <= 1 || !inTable
-          // 目标轴被禁用（如选区离开本表）时复位其确认态。
-          if (deleteRowButton.disabled && confirming === "row") clearConfirm()
-          if (deleteColumnButton.disabled && confirming === "column") clearConfirm()
-        }
-        refresh()
-
-        // 确认期间任意 editor transaction（尤其选区移动）都取消确认，防止目标漂移：
-        // 第二次点击只能重新 arm，绝不能删除新选区目标。删除执行前已自行 clearConfirm，
-        // 此处不会误伤正在执行的操作。
-        const onTransaction = (): void => {
-          cancelConfirm()
-          refresh()
-        }
-        // 选区变化不产生节点 update，需监听 transaction 保持禁用态与确认态同步。
-        editor.on("transaction", onTransaction)
-
-        // DESIGN.md §10 的取消机制：Escape、组件外部 pointerdown、window scroll/resize。
-        const onDocumentKeyDown = (event: KeyboardEvent): void => {
-          if (event.key === "Escape") cancelConfirm()
-        }
-        const onDocumentPointerDown = (event: Event): void => {
-          if (event.target instanceof window.Node && !dom.contains(event.target)) cancelConfirm()
-        }
-        const onWindowChange = (): void => cancelConfirm()
-        document.addEventListener("keydown", onDocumentKeyDown, true)
-        document.addEventListener("pointerdown", onDocumentPointerDown, true)
-        window.addEventListener("scroll", onWindowChange, true)
-        window.addEventListener("resize", onWindowChange)
+        const controls = installTableEdgeControls({
+          editor,
+          wrapper: dom,
+          table,
+          tbody,
+          getPos: () => (typeof getPos === "function" ? getPos() : undefined),
+          tableNodeType: node.type
+        })
 
         return {
           dom,
           contentDOM: tbody,
           update(updatedNode) {
             if (updatedNode.type !== node.type) return false
-            refresh()
+            controls.refresh()
             return true
           },
+          // 控件 DOM 事件不交给 ProseMirror；单元格正文事件保持默认处理。
           stopEvent: (event) => eventInside(dom, event) && !eventInside(tbody, event),
           ignoreMutation: (mutation) => !tbody.contains(mutation.target),
           destroy() {
-            // 移除全部监听器与定时器，NodeView 失活后不留任何悬挂资源。
-            editor.off("transaction", onTransaction)
-            document.removeEventListener("keydown", onDocumentKeyDown, true)
-            document.removeEventListener("pointerdown", onDocumentPointerDown, true)
-            window.removeEventListener("scroll", onWindowChange, true)
-            window.removeEventListener("resize", onWindowChange)
-            if (confirmTimer !== null) clearTimeout(confirmTimer)
+            controls.destroy()
           }
         }
       }

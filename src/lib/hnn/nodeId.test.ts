@@ -97,4 +97,33 @@ describe("HNN nodeId", () => {
       random.mockRestore()
     }
   })
+
+  it("带 marks 的 text 不被 repair 误判为 inline atom（本 PM 版本 text 亦为叶子/isAtom）", () => {
+    const bold = hnnRuntimeSchema.marks["bold"]!.create()
+    const italic = hnnRuntimeSchema.marks["italic"]!.create()
+    const styled = hnnRuntimeSchema.text("styled", [bold, italic])
+    const paragraphNode = hnnRuntimeSchema.nodes["paragraph"]!.create({ nodeId: originalId }, [styled])
+    const doc = documentWith(paragraphNode)
+
+    // 修复不应因 marked text 抛 "can't construct text nodes"，也不应产生额外修复事务或改 marks。
+    const state = EditorState.create({ schema: hnnRuntimeSchema, doc, plugins: [createHnnNodeIdPlugin()] })
+    const result = state.applyTransaction(state.tr)
+    expect(result.transactions).toHaveLength(1)
+    const text = result.state.doc.firstChild!.firstChild!
+    expect(text.text).toBe("styled")
+    expect(text.marks.map((mark) => mark.type.name)).toEqual(["bold", "italic"])
+  })
+
+  it("非 text 的 inline atom marks 仍被 repair 清理且不进历史", () => {
+    const bold = hnnRuntimeSchema.marks["bold"]!.create()
+    const hardBreak = hnnRuntimeSchema.nodes["hardBreak"]!.create({ nodeId: originalId }, null, [bold])
+    const paragraphNode = hnnRuntimeSchema.nodes["paragraph"]!.create({ nodeId: originalId }, [hardBreak])
+    const state = EditorState.create({ schema: hnnRuntimeSchema, doc: documentWith(paragraphNode), plugins: [createHnnNodeIdPlugin()] })
+
+    const result = state.applyTransaction(state.tr)
+    // 初始 init 修复：hardBreak 的 bold mark 被清理。
+    const breakNode = result.state.doc.firstChild!.firstChild!
+    expect(breakNode.type.name).toBe("hardBreak")
+    expect(breakNode.marks).toHaveLength(0)
+  })
 })

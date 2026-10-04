@@ -64,13 +64,11 @@
     "verify:phase1-scope": "node ./scripts/verify-phase1-scope.mjs"
   },
   "peerDependencies": {
-    "@system-ui-js/multi-drag": "^0.4.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.31.0",
-    "@hamster-note/cards": "0.3.2",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/react": "^16.3.2",
     "@types/mdast": "^4.0.4",
@@ -78,7 +76,6 @@
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@types/unist": "^3.0.3",
-    "@system-ui-js/multi-drag": "^0.4.0",
     "@vitejs/plugin-react": "^5.0.0",
     "eslint": "^9.31.0",
     "eslint-config-prettier": "^10.1.5",
@@ -108,8 +105,6 @@
     "@tiptap/pm": "3.31.3",
     "@tiptap/react": "3.31.3",
     "@tiptap/starter-kit": "3.31.3",
-    "highlight.js": "^11.11.1",
-    "katex": "^0.17.0",
-    "use-undo": "^1.2.0"
+    "katex": "^0.17.0"
   }
 }

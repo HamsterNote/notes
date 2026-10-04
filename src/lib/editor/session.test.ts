@@ -2,10 +2,10 @@
 
 import { TextSelection } from "@tiptap/pm/state"
 import { fireEvent } from "@testing-library/dom"
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 import { encodeHnn, type HnnDocument } from "../hnn/codec"
 import { createEditorSession } from "./session"
-import type { NoteSaveContext, NoteSaveResult } from "./types"
+import type { HostCandidateProvider, HostReferenceResolve, NoteSaveContext, NoteSaveResult } from "./types"
 
 const ids = [
   "123e4567-e89b-42d3-a456-426614174000",
@@ -47,6 +47,550 @@ function deferred<T>() {
   })
   return { promise, resolve, reject }
 }
+
+describe("EditorSession 图片上传接线（6.7）", () => {
+  function imageFile(name = "photo.png"): File {
+    return new File([new Uint8Array(4)], name, { type: "image/png" })
+  }
+
+  it("仅提供 onPictureUpload 的会话才安装上传 installer", () => {
+    const withoutUpload = createEditorSession({ documentId: "A", loadKey: "1", initialDocument: documentWith("x") })
+    try {
+      expect(withoutUpload.pictureUpload).toBeUndefined()
+    } finally {
+      withoutUpload.destroy()
+    }
+
+    const upload = vi.fn(() => new Promise<{ src: string }>(() => undefined))
+    const withUpload = createEditorSession({
+      documentId: "A",
+      loadKey: "1",
+      initialDocument: documentWith("x"),
+      onPictureUpload: upload
+    })
+    try {
+      expect(withUpload.pictureUpload).toBeDefined()
+      expect(withUpload.pictureUpload?.getState().items).toEqual([])
+    } finally {
+      withUpload.destroy()
+    }
+  })
+
+  it("destroy 中止在途上传：signal aborted，陈旧成功结果绝不写入文档", async () => {
+    const pending = deferred<{ src: string }>()
+    const upload = vi.fn(() => pending.promise)
+    const session = createEditorSession({
+      documentId: "A",
+      loadKey: "1",
+      initialDocument: documentWith("x"),
+      onPictureUpload: upload
+    })
+    const installer = session.pictureUpload
+    if (!installer) throw new Error("上传 installer 未安装")
+    const [uploadId] = installer.enqueue([imageFile()])
+    expect(uploadId).toBeDefined()
+    const request = (upload.mock.calls[0] as unknown as [File, { uploadId: string; attempt: number; signal: AbortSignal }])[1]
+    expect(request.attempt).toBe(1)
+
+    session.destroy()
+    expect(request.signal.aborted).toBe(true)
+
+    // 宿主忽略 abort 迟到的成功结果：库内丢弃，文档与上传状态都不被回写。
+    pending.resolve({ src: "https://example.com/stale.png" })
+    await pending.promise.then(() => undefined)
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(session.editor.isDestroyed).toBe(true)
+    expect(installer.getState().items).toEqual([])
+  })
+
+  it("上传成功只写入一个 picture 节点：快照含 src、placeholder 痕迹不进 HNN", async () => {
+    const pending = deferred<{ src: string; alt?: string }>()
+    const session = createEditorSession({
+      documentId: "A",
+      loadKey: "1",
+      initialDocument: documentWith("x"),
+      onPictureUpload: () => pending.promise
+    })
+    try {
+      const installer = session.pictureUpload
+      if (!installer) throw new Error("上传 installer 未安装")
+      const [uploadId] = installer.enqueue([imageFile()])
+      // 上传中：占位是 decoration，编码快照里既没有 uploadId 也没有文件名。
+      const during = JSON.stringify(encodeHnn(session.editor.state.doc))
+      expect(during).not.toContain(uploadId)
+      expect(during).not.toContain("photo.png")
+
+      pending.resolve({ src: "https://example.com/a.png", alt: "示意" })
+      await new Promise((resolve) => setTimeout(resolve, 0))
+      const snapshot = encodeHnn(session.editor.state.doc)
+      const serialized = JSON.stringify(snapshot)
+      expect(serialized).toContain("https://example.com/a.png")
+      expect(serialized).not.toContain(uploadId)
+      expect(installer.getState().items).toEqual([])
+      // 成功插入使文档变脏；一步 undo 即回到插入前。
+      expect(session.state.dirty).toBe(true)
+      expect(session.undo()).toBe(true)
+      expect(session.editor.getText()).toBe("x")
+    } finally {
+      session.destroy()
+    }
+  })
+})
+
+describe("EditorSession configurePictureUpload（6.7 同 key 动态能力）", () => {
+  function imageFile(name = "photo.png"): File {
+    return new File([new Uint8Array(4)], name, { type: "image/png" })
+  }
+
+  it("新增 callback 只增安装：editor/doc/selection/history/baseline 全部保留", () => {
+    const session = createEditorSession({ documentId: "A", loadKey: "1", initialDocument: documentWith("x") })
+    try {
+      expect(session.pictureUpload).toBeUndefined()
+      replaceText(session, "draft")
+      const editorBefore = session.editor
+      const selectionFrom = session.editor.state.selection.from
+      expect(session.state.dirty).toBe(true)
+
+      session.configurePictureUpload(vi.fn(() => new Promise<{ src: string }>(() => undefined)))
+      expect(session.pictureUpload).toBeDefined()
+      // 只增安装：editor 实例、文档、selection、历史、baseline 全部不动。
+      expect(session.editor).toBe(editorBefore)
+      expect(session.editor.getText()).toBe("draft")
+      expect(session.editor.state.selection.from).toBe(selectionFrom)
+      expect(session.state.dirty).toBe(true)
+      expect(session.undo()).toBe(true)
+      expect(session.editor.getText()).toBe("x")
+      expect(session.state.dirty).toBe(false)
+    } finally {
+      session.destroy()
+    }
+  })
+
+  it("移除 callback：abort 在途、清空状态、stale 绝不写入；同 session 可重启", async () => {
+    const pending = deferred<{ src: string }>()
+    const upload = vi.fn(() => pending.promise)
+    const session = createEditorSession({ documentId: "A", loadKey: "1", initialDocument: documentWith("x") })
+    try {
+      session.configurePictureUpload(upload)
+      const installer = session.pictureUpload
+      if (!installer) throw new Error("上传 installer 未安装")
+      installer.enqueue([imageFile()])
+      const request = (upload.mock.calls[0] as unknown as [File, { uploadId: string; attempt: number; signal: AbortSignal }])[1]
+
+      session.configurePictureUpload(undefined)
+      expect(session.pictureUpload).toBeUndefined()
+      expect(request.signal.aborted).toBe(true)
+      expect(installer.getState().items).toEqual([])
+
+      pending.resolve({ src: "https://example.com/stale.png" })
+      await new Promise((resolve) => setTimeout(resolve, 0))
+      expect(JSON.stringify(encodeHnn(session.editor.state.doc))).not.toContain("stale.png")
+
+      // 重启：同一 session 重新安装，doc/baseline 依旧未动。
+      const restarted = vi.fn(() => new Promise<{ src: string }>(() => undefined))
+      session.configurePictureUpload(restarted)
+      expect(session.pictureUpload).toBeDefined()
+      expect(session.editor.getText()).toBe("x")
+      expect(session.state.dirty).toBe(false)
+      session.pictureUpload?.enqueue([imageFile("again.png")])
+      expect(restarted).toHaveBeenCalledTimes(1)
+    } finally {
+      session.destroy()
+    }
+  })
+
+  it("更新 callback：在途请求 signal/ID 稳定且结果仍写入，未来请求用新 handler", async () => {
+    const first = deferred<{ src: string }>()
+    const uploadOld = vi.fn(() => first.promise)
+    const uploadNew = vi.fn(() => new Promise<{ src: string }>(() => undefined))
+    const session = createEditorSession({ documentId: "A", loadKey: "1", initialDocument: documentWith("x") })
+    try {
+      session.configurePictureUpload(uploadOld)
+      session.pictureUpload?.enqueue([imageFile("old.png")])
+      const oldRequest = (uploadOld.mock.calls[0] as unknown as [File, { uploadId: string; attempt: number; signal: AbortSignal }])[1]
+
+      session.configurePictureUpload(uploadNew)
+      // 在途不被 abort、uploadId 稳定；新入队走新 handler。
+      expect(oldRequest.signal.aborted).toBe(false)
+      session.pictureUpload?.enqueue([imageFile("new.png")])
+      expect(uploadNew).toHaveBeenCalledTimes(1)
+
+      first.resolve({ src: "https://example.com/old.png" })
+      await new Promise((resolve) => setTimeout(resolve, 0))
+      expect(JSON.stringify(encodeHnn(session.editor.state.doc))).toContain("https://example.com/old.png")
+    } finally {
+      session.destroy()
+    }
+  })
+
+  it("destroy 后 configure 是安全 no-op", () => {
+    const session = createEditorSession({ documentId: "A", loadKey: "1", initialDocument: documentWith("x") })
+    session.destroy()
+    expect(() => session.configurePictureUpload(vi.fn())).not.toThrow()
+    expect(session.pictureUpload).toBeUndefined()
+  })
+})
+
+describe("EditorSession configureHostReferences（7.2 同 key 动态能力）", () => {
+  const refIds = {
+    paragraph: "123e4567-e89b-42d3-a456-426614174010",
+    mention: "123e4567-e89b-42d3-a456-426614174011",
+    mention2: "123e4567-e89b-42d3-a456-426614174012"
+  }
+
+  function documentWithMention(): HnnDocument {
+    return {
+      schemaVersion: 1,
+      data: {
+        type: "doc",
+        content: [{
+          type: "paragraph",
+          attrs: { nodeId: refIds.paragraph },
+          content: [
+            { type: "text", text: "见 " },
+            { type: "mention", attrs: { nodeId: refIds.mention, resourceId: "u1", name: "Ada" } }
+          ]
+        }]
+      }
+    }
+  }
+
+  it("构造即按真实能力安装：hasActivate 仅在有 activate 时为 true，documentId 来自会话", () => {
+    const candidates = vi.fn<HostCandidateProvider>(() => [])
+    const withActivate = createEditorSession({
+      documentId: "doc-x",
+      loadKey: 1,
+      initialDocument: documentWith("x"),
+      onReferenceCandidates: candidates,
+      onReferenceActivate: () => undefined
+    })
+    const withoutActivate = createEditorSession({
+      documentId: "doc-y",
+      loadKey: 1,
+      initialDocument: documentWith("y"),
+      onReferenceResolve: () => null
+    })
+    const noCallbacks = createEditorSession({ documentId: "doc-z", loadKey: 1, initialDocument: documentWith("z") })
+    try {
+      expect(withActivate.hostReferences?.hasActivate).toBe(true)
+      expect(withoutActivate.hostReferences?.hasActivate).toBe(false)
+      expect(noCallbacks.hostReferences).toBeUndefined()
+
+      withActivate.hostReferences?.requestCandidates("mention", "a")
+      expect(candidates).toHaveBeenCalledTimes(1)
+      expect(candidates.mock.calls[0]?.[2].documentId).toBe("doc-x")
+    } finally {
+      withActivate.destroy()
+      withoutActivate.destroy()
+      noCallbacks.destroy()
+    }
+  })
+
+  it("全无 → 任一：只增安装，editor/doc/selection/history/baseline 全部保留", () => {
+    const session = createEditorSession({ documentId: "A", loadKey: "1", initialDocument: documentWith("x") })
+    try {
+      expect(session.hostReferences).toBeUndefined()
+      replaceText(session, "draft")
+      const editorBefore = session.editor
+      const selectionFrom = session.editor.state.selection.from
+
+      session.configureHostReferences({ candidates: () => [] })
+      expect(session.hostReferences).toBeDefined()
+      expect(session.editor).toBe(editorBefore)
+      expect(session.editor.getText()).toBe("draft")
+      expect(session.editor.state.selection.from).toBe(selectionFrom)
+      expect(session.state.dirty).toBe(true)
+      expect(session.undo()).toBe(true)
+      expect(session.editor.getText()).toBe("x")
+      expect(session.state.dirty).toBe(false)
+    } finally {
+      session.destroy()
+    }
+  })
+
+  it("纯 fn→fn（三 presence 全不变）：installer 不重建，在途请求稳定，未来请求用新 handler", async () => {
+    const pendingResolve = deferred<{ label: string } | null>()
+    const pendingCandidates = deferred<readonly { resourceId: string; name: string }[]>()
+    const resolveOld = vi.fn<HostReferenceResolve>(() => pendingResolve.promise)
+    const candidatesOld = vi.fn<HostCandidateProvider>(() => pendingCandidates.promise)
+    const resolveNew = vi.fn<HostReferenceResolve>(() => null)
+    const candidatesNew = vi.fn<HostCandidateProvider>(() => [])
+    const activate = vi.fn()
+    const session = createEditorSession({
+      documentId: "A",
+      loadKey: 1,
+      initialDocument: documentWithMention(),
+      onReferenceCandidates: candidatesOld,
+      onReferenceActivate: activate,
+      onReferenceResolve: resolveOld
+    })
+    try {
+      const installer = session.hostReferences
+      if (!installer) throw new Error("引用 installer 未安装")
+      // 初始同步即解析既有 mention；候选请求在途。
+      const resolveContext = (resolveOld.mock.calls[0] as unknown as [unknown, { signal: AbortSignal }])[1]
+      installer.requestCandidates("mention", "a")
+      const candidatesContext = (candidatesOld.mock.calls[0] as unknown as [unknown, unknown, { signal: AbortSignal }])[2]
+
+      session.configureHostReferences({ candidates: candidatesNew, activate, resolve: resolveNew })
+      expect(session.hostReferences).toBe(installer)
+      expect(resolveContext.signal.aborted).toBe(false)
+      expect(candidatesContext.signal.aborted).toBe(false)
+
+      // 未来请求走新 handler。
+      installer.requestCandidates("mention", "b")
+      expect(candidatesNew).toHaveBeenCalledTimes(1)
+      // 文档新增引用按新 resolver 解析。
+      const mentionType = session.editor.schema.nodes["mention"]
+      if (!mentionType) throw new Error("mention 节点未装配")
+      const node = mentionType.create({ nodeId: refIds.mention2, resourceId: "u2", name: "Ben" })
+      session.editor.view.dispatch(session.editor.state.tr.insert(1, node))
+      expect(resolveNew).toHaveBeenCalledTimes(1)
+      expect((resolveNew.mock.calls[0] as unknown as [{ resourceId: string }])[0].resourceId).toBe("u2")
+
+      // 在途旧请求迟到 settle：同 session 非 stale，结果正常落地且不抛错。
+      pendingResolve.resolve({ label: "迟到标签" })
+      pendingCandidates.resolve([{ resourceId: "late", name: "Late" }])
+      await new Promise((resolve) => setTimeout(resolve, 0))
+      expect(installer.getReferenceState().entries.find((entry) => entry.resourceId === "u1")).toMatchObject({
+        status: "resolved",
+        label: "迟到标签"
+      })
+      // 解析结果绝不写入 HNN。
+      expect(JSON.stringify(encodeHnn(session.editor.state.doc))).not.toContain("迟到标签")
+    } finally {
+      session.destroy()
+    }
+  })
+
+  it("三 fn→fn 同 presence：installer/in-flight 保留，doc/selection/history/baseline 不动", async () => {
+    const pending = deferred<readonly { resourceId: string; name: string }[]>()
+    const candidatesOld = vi.fn<HostCandidateProvider>(() => pending.promise)
+    const session = createEditorSession({
+      documentId: "A",
+      loadKey: 1,
+      initialDocument: documentWith("x"),
+      onReferenceCandidates: candidatesOld,
+      onReferenceActivate: () => undefined,
+      onReferenceResolve: () => null
+    })
+    try {
+      const installer = session.hostReferences
+      if (!installer) throw new Error("引用 installer 未安装")
+      replaceText(session, "draft")
+      installer.requestCandidates("mention", "a")
+      const context = (candidatesOld.mock.calls[0] as unknown as [unknown, unknown, { signal: AbortSignal }])[2]
+      const selectionFrom = session.editor.state.selection.from
+
+      session.configureHostReferences({ candidates: () => [], activate: () => undefined, resolve: () => null })
+      expect(session.hostReferences).toBe(installer)
+      expect(context.signal.aborted).toBe(false)
+      expect(session.editor.getText()).toBe("draft")
+      expect(session.editor.state.selection.from).toBe(selectionFrom)
+      expect(session.state.dirty).toBe(true)
+      // history/baseline 保持：一步 undo 回到初始文本且不再脏。
+      expect(session.undo()).toBe(true)
+      expect(session.editor.getText()).toBe("x")
+      expect(session.state.dirty).toBe(false)
+
+      // 同 session 的在途候选迟到 settle 仍正常落地（非 stale）。
+      pending.resolve([{ resourceId: "late", name: "Late" }])
+      await new Promise((resolve) => setTimeout(resolve, 0))
+      expect(installer.getCandidateState()).toMatchObject({ status: "ready" })
+    } finally {
+      session.destroy()
+    }
+  })
+
+  it("resolve none→fn（保留 activate）：presence 变化重建，既有引用立刻 loading→resolved 重解析", async () => {
+    const pending = deferred<{ label: string } | null>()
+    const resolve = vi.fn<HostReferenceResolve>(() => pending.promise)
+    const activate = vi.fn()
+    const session = createEditorSession({
+      documentId: "A",
+      loadKey: 1,
+      initialDocument: documentWithMention(),
+      onReferenceActivate: activate
+    })
+    try {
+      const installer = session.hostReferences
+      if (!installer) throw new Error("引用 installer 未安装")
+      // 无 resolve：既有引用受控 missing。
+      await new Promise((resolveFlush) => setTimeout(resolveFlush, 0))
+      expect(installer.getReferenceState().entries[0]).toMatchObject({ resourceId: "u1", status: "missing" })
+      const docJsonBefore = JSON.stringify(encodeHnn(session.editor.state.doc))
+
+      session.configureHostReferences({ activate, resolve })
+      const rebuilt = session.hostReferences
+      expect(rebuilt).toBeDefined()
+      expect(rebuilt).not.toBe(installer)
+      // 重建重扫合法 doc：既有引用立刻按新 resolver 重新解析（loading → resolved）。
+      expect(resolve).toHaveBeenCalledTimes(1)
+      expect(rebuilt?.getReferenceState().entries[0]).toMatchObject({ resourceId: "u1", status: "loading" })
+      pending.resolve({ label: "新标签" })
+      await new Promise((resolveFlush) => setTimeout(resolveFlush, 0))
+      expect(rebuilt?.getReferenceState().entries[0]).toMatchObject({ status: "resolved", label: "新标签" })
+      // 文档零变化，解析结果不进 HNN。
+      expect(JSON.stringify(encodeHnn(session.editor.state.doc))).toBe(docJsonBefore)
+      expect(docJsonBefore).not.toContain("新标签")
+    } finally {
+      session.destroy()
+    }
+  })
+
+  it("resolve fn→none（保留 activate）：abort 在途 pending，late 不 resolved、转 missing 且 HNN 相等", async () => {
+    const pending = deferred<{ label: string } | null>()
+    const resolve = vi.fn<HostReferenceResolve>(() => pending.promise)
+    const activate = vi.fn()
+    const session = createEditorSession({
+      documentId: "A",
+      loadKey: 1,
+      initialDocument: documentWithMention(),
+      onReferenceActivate: activate,
+      onReferenceResolve: resolve
+    })
+    try {
+      const installer = session.hostReferences
+      if (!installer) throw new Error("引用 installer 未安装")
+      const context = (resolve.mock.calls[0] as unknown as [unknown, { signal: AbortSignal }])[1]
+      expect(installer.getReferenceState().entries[0]).toMatchObject({ status: "loading" })
+      const docJsonBefore = JSON.stringify(encodeHnn(session.editor.state.doc))
+
+      session.configureHostReferences({ activate })
+      const rebuilt = session.hostReferences
+      expect(rebuilt).toBeDefined()
+      expect(rebuilt).not.toBe(installer)
+      expect(context.signal.aborted).toBe(true)
+      // 重建后无 resolve：重扫受控 missing。
+      await new Promise((resolveFlush) => setTimeout(resolveFlush, 0))
+      expect(rebuilt?.getReferenceState().entries[0]).toMatchObject({ resourceId: "u1", status: "missing" })
+
+      // 旧 pending 迟到：stale 在核心内丢弃，不 resolved、不写文档。
+      pending.resolve({ label: "陈旧标签" })
+      await new Promise((resolveFlush) => setTimeout(resolveFlush, 0))
+      expect(rebuilt?.getReferenceState().entries[0]).toMatchObject({ status: "missing" })
+      expect(JSON.stringify(encodeHnn(session.editor.state.doc))).toBe(docJsonBefore)
+    } finally {
+      session.destroy()
+    }
+  })
+
+  it("candidates fn→none（保留 resolve）：abort 在途候选，late 不 ready，既有引用解析能力保留", async () => {
+    const pendingCandidates = deferred<readonly { resourceId: string; name: string }[]>()
+    const candidates = vi.fn<HostCandidateProvider>(() => pendingCandidates.promise)
+    const resolve = vi.fn<HostReferenceResolve>(() => ({ label: "标签" }))
+    const session = createEditorSession({
+      documentId: "A",
+      loadKey: 1,
+      initialDocument: documentWithMention(),
+      onReferenceCandidates: candidates,
+      onReferenceResolve: resolve
+    })
+    try {
+      const installer = session.hostReferences
+      if (!installer) throw new Error("引用 installer 未安装")
+      installer.requestCandidates("mention", "a")
+      const context = (candidates.mock.calls[0] as unknown as [unknown, unknown, { signal: AbortSignal }])[2]
+      expect(installer.getCandidateState()).toMatchObject({ status: "loading" })
+
+      session.configureHostReferences({ resolve })
+      const rebuilt = session.hostReferences
+      expect(rebuilt).toBeDefined()
+      expect(rebuilt).not.toBe(installer)
+      expect(context.signal.aborted).toBe(true)
+      expect(rebuilt?.getCandidateState()).toMatchObject({ status: "idle" })
+
+      // 旧候选迟到：stale 不 ready。
+      pendingCandidates.resolve([{ resourceId: "stale", name: "Stale" }])
+      await new Promise((resolveFlush) => setTimeout(resolveFlush, 0))
+      expect(rebuilt?.getCandidateState()).toMatchObject({ status: "idle" })
+      // resolve 保留：重建重扫后既有引用仍按 resolver 解析并呈现。
+      expect(rebuilt?.getReferenceState().entries[0]).toMatchObject({ resourceId: "u1", status: "resolved", label: "标签" })
+    } finally {
+      session.destroy()
+    }
+  })
+
+  it("activate 有无翻转：保守重建 installer，在途候选 abort，hasActivate 与文档内容正确", async () => {
+    const pending = deferred<readonly { resourceId: string; name: string }[]>()
+    const candidates = vi.fn<HostCandidateProvider>(() => pending.promise)
+    const session = createEditorSession({
+      documentId: "A",
+      loadKey: 1,
+      initialDocument: documentWith("x"),
+      onReferenceCandidates: candidates,
+      onReferenceActivate: () => undefined
+    })
+    try {
+      const installer = session.hostReferences
+      if (!installer) throw new Error("引用 installer 未安装")
+      installer.requestCandidates("mention", "a")
+      const context = (candidates.mock.calls[0] as unknown as [unknown, unknown, { signal: AbortSignal }])[2]
+      const textBefore = session.editor.getText()
+
+      // 移除 activate：hasActivate 必须翻转为 false → 重建 installer（保守 abort 在途）。
+      session.configureHostReferences({ candidates })
+      const rebuilt = session.hostReferences
+      expect(rebuilt).toBeDefined()
+      expect(rebuilt).not.toBe(installer)
+      expect(rebuilt?.hasActivate).toBe(false)
+      expect(context.signal.aborted).toBe(true)
+      expect(session.editor.getText()).toBe(textBefore)
+
+      pending.resolve([{ resourceId: "stale", name: "Stale" }])
+      await new Promise((resolve) => setTimeout(resolve, 0))
+      expect(rebuilt?.getCandidateState()).toMatchObject({ status: "idle" })
+
+      // 再补回 activate：同一 session 再次重建，hasActivate 恢复 true。
+      session.configureHostReferences({ candidates, activate: () => undefined })
+      expect(session.hostReferences?.hasActivate).toBe(true)
+      expect(session.editor.getText()).toBe(textBefore)
+    } finally {
+      session.destroy()
+    }
+  })
+
+  it("移除全部 callback：abort 在途候选/解析，stale 绝不写入，入口消失", async () => {
+    const pendingCandidates = deferred<readonly { resourceId: string; name: string }[]>()
+    const pendingResolve = deferred<{ label: string } | null>()
+    const candidates = vi.fn<HostCandidateProvider>(() => pendingCandidates.promise)
+    const resolve = vi.fn<HostReferenceResolve>(() => pendingResolve.promise)
+    const session = createEditorSession({
+      documentId: "A",
+      loadKey: 1,
+      initialDocument: documentWithMention(),
+      onReferenceCandidates: candidates,
+      onReferenceResolve: resolve
+    })
+    try {
+      const installer = session.hostReferences
+      if (!installer) throw new Error("引用 installer 未安装")
+      installer.requestCandidates("mention", "a")
+      const candidatesContext = (candidates.mock.calls[0] as unknown as [unknown, unknown, { signal: AbortSignal }])[2]
+      const resolveContext = (resolve.mock.calls[0] as unknown as [unknown, { signal: AbortSignal }])[1]
+
+      session.configureHostReferences({})
+      expect(session.hostReferences).toBeUndefined()
+      expect(candidatesContext.signal.aborted).toBe(true)
+      expect(resolveContext.signal.aborted).toBe(true)
+
+      pendingCandidates.resolve([{ resourceId: "stale", name: "Stale" }])
+      pendingResolve.resolve({ label: "陈旧标签" })
+      await new Promise((resolveFlush) => setTimeout(resolveFlush, 0))
+      expect(installer.getCandidateState()).toMatchObject({ status: "loading" }) // 旧 installer 已冻结，不再发布
+      expect(JSON.stringify(encodeHnn(session.editor.state.doc))).not.toContain("陈旧标签")
+    } finally {
+      session.destroy()
+    }
+  })
+
+  it("destroy 后 configure 是安全 no-op", () => {
+    const session = createEditorSession({ documentId: "A", loadKey: "1", initialDocument: documentWith("x") })
+    session.destroy()
+    expect(() => session.configureHostReferences({ candidates: () => [] })).not.toThrow()
+    expect(session.hostReferences).toBeUndefined()
+  })
+})
 
 describe("EditorSession", () => {
   it("先严格解码初始 HNN；失败时不构造可保存的降级会话", () => {

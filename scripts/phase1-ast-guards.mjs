@@ -104,7 +104,9 @@ export function inspectPublicApi(indexFilePath) {
       module: ts.ModuleKind.ESNext,
       moduleResolution: ts.ModuleResolutionKind.Bundler,
       jsx: ts.JsxEmit.ReactJSX,
-      skipLibCheck: true
+      skipLibCheck: true,
+      // index.ts 以副作用方式 import "./styles.css"；加载 vite/client 提供 *.css 声明。
+      types: ["vite/client"]
     }
   })
   const sourceFile = program.getSourceFile(indexFilePath)
@@ -193,8 +195,10 @@ export function inspectPublicApi(indexFilePath) {
     if (seenTypes.has(type)) return
     seenTypes.add(type)
     if (isTerminalType(type)) {
-      if (type.flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown)) {
-        fail(path, "公开类型为 any/unknown，无法证明未隐藏 schema/extensions 注入契约")
+      // any 会完全绕过封闭契约，必须拒绝；unknown 是不透明的不可信输入（如初始 HNN
+      // `initialDocument`），静态上无法访问 schema/extensions，允许作为受控输入类型。
+      if (type.flags & ts.TypeFlags.Any) {
+        fail(path, "公开类型为 any，无法证明未隐藏 schema/extensions 注入契约")
       }
       return
     }

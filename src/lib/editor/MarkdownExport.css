@@ -1,0 +1,192 @@
+/* ===== Markdown 导出界面（OpenSpec 7.6） =====
+ * 透明无框：不拥有自己的 background/border/radius/shadow（DESIGN.md §1）；配色只
+ * 复用现有 hn-* token，不引入新调色板（D9）。主题走显式 --light/--dark 修饰类，
+ * 不响应媒体查询；未指定主题时继承祖先（如 .hn-editor--*）的 token。Drawer 由
+ * 组件库提供 portal 与进出场动效，此处只排版诊断与预览内容。
+ */
+
+.hn-markdown-export {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.75rem;
+  box-sizing: border-box;
+  background: transparent;
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+/* 与 styles.css .hn-editor--light 完全一致的浅色 token 集；显式声明使 light 可覆盖暗色祖先 */
+.hn-markdown-export--light {
+  --hn-theme-soft: color-mix(in srgb, var(--hn-theme, #3b82f6) 12%, white);
+  --hn-theme-border: color-mix(in srgb, var(--hn-theme, #3b82f6) 30%, transparent);
+  --hn-theme-text: color-mix(in srgb, var(--hn-theme, #3b82f6) 75%, #1e293b);
+  --hn-bg: #ffffff;
+  --hn-surface: #f8fafc;
+  --hn-surface-hover: #f1f5f9;
+  --hn-border: rgba(15, 23, 42, 0.08);
+  --hn-border-strong: rgba(15, 23, 42, 0.14);
+  --hn-text: #1e293b;
+  --hn-text-muted: rgba(51, 65, 85, 0.65);
+  --hn-text-soft: rgba(51, 65, 85, 0.85);
+  color-scheme: light;
+}
+
+/* 与 styles.css .hn-editor--dark 完全一致的深色 token 集（Drawer portal 同样挂这组修饰类） */
+.hn-markdown-export--dark {
+  --hn-theme-soft: color-mix(in srgb, var(--hn-theme, #3b82f6) 18%, #111827);
+  --hn-theme-border: color-mix(in srgb, var(--hn-theme, #3b82f6) 48%, transparent);
+  --hn-theme-text: color-mix(in srgb, var(--hn-theme, #3b82f6) 55%, #f8fafc);
+  --hn-bg: #0f172a;
+  --hn-surface: #172033;
+  --hn-surface-hover: #202b3f;
+  --hn-border: rgba(226, 232, 240, 0.12);
+  --hn-border-strong: rgba(226, 232, 240, 0.22);
+  --hn-text: #f1f5f9;
+  --hn-text-muted: rgba(203, 213, 225, 0.72);
+  --hn-text-soft: rgba(226, 232, 240, 0.88);
+  color-scheme: dark;
+}
+
+/* 触发按钮：与保存状态按钮同一行内 pill 语言（DESIGN.md §3 999px） */
+.hn-markdown-export__trigger {
+  appearance: none;
+  margin: 0;
+  padding: 0.22rem 0.85rem;
+  border: 1px solid var(--hn-border-strong, rgba(15, 23, 42, 0.14));
+  border-radius: 999px;
+  background: transparent;
+  color: var(--hn-text-soft, rgba(51, 65, 85, 0.85));
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.5;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.hn-markdown-export__trigger:hover:not(:disabled) {
+  background: var(--hn-surface-hover, #f1f5f9);
+  color: var(--hn-text, #1e293b);
+}
+
+.hn-markdown-export__trigger:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--hn-theme, #3b82f6);
+}
+
+.hn-markdown-export__trigger:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.hn-markdown-export__status {
+  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
+}
+
+.hn-markdown-export__status:empty {
+  display: none;
+}
+
+.hn-markdown-export__error {
+  margin: 0;
+  flex: 1 1 100%;
+  color: var(--hn-text, #1e293b);
+  overflow-wrap: break-word;
+}
+
+/* ===== Drawer 内容：诊断与预览（容器/动效由组件库 Drawer 拥有） ===== */
+
+.hn-markdown-export-drawer-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 0;
+  color: var(--hn-text-soft, rgba(51, 65, 85, 0.85));
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.hn-markdown-export-drawer-error {
+  margin: 0;
+  color: var(--hn-text, #1e293b);
+  font-weight: 600;
+}
+
+.hn-markdown-export-drawer-error[hidden] {
+  display: none;
+}
+
+.hn-markdown-export-drawer-lead {
+  margin: 0;
+}
+
+.hn-markdown-export-diagnostics {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow: auto;
+  min-height: 0;
+}
+
+/* 每条诊断：无卡片化底色，仅用主题色左边线与细分隔表达分组（不引入新配色） */
+.hn-markdown-export-diagnostic {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding-left: 0.6rem;
+  border-left: 3px solid var(--hn-theme-border, rgba(59, 130, 246, 0.3));
+}
+
+.hn-markdown-export-diagnostic-message {
+  color: var(--hn-text, #1e293b);
+  overflow-wrap: break-word;
+}
+
+.hn-markdown-export-diagnostic-meta {
+  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
+  font-size: 0.78rem;
+  overflow-wrap: break-word;
+}
+
+/* 导出预览：复用共享 monospace stack 与 surface token，可滚动且可被键盘聚焦 */
+.hn-markdown-export-preview {
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--hn-border, rgba(15, 23, 42, 0.08));
+  border-radius: 10px;
+  background: var(--hn-surface, #f8fafc);
+  color: var(--hn-text-soft, rgba(51, 65, 85, 0.85));
+  font-family: var(--hn-code-font, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
+  font-size: 0.8rem;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  overflow: auto;
+  max-height: 22vh;
+}
+
+.hn-markdown-export-preview:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--hn-theme, #3b82f6);
+}
+
+.hn-markdown-export-drawer-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.hn-markdown-export-drawer-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hn-markdown-export__trigger {
+    transition: none;
+  }
+}

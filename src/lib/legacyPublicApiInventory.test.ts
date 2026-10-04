@@ -1,10 +1,16 @@
+/// <reference types="node" />
 /**
- * OpenSpec 变更 migrate-to-tiptap-prosemirror 任务 1.3 的冻结校验。
+ * OpenSpec 变更 migrate-to-tiptap-prosemirror：公共 API 阶段校验（最终阶段 deleted）。
  *
- * 该测试把当前公共 API 导出清单冻结为可维护的数据（见
- * `legacyPublicApiInventory.json`），并断言 `src/lib/index.ts` 的实际导出与该
- * 清单完全一致。任何新增/删除/重命名导出都会让测试失败，从而在 Phase 1 明确
- * "哪些导出属于待移除的旧 API"（移除本身在任务 8 执行）。
+ * 历史事实：`legacyPublicApiInventory.json` 保留 Phase 1 冻结（任务 1.3）的旧导出证据
+ * （`publicExports` / `legacyInternalModules`），该证据永久保留、不得抹除。文件另含显式
+ * `phase` 与 `currentPublicExports` allowlist。
+ *
+ * 阶段语义：
+ * - `frozen`：根入口仍是旧 API（本变更起点）。
+ * - `root-switched`：7.1 根入口已切换为新 API，旧实现模块仍存在。
+ * - `deleted`（当前）：8.1 已删除旧实现，断言历史 13 个模块全部不存在；根入口仍是
+ *   新 API（`currentPublicExports`）。
  *
  * 该测试不改变、也不破坏现有公共 API 行为。
  */
@@ -16,10 +22,7 @@ import { describe, expect, it } from "vitest"
 
 const currentDirectory = path.dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(currentDirectory, "../..")
-const inventoryPath = path.join(
-  currentDirectory,
-  "legacyPublicApiInventory.json"
-)
+const inventoryPath = path.join(currentDirectory, "legacyPublicApiInventory.json")
 const indexPath = path.join(currentDirectory, "index.ts")
 
 interface PublicApiInventoryEntry {
@@ -27,9 +30,9 @@ interface PublicApiInventoryEntry {
   kind: "value" | "type"
   source?: string
   path?: string
-  category: string
-  removalTask: string
-  note: string
+  category?: string
+  removalTask?: string
+  note?: string
 }
 
 interface LegacyInternalModuleEntry {
@@ -42,7 +45,9 @@ interface LegacyPublicApiInventory {
   frozenForChange: string
   removalTask: string
   publicApiTask: string
+  phase: "frozen" | "root-switched" | "deleted"
   publicExports: PublicApiInventoryEntry[]
+  currentPublicExports: PublicApiInventoryEntry[]
   legacyInternalModules: LegacyInternalModuleEntry[]
 }
 
@@ -52,13 +57,8 @@ interface ParsedExport {
   source?: string
 }
 
-/**
- * 用 TypeScript AST 读取公共导出。未知形态必须报告，避免正则遗漏新增的语法。
- */
-function extractExports(filePath: string): {
-  exports: ParsedExport[]
-  failures: string[]
-} {
+/** 用 TypeScript AST 读取公共导出；未知形态必须报告，避免正则遗漏新增语法。 */
+function extractExports(filePath: string): { exports: ParsedExport[]; failures: string[] } {
   const program = ts.createProgram([filePath], { noResolve: true })
   const sourceFile = program.getSourceFile(filePath)
   if (!sourceFile) throw new Error(`无法读取 TypeScript 文件: ${filePath}`)
@@ -79,11 +79,7 @@ function extractExports(filePath: string): {
       if (!statement.exportClause) {
         failures.push(`不支持无法枚举名称的 export-star: ${statement.getText(sourceFile)}`)
       } else if (ts.isNamespaceExport(statement.exportClause)) {
-        results.push({
-          name: statement.exportClause.name.text,
-          kind: "value",
-          ...(source ? { source } : {})
-        })
+        results.push({ name: statement.exportClause.name.text, kind: "value", ...(source ? { source } : {}) })
       } else if (ts.isNamedExports(statement.exportClause)) {
         for (const specifier of statement.exportClause.elements) {
           results.push({
@@ -99,11 +95,8 @@ function extractExports(filePath: string): {
     }
 
     if (ts.isExportAssignment(statement)) {
-      if (statement.isExportEquals) {
-        failures.push(`不支持 export = 形式: ${statement.getText(sourceFile)}`)
-      } else {
-        results.push({ name: "default", kind: "value" })
-      }
+      if (statement.isExportEquals) failures.push(`不支持 export = 形式: ${statement.getText(sourceFile)}`)
+      else results.push({ name: "default", kind: "value" })
       continue
     }
 
@@ -117,18 +110,13 @@ function extractExports(filePath: string): {
       results.push({ name: "default", kind: "value" })
       continue
     }
-
     if (ts.isVariableStatement(statement)) {
       for (const declaration of statement.declarationList.declarations) {
-        if (ts.isIdentifier(declaration.name)) {
-          results.push({ name: declaration.name.text, kind: "value" })
-        } else {
-          failures.push(`不支持解构变量导出: ${statement.getText(sourceFile)}`)
-        }
+        if (ts.isIdentifier(declaration.name)) results.push({ name: declaration.name.text, kind: "value" })
+        else failures.push(`不支持解构变量导出: ${statement.getText(sourceFile)}`)
       }
       continue
     }
-
     if (
       (ts.isFunctionDeclaration(statement) ||
         ts.isClassDeclaration(statement) ||
@@ -139,53 +127,35 @@ function extractExports(filePath: string): {
       results.push({ name: statement.name.text, kind: "value" })
       continue
     }
-
     if (ts.isInterfaceDeclaration(statement) || ts.isTypeAliasDeclaration(statement)) {
       results.push({ name: statement.name.text, kind: "type" })
       continue
     }
-
     failures.push(`未知导出形式: ${statement.getText(sourceFile)}`)
   }
 
   return { exports: results, failures }
 }
 
-const inventory = JSON.parse(
-  readFileSync(inventoryPath, "utf8")
-) as LegacyPublicApiInventory
-
+const inventory = JSON.parse(readFileSync(inventoryPath, "utf8")) as LegacyPublicApiInventory
 const { exports: actualExports, failures: exportParseFailures } = extractExports(indexPath)
-const inventoryByName = new Map(
-  inventory.publicExports.map((entry) => [entry.name, entry])
-)
-const publicApiIdentity = (entry: ParsedExport | PublicApiInventoryEntry): string =>
-  JSON.stringify({
-    name: entry.name,
-    kind: entry.kind,
-    // 清单可选地以 source/path 锁定 re-export 来源；当前清单尚未使用该字段。
-    source:
-      (inventoryByName.get(entry.name)?.source ??
-        inventoryByName.get(entry.name)?.path) !== undefined
-      ? entry.source ?? ("path" in entry ? entry.path : undefined) ?? undefined
-      : undefined
-  })
 
-describe("legacy public API inventory (Phase 1 task 1.3)", () => {
+/** 导出身份包含 name/kind/source，锁定来源，防止用同名内部实现冒充。 */
+function identity(entry: { name: string; kind: string; source?: string; path?: string }): string {
+  return JSON.stringify({ name: entry.name, kind: entry.kind, source: entry.source ?? entry.path })
+}
+
+describe("legacy public API inventory：冻结证据 (Phase 1 task 1.3)", () => {
   it("冻结清单面向本变更且标记了移除任务", () => {
     expect(inventory.frozenForChange).toBe("migrate-to-tiptap-prosemirror")
     expect(inventory.removalTask).toBe("8.1")
     expect(inventory.publicApiTask).toBe("8.2")
   })
 
-  it("src/lib/index.ts 的导出与冻结清单完全一致（无静默漂移）", () => {
-    expect(exportParseFailures).toEqual([])
-    expect(actualExports.map(publicApiIdentity).sort()).toEqual(
-      inventory.publicExports.map(publicApiIdentity).sort()
-    )
-  })
-
-  it("每个导出都标记了种类、分类与移除任务", () => {
+  it("冻结的旧导出与内部模块清单作为历史证据保留且无重复", () => {
+    const names = inventory.publicExports.map((entry) => entry.name)
+    expect(new Set(names).size).toBe(names.length)
+    expect(inventory.publicExports.length).toBeGreaterThan(0)
     for (const entry of inventory.publicExports) {
       expect(entry.name).toBeTruthy()
       expect(["value", "type"]).toContain(entry.kind)
@@ -194,25 +164,41 @@ describe("legacy public API inventory (Phase 1 task 1.3)", () => {
       expect(entry.note).toBeTruthy()
     }
   })
+})
 
-  it("冻结清单无重复导出名", () => {
-    const names = inventory.publicExports.map((entry) => entry.name)
-    expect(new Set(names).size).toBe(names.length)
+describe("根入口切换后的公共 API (task 7.1 / 8.1 / 8.2)", () => {
+  it("phase 是显式已知阶段，当前为 deleted（旧实现已清理）", () => {
+    expect(["frozen", "root-switched", "deleted"]).toContain(inventory.phase)
+    expect(inventory.phase).toBe("deleted")
   })
 
-  it("导出种类与冻结清单一致", () => {
-    const actualByName = new Map(
-      actualExports.map((entry) => [entry.name, entry.kind])
-    )
+  it("根入口导出精确等于当前 allowlist（含 source），未知语法失败", () => {
+    expect(exportParseFailures).toEqual([])
+    expect(actualExports.map(identity).sort()).toEqual(inventory.currentPublicExports.map(identity).sort())
+  })
+
+  it("旧导出不再从根入口出现（禁止回归）", () => {
+    const actualNames = new Set(actualExports.map((entry) => entry.name))
     for (const entry of inventory.publicExports) {
-      expect(actualByName.get(entry.name)).toBe(entry.kind)
+      expect(actualNames.has(entry.name), `旧导出仍出现在根入口: ${entry.name}`).toBe(false)
     }
   })
 
-  it("待移除的内部模块当前仍然存在（移除在任务 8 执行）", () => {
-    for (const moduleEntry of inventory.legacyInternalModules) {
-      const absolutePath = path.join(projectRoot, moduleEntry.path)
-      expect(existsSync(absolutePath), moduleEntry.path).toBe(true)
+  it("当前 allowlist 无重复且 value 恰为 runtime 八项", () => {
+    const names = inventory.currentPublicExports.map((entry) => entry.name)
+    expect(new Set(names).size).toBe(names.length)
+    expect(inventory.currentPublicExports.filter((entry) => entry.kind === "value")).toHaveLength(8)
+  })
+
+  it("历史 13 个旧实现模块在 deleted 阶段全部不存在", () => {
+    expect(inventory.legacyInternalModules).toHaveLength(13)
+    const remaining = inventory.legacyInternalModules.filter((moduleEntry) =>
+      existsSync(path.join(projectRoot, moduleEntry.path))
+    )
+    if (inventory.phase === "deleted") {
+      expect(remaining).toEqual([])
+    } else {
+      expect(remaining).toHaveLength(inventory.legacyInternalModules.length)
     }
   })
 })

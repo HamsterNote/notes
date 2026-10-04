@@ -460,13 +460,6 @@
   resolved "https://registry.yarnpkg.com/@floating-ui/utils/-/utils-0.2.12.tgz#afefe785949f16ac4cdd1e695935a321572dd56a"
   integrity sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==
 
-"@hamster-note/cards@0.3.2":
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/@hamster-note/cards/-/cards-0.3.2.tgz#1bd11338e0829cf9b6693acfe9fd3fa6c6cfa5c2"
-  integrity sha512-IIE85U52AUHSVBQJfbbNjzYtwOsditDIquAvrljdmfLqtfRiKI8RlK4GYyxo70DlHuWt7OeHke/J4Khbsr2MWA==
-  dependencies:
-    "@system-ui-js/multi-drag" "^0.4.0"
-
 "@hamster-note/components@^0.2.1-beta.2":
   version "0.2.1-beta.2"
   resolved "https://registry.yarnpkg.com/@hamster-note/components/-/components-0.2.1-beta.2.tgz#c13b2b61f74d0478f59d0807245ba30641ff6170"
@@ -2009,11 +2002,6 @@ he@^1.2.0:
   resolved "https://registry.yarnpkg.com/he/-/he-1.2.0.tgz#84ae65fa7eafb165fddb61566ae14baf05664f0f"
   integrity sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==
 
-highlight.js@^11.11.1:
-  version "11.11.1"
-  resolved "https://registry.yarnpkg.com/highlight.js/-/highlight.js-11.11.1.tgz#fca06fa0e5aeecf6c4d437239135fabc15213585"
-  integrity sha512-Xwwo44whKBVCYoliBQwaPvtd/2tYFkRQtXDWj1nackaV2JPXx3L0+Jvd8/qCJ2p+ML0/XVkJ2q+Mr+UVdpJK5w==
-
 html-encoding-sniffer@^6.0.0:
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/html-encoding-sniffer/-/html-encoding-sniffer-6.0.0.tgz#f8d9390b3b348b50d4f61c16dd2ef5c05980a882"
@@ -3360,11 +3348,6 @@ use-sync-external-store@^1.4.0:
   version "1.7.0"
   resolved "https://registry.yarnpkg.com/use-sync-external-store/-/use-sync-external-store-1.7.0.tgz#6dcb66ef569e02f186af6b3d575f414ce746e18f"
   integrity sha512-6L+EeigHMQhdaIPNIFUKwfWJSwWFQ8gJbJ2DLOs5sDIegTwR9fRxvnM3uciHKjIZhFz+KAv2emhWMRvDmMcY8A==
-
-use-undo@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/use-undo/-/use-undo-1.2.0.tgz#fed1ed5e698b07acaa3e6ea828fd1ea989682914"
-  integrity sha512-ZzrdoHH67DCMuWbTQ14MKX2YRhzzCZMd9dtiaSu3mLzxd/iXfvKY6m6qCIAlU/Psmq328o2o4PvM/keGijXCIA==
 
 vfile-message@^4.0.0:
   version "4.0.3"

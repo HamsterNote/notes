@@ -21,6 +21,13 @@ const projectRoot = process.cwd()
 const libraryRoot = path.join(projectRoot, "src/lib")
 const indexFilePath = path.join(libraryRoot, "index.ts")
 const inventoryPath = path.join(libraryRoot, "legacyPublicApiInventory.json")
+// 归档规划/历史清单与新 allowlist 测试会以字符串形式提及旧名，引用统计必须排除，
+// 避免把“清单/证据”误算成真实源码引用。
+const HISTORY_ARTIFACT_EXCLUDES = new Set([
+  indexFilePath,
+  path.join(libraryRoot, "legacyPublicApiInventory.test.ts"),
+  path.join(libraryRoot, "publicApi.types.test.tsx")
+])
 
 const SCAN_EXTENSIONS = new Set([".ts", ".tsx"])
 
@@ -156,22 +163,30 @@ function escapeRegExp(value) {
 
 const inventory = JSON.parse(readFileSync(inventoryPath, "utf8"))
 const { results: indexExports, failures: exportParseFailures } = extractExports(indexFilePath)
-const inventoryByName = new Map(
-  inventory.publicExports.map((entry) => [entry.name, entry])
+const phase = inventory.phase ?? "frozen"
+if (!["frozen", "root-switched", "deleted"].includes(phase)) {
+  process.stderr.write(`未知 inventory.phase: ${String(phase)}\n`)
+  process.exit(1)
+}
+// frozen 阶段以冻结旧清单为准；root-switched/deleted 均以当前 allowlist 为准。
+const activeExports = phase === "frozen" ? inventory.publicExports : inventory.currentPublicExports
+const activeByName = new Map(
+  activeExports.map((entry) => [entry.name, entry])
 )
 const publicApiIdentity = (entry) =>
   JSON.stringify({
     name: entry.name,
     kind: entry.kind,
-    // `source` and `path` are optional inventory fields for a future source lock.
+    // `source` and `path` are optional inventory fields used to lock provenance.
     source:
-      (inventoryByName.get(entry.name)?.source ??
-        inventoryByName.get(entry.name)?.path) !== undefined
+      (activeByName.get(entry.name)?.source ??
+        activeByName.get(entry.name)?.path) !== undefined
         ? entry.source ?? entry.path ?? undefined
         : undefined
   })
 const actualExports = indexExports.map(publicApiIdentity).sort()
-const expectedExports = inventory.publicExports.map(publicApiIdentity).sort()
+const expectedExports = activeExports.map(publicApiIdentity).sort()
+const actualNames = new Set(indexExports.map((entry) => entry.name))
 
 const sourceFiles = collectSourceFiles(path.join(projectRoot, "src"))
 
@@ -186,9 +201,10 @@ function findBareProseMirrorImports(filePath) {
   return findBareProseMirrorReferences(sourceFile)
 }
 
-process.stdout.write("旧公共 API 移除清单扫描 (Phase 1 task 1.3)\n")
+process.stdout.write("旧公共 API 移除清单扫描\n")
 process.stdout.write(`  冻结导入变化: ${inventory.frozenForChange}\n`)
-process.stdout.write(`  移除任务: ${inventory.removalTask} / ${inventory.publicApiTask}\n\n`)
+process.stdout.write(`  移除任务: ${inventory.removalTask} / ${inventory.publicApiTask}\n`)
+process.stdout.write(`  阶段: ${phase}（allowlist=${phase === "frozen" ? "publicExports" : "currentPublicExports"}）\n\n`)
 
 let drifted = exportParseFailures.length > 0
 for (const failure of exportParseFailures) {
@@ -220,9 +236,19 @@ if (JSON.stringify(actualExports) !== JSON.stringify(expectedExports)) {
   }
 }
 
+// root-switched/deleted 后旧导出必须全部从根入口消失；出现即清单漂移。
+if (phase !== "frozen") {
+  for (const entry of inventory.publicExports) {
+    if (actualNames.has(entry.name)) {
+      drifted = true
+      process.stderr.write(`旧导出仍出现在根入口（禁止回归）: [${entry.kind}] ${entry.name}\n`)
+    }
+  }
+}
+
 process.stdout.write("公共 API 待移除导出引用点:\n")
 for (const entry of inventory.publicExports) {
-  const references = countReferences(entry.name, sourceFiles, new Set([indexFilePath]))
+  const references = countReferences(entry.name, sourceFiles, HISTORY_ARTIFACT_EXCLUDES)
   const referenceCount = references.reduce((total, item) => total + item.count, 0)
   process.stdout.write(
     `  [${entry.kind}] ${entry.name} (${entry.category}) — ${referenceCount} 处引用\n`
@@ -244,7 +270,7 @@ for (const moduleEntry of inventory.legacyInternalModules) {
     continue
   }
   const moduleName = path.basename(moduleEntry.path).replace(/\.(tsx?|json)$/u, "")
-  const references = countReferences(moduleName, sourceFiles)
+  const references = countReferences(moduleName, sourceFiles, HISTORY_ARTIFACT_EXCLUDES)
   process.stdout.write(
     `  ${moduleEntry.path} (${moduleEntry.category}) — 模块名引用 ${references.length} 个文件\n`
   )
@@ -258,10 +284,16 @@ if (drifted) {
 }
 
 if (missingModules > 0) {
-  process.stderr.write(
-    `\n注意: 有 ${missingModules} 个待移除内部模块已不存在，请确认是否提前移除。\n`
-  )
-  process.exit(1)
+  if (phase === "deleted") {
+    process.stdout.write(
+      `\n阶段 deleted：${missingModules} 个旧实现模块已按计划移除（历史清单保留为证据）。\n`
+    )
+  } else {
+    process.stderr.write(
+      `\n注意: 有 ${missingModules} 个待移除内部模块已不存在，但阶段 ${phase} 尚未允许移除。\n`
+    )
+    process.exit(1)
+  }
 }
 
 process.stdout.write("\n旧公共 API 扫描通过。\n")

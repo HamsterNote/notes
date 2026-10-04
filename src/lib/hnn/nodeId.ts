@@ -128,9 +128,12 @@ export function repairHnnDocument(state: EditorState): Transaction | null {
     const legalId = typeof nodeId === "string" && UUID_V4_PATTERN.test(nodeId) && !seen.has(nodeId)
     if (persistent && legalId) seen.add(nodeId)
     const attrs = persistent && !legalId ? { ...node.attrs, nodeId: uniqueNodeId(seen) } : node.attrs
-    const marks = node.isInline && node.isAtom && node.marks.length > 0 ? [] : node.marks
+    // 本 PM 版本中 text 节点也是叶子，Node.isAtom 对 text 为 true；绝不能被当成 inline atom
+    // 走 setNodeMarkup（会抛 "can't construct text nodes"）。只清理非 text 的 inline atom marks。
+    const stripMarks = !node.isText && node.isInline && node.type.isAtom && node.marks.length > 0
+    const marks = stripMarks ? [] : node.marks
     // text 节点没有 nodeId，不能 setNodeMarkup；只对持久节点与带 mark 的 inline atom 修复。
-    if (persistent && !legalId || node.isInline && node.isAtom && marks !== node.marks) {
+    if (persistent && !legalId || stripMarks) {
       transaction = transaction.setNodeMarkup(position, undefined, attrs, marks)
       changed = true
     }
