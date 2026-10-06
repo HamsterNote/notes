@@ -607,6 +607,12 @@ export function installTableEdgeControls(options: TableEdgeControlsOptions): Tab
     if (!active) return
     const pointerEvent = event as PointerEvent
     if (pointerEvent.pointerId !== active.pointerId) return
+    // 手势中途会话转只读（setEditable 不产 transaction，onTransaction 兜底不到）：
+    // 立即取消手势，绝不继续预览/提交（PR#11-#16 readonly 安全）。
+    if (!editor.isEditable) {
+      finishDrag(false)
+      return
+    }
     if (!active.dragging) {
       const distance = Math.hypot(pointerEvent.clientX - active.startX, pointerEvent.clientY - active.startY)
       if (distance <= DRAG_THRESHOLD_PX) return
@@ -623,6 +629,10 @@ export function installTableEdgeControls(options: TableEdgeControlsOptions): Tab
   function onDragPointerUp(event: Event): void {
     const active = drag
     if (!active || (event as PointerEvent).pointerId !== active.pointerId) return
+    // 释放点坐标才是最终落点意图（PR#11-#17）：pointermove 可能被浏览器合并/
+    // 节流，最后一次 move 的位置不代表释放位置；先按 pointerup 坐标重算目标。
+    // 释放在表外时命中为 null → target 清空 → finishDrag 无目标不提交，等效取消。
+    if (active.dragging) updateDragTarget(event as PointerEvent)
     finishDrag(true)
   }
 
@@ -713,7 +723,17 @@ export function installTableEdgeControls(options: TableEdgeControlsOptions): Tab
   }
   refresh()
 
-  const onTransaction = (): void => refresh()
+  /**
+   * editor transaction 统一入口（PR#11-#16）：文档一旦变更（如手势中 undo 插入、
+   * 外部协作改动），拖拽期捕获的 sourceIndex/目标下标语义即失效——保守取消手势
+   * （finishDrag(false)，与预览插件 apply 的 docChanged 清空同一语义），杜绝释放
+   * 时按旧下标误动他人行/列；meta-only（预览/探针）与纯选区事务不改下标语义，
+   * 手势照常继续。
+   */
+  const onTransaction = ({ transaction }: { transaction: Transaction }): void => {
+    if (transaction.docChanged && drag) finishDrag(false)
+    refresh()
+  }
   const onWindowResize = (): void => refresh()
   editor.on("transaction", onTransaction)
   window.addEventListener("resize", onWindowResize)

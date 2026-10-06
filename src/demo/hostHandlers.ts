@@ -120,6 +120,13 @@ export function createDemoReferenceCallbacks(
       .map((item) => ({ resourceId: item.resourceId, name: item.name }))
   }
   const activate: DemoActivateHandler = (reference, { documentId }) => {
+    // 魔法链接只提供原始 href，不转换或伪造 resourceId/name。
+    if (reference.kind === "hnmagic") {
+      options.onEvent?.(
+        `激活魔法链接「${reference.href}」（文档 ${documentId}）——库不自行导航，动作由宿主决定`
+      )
+      return
+    }
     options.onEvent?.(
       `激活引用 [${reference.kind}]「${reference.name}」（${reference.resourceId}，文档 ${documentId}）——库不自行导航，动作由宿主决定`
     )

@@ -131,6 +131,17 @@ describe("demo 宿主引用回调", () => {
     expect(events[0]).toContain("周报模板")
     expect(events[0]).toContain("demo-tour")
   })
+
+  it("hnmagic 激活记录原始 href，不读取不存在的资源字段且不导航", () => {
+    const events: string[] = []
+    const { activate } = create(events)
+    const before = window.location.href
+    void activate({ kind: "hnmagic", href: "hnmagic://note/42?from=demo" }, { documentId: "demo-tour", signal: signal() })
+    expect(events).toEqual([
+      "激活魔法链接「hnmagic://note/42?from=demo」（文档 demo-tour）——库不自行导航，动作由宿主决定"
+    ])
+    expect(window.location.href).toBe(before)
+  })
 })
 
 describe("demo Markdown 导出写出", () => {

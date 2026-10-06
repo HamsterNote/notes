@@ -50,8 +50,8 @@ export type EditorSessionOptions = Readonly<{
    */
   onReferenceCandidates?: HostCandidateProvider
   /**
-   * 宿主引用激活（D11）：点击/键盘激活 mention/resource/externalItem 时调用，库绝不
-   * 自行导航。缺省时引用不暴露任何 tab stop 或链接语义（DESIGN.md §16，无假链接）。
+   * 宿主引用激活（D11）：点击/键盘激活 mention/resource/externalItem 或 hnmagic 链接
+   * 时调用，库绝不自行导航。缺省时引用节点不暴露 tab stop；hnmagic 仍禁止原生跳转。
    */
   onReferenceActivate?: HostReferenceActivate
   /**
@@ -120,10 +120,14 @@ export type HostCandidateProvider = (
   context: HostReferenceContext
 ) => readonly HostReferenceCandidate[] | Promise<readonly HostReferenceCandidate[]>
 
+/** kind 区分文档引用与魔法链接；链接保留原始 href，不虚构资源标识。 */
 export type HostReferenceActivation = Readonly<{
   kind: HostReferenceKind
   resourceId: string
   name: string
+}> | Readonly<{
+  kind: "hnmagic"
+  href: string
 }>
 
 export type HostReferenceActivate = (

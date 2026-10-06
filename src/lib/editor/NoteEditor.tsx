@@ -1,6 +1,7 @@
 import { EditorContent } from "@tiptap/react"
-import { Component, useCallback, useLayoutEffect, useRef, useState, type ChangeEvent, type ReactNode } from "react"
+import { Component, useCallback, useLayoutEffect, useRef, useState, type ChangeEvent, type ReactNode, type SyntheticEvent } from "react"
 import { decodeHnn, encodeHnn, type HnnDocument } from "../hnn/codec"
+import { isSafeHnnUrl } from "../hnn/urlPolicy"
 import { HnnDataDrawer } from "./HnnDataDrawer"
 import { HostReferenceUI } from "./HostReferenceUI"
 import type { HostReferenceInstaller } from "./hostReferences"
@@ -392,6 +393,22 @@ function NoteEditorSession(props: NoteEditorProps) {
   )
 
   const themeName = props.theme === "dark" ? "dark" : "light"
+  /**
+   * 永久导航安全边界不依赖候选/解析/激活能力：三回调全无时不安装 installer，
+   * 但 hnmagic 锚点仍不能启动浏览器协议处理器。capture 先于 PM DOM 处理；仅限
+   * 当前编辑器内容中的合法魔法链接，不影响普通链接、Drawer 或其他宿主区域。
+   * 有激活桥时只 preventDefault，继续传播交桥调用宿主，绝不自行调用两次。
+   */
+  const guardMagicNavigation = (event: SyntheticEvent): boolean => {
+    const editor = mounted?.session.editor
+    if (!editor || editor.isDestroyed || !(event.target instanceof Element)) return false
+    const anchor = event.target.closest("a[href]")
+    if (!anchor || !editor.view.dom.contains(anchor)) return false
+    const href = anchor.getAttribute("href")
+    if (!href?.startsWith("hnmagic:") || !isSafeHnnUrl(href)) return false
+    event.preventDefault()
+    return true
+  }
   const needsValidation = acceptedInitial?.sessionKey !== sessionKey
   return <>
     {needsValidation && <InitialValidationBoundary
@@ -417,7 +434,18 @@ function NoteEditorSession(props: NoteEditorProps) {
       />
     </InitialValidationBoundary>}
     {/* 编辑壳：透明无框（DESIGN.md §1），仅承载显式 light/dark token 修饰类，不参与会话生命周期。 */}
-    <div className={themeName === "dark" ? "hn-editor hn-editor--dark" : "hn-editor hn-editor--light"}>
+    <div
+      className={themeName === "dark" ? "hn-editor hn-editor--dark" : "hn-editor hn-editor--light"}
+      onClickCapture={guardMagicNavigation}
+      onAuxClickCapture={guardMagicNavigation}
+      onKeyDownCapture={(event) => {
+        if (event.key !== "Enter" && event.key !== " ") return
+        if (!guardMagicNavigation(event)) return
+        // 有回调时 document capture 的交互桥已经消费；无桥（或无激活能力）时
+        // 必须阻止 Enter/Space 继续变成 PM 编辑键，readonly 同样禁用协议导航。
+        if (!referencesInstaller?.hasActivate) event.stopPropagation()
+      }}
+    >
       <EditorContent editor={mounted?.session.editor ?? null} />
       {/* 宿主引用候选菜单（7.2）：挂在 EditorContent 旁，随会话 key 隔离 remount；桥
           生命周期由组件自行管理（layout effect 建/毁）。installer 身份进 state：

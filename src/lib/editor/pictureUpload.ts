@@ -25,6 +25,8 @@ type UploadStatus = "uploading" | "failed"
 
 interface UploadRecord {
   readonly uploadId: string
+  /** 本 installer 的入队顺序（跨批次单调递增），只在运行时维护。 */
+  readonly order: number
   readonly file: File
   attempt: number
   status: UploadStatus
@@ -40,8 +42,9 @@ interface UploadPluginState {
 }
 
 type UploadMeta =
-  | Readonly<{ kind: "add"; uploadId: string; pos: number; dom: HTMLElement }>
+  | Readonly<{ kind: "add"; uploadId: string; order: number; pos: number; dom: HTMLElement }>
   | Readonly<{ kind: "remove"; uploadId: string }>
+  | Readonly<{ kind: "complete"; uploadId: string; order: number; pos: number }>
 
 export interface PictureUploadOptions {
   /** 宿主图片上传回调：库只传文件与 { uploadId, attempt, signal }。 */
@@ -116,6 +119,7 @@ export function installPictureUpload(editor: Editor, options: PictureUploadOptio
   const records = new Map<string, UploadRecord>()
   const listeners = new Set<(state: PictureUploadState) => void>()
   let destroyed = false
+  let nextOrder = 0
 
   const getState = (): PictureUploadState => ({
     // 文件、uploadId、attempt 只存在于内存桥；绝无内容进入文档/HNN。
@@ -185,7 +189,7 @@ export function installPictureUpload(editor: Editor, options: PictureUploadOptio
     const node = pictureType.create({ nodeId: createHnnNodeId(), src, alt })
     const tr = editor.state.tr.insert(position, node)
     closeHistory(tr)
-    tr.setMeta(uploadKey, { kind: "remove", uploadId: record.uploadId })
+    tr.setMeta(uploadKey, { kind: "complete", uploadId: record.uploadId, order: record.order, pos: position } satisfies UploadMeta)
     // 严格预算/结构预检必须无副作用：只校验 tr.doc，绝不 applyTransaction（否则会执行
     // plugin apply/onRemove 副作用，在预算拒绝前 abort/删除其它 upload 或触发 notify）。
     try {
@@ -250,20 +254,20 @@ export function installPictureUpload(editor: Editor, options: PictureUploadOptio
       if (options.maxFileBytes !== undefined && file.size > options.maxFileBytes) {
         const uploadId = createHnnNodeId()
         const dom = document.createElement("div")
-        const record: UploadRecord = { uploadId, file, attempt: 1, status: "failed", error: new Error("图片文件超出大小上限"), controller: new AbortController(), token: Symbol(uploadId), dom, active: true }
+        const record: UploadRecord = { uploadId, order: ++nextOrder, file, attempt: 1, status: "failed", error: new Error("图片文件超出大小上限"), controller: new AbortController(), token: Symbol(uploadId), dom, active: true }
         renderPlaceholder(dom, record)
         records.set(uploadId, record)
-        dispatchDecorationMeta({ kind: "add", uploadId, pos: target, dom })
+        dispatchDecorationMeta({ kind: "add", uploadId, order: record.order, pos: target, dom })
         uploadIds.push(uploadId)
         notify()
         continue
       }
       const uploadId = createHnnNodeId()
       const dom = document.createElement("div")
-      const record: UploadRecord = { uploadId, file, attempt: 1, status: "uploading", error: undefined, controller: new AbortController(), token: Symbol(uploadId), dom, active: true }
+      const record: UploadRecord = { uploadId, order: ++nextOrder, file, attempt: 1, status: "uploading", error: undefined, controller: new AbortController(), token: Symbol(uploadId), dom, active: true }
       renderPlaceholder(dom, record)
       records.set(uploadId, record)
-      dispatchDecorationMeta({ kind: "add", uploadId, pos: target, dom })
+      dispatchDecorationMeta({ kind: "add", uploadId, order: record.order, pos: target, dom })
       uploadIds.push(uploadId)
       startUpload(record)
     }
@@ -299,14 +303,43 @@ export function installPictureUpload(editor: Editor, options: PictureUploadOptio
       init: () => ({ decorations: DecorationSet.empty }),
       apply: (tr, value) => {
         let decorations = value.decorations
-        if (tr.docChanged) {
-          decorations = decorations.map(tr.mapping, tr.doc, { onRemove: onDecorationRemoved })
-        }
         const meta = tr.getMeta(uploadKey) as UploadMeta | undefined
+        // 仅上传成功这一个插入事务按入队顺序拆分同位置占位：较早的仍在图片前，
+        // 较晚的随正常正向 mapping 到图片后。这样无需等待前项网络结果，也无需排序
+        // 文档节点或保存已完成节点表；失败 retry、不同批次同位置均复用原锚点。
+        const preceding = meta?.kind === "complete"
+          ? decorations.find(meta.pos, meta.pos, (spec) => ((spec as WidgetSpec).side ?? 0) < meta.order)
+          : []
+        if (preceding.length > 0) decorations = decorations.remove(preceding)
+        if (tr.docChanged) {
+          // 撤销/删除占位后方的图片时，正向 widget 会把删除起点判为 deleted。
+          // 起点未被跨越且映射后仍是合法顶层边界，就保留此运行时锚点；真正跨越
+          // 锚点的编辑仍交给 onRemove 取消，绝不复活已完成/已取消的上传。
+          const boundaryAnchors = decorations.find().flatMap((span) => {
+            const mapped = tr.mapping.mapResult(span.from, 1)
+            if (!mapped.deleted || mapped.deletedAcross || mapped.deletedBefore) return []
+            if (tr.doc.resolve(mapped.pos).depth !== 0 || blockInsertPosition(tr.doc, mapped.pos) !== mapped.pos) return []
+            return [{ span, pos: mapped.pos }]
+          })
+          if (boundaryAnchors.length > 0) decorations = decorations.remove(boundaryAnchors.map(({ span }) => span))
+          decorations = decorations.map(tr.mapping, tr.doc, { onRemove: onDecorationRemoved })
+          decorations = decorations.add(tr.doc, boundaryAnchors.flatMap(({ span, pos }) => {
+            const record = records.get((span.spec as WidgetSpec).uploadId)
+            return record ? [Decoration.widget(pos, record.dom, span.spec as WidgetSpec)] : []
+          }))
+        }
+        if (meta?.kind === "complete" && preceding.length > 0) {
+          const before = tr.mapping.map(meta.pos, -1)
+          decorations = decorations.add(tr.doc, preceding.flatMap((span) => {
+            const record = records.get((span.spec as WidgetSpec).uploadId)
+            return record ? [Decoration.widget(before, record.dom, span.spec as WidgetSpec)] : []
+          }))
+        }
         if (meta?.kind === "add") {
-          const widgetSpec: WidgetSpec = { side: 1, key: meta.uploadId, uploadId: meta.uploadId }
+          // side 同时固定同位置的显示顺序；全部为正，不改变普通用户编辑的关联方向。
+          const widgetSpec: WidgetSpec = { side: meta.order, key: meta.uploadId, uploadId: meta.uploadId }
           decorations = decorations.add(tr.doc, [Decoration.widget(meta.pos, meta.dom, widgetSpec)])
-        } else if (meta?.kind === "remove") {
+        } else if (meta?.kind === "remove" || meta?.kind === "complete") {
           const spans = decorations.find(undefined, undefined, (spec) => (spec as { uploadId?: string }).uploadId === meta.uploadId)
           if (spans.length > 0) decorations = decorations.remove(spans)
         }
@@ -401,5 +434,3 @@ export function installPictureUpload(editor: Editor, options: PictureUploadOptio
 
   return { enqueue, retry, cancel, getState, subscribe, destroy }
 }
-
-

@@ -35,6 +35,8 @@ const cleanups: Array<() => void> = []
 afterEach(() => {
   cleanup()
   while (cleanups.length > 0) cleanups.pop()?.()
+  // 各测试对 coordsAtPos/scrollHeight/innerHeight 的 mock 不泄漏到后续用例。
+  vi.restoreAllMocks()
 })
 
 function setup(options: Partial<HostReferenceOptions> = {}, text = ""): { session: Session; installer: HostReferenceInstaller } {
@@ -248,5 +250,115 @@ describe("7.2 HostReferenceUI：候选浮层", () => {
     // 新桥立即可用：在第二个编辑器输入触发串，候选正常打开。
     await typeAt(second.session, 1, "@ad")
     await waitFor(() => screen.getByRole("option"))
+  })
+
+  it("#19 光标近视口底：菜单翻转到光标上方，整体不出视口（垂直钳制 + 限高）", async () => {
+    // 768 视口（jsdom 默认 innerHeight）下光标 bottom=623：旧实现 top=623、
+    // 内容高 200 的菜单 bottom≈823 溢出视口；修复后翻转到光标上方。
+    const candidates = vi.fn<HostCandidateProvider>(() => [{ resourceId: "u1", name: "Ada" }])
+    const { session, installer } = setup({ candidates })
+    vi.spyOn(session.editor.view, "coordsAtPos").mockReturnValue({ left: 20, top: 600, right: 30, bottom: 623 })
+    vi.spyOn(HTMLElement.prototype, "scrollHeight", "get").mockReturnValue(200)
+    renderUI(session, installer)
+
+    await typeAt(session, 1, "@ad")
+    const menu = await screen.findByRole("listbox")
+    // 翻转：top = 600 - 6 - 200 = 394；maxHeight 取 min(288, 上方可用 582) = 288。
+    await waitFor(() => expect(menu.style.top).toBe("394px"))
+    expect(menu.style.maxHeight).toBe("288px")
+    expect(menu.style.left).toBe("20px")
+    // 菜单整体 [394, 594] 落在视口内（底缘 768），不再溢出。
+    expect(394 + 200).toBeLessThanOrEqual(768)
+  })
+
+  it("#19 下方空间充足：保持光标下方定位，交互与视觉语言不变", async () => {
+    const candidates = vi.fn<HostCandidateProvider>(() => [{ resourceId: "u1", name: "Ada" }])
+    const { session, installer } = setup({ candidates })
+    vi.spyOn(session.editor.view, "coordsAtPos").mockReturnValue({ left: 20, top: 80, right: 30, bottom: 100 })
+    vi.spyOn(HTMLElement.prototype, "scrollHeight", "get").mockReturnValue(200)
+    renderUI(session, installer)
+
+    await typeAt(session, 1, "@ad")
+    const menu = await screen.findByRole("listbox")
+    // 下方可用 768-100-6-12=650 ≥ 200：top = 100 + 6 = 106，不翻转。
+    await waitFor(() => expect(menu.style.top).toBe("106px"))
+    expect(menu.style.maxHeight).toBe("288px")
+  })
+
+  it("#19 两侧都放不下的矮视口：限高 + 内部滚动，整体钳在视口内", async () => {
+    const candidates = vi.fn<HostCandidateProvider>(() => [{ resourceId: "u1", name: "Ada" }])
+    const { session, installer } = setup({ candidates })
+    // 视口高 300、光标在中部：below=300-160-6-12=122，above=140-6-12=122，内容 200。
+    const innerHeight = Object.getOwnPropertyDescriptor(window, "innerHeight")
+    Object.defineProperty(window, "innerHeight", { value: 300, configurable: true })
+    try {
+      vi.spyOn(session.editor.view, "coordsAtPos").mockReturnValue({ left: 20, top: 140, right: 30, bottom: 160 })
+      vi.spyOn(HTMLElement.prototype, "scrollHeight", "get").mockReturnValue(200)
+      renderUI(session, installer)
+      await typeAt(session, 1, "@ad")
+      const menu = await screen.findByRole("listbox")
+      // below ≥ above 不翻转：maxHeight=122，top 钳到 300-12-122=166（= 光标下缘+6）。
+      await waitFor(() => expect(menu.style.maxHeight).toBe("122px"))
+      expect(menu.style.top).toBe("166px")
+      expect(166 + 122).toBeLessThanOrEqual(300)
+    } finally {
+      if (innerHeight) Object.defineProperty(window, "innerHeight", innerHeight)
+    }
+  })
+
+  it("#20 键盘高亮超出可视区：只滚菜单自身到最近可见，焦点留在编辑器、页面不滚", async () => {
+    const items = Array.from({ length: 20 }, (_v, i) => ({ resourceId: `u${i + 1}`, name: `用户${i + 1}` }))
+    const candidates = vi.fn<HostCandidateProvider>(() => items)
+    const { session, installer } = setup({ candidates })
+    renderUI(session, installer)
+    await typeAt(session, 1, "@u")
+    const menu = await screen.findByRole("listbox")
+    await waitFor(() => expect(screen.getAllByRole("option")).toHaveLength(20))
+
+    // jsdom 无布局：铺设可视窗 100px、每选项 20px 的几何（前 5 项可见）。
+    Object.defineProperty(menu, "clientHeight", { value: 100, configurable: true })
+    screen.getAllByRole("option").forEach((option, index) => {
+      Object.defineProperty(option, "offsetTop", { value: index * 20, configurable: true })
+      Object.defineProperty(option, "offsetHeight", { value: 20, configurable: true })
+    })
+    expect(menu.scrollTop).toBe(0)
+
+    // ArrowDown ×10 → 高亮第 11 项（offsetTop 200，旧实现 scrollTop 仍 0 不可见）。
+    for (let i = 0; i < 10; i += 1) keydown(session, "ArrowDown")
+    const options = screen.getAllByRole("option")
+    expect(options[10]?.getAttribute("aria-selected")).toBe("true")
+    // 菜单内滚到最近可见：scrollTop = 220 - 100 = 120；高亮项完整落在可视窗内。
+    expect(menu.scrollTop).toBe(120)
+
+    // ArrowUp 回到顶部：高亮第 1 项 → scrollTop 回落 0（nearest 语义）。
+    for (let i = 0; i < 10; i += 1) keydown(session, "ArrowUp")
+    expect(options[0]?.getAttribute("aria-selected")).toBe("true")
+    expect(menu.scrollTop).toBe(0)
+
+    // 焦点全程留在编辑器，页面/文档容器不滚。
+    expect(document.activeElement).toBe(session.editor.view.dom)
+    expect(document.documentElement.scrollTop).toBe(0)
+    expect(document.body.scrollTop).toBe(0)
+  })
+
+  it("#20 pending → ready 切换：无选项期间不触碰 scrollTop，候选到位不跳动", async () => {
+    let resolveCandidates!: (items: readonly { resourceId: string; name: string }[]) => void
+    const candidates = vi.fn<HostCandidateProvider>(
+      () => new Promise((resolve) => { resolveCandidates = resolve })
+    )
+    const { session, installer } = setup({ candidates })
+    renderUI(session, installer)
+    await typeAt(session, 1, "@ad")
+    const menu = await screen.findByRole("listbox")
+    // pending 状态行期间：高亮 -1，scrollTop 恒 0。
+    expect(screen.getByRole("status").textContent).toBe("正在搜索…")
+    expect(menu.scrollTop).toBe(0)
+
+    await act(async () => {
+      resolveCandidates([{ resourceId: "u1", name: "Ada" }])
+      await flush()
+    })
+    expect(screen.getByRole("option").getAttribute("aria-selected")).toBe("true")
+    expect(menu.scrollTop).toBe(0)
   })
 })

@@ -190,6 +190,52 @@ describe("封闭 HNN extensions", () => {
     expect(encodeHnn(decodeHnn({ schemaVersion: 1, data }))).toEqual({ schemaVersion: 1, data })
   })
 
+  it("容器 renderText 递归子内容：纯文本含 callout/collapsible 标题与正文，并保留 atom 子序列化", () => {
+    const editor = new Editor({
+      extensions: createHnnExtensions(),
+      content: {
+        type: "doc",
+        content: [
+          {
+            type: "callout",
+            attrs: { nodeId: ids[0], tone: "info", title: "提示标题" },
+            content: [{
+              type: "paragraph",
+              attrs: { nodeId: ids[1] },
+              content: [
+                { type: "text", text: "正文内容" },
+                { type: "inlineFormula", attrs: { nodeId: ids[2], latex: "x^2" } }
+              ]
+            }]
+          },
+          {
+            type: "collapsible",
+            attrs: { nodeId: ids[3], title: "折叠标题", collapsed: false },
+            content: [{ type: "paragraph", attrs: { nodeId: ids[4] }, content: [{ type: "text", text: "折叠正文" }] }]
+          },
+          {
+            type: "blockquote",
+            attrs: { nodeId: ids[5], author: null },
+            content: [{ type: "paragraph", attrs: { nodeId: ids[6] }, content: [{ type: "text", text: "引用全文" }] }]
+          }
+        ]
+      }
+    })
+    try {
+      const text = editor.getText()
+      // 修复前容器 renderText 命中 textSerializer 后 return false，正文与 atom 子序列化会被吞掉。
+      expect(text).toContain("提示标题")
+      expect(text).toContain("正文内容")
+      expect(text).toContain("x^2")
+      expect(text).toContain("折叠标题")
+      expect(text).toContain("折叠正文")
+      expect(text).toContain("引用全文")
+      expect(() => encodeHnn(editor.state.doc)).not.toThrow()
+    } finally {
+      editor.destroy()
+    }
+  })
+
   it("接收 decodeHnn 返回的同实例 PM Node，保留内容且不产生初始化历史", () => {
     const hnn = {
       schemaVersion: 1,

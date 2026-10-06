@@ -1,4 +1,4 @@
-import { Extension, getSchema, Node, type Editor, type Extensions } from "@tiptap/core"
+import { Extension, getSchema, getTextSerializersFromSchema, Node, type Editor, type Extensions } from "@tiptap/core"
 import Link from "@tiptap/extension-link"
 import katex from "katex"
 import { TaskItem, TaskList } from "@tiptap/extension-list"
@@ -22,6 +22,12 @@ const CALLOUT_TONES = ["info", "success", "warning"] as const
 /**
  * NodeView 控件提交 attr 更新：每次操作恰好一个 PM transaction；closeHistory
  * 令该事务与紧邻的正文输入、相邻控件操作切分为独立 undo step（一步撤销只撤本操作）。
+ *
+ * closeHistory 写在事务内只隔离“前序”；紧随其后同 tick 的正文输入仍会与本事务
+ * 合并成一步（见 prosemirror-history：事务内 close 只重置 prevTime，随后带 step
+ * 的事务又把它写回当前时刻）。因此 dispatch 后再补一条无 step 的空 close 事务作为
+ * “后序栅栏”，把 prevTime 归零，令接下来的输入另起一个 undo step（与
+ * budgetedTransaction/pictureUpload 的提交语义一致）。
  */
 function commitNodeAttrs(editor: Editor, getPos: () => number | undefined, patch: Record<string, unknown>): void {
   if (typeof getPos !== "function") return
@@ -36,6 +42,8 @@ function commitNodeAttrs(editor: Editor, getPos: () => number | undefined, patch
     closeHistory(tr)
     return true
   })
+  // 后序历史栅栏：空事务无 step，不改变 doc/dirty/onUpdate，只隔离紧随输入。
+  if (!editor.isDestroyed) editor.view.dispatch(closeHistory(editor.state.tr))
 }
 
 /** NodeView 自己管理的控件 DOM 事件不交给 ProseMirror；正文 contentDOM 事件保持默认处理。 */
@@ -210,6 +218,57 @@ function attrStringError(value: string, maxRawBytes: number, label: string): str
   if (utf8Bytes(value) > maxRawBytes) return `${label}超出长度上限（最多 ${maxRawBytes} UTF-8 字节）`
   if (jsonStringBytes(value) > HNN_LIMITS.maxAttrBytes) return `${label}转义后超出长度上限（最多 ${HNN_LIMITS.maxAttrBytes} UTF-8 字节）`
   return null
+}
+
+/**
+ * 容器节点（callout/collapsible/blockquote）的纯文本序列化。
+ *
+ * Tiptap 的 getTextBetween 一旦命中某节点的 textSerializer 就 `return false`，
+ * 跳过对该节点子内容的遍历。因此容器若只返回自身 attr（标题）或 node.textContent，
+ * 会把正文以及正文内 atom 子节点（inlineFormula/mention/picture 等）的 toText
+ * 全部吞掉，复制与 editor.getText() 输出不完整。
+ *
+ * 这里按 selection range 递归子节点，并复用 schema 上所有 toText（含 atom 子
+ * serializer），得到与“未定义 renderText 时 getTextBetween 自然遍历”一致的正文
+ * 纯文本。pos/range 均与 getTextBetween 传入的坐标系一致（相对同一起算节点）。
+ */
+function serializeContainerContent(node: PmNode, pos: number, range: { from: number; to: number } | undefined): string {
+  const contentSize = node.content.size
+  // range 为文档绝对坐标，pos 为该容器起点；换算成相对容器内容（pos+1 起）的局部坐标。
+  const from = range ? Math.max(0, Math.min(contentSize, range.from - pos - 1)) : 0
+  const to = range ? Math.max(0, Math.min(contentSize, range.to - pos - 1)) : contentSize
+  if (from >= to) return ""
+  const serializers = getTextSerializersFromSchema(node.type.schema)
+  let text = ""
+  node.nodesBetween(from, to, (child, childPos, parent, index) => {
+    if (child.isBlock && childPos > from) text += "\n\n"
+    const serializer = serializers[child.type.name]
+    if (serializer) {
+      // 子节点坐标相对本容器；把同一坐标系的局部 range 传下去，嵌套容器才能正确裁剪。
+      text += serializer({ node: child, pos: childPos, parent: parent ?? node, index, range: { from, to } })
+      return false
+    }
+    if (child.isText) text += child.text?.slice(Math.max(from, childPos) - childPos, to - childPos) ?? ""
+    return undefined
+  })
+  return text
+}
+
+/**
+ * 容器 renderText 的公共实现：标题前缀（仅当选区含容器起点或无 range 的上文场景）
+ * + range-aware 正文。选中正文中部时不会把未选中的标题并入纯文本。
+ */
+function containerRenderText(prefix: (node: PmNode) => string) {
+  return (props: { node: PmNode; pos: number }): string => {
+    const { node, pos } = props
+    const range = (props as { range?: { from: number; to: number } }).range
+    const body = serializeContainerContent(node, pos, range)
+    const includePrefix = range === undefined || range.from <= pos
+    const title = includePrefix ? prefix(node) : ""
+    if (title === "") return body
+    if (body === "") return title
+    return `${title}\n\n${body}`
+  }
 }
 
 /* ===== card/drawing 数据编辑器 bridge（DESIGN.md §15 底部 Drawer） =====
@@ -478,7 +537,11 @@ function buildHnnExtensions(includeUndoRedo: boolean): Extensions {
         filenameInput.className = "hn-editor-code-filename"
         filenameInput.setAttribute("aria-label", "代码文件名")
         filenameInput.placeholder = "untitled"
-        meta.append(langSelect, filenameInput)
+        // 可访问校验错误（role=alert 即 aria-live=assertive），空时由 CSS 隐藏。
+        const error = document.createElement("span")
+        error.className = "hn-editor-field-error"
+        error.setAttribute("role", "alert")
+        meta.append(langSelect, filenameInput, error)
 
         const editing = document.createElement("div")
         editing.className = "hn-editor-code-editing"
@@ -502,15 +565,27 @@ function buildHnnExtensions(includeUndoRedo: boolean): Extensions {
           if (filenameInput.value !== filename) filenameInput.value = filename
           if (highlightCode.textContent !== current.textContent) renderCodeHighlight(highlightCode, current.textContent)
         }
-        syncFromNode(node)
+        // update 时同步刷新；所有恢复路径以最近持久节点为准，绝不退回初始 node。
+        let currentNode = node
+        syncFromNode(currentNode)
 
         langSelect.addEventListener("change", () => {
           commitNodeAttrs(editor, getPos, { language: langSelect.value })
         })
+        filenameInput.addEventListener("input", () => { error.textContent = "" })
         filenameInput.addEventListener("change", () => {
           // codec 要求 filename 为非空字符串；清空输入回落到默认值。
           const filename = filenameInput.value.trim()
-          commitNodeAttrs(editor, getPos, { filename: filename === "" ? "untitled" : filename })
+          const next = filename === "" ? "untitled" : filename
+          // 与 codec codeBlock.filename（maxLabelBytes）等价预检：失败零事务、恢复最近持久输入。
+          const overLimit = attrStringError(next, HNN_LIMITS.maxLabelBytes, "代码文件名")
+          if (overLimit !== null) {
+            error.textContent = overLimit
+            syncFromNode(currentNode)
+            return
+          }
+          error.textContent = ""
+          commitNodeAttrs(editor, getPos, { filename: next })
         })
 
         return {
@@ -518,6 +593,7 @@ function buildHnnExtensions(includeUndoRedo: boolean): Extensions {
           contentDOM: editorCode,
           update(updatedNode) {
             if (updatedNode.type !== node.type) return false
+            currentNode = updatedNode
             syncFromNode(updatedNode)
             return true
           },
@@ -564,9 +640,7 @@ function buildHnnExtensions(includeUndoRedo: boolean): Extensions {
         }
       }]
     },
-    renderText({ node }) {
-      return node.attrs["title"] as string
-    },
+    renderText: containerRenderText((node) => attrString(node.attrs["title"], "")),
     addNodeView() {
       // 提示块：色调 combobox + 标题 textbox + 正文 contentDOM。
       return ({ node, HTMLAttributes, getPos, editor }) => {
@@ -674,9 +748,7 @@ function buildHnnExtensions(includeUndoRedo: boolean): Extensions {
         }
       }]
     },
-    renderText({ node }) {
-      return node.attrs["title"] as string
-    },
+    renderText: containerRenderText((node) => attrString(node.attrs["title"], "")),
     addNodeView() {
       // 折叠块：可访问折叠开关（aria-expanded）+ 标题 textbox + 正文 contentDOM。
       return ({ node, HTMLAttributes, getPos, editor }) => {
@@ -1410,9 +1482,7 @@ function buildHnnExtensions(includeUndoRedo: boolean): Extensions {
         }
       }]
     },
-    renderText({ node }) {
-      return node.textContent
-    },
+    renderText: containerRenderText(() => ""),
     addNodeView() {
       // 封闭引用块：正文 contentDOM 保持 ProseMirror 编辑，署名输入单独提交 attr。
       return ({ node, HTMLAttributes, getPos, editor }) => {
@@ -1427,13 +1497,35 @@ function buildHnnExtensions(includeUndoRedo: boolean): Extensions {
         authorInput.className = "hn-editor-quote-author"
         authorInput.setAttribute("aria-label", "引用署名")
         authorInput.placeholder = "署名"
-        authorInput.value = typeof node.attrs["author"] === "string" ? node.attrs["author"] : ""
-        footer.append(authorInput)
+        // 可访问校验错误（role=alert 即 aria-live=assertive），空时由 CSS 隐藏。
+        const error = document.createElement("span")
+        error.className = "hn-editor-field-error"
+        error.setAttribute("role", "alert")
+        footer.append(authorInput, error)
         dom.append(body, footer)
 
+        // update 时同步刷新；所有恢复路径以最近持久节点为准，绝不退回初始 node。
+        let currentNode = node
+        const syncFromNode = (current: typeof node): void => {
+          const author = typeof current.attrs["author"] === "string" ? current.attrs["author"] : ""
+          if (authorInput.value !== author) authorInput.value = author
+        }
+        syncFromNode(currentNode)
+
+        authorInput.addEventListener("input", () => { error.textContent = "" })
         authorInput.addEventListener("change", () => {
           // codec 允许 author 为 null 或缺省；空输入归一为 null，绝不写入空字符串。
           const author = authorInput.value.trim()
+          // 与 codec blockquote author（maxLabelBytes）等价预检：失败零事务、恢复最近持久输入。
+          if (author !== "") {
+            const overLimit = attrStringError(author, HNN_LIMITS.maxLabelBytes, "引用署名")
+            if (overLimit !== null) {
+              error.textContent = overLimit
+              syncFromNode(currentNode)
+              return
+            }
+          }
+          error.textContent = ""
           commitNodeAttrs(editor, getPos, { author: author === "" ? null : author })
         })
 
@@ -1442,8 +1534,8 @@ function buildHnnExtensions(includeUndoRedo: boolean): Extensions {
           contentDOM: body,
           update(updatedNode) {
             if (updatedNode.type !== node.type) return false
-            const author = typeof updatedNode.attrs["author"] === "string" ? updatedNode.attrs["author"] : ""
-            if (authorInput.value !== author) authorInput.value = author
+            currentNode = updatedNode
+            syncFromNode(updatedNode)
             return true
           },
           stopEvent: (event) => eventInside(footer, event),

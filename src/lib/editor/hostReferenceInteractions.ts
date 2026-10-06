@@ -1,7 +1,8 @@
 import type { Editor } from "@tiptap/core"
 import { TextSelection, type Transaction } from "@tiptap/pm/state"
+import { isSafeHnnUrl } from "../hnn/urlPolicy"
 import type { HostReferenceInstaller } from "./hostReferences"
-import type { HostCandidateKind, HostReferenceCandidate, HostReferenceKind } from "./types"
+import type { HostCandidateKind, HostReferenceActivation, HostReferenceCandidate, HostReferenceKind } from "./types"
 
 /**
  * 7.2 宿主引用的交互桥（headless，与 React 组件解耦）：
@@ -21,6 +22,7 @@ import type { HostCandidateKind, HostReferenceCandidate, HostReferenceKind } fro
  *   否则放弃插入并取消，旧 range 绝不插到新光标；
  * - 点击/键盘激活：在编辑器 DOM 上做事件委托，命中 mention/resource/externalItem 的
  *   NodeView dom 时经 posAtDOM 取回节点 attrs 交给 installer.activate，不自行导航；
+ *   hnmagic link mark 以 kind/href 交宿主，无回调仍阻止原生协议跳转；普通 URL 不接管；
  *   宿主提供 activate（installer.hasActivate）时才在运行时给引用 dom 补
  *   tabindex="0"/role="link"（运行时 attribute，不进 PM/HNN），Enter/Space 激活，
  *   无回调则无任何 tab stop 与链接语义（DESIGN.md §16）；
@@ -249,11 +251,19 @@ export function createHostReferenceInteractions(editor: Editor, installer: HostR
           return
       }
     }
-    // 菜单关闭：引用 pill 键盘激活。仅宿主提供 activate 时桥才补过 tab stop/role，
-    // 无回调则一律放行（不吞任何非引用键）。
-    if (!installer.hasActivate) return
+    // 菜单关闭：原生链接与引用 pill 的键盘激活。引用 pill 无回调时放行，
+    // hnmagic 原生锚点即使无回调也要阻止导航。
     if (event.key !== "Enter" && event.key !== " ") return
     if (!(target instanceof Element)) return
+    const magic = resolveMagicLinkTarget(target)
+    if (magic) {
+      // hnmagic 即使没有宿主回调也不得触发浏览器协议导航。
+      event.preventDefault()
+      event.stopPropagation()
+      if (installer.hasActivate && !event.repeat) installer.activate(magic)
+      return
+    }
+    if (!installer.hasActivate) return
     const refDom = target.closest(REFERENCE_DOM_SELECTOR)
     if (!refDom || !editor.view.dom.contains(refDom)) return
     const reference = resolveReferenceTarget(refDom)
@@ -283,14 +293,42 @@ export function createHostReferenceInteractions(editor: Editor, installer: HostR
     return { kind: node.type.name, resourceId, name: typeof name === "string" ? name : "" }
   }
 
+  /** 仅识别真正 link mark 的魔法链接，DOM 属性不能伪造宿主激活。 */
+  const resolveMagicLinkTarget = (target: Element): Extract<HostReferenceActivation, { kind: "hnmagic" }> | null => {
+    const anchor = target.closest("a[href]")
+    if (!anchor || !editor.view.dom.contains(anchor)) return null
+    const href = anchor.getAttribute("href")
+    if (!href?.startsWith("hnmagic:") || !isSafeHnnUrl(href)) return null
+    try {
+      const pos = editor.view.posAtDOM(anchor, 0)
+      const node = editor.state.doc.nodeAt(pos)
+      if (!node?.marks.some((mark) => mark.type.name === "link" && mark.attrs["href"] === href)) return null
+    } catch {
+      return null
+    }
+    return { kind: "hnmagic", href }
+  }
+
   const handleClick = (event: MouseEvent): void => {
     if (destroyed || editor.isDestroyed) return
     const target = event.target
     if (!(target instanceof Element)) return
+    const magic = resolveMagicLinkTarget(target)
+    if (magic) {
+      event.preventDefault()
+      installer.activate(magic)
+      return
+    }
     const refDom = target.closest(REFERENCE_DOM_SELECTOR)
     if (!refDom || !editor.view.dom.contains(refDom)) return
     const reference = resolveReferenceTarget(refDom)
     if (reference) installer.activate(reference)
+  }
+
+  /** 中键走 auxclick 而非 click；同样禁用原生协议导航，但不重复触发宿主。 */
+  const handleAuxClick = (event: MouseEvent): void => {
+    if (destroyed || editor.isDestroyed || !(event.target instanceof Element)) return
+    if (resolveMagicLinkTarget(event.target)) event.preventDefault()
   }
 
   /**
@@ -383,6 +421,7 @@ export function createHostReferenceInteractions(editor: Editor, installer: HostR
     editor.off("destroy", destroy)
     const viewDom = editor.view.dom
     viewDom.removeEventListener("click", handleClick)
+    viewDom.removeEventListener("auxclick", handleAuxClick)
     viewDom.removeEventListener("compositionstart", handleCompositionStart)
     viewDom.removeEventListener("compositionend", handleCompositionEnd)
     viewDom.ownerDocument.removeEventListener("keydown", handleKeyDown, true)
@@ -413,6 +452,7 @@ export function createHostReferenceInteractions(editor: Editor, installer: HostR
   editor.on("destroy", destroy)
   const viewDom = editor.view.dom
   viewDom.addEventListener("click", handleClick)
+  viewDom.addEventListener("auxclick", handleAuxClick)
   viewDom.addEventListener("compositionstart", handleCompositionStart)
   viewDom.addEventListener("compositionend", handleCompositionEnd)
   viewDom.ownerDocument.addEventListener("keydown", handleKeyDown, true)

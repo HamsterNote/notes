@@ -6,11 +6,13 @@ import { encodeHnn } from "../hnn/codec"
 import { HNN_LIMITS } from "../hnn/limits"
 import { createHnnNodeId } from "../hnn/nodeId"
 import { jsonStringBytes, utf8Bytes } from "../hnn/stringBytes"
+import { isSafeHnnUrl } from "../hnn/urlPolicy"
 import type {
   HostCandidateKind,
   HostCandidateProvider,
   HostCandidateState,
   HostReferenceActivate,
+  HostReferenceActivation,
   HostReferenceCandidate,
   HostReferenceKind,
   HostReferenceResolve,
@@ -66,7 +68,7 @@ export interface HostReferenceInstaller {
    */
   selectCandidate(kind: HostCandidateKind, candidate: HostReferenceCandidate, range?: HostReferenceInsertRange): boolean
   /** 调用宿主 activate；不自行导航，不修改文档。 */
-  activate(reference: { kind: HostReferenceKind; resourceId: string; name: string }): void
+  activate(reference: HostReferenceActivation): void
   getReferenceState(): HostReferenceState
   subscribeReferences(listener: (state: HostReferenceState) => void): () => void
   destroy(): void
@@ -348,9 +350,12 @@ export function installHostReferences(editor: Editor, options: HostReferenceOpti
     return true
   }
 
-  const activate = (reference: { kind: HostReferenceKind; resourceId: string; name: string }): void => {
+  const activate = (reference: HostReferenceActivation): void => {
     if (destroyed || editor.isDestroyed) return
-    if (!isReferenceKind(reference.kind)) return
+    // 魔法链接只透传合法 href；与引用节点共用会话级 AbortSignal 生命周期。
+    if (reference.kind === "hnmagic") {
+      if (!reference.href.startsWith("hnmagic:") || !isSafeHnnUrl(reference.href)) return
+    } else if (!isReferenceKind(reference.kind)) return
     const activator = options.activate
     // 无回调时不产生动作，也绝不自行 navigate/修改文档。
     if (!activator) return
@@ -358,7 +363,10 @@ export function installHostReferences(editor: Editor, options: HostReferenceOpti
     activations.add(controller)
     let result: void | Promise<void>
     try {
-      result = activator({ kind: reference.kind, resourceId: reference.resourceId, name: reference.name }, { documentId, signal: controller.signal })
+      const payload: HostReferenceActivation = reference.kind === "hnmagic"
+        ? { kind: "hnmagic", href: reference.href }
+        : { kind: reference.kind, resourceId: reference.resourceId, name: reference.name }
+      result = activator(payload, { documentId, signal: controller.signal })
     } catch {
       activations.delete(controller)
       return
@@ -404,5 +412,4 @@ export function installHostReferences(editor: Editor, options: HostReferenceOpti
     destroy
   }
 }
-
 

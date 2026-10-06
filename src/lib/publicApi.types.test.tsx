@@ -174,6 +174,21 @@ describe("8.2 公共 API：AST 明确清单与来源", () => {
 })
 
 describe("8.2 公共 API：封闭模型的编译期拒绝", () => {
+  it("宿主激活 payload 用 kind 区分资源引用与 hnmagic href", () => {
+    // 既有引用形状不变；新增链接分支不能要求调用方伪造 resourceId/name。
+    const references: import("./index").HostReferenceActivation[] = [
+      { kind: "mention", resourceId: "u1", name: "Ada" },
+      { kind: "resource", resourceId: "r1", name: "资料" },
+      { kind: "externalItem", resourceId: "e1", name: "条目" },
+      { kind: "hnmagic", href: "hnmagic://note/42" }
+    ]
+    expect(references.map((reference) => reference.kind === "hnmagic" ? reference.href : reference.resourceId))
+      .toEqual(["u1", "r1", "e1", "hnmagic://note/42"])
+    // @ts-expect-error hnmagic 只能提供 href，不支持伪资源 ID
+    const invalid: import("./index").HostReferenceActivation = { kind: "hnmagic", resourceId: "42", name: "笔记" }
+    void invalid
+  })
+
   it("旧 props / 旧 types / 内部实现无法从根入口注入", () => {
     const document: HnnDocument = { schemaVersion: 1, data: { type: "doc", content: [] } }
 
@@ -202,4 +217,3 @@ describe("8.2 公共 API：封闭模型的编译期拒绝", () => {
     void badFactory
   })
 })
-

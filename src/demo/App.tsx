@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState, type ChangeEvent } from "react"
-import { HnnCodecError, importMarkdown, NoteEditor, type NoteEditorProps } from "../lib"
+import { HnnCodecError, decodeHnn, importMarkdown, NoteEditor, type NoteEditorProps } from "../lib"
 import {
   demoFixtures,
   demoMentionCandidates,
@@ -7,7 +7,7 @@ import {
   demoResourceCandidates,
   emptyDocument
 } from "./fixtures"
-import { createLocalStorageNoteStore, type DemoNoteStore } from "./hostStore"
+import { HnnStoreLockUnavailableError, createLocalStorageNoteStore, type CasSaveResult, type DemoNoteStore } from "./hostStore"
 import {
   abortableDelay,
   createDemoMarkdownExport,
@@ -133,8 +133,30 @@ export function App(props: AppProps = {}) {
   const handleSave = useCallback<DemoSaveHandler>(
     async (snapshot, { documentId, baseRevision, signal }) => {
       await abortableDelay(120, signal) // 模拟宿主 IO；中止只隔离本次请求
-      const result = store.saveWithCas(documentId, snapshot, baseRevision)
+      let result: CasSaveResult
+      try {
+        result = await store.saveWithCas(documentId, snapshot, baseRevision)
+      } catch (error) {
+        // 锁不可用等失败绝不伪装成 saved/conflict：记录显式事件后继续抛出，
+        // 由会话进入 error 态，绝不静默落盘。
+        pushEvent(
+          error instanceof HnnStoreLockUnavailableError
+            ? `保存失败：「${titleOf(documentId)}」无法获取存储排他锁，已拒绝写入`
+            : `保存失败：「${titleOf(documentId)}」${error instanceof Error ? error.message : String(error)}`
+        )
+        throw error
+      }
       if (result.kind === "saved") {
+        // 关键：保存成功后同步该条目的初始快照与 revision（不改 loadKey、不触碰当前
+        // 会话）。这样切到别的文档再切回来时，重建会话会基于刚保存的版本与基线，
+        // 而不是恢复旧 fixture / 旧 revision 造成误冲突。
+        setDocuments((current) =>
+          current.map((item): DemoDocumentEntry =>
+            item.documentId === documentId
+              ? { ...item, initialDocument: snapshot, initialRevision: result.revision }
+              : item
+          )
+        )
         pushEvent(`已保存「${titleOf(documentId)}」（CAS 通过，新 revision ${result.revision}）`)
         setStorageTick((tick) => tick + 1)
       } else {
@@ -274,13 +296,28 @@ export function App(props: AppProps = {}) {
   const openHnnFile = useCallback(
     async (file: File) => {
       const text = await file.text()
+      let parsed: unknown
       try {
-        const parsed: unknown = JSON.parse(text)
-        addOpenedDocument(file.name.replace(/\.(hnn|json)$/iu, ""), parsed)
-        pushEvent(`已打开 HNN 文件 ${file.name}；若未通过严格校验，诊断见「初始加载错误」面板`)
+        parsed = JSON.parse(text)
       } catch {
         pushEvent(`无法打开 ${file.name}：不是合法 JSON`)
+        return
       }
+      // 预先用库的严格 codec 校验：合法 JSON 但非法 HNN 绝不加入文档列表、绝不切换
+      // active。否则会把 UI/标题/导出指向一个从未成功装载的文档，而编辑器实际仍在
+      // 运行旧会话（旧编辑会话、导出与宿主展示会被撕裂）。
+      try {
+        decodeHnn(parsed)
+      } catch (error) {
+        const lines =
+          error instanceof HnnCodecError
+            ? error.diagnostics.map((diagnostic) => `${diagnostic.path}：${diagnostic.message}`)
+            : [error instanceof Error ? error.message : String(error)]
+        pushEvent(`无法打开 ${file.name}：HNN 校验失败（${lines.length} 条诊断，未切换文档，当前会话不受影响）`)
+        return
+      }
+      addOpenedDocument(file.name.replace(/\.(hnn|json)$/iu, ""), parsed)
+      pushEvent(`已打开 HNN 文件 ${file.name}（已通过严格校验）`)
     },
     [addOpenedDocument, pushEvent]
   )
@@ -318,10 +355,21 @@ export function App(props: AppProps = {}) {
   )
 
   /* ===== 冲突演示与已存 HNN ===== */
-  const simulateExternalEdit = useCallback(() => {
+  const simulateExternalEdit = useCallback(async () => {
     const entry = activeRef.current
     if (!entry) return
-    const stored = store.overwriteExternal(entry.documentId, appendExternalParagraph)
+    let stored
+    try {
+      stored = await store.overwriteExternal(entry.documentId, appendExternalParagraph)
+    } catch (error) {
+      // 外部覆盖同样受每 key 排他锁保护；锁不可用时显式失败，绝不静默降级为非原子写。
+      pushEvent(
+        error instanceof HnnStoreLockUnavailableError
+          ? `无法模拟外部修改：「${entry.title}」无法获取存储排他锁`
+          : `无法模拟外部修改：「${entry.title}」${error instanceof Error ? error.message : String(error)}`
+      )
+      return
+    }
     if (stored === null) {
       pushEvent(`「${entry.title}」尚未保存过，无法模拟外部修改（请先保存一次）`)
       return
@@ -415,7 +463,7 @@ export function App(props: AppProps = {}) {
           </output>
           <output className="demo-output demo-output--muted">{changeNote}</output>
           <div className="demo-button-row">
-            <button type="button" className="demo-button" disabled={storedActive === null} onClick={simulateExternalEdit}>模拟另一客户端修改</button>
+            <button type="button" className="demo-button" disabled={storedActive === null} onClick={() => { void simulateExternalEdit() }}>模拟另一客户端修改</button>
             <button type="button" className="demo-button" disabled={storedActive === null} onClick={downloadStoredHnn}>下载已存 HNN</button>
           </div>
           <p className="demo-hint">保存经真实 CAS 比较；外部修改后再次保存会冲突，可重试或重新载入采用对方版本。</p>

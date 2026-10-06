@@ -298,6 +298,21 @@ describe("7.2 宿主引用：运行时解析状态", () => {
 })
 
 describe("7.2 宿主引用：激活与 destroy", () => {
+  it("hnmagic 激活只透传安全 href，沿用会话 AbortSignal，不接受普通 URL", () => {
+    const session = textSession()
+    const activate = vi.fn<HostReferenceActivate>(() => new Promise<void>(() => undefined))
+    const installer = install(session, { activate })
+    installer.activate({ kind: "hnmagic", href: "https://example.test/" })
+    installer.activate({ kind: "hnmagic", href: "hnmagic://note/\u200b42" })
+    expect(activate).not.toHaveBeenCalled()
+    installer.activate({ kind: "hnmagic", href: "hnmagic://note/42" })
+    expect(activate.mock.calls[0]?.[0]).toEqual({ kind: "hnmagic", href: "hnmagic://note/42" })
+    const signal = activate.mock.calls[0]![1].signal
+    expect(signal.aborted).toBe(false)
+    installer.destroy()
+    expect(signal.aborted).toBe(true)
+  })
+
   it("activate 调用宿主一次且不修改文档；无回调为 no-op", async () => {
     const session = textSession("hi")
     const activate = vi.fn<HostReferenceActivate>()

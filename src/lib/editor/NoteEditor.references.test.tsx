@@ -261,6 +261,115 @@ describe("7.2 宿主引用接线：运行时解析占位", () => {
 })
 
 describe("7.2 宿主引用接线：激活与无回调语义", () => {
+  function linkDocument(href = "hnmagic://note/42"): HnnDocument {
+    return {
+      schemaVersion: 1,
+      data: { type: "doc", content: [{ type: "paragraph", attrs: { nodeId: ids.p1 }, content: [
+        { type: "text", text: "打开笔记", marks: [{ type: "link", attrs: { href } }] }
+      ] }] }
+    }
+  }
+
+  function anchor(container: HTMLElement): HTMLAnchorElement {
+    const link = viewDom(container).querySelector("a[href]")
+    if (!(link instanceof HTMLAnchorElement)) throw new Error("link mark 未渲染")
+    return link
+  }
+
+  function dispatchClick(target: HTMLElement): MouseEvent {
+    const event = new MouseEvent("click", { bubbles: true, cancelable: true })
+    act(() => { target.dispatchEvent(event) })
+    return event
+  }
+
+  it.each([true, false])("真实 NoteEditor 零引用回调：editable=%s 时 hnmagic click/key/中键始终禁止默认导航", (editable) => {
+    const view = render(<NoteEditor documentId="doc-a" loadKey="v1" initialDocument={linkDocument()} />)
+    const session = latestSession()
+    act(() => { session.editor.setEditable(editable) })
+    // 不通过手动 installer/bridge 装配：必须证明真实零能力路径仍有永久 guard。
+    expect(session.hostReferences).toBeUndefined()
+    expect(session.editor.isEditable).toBe(editable)
+    const before = encodeHnn(session.editor.state.doc)
+    const selection = session.editor.state.selection
+    const link = anchor(view.container)
+    expect(dispatchClick(link).defaultPrevented).toBe(true)
+    const middle = new MouseEvent("auxclick", { button: 1, bubbles: true, cancelable: true })
+    act(() => { link.dispatchEvent(middle) })
+    expect(middle.defaultPrevented).toBe(true)
+    for (const key of ["Enter", " "]) {
+      const event = new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true })
+      act(() => { link.dispatchEvent(event) })
+      expect(event.defaultPrevented).toBe(true)
+    }
+    expect(encodeHnn(session.editor.state.doc)).toEqual(before)
+    expect(session.editor.state.selection.eq(selection)).toBe(true)
+    expect(session.undo()).toBe(false)
+    expect(screen.queryByRole("listbox")).toBeNull()
+  })
+
+  it.each([true, false])("真实 NoteEditor 有 activate：editable=%s 时 hnmagic 原 href 交宿主一次并随卸载 abort", (editable) => {
+    const activate = vi.fn<HostReferenceActivate>(() => new Promise<void>(() => undefined))
+    const href = "hnmagic://note/42?from=component"
+    const view = render(<NoteEditor documentId="doc-a" loadKey="v1" initialDocument={linkDocument(href)} onReferenceActivate={activate} />)
+    const session = latestSession()
+    act(() => { session.editor.setEditable(editable) })
+    const before = encodeHnn(session.editor.state.doc)
+    const link = anchor(view.container)
+    expect(dispatchClick(link).defaultPrevented).toBe(true)
+    expect(activate).toHaveBeenCalledTimes(1)
+    expect(activate.mock.calls[0]?.[0]).toEqual({ kind: "hnmagic", href })
+    expect(activate.mock.calls[0]?.[1].documentId).toBe("doc-a")
+    const key = new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true })
+    act(() => { link.dispatchEvent(key) })
+    expect(key.defaultPrevented).toBe(true)
+    expect(activate).toHaveBeenCalledTimes(2)
+    expect(activate.mock.calls[1]?.[0]).toEqual({ kind: "hnmagic", href })
+    expect(encodeHnn(session.editor.state.doc)).toEqual(before)
+    expect(session.undo()).toBe(false)
+    const signals = activate.mock.calls.map(([, context]) => context.signal)
+    expect(signals.every((signal) => !signal.aborted)).toBe(true)
+    view.unmount()
+    expect(signals.every((signal) => signal.aborted)).toBe(true)
+  })
+
+  it("同 key 移除全部引用回调后永久 guard 保留，重新添加不重建 session 或重复激活", () => {
+    const activate = vi.fn<HostReferenceActivate>(() => new Promise<void>(() => undefined))
+    const props = { documentId: "doc-a", loadKey: "v1", initialDocument: linkDocument() }
+    const view = render(<NoteEditor {...props} onReferenceActivate={activate} />)
+    const session = latestSession()
+    expect(dispatchClick(anchor(view.container)).defaultPrevented).toBe(true)
+    const signal = activate.mock.calls[0]![1].signal
+    view.rerender(<NoteEditor {...props} />)
+    expect(session.hostReferences).toBeUndefined()
+    expect(signal.aborted).toBe(true)
+    expect(dispatchClick(anchor(view.container)).defaultPrevented).toBe(true)
+    expect(activate).toHaveBeenCalledTimes(1)
+    view.rerender(<NoteEditor {...props} onReferenceActivate={activate} />)
+    expect(dispatchClick(anchor(view.container)).defaultPrevented).toBe(true)
+    expect(activate).toHaveBeenCalledTimes(2)
+    expect(createdSessions).toHaveLength(1)
+    expect(latestSession()).toBe(session)
+  })
+
+  it.each([
+    [true, false], [false, false], [true, true], [false, true]
+  ])("真实 NoteEditor 普通 http/mailto 不被 guard 接管（editable=%s，activate=%s）", (editable, withActivate) => {
+    const activate = vi.fn<HostReferenceActivate>()
+    for (const href of ["http://example.test/path", "https://example.test/path", "mailto:ada@example.test"]) {
+      const view = render(<NoteEditor documentId="doc-a" loadKey="v1" initialDocument={linkDocument(href)} {...(withActivate ? { onReferenceActivate: activate } : {})} />)
+      act(() => { latestSession().editor.setEditable(editable) })
+      const link = anchor(view.container)
+      let preventedByEditor: boolean | undefined
+      // 在编辑器所有 handler 之后记录结果，再阻止 jsdom 实际导航；不是预先取消事件。
+      const nativeProbe = (event: Event) => { preventedByEditor = event.defaultPrevented; event.preventDefault() }
+      document.addEventListener("click", nativeProbe, { once: true })
+      dispatchClick(link)
+      expect(preventedByEditor).toBe(false)
+      expect(activate).not.toHaveBeenCalled()
+      view.unmount()
+    }
+  })
+
   it("click/key 三类引用交接宿主：kind/resourceId/name 与 {documentId, signal}；tab stop 真实能力位", async () => {
     const activate = vi.fn<HostReferenceActivate>()
     const view = render(

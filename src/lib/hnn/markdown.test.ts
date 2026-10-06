@@ -34,7 +34,11 @@ function paragraph(nextId: () => string, value: string) {
 }
 
 function base64url(value: string): string {
-  return btoa(value)
+  // JSON-b64 必须覆盖 UTF-8 正文，不能让测试 helper 只支持 Latin-1。
+  const binary = Array.from(new TextEncoder().encode(value), (byte) =>
+    String.fromCharCode(byte)
+  ).join("")
+  return btoa(binary)
     .replaceAll("+", "-")
     .replaceAll("/", "_")
     .replaceAll("=", "")
@@ -50,6 +54,17 @@ function jsonFenceChunks(chunks: readonly string[]): string {
       ].join("\n")
     )
     .join("\n\n")
+}
+
+/** 按导出器的单段预算包装 payload，避免测试把分段错误与内容校验混为一谈。 */
+function jsonFenceForNode(node: Record<string, unknown>): string {
+  const encoded = base64url(JSON.stringify(node))
+  const chunkLimit = HNN_LIMITS.maxAttrBytes - 256
+  return jsonFenceChunks(
+    Array.from({ length: Math.ceil(encoded.length / chunkLimit) }, (_, index) =>
+      encoded.slice(index * chunkLimit, (index + 1) * chunkLimit)
+    )
+  )
 }
 
 /** fallback 允许按 HNN 单 attr 上限拆为多段；拼接后必须仍是原围栏原文。 */
@@ -126,6 +141,435 @@ function dataWithoutNodeIds(value: unknown): unknown {
 }
 
 describe("内部 Markdown codec", () => {
+  it("不支持的脚注保留原 label、引用与多段正文，不退化为 AST 类型名", () => {
+    const result = imported(
+      [
+        "前 **引用[^Mixed-Label]** 后",
+        "",
+        "[^Mixed-Label]: 脚注第一段 **粗体**",
+        "",
+        "    脚注第二段 [链接](https://example.test/note)",
+        "",
+        "末尾正文"
+      ].join("\n")
+    )
+    const first = content(result)[0]!["content"] as Record<string, unknown>[]
+    expect(first.map((node) => node["text"]).join("")).toBe(
+      "前 引用[^Mixed-Label] 后"
+    )
+    expect(first[1]).toMatchObject({ marks: [{ type: "bold" }] })
+    const preserved = fallbackText(result.document)
+    expect(preserved).toContain("[^Mixed-Label]:")
+    expect(preserved).toContain("脚注第一段 **粗体**")
+    expect(preserved).toContain("脚注第二段")
+    expect(preserved).toContain("https://example.test/note")
+    expect(preserved).not.toContain("footnoteDefinition")
+    expect(JSON.stringify(result.document.data)).not.toContain(
+      "footnoteReference"
+    )
+    expect(JSON.stringify(result.document.data)).toContain("末尾正文")
+    expect(result.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: "unsupported-inline", line: 1 }),
+        expect.objectContaining({ code: "unsupported-block", line: 3 })
+      ])
+    )
+    expect(() => encodeHnn(result.document.data)).not.toThrow()
+  })
+
+  it.each([" ", "\n", "\n\n", " \t\n "])(
+    "带文件名 codeBlock 的纯空白正文 %j 经 JSON-b64 往返逐字保留",
+    (value) => {
+      const nextId = ids()
+      const document = encodeHnn({
+        type: "doc",
+        content: [
+          {
+            type: "codeBlock",
+            attrs: { nodeId: nextId(), language: "txt", filename: "a.txt" },
+            content: [{ type: "text", text: value }]
+          }
+        ]
+      })
+      const exported = exportMarkdown(document)
+      expect(exported.markdown).toContain("hamster-note-json-b64")
+      const roundtrip = imported(exported.markdown)
+      expect(roundtrip.diagnostics).toEqual([])
+      expect(dataWithoutNodeIds(roundtrip.document.data)).toEqual(
+        dataWithoutNodeIds(document.data)
+      )
+    }
+  )
+
+  it.each(["x".repeat(8_192), "\\".repeat(5_000), "图".repeat(2_730) + "xx"])(
+    "text 按原始 UTF-8 而非 JSON attr 预算接受合法边界（case %#）",
+    (value) => {
+      const nextId = ids()
+      const document = encodeHnn({
+        type: "doc",
+        content: [paragraph(nextId, value)]
+      })
+      // 显式 JSON-b64 与自动 Markdown 导出均需接受相同的合法 text。
+      const payload = (
+        document.data["content"] as Record<string, unknown>[]
+      )[0]!
+      for (const markdown of [
+        jsonFenceForNode(payload),
+        exportMarkdown(document).markdown
+      ]) {
+        const result = imported(markdown)
+        expect(result.diagnostics).toEqual([])
+        expect(dataWithoutNodeIds(result.document.data)).toEqual(
+          dataWithoutNodeIds(document.data)
+        )
+      }
+    }
+  )
+
+  it("普通 Markdown 的恰好 8192 字节 text 可导入，超过一字节仍受控拒绝", () => {
+    const result = imported("x".repeat(8_192))
+    expect(result.diagnostics).toEqual([])
+    expect(
+      (content(result)[0]!["content"] as Record<string, unknown>[])[0]!["text"]
+    ).toBe("x".repeat(8_192))
+    expect(importMarkdown("x".repeat(8_193))).toMatchObject({
+      failure: "input-too-large"
+    })
+  })
+
+  it("tab-heavy 普通 text 按原始字节导入并逐字保留，不以展开后的视觉列数拒绝", () => {
+    const value = `x${"\t".repeat(2_049)}y`
+    expect(new TextEncoder().encode(value).byteLength).toBe(2_051)
+    const result = imported(value)
+    expect(content(result)[0]).toMatchObject({
+      type: "paragraph",
+      content: [{ type: "text", text: value }]
+    })
+    expect(result.diagnostics).toEqual([])
+    expect(() => encodeHnn(result.document.data)).not.toThrow()
+  })
+
+  it("tab-heavy text 恰好 8192 原始字节合法，多一字节在 UUID 前受控拒绝", () => {
+    const value = `x${"\t".repeat(8_190)}y`
+    expect(new TextEncoder().encode(value).byteLength).toBe(8_192)
+    const result = imported(value)
+    expect(content(result)[0]).toMatchObject({ content: [{ text: value }] })
+    expect(result.diagnostics).toEqual([])
+    const randomValues = vi.spyOn(globalThis.crypto, "getRandomValues")
+    try {
+      const over = importMarkdown(`${value}z`)
+      expect(over).toMatchObject({
+        failure: "input-too-large",
+        diagnostics: [
+          expect.objectContaining({ code: "input-too-large", line: 1 })
+        ]
+      })
+      expect("document" in over).toBe(false)
+      expect(randomValues).not.toHaveBeenCalled()
+    } finally {
+      randomValues.mockRestore()
+    }
+  })
+
+  it("tab-heavy 多行 text 在 root、quote 与 list 容器中保留正文及软换行", () => {
+    const first = `x${"\t".repeat(2_049)}y`
+    const second = `a${"\t".repeat(2_049)}b`
+    for (const source of [
+      `${first}\n${second}`,
+      `> ${first}\n> ${second}`,
+      `- ${first}\n  ${second}`
+    ]) {
+      const result = imported(source)
+      const decoded = decodeHnn(result.document)
+      expect(decoded.textContent).toBe(`${first}\n${second}`)
+      expect(result.diagnostics).toEqual([])
+    }
+  })
+
+  it("tab-heavy 普通 fence 与缩进 code 保持原始正文，不把扫描展开文本交给转换器", () => {
+    const body = `x${"\t".repeat(2_049)}y`
+    for (const source of [
+      `\`\`\`txt\n${body}\n\`\`\``,
+      `\t${body}`,
+      `-\t> \`\`\`txt\n\t> ${body}\n\t>  \t\`\`\``
+    ]) {
+      const result = imported(source)
+      expect(fallbackText(result.document)).toBe(body)
+      expect(result.diagnostics).toEqual([])
+      expect(() => encodeHnn(result.document.data)).not.toThrow()
+    }
+  })
+
+  it("tab-heavy code 正文超过 text 上限仍分片，命名 math 围栏则局部完整降级", () => {
+    const body = `x${"\t".repeat(8_191)}y`
+    const ordinary = imported(`\`\`\`txt\n${body}\n\`\`\``)
+    expect(fallbackText(ordinary.document)).toBe(body)
+    expect(ordinary.diagnostics).toContainEqual(
+      expect.objectContaining({ code: "code-block-split", line: 1 })
+    )
+    const fence = `\`\`\`math\n${body}\n\`\`\``
+    const named = imported(["前", "", fence, "", "后"].join("\n"))
+    expect(fallbackText(named.document)).toBe(fence)
+    expect(named.diagnostics).toContainEqual(
+      expect.objectContaining({ code: "attr-too-large", line: 3 })
+    )
+    expect(content(named)[0]).toMatchObject({ content: [{ text: "前" }] })
+    expect(content(named).at(-1)).toMatchObject({ content: [{ text: "后" }] })
+    expect(named.diagnostics).not.toContainEqual(
+      expect.objectContaining({ code: "conversion-failed" })
+    )
+  })
+
+  it("tab-heavy 多行缩进 code 累计正文超限仍分片，单行原始超限仍硬拒绝", () => {
+    const first = `x${"\t".repeat(4_095)}`
+    const second = `y${"\t".repeat(4_095)}`
+    const result = imported(`\t${first}\n\t${second}`)
+    expect(fallbackText(result.document)).toBe(`${first}\n${second}`)
+    expect(result.diagnostics).toContainEqual(
+      expect.objectContaining({ code: "code-block-split", line: 1 })
+    )
+    // 当前契约：非 fenced 单行仍受原始行上限约束；不能借缩进 code 绕过 preflight。
+    expect(importMarkdown(`\tx${"\t".repeat(8_191)}y`)).toMatchObject({
+      failure: "input-too-large"
+    })
+  })
+
+  it("tab-heavy 成功正文不放宽 link 候选预算，超多原始候选仍在 UUID 前拒绝", () => {
+    const randomValues = vi.spyOn(globalThis.crypto, "getRandomValues")
+    try {
+      const source = Array.from({ length: 260 }, () => "[x](https://x)").join(
+        "\t"
+      )
+      const result = importMarkdown(source)
+      expect(result).toMatchObject({ failure: "input-too-large" })
+      expect(result.diagnostics[0]?.message).toContain("候选")
+      expect(randomValues).not.toHaveBeenCalled()
+    } finally {
+      randomValues.mockRestore()
+    }
+  })
+
+  it("JSON-b64 的空 text 或超过 8192 原始 UTF-8 字节仅降级该围栏", () => {
+    for (const value of ["", "x".repeat(8_193), "图".repeat(2_731)]) {
+      const fence = jsonFenceForNode({
+        type: "paragraph",
+        attrs: {},
+        content: [{ type: "text", text: value }]
+      })
+      const result = imported(["前", "", fence, "", "后"].join("\n"))
+      expect(fallbackText(result.document)).toBe(fence)
+      expect(result.diagnostics).toEqual([
+        expect.objectContaining({ code: "invalid-hn-fence", line: 3 })
+      ])
+      expect(content(result).at(-1)).toMatchObject({
+        type: "paragraph",
+        content: [{ type: "text", text: "后" }]
+      })
+    }
+  })
+
+  it("text 放宽原始字节计数后，JSON 转义膨胀仍计入累计 shell 并在 UUID 前拒绝", () => {
+    const fence = jsonFenceForNode({
+      type: "codeBlock",
+      attrs: { language: "txt", filename: "a.txt" },
+      content: [{ type: "text", text: "\\".repeat(5_000) }]
+    })
+    const within = imported(
+      Array.from({ length: 51 }, () => fence).join("\n\n")
+    )
+    expect(
+      new TextEncoder().encode(JSON.stringify(within.document)).byteLength
+    ).toBeLessThanOrEqual(HNN_LIMITS.maxShellBytes)
+    expect(content(within)).toHaveLength(51)
+    const randomValues = vi.spyOn(globalThis.crypto, "getRandomValues")
+    try {
+      const over = importMarkdown(
+        Array.from({ length: 52 }, () => fence).join("\n\n")
+      )
+      expect(over).toMatchObject({ failure: "input-too-large" })
+      expect("document" in over).toBe(false)
+      expect(randomValues).not.toHaveBeenCalled()
+    } finally {
+      randomValues.mockRestore()
+    }
+  })
+
+  it("GFM 缺格补空、多余格截断，补空格保持列对齐且导出回读等价", () => {
+    const result = imported(
+      "| A | B |\n| :--- | ---: |\n| short |\n| long | kept | discarded |"
+    )
+    const table = dataWithoutNodeIds(content(result)[0])
+    expect(table).toMatchObject({
+      type: "table",
+      content: [
+        { content: [{ type: "tableHeader" }, { type: "tableHeader" }] },
+        {
+          content: [
+            {
+              attrs: { align: "left" },
+              content: [{ content: [{ text: "short" }] }]
+            },
+            { attrs: { align: "right" }, content: [{ type: "paragraph" }] }
+          ]
+        },
+        {
+          content: [
+            { content: [{ content: [{ text: "long" }] }] },
+            { content: [{ content: [{ text: "kept" }] }] }
+          ]
+        }
+      ]
+    })
+    const rows = content(result)[0]!["content"] as Record<string, unknown>[]
+    expect(rows.map((row) => (row["content"] as unknown[]).length)).toEqual([
+      2, 2, 2
+    ])
+    expect(JSON.stringify(result.document.data)).not.toContain("discarded")
+    expect(result.diagnostics).toEqual([])
+    expect(
+      dataWithoutNodeIds(
+        imported(exportMarkdown(result.document).markdown).document.data
+      )
+    ).toEqual(dataWithoutNodeIds(result.document.data))
+  })
+
+  it("表格预算按补齐后的矩形计算，而被截断的额外列不进入 HNN 几何预算", () => {
+    const header = `|${Array.from({ length: 64 }, () => "h").join("|")}|`
+    const separator = `|${Array.from({ length: 64 }, () => "---").join("|")}|`
+    const within = imported([header, separator, "| x |", "| x |"].join("\n"))
+    expect(() => encodeHnn(within.document.data)).not.toThrow()
+    const longRow = `|${Array.from({ length: 65 }, () => "x").join("|")}|`
+    const truncated = imported(["| h |", "| --- |", longRow].join("\n"))
+    expect(
+      (content(truncated)[0]!["content"] as Record<string, unknown>[]).map(
+        (row) => (row["content"] as unknown[]).length
+      )
+    ).toEqual([1, 1])
+    expect(dataWithoutNodeIds(content(truncated)[0])).toMatchObject({
+      content: [
+        { content: [{ type: "tableHeader" }] },
+        { content: [{ type: "tableCell" }] }
+      ]
+    })
+    const randomValues = vi.spyOn(globalThis.crypto, "getRandomValues")
+    try {
+      // 缺失格同样产生 cell/paragraph，第四行会令实际输出超过 512 个节点。
+      const over = importMarkdown(
+        [header, separator, "| x |", "| x |", "| x |"].join("\n")
+      )
+      expect(over).toMatchObject({ failure: "input-too-large" })
+      expect(randomValues).not.toHaveBeenCalled()
+    } finally {
+      randomValues.mockRestore()
+    }
+  })
+
+  it("JSON-b64 link 包装额外字段与显式 marks 空数组仅局部保留，不整体 conversion-failed", () => {
+    for (const marks of [
+      [],
+      [{ type: "link", attrs: { href: "https://example.test" }, extra: true }],
+      [{ type: "link", attrs: { href: "https://example.test" }, marks: [] }]
+    ]) {
+      const fence = jsonFenceForNode({
+        type: "paragraph",
+        attrs: {},
+        content: [{ type: "text", text: "kept payload", marks }]
+      })
+      const result = imported(["前", "", fence, "", "后"].join("\n"))
+      expect(result.diagnostics).toEqual([
+        expect.objectContaining({
+          code: "invalid-hn-fence",
+          line: 3,
+          column: 1
+        })
+      ])
+      expect(content(result).map((node) => node["type"])).toEqual([
+        "paragraph",
+        "codeBlock",
+        "paragraph"
+      ])
+      expect(fallbackText(result.document)).toBe(fence)
+      expect(() => encodeHnn(result.document.data)).not.toThrow()
+    }
+    // 严格的合法 link 不应被这次包装校验误拒绝。
+    expect(
+      imported(
+        jsonFenceForNode({
+          type: "paragraph",
+          attrs: {},
+          content: [
+            {
+              type: "text",
+              text: "link",
+              marks: [{ type: "link", attrs: { href: "https://example.test" } }]
+            }
+          ]
+        })
+      ).diagnostics
+    ).toEqual([])
+  })
+
+  it("math/card/drawing 的空白正文局部保留完整围栏与前后合法正文", () => {
+    for (const language of [
+      "math",
+      "hamster-note-card",
+      "hamster-note-drawing"
+    ]) {
+      for (const body of [" ", "\t", "\n", " \t\n "]) {
+        const fence = ["```" + language, body, "```"].join("\n")
+        const result = imported(["前", "", fence, "", "后"].join("\n"))
+        expect(result.diagnostics).toEqual([
+          expect.objectContaining({
+            code: "invalid-hn-fence",
+            line: 3,
+            column: 1
+          })
+        ])
+        expect(content(result).map((node) => node["type"])).toEqual([
+          "paragraph",
+          "codeBlock",
+          "paragraph"
+        ])
+        expect(fallbackText(result.document)).toBe(fence)
+        expect(content(result)[0]).toMatchObject({ content: [{ text: "前" }] })
+        expect(content(result).at(-1)).toMatchObject({
+          content: [{ text: "后" }]
+        })
+        expect(() => encodeHnn(result.document.data)).not.toThrow()
+      }
+    }
+  })
+
+  it("混合 ordered/task 拆组后按原始索引续接 start，第三项仍从 5 开始", () => {
+    for (const source of [
+      "3. first\n4. [x] checked\n5. third",
+      "3. [ ] first task\n4. [x] checked\n5. third"
+    ]) {
+      const result = imported(source)
+      expect(result.diagnostics).toEqual([])
+      expect(content(result).at(-1)).toMatchObject({
+        type: "orderedList",
+        attrs: { start: 5 },
+        content: [
+          { type: "listItem", content: [{ content: [{ text: "third" }] }] }
+        ]
+      })
+      expect(
+        dataWithoutNodeIds(
+          imported(exportMarkdown(result.document).markdown).document.data
+        )
+      ).toEqual(dataWithoutNodeIds(result.document.data))
+    }
+    const alternating = imported(
+      "3. first\n4. [x] checked\n5. third\n6. [ ] task\n7. fifth"
+    )
+    expect(
+      content(alternating)
+        .filter((node) => node["type"] === "orderedList")
+        .map((node) => (node["attrs"] as Record<string, unknown>)["start"])
+    ).toEqual([3, 5, 7])
+  })
+
   it("在无 metadata header 的单一文档中导入 GFM、嵌套列表、task list 与表格", () => {
     const result = imported(
       [

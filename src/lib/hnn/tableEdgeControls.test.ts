@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
 
+import { readFileSync } from "node:fs"
+import { fileURLToPath } from "node:url"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import type { Editor } from "@tiptap/core"
 import { undoDepth } from "@tiptap/pm/history"
@@ -10,6 +12,10 @@ import { createEditorSession, type EditorSession } from "../editor/session"
 import { encodeHnn, type HnnDocument } from "./codec"
 import { HNN_LIMITS, UUID_V4_PATTERN } from "./limits"
 import { collectHnnNodeIds } from "./nodeId"
+
+/** 以本测试文件为基准读源码文本（CSS 静态契约断言用；与 editorVisualBaseline 同法）。 */
+const readSource = (relative: string): string =>
+  readFileSync(fileURLToPath(new URL(relative, import.meta.url)), "utf8")
 
 // 严格编码器注入（生产由 blockMenu 完成；此处测试独立加载 hnn 模块需自行注入）。
 installHnnBudgetEncoder(encodeHnn)
@@ -726,6 +732,144 @@ describe("tableEdgeControls：预算、历史栅栏与 ID（oracle 7.5 回归）
 
     session.editor.commands.undo()
     expect(firstColumnTexts(session)).toEqual(["A", "C", "D"])
+  })
+})
+
+describe("tableEdgeControls：拖拽手势最终坐标与中途失效（PR#11 #16/#17/#18 回归）", () => {
+  /** 给所有单元格铺设 100 行高的纵向布局（2 列：row = index/2）。 */
+  function layoutRows(session: EditorSession): void {
+    cells(session).forEach((cell, index) => {
+      const top = Math.floor(index / 2) * 100
+      cell.getBoundingClientRect = () =>
+        ({ top, left: 0, right: 100, bottom: top + 100, width: 100, height: 100, x: 0, y: top, toJSON: () => ({}) })
+    })
+  }
+
+  /** 按纵坐标命中对应行的首个单元格；表外（y<0 或超出末行）返回 null。 */
+  function hitByRow(session: EditorSession, rows: number): (x: number, y: number) => Element | null {
+    return (_x, y) => {
+      const row = Math.floor(y / 100)
+      return row >= 0 && row < rows ? cells(session)[row * 2]! : null
+    }
+  }
+
+  it("#17 pointerup 以释放坐标重算落点：lastmove 停在 A 前、释放在 D 下方按最终坐标落线", () => {
+    const session = sessionFor(tableDocument(4, 2))
+    layoutRows(session)
+    ;(document as Partial<Document>).elementFromPoint = hitByRow(session, 4)
+    focusText(session.editor, "r1c1") // 拖第 1 行（index 0）
+    const rowOp = wrapper(session).querySelector<HTMLButtonElement>('[aria-label="行操作"]')!
+
+    rowOp.dispatchEvent(pointerEvent("pointerdown", { clientX: 0, clientY: 0 }))
+    // lastmove：越过阈值但停留在 A 上半（插入边界 0，等于不移动）。
+    document.dispatchEvent(pointerEvent("pointermove", { clientX: 0, clientY: 10 }))
+    expect(wrapper(session).classList.contains("hn-editor-table-wrapper--reordering")).toBe(true)
+    // 释放瞬间指针已在 D 下半（无新 pointermove）：必须按最终坐标落到表尾。
+    document.dispatchEvent(pointerEvent("pointerup", { clientX: 0, clientY: 350 }))
+    expect(firstColumnTexts(session)).toEqual(["r2c1", "r3c1", "r4c1", "r1c1"])
+    session.editor.commands.undo()
+    expect(firstColumnTexts(session)).toEqual(["r1c1", "r2c1", "r3c1", "r4c1"])
+  })
+
+  it("#17 释放在表外：命中为 null → 清空目标不提交（等效取消），预览清理", () => {
+    const session = sessionFor(tableDocument(4, 2))
+    layoutRows(session)
+    ;(document as Partial<Document>).elementFromPoint = hitByRow(session, 4)
+    focusText(session.editor, "r1c1")
+    const rowOp = wrapper(session).querySelector<HTMLButtonElement>('[aria-label="行操作"]')!
+
+    rowOp.dispatchEvent(pointerEvent("pointerdown", { clientX: 0, clientY: 0 }))
+    // 有效目标（B 下半 → 插到 B 之后），预览已渲染。
+    document.dispatchEvent(pointerEvent("pointermove", { clientX: 0, clientY: 150 }))
+    expect(wrapper(session).querySelector("[class*='hn-editor-table-preview']")).not.toBeNull()
+    // 释放点在表外：旧代码会按 lastmove 的目标误提交；现在必须取消。
+    document.dispatchEvent(pointerEvent("pointerup", { clientX: 0, clientY: 500 }))
+    expect(firstColumnTexts(session)).toEqual(["r1c1", "r2c1", "r3c1", "r4c1"])
+    expect(wrapper(session).querySelector("[class*='hn-editor-table-preview']")).toBeNull()
+    expect(wrapper(session).classList.contains("hn-editor-table-wrapper--reordering")).toBe(false)
+  })
+
+  it("#16 手势中途 docChanged（undo 插入）取消拖拽：释放不按旧下标误移动 D", () => {
+    const session = sessionFor(tableDocument(4, 2)) // A B C D 四行
+    layoutRows(session)
+    ;(document as Partial<Document>).elementFromPoint = hitByRow(session, 5)
+    // 在 C 前插入 blank：hover r3c1 → 点上边界 +
+    cells(session)[4]!.dispatchEvent(pointerEvent("pointerover"))
+    edge(session, "在上方插入行").click()
+    expect(firstColumnTexts(session)).toEqual(["r1c1", "r2c1", "", "r3c1", "r4c1"])
+
+    // 抓 C（插入后 C 在 index 3），进入拖拽。
+    focusText(session.editor, "r3c1")
+    const rowOp = wrapper(session).querySelector<HTMLButtonElement>('[aria-label="行操作"]')!
+    rowOp.dispatchEvent(pointerEvent("pointerdown", { clientX: 0, clientY: 0 }))
+    document.dispatchEvent(pointerEvent("pointermove", { clientX: 0, clientY: 10 }))
+    expect(wrapper(session).classList.contains("hn-editor-table-wrapper--reordering")).toBe(true)
+
+    // 手势中 undo 插入：C 回到 index 2，旧 sourceIndex=3 已指向 D。
+    session.editor.commands.undo()
+    expect(firstColumnTexts(session)).toEqual(["r1c1", "r2c1", "r3c1", "r4c1"])
+    // 拖拽必须已被取消（不取消则释放会按旧下标误移动 D）。
+    expect(wrapper(session).classList.contains("hn-editor-table-wrapper--reordering")).toBe(false)
+    expect(wrapper(session).querySelector("[class*='hn-editor-table-preview']")).toBeNull()
+
+    document.dispatchEvent(pointerEvent("pointerup", { clientX: 0, clientY: 10 }))
+    expect(firstColumnTexts(session)).toEqual(["r1c1", "r2c1", "r3c1", "r4c1"])
+    // 取消路径不置 click 抑制：下一次真实点击正常开菜单。
+    rowOp.click()
+    expect(document.querySelector(".hn-editor-menu")).not.toBeNull()
+  })
+
+  it("#16 手势中途转只读（setEditable 无事务）立即取消：不提交、状态清理", () => {
+    const session = sessionFor(tableDocument(3, 2))
+    layoutRows(session)
+    ;(document as Partial<Document>).elementFromPoint = hitByRow(session, 3)
+    focusText(session.editor, "r3c1")
+    const rowOp = wrapper(session).querySelector<HTMLButtonElement>('[aria-label="行操作"]')!
+
+    rowOp.dispatchEvent(pointerEvent("pointerdown", { clientX: 0, clientY: 0 }))
+    document.dispatchEvent(pointerEvent("pointermove", { clientX: 0, clientY: 10 }))
+    expect(wrapper(session).classList.contains("hn-editor-table-wrapper--reordering")).toBe(true)
+
+    // 会话中途转只读：下一次 move 即取消手势（transaction 兜底覆盖不到的路径）。
+    session.editor.setEditable(false)
+    document.dispatchEvent(pointerEvent("pointermove", { clientX: 0, clientY: 150 }))
+    expect(wrapper(session).classList.contains("hn-editor-table-wrapper--reordering")).toBe(false)
+    document.dispatchEvent(pointerEvent("pointerup", { clientX: 0, clientY: 150 }))
+    expect(firstColumnTexts(session)).toEqual(["r1c1", "r2c1", "r3c1"])
+
+    session.editor.setEditable(true)
+  })
+
+  it("#16 destroy 兜底：NodeView 失活清理手势，后续指针事件安全无提交", () => {
+    const session = sessionFor(tableDocument(3, 2))
+    layoutRows(session)
+    ;(document as Partial<Document>).elementFromPoint = hitByRow(session, 3)
+    focusText(session.editor, "r3c1")
+    const rowOp = wrapper(session).querySelector<HTMLButtonElement>('[aria-label="行操作"]')!
+    rowOp.dispatchEvent(pointerEvent("pointerdown", { clientX: 0, clientY: 0 }))
+    document.dispatchEvent(pointerEvent("pointermove", { clientX: 0, clientY: 10 }))
+    expect(wrapper(session).classList.contains("hn-editor-table-wrapper--reordering")).toBe(true)
+
+    // 删除整个表格块 → NodeView destroy（PM update 周期内，不得 dispatch）。
+    session.editor.commands.command(({ tr }) => {
+      tr.delete(0, session.editor.state.doc.firstChild!.nodeSize)
+      return true
+    })
+    expect(document.querySelector(".hn-editor-table-wrapper")).toBeNull()
+    // 失活后的 pointerup 不抛错、不提交（文档已无表格可动）。
+    document.dispatchEvent(pointerEvent("pointerup", { clientX: 0, clientY: 10 }))
+    expect(session.editor.state.doc.firstChild!.type.name).not.toBe("table")
+  })
+
+  it("#18 触屏拖动独占手势：.hn-editor-table-op 规则含 touch-action: none", () => {
+    // 真实移动端 CDP 390×844 复现：默认 auto 下浏览器把位移抢去滚动并派发
+    // pointercancel（无 pointerup），行/列永远拖不动。静态契约钉在源文件上。
+    // 组合规则（.hn-editor-table-edge, .hn-editor-table-op）同名字符串存在歧义，
+    // 故枚举所有同名规则体，要求至少一条声明 touch-action: none。
+    const css = readSource("../styles.css").replace(/\/\*[\s\S]*?\*\//g, "")
+    const bodies = [...css.matchAll(/\.hn-editor-content \.hn-editor-table-op \{/g)]
+      .map((match) => css.slice(match.index, css.indexOf("}", match.index)))
+    expect(bodies.some((body) => body.includes("touch-action: none"))).toBe(true)
   })
 })
 

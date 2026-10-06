@@ -2,7 +2,7 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { App } from "./App"
-import { createLocalStorageNoteStore, type DemoNoteStore } from "./hostStore"
+import { createInMemoryExclusiveLock, createLocalStorageNoteStore, type DemoNoteStore } from "./hostStore"
 
 /**
  * 7.4 演示宿主集成测试：仅用根入口公开 API 完成装载、编辑观测、真实 CAS 保存、
@@ -25,7 +25,12 @@ interface RenderedDemo {
 
 function renderApp(): RenderedDemo {
   // 每个用例独立的 key 前缀：localStorage 全局共享，避免跨用例污染。
-  const store = createLocalStorageNoteStore(localStorage, `hamster-note-demo-test-${++storeCounter}:`)
+  // jsdom 无 Web Locks，注入进程内真实排他锁（与生产同锁语义，仅不跨标签页）。
+  const store = createLocalStorageNoteStore(
+    localStorage,
+    `hamster-note-demo-test-${++storeCounter}:`,
+    createInMemoryExclusiveLock()
+  )
   const download = vi.fn()
   const view = render(<App store={store} download={download} />)
   return { container: view.container, store, download }
@@ -140,6 +145,30 @@ describe("演示宿主 — 保存与真实 CAS", () => {
     })
   })
 
+  it("保存成功后切走再切回：以刚保存的快照与 revision 重建会话，不回落旧 fixture、不误冲突", async () => {
+    renderApp()
+    await pasteAndWaitDirty("已保存的第一版内容。")
+    fireEvent.click(screen.getByRole("button", { name: "保存" }))
+    await screen.findByText(/已保存「功能巡览」（CAS 通过，新 revision r1）/)
+
+    // 切到另一个文档，再切回「功能巡览」。
+    fireEvent.change(screen.getByLabelText("选择文档"), { target: { value: "demo-references" } })
+    await within(previewRegion()).findByRole("heading", { name: "引用与外部条目" })
+    fireEvent.change(screen.getByLabelText("选择文档"), { target: { value: "demo-tour" } })
+
+    // 切回后内容来自刚保存的快照（而非旧 fixture），侧边栏显示 r1。
+    await waitFor(() => {
+      expect(previewRegion().textContent).toContain("已保存的第一版内容")
+    })
+    expect(screen.getByText("已存 revision：r1")).toBeTruthy()
+
+    // 基线正确同步：继续编辑再保存应成功为 r2，而不是与旧 revision 冲突。
+    await pasteAndWaitDirty("第二版追加。")
+    fireEvent.click(screen.getByRole("button", { name: "保存" }))
+    await screen.findByText(/已保存「功能巡览」（CAS 通过，新 revision r2）/)
+    expect(screen.queryByText("检测到保存冲突：这份笔记在其他地方已有更新。")).toBeNull()
+  })
+
   it("新建空文档（手写 HNN 空文档）可编辑并完成首次保存", async () => {
     renderApp()
     fireEvent.click(screen.getByRole("button", { name: "新建空文档" }))
@@ -207,14 +236,24 @@ describe("演示宿主 — Markdown 导出与文件打开", () => {
     expect(select.value).toBe("demo-tour")
   })
 
-  it("打开合法 JSON 但非法 HNN：初始加载错误面板呈现诊断，旧文档不受影响", async () => {
+  it("打开合法 JSON 但非法 HNN：预校验拒绝，不加入/不切换文档，旧会话与标题不受影响", async () => {
     renderApp()
+    await within(previewRegion()).findByRole("heading", { name: "编辑器功能巡览" })
     const input = document.querySelector('input[accept*=".hnn"]')
     fireEvent.change(input as HTMLInputElement, {
       target: { files: [new File([JSON.stringify({ foo: 1 })], "invalid.hnn")] }
     })
-    await screen.findByText("初始加载错误")
-    await screen.findByText(/初始加载失败：「invalid」（/)
+    await screen.findByText(/无法打开 invalid\.hnn：HNN 校验失败/)
+    // 不切换文档：select 仍是 demo-tour，且没有新选项混入。
+    const select = screen.getByLabelText("选择文档")
+    if (!(select instanceof HTMLSelectElement)) throw new Error("文档切换 select 缺失")
+    expect(select.value).toBe("demo-tour")
+    expect(within(select).queryByRole("option", { name: /invalid/ })).toBeNull()
+    // 旧编辑会话仍在运行，标题仍是旧文档。
+    await within(previewRegion()).findByRole("heading", { name: "编辑器功能巡览" })
+    expect(screen.getByRole("heading", { name: "编辑器功能巡览" })).toBeTruthy()
+    // 该非法候选不再进入「初始加载错误」面板（它在入列前就被拒绝）。
+    expect(screen.queryByText("初始加载错误")).toBeNull()
   })
 })
 

@@ -142,6 +142,8 @@ const onSave: NoteSave = async (snapshot, { documentId, baseRevision, signal }) 
 - 每个会话同时最多一个在途保存（单飞）。
 - `signal`/abort **只隔离库内状态**，不能替代宿主的原子存储事务；即使宿主忽略了 abort，陈旧请求仍可能落盘，因此必须靠宿主的 CAS 防御。
 - 冲突不自动合并：库只暴露冲突态，由宿主以新的 `initialDocument` + 新 `loadKey` 重载远端，或按自身策略重试本地保存。
+- Demo 宿主的 `hostStore` 演示了一个真实原子实现：每次保存与「模拟另一客户端写入」都在**同一个持久化 key 的排他 Web Lock 内**完成 read→compare→write；`saveWithCas`/`overwriteExternal` 因此是异步 API。
+- Web Locks 仅在**安全上下文（HTTPS 或 localhost）**且浏览器支持时可用。若运行环境不提供 Web Locks，宿主**fail closed**：抛出显式错误且**绝不写入**，绝不降级为「read-check-write」这种非原子的伪 CAS。在线 Demo 即为 HTTPS/localhost 场景。
 
 ### HNN 文档格式
 

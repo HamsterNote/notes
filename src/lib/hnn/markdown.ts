@@ -469,6 +469,38 @@ function originalFence(
   ]
 }
 
+/**
+ * 无法映射的 mdast 节点（如 footnoteDefinition）不能只输出 AST 类型名。使用同一套
+ * GFM stringifier 还原为可读方言片段，从而保留正文、label 与 identifier；渲染异常时
+ * 退回类型名，保证降级路径永不抛错，也不阻断前后可识别内容。
+ */
+function readableMarkdownFragment(value: Content): string {
+  try {
+    const rendered = markdownStringifier.stringify({
+      type: "root",
+      children: [value]
+    })
+    const trimmed = rendered.trim()
+    return trimmed.length > 0 ? trimmed : String(value.type)
+  } catch {
+    return String(value.type)
+  }
+}
+
+/** 行内降级需要把孤立 phrasing 节点放回段落，stringifier 才能还原 `[^a]` 一类标记。 */
+function readableInlineFragment(value: PhrasingContent): string {
+  try {
+    const rendered = markdownStringifier.stringify({
+      type: "root",
+      children: [{ type: "paragraph", children: [value] }]
+    })
+    const trimmed = rendered.trim()
+    return trimmed.length > 0 ? trimmed : String(value.type)
+  } catch {
+    return String(value.type)
+  }
+}
+
 function hasOnlyKeys(
   value: Record<string, unknown>,
   keys: readonly string[]
@@ -685,7 +717,8 @@ function inlineNodes(
         "unsupported-inline",
         `不支持的行内 Markdown ${value.type} 已降级为文本`
       )
-      output.push(text(String(value.type), inherited))
+      // 不能只留类型名：footnoteReference 等需保留 `[^label]` 可读标记与 id。
+      output.push(text(readableInlineFragment(value), inherited))
     }
     // 一个 mdast inline 可展开为多个 HNN text/mark 事件；它们都带着各自原始位置。
     annotatePlanSources(output.slice(outputStart), value)
@@ -785,7 +818,9 @@ function listNodes(
   convert: SequenceConverter
 ): HnnJsonNode[] {
   const result: HnnJsonNode[] = []
-  let group: ListItem[] = []
+  // 混合 ordered/task 会把一个 mdast 列表拆成多个 HNN 列表；每个后续 orderedList 必须
+  // 从其在原列表中的序号续接 start，否则 `3.first` `4.[x]task` `5.third` 的第三组会重编号。
+  let group: { item: ListItem; index: number }[] = []
   let task: boolean | undefined
   const flush = () => {
     if (group.length === 0 || task === undefined) return
@@ -797,13 +832,13 @@ function listNodes(
     const attrs = task
       ? {}
       : value.ordered
-        ? { start: value.start ?? 1, type: null }
+        ? { start: (value.start ?? 1) + group[0]!.index, type: null }
         : {}
     result.push(
       planNode(
         type,
         attrs,
-        group.map((item) =>
+        group.map(({ item }) =>
           listItem(
             task ? item : { ...item, checked: undefined },
             diagnostics,
@@ -816,11 +851,12 @@ function listNodes(
     )
     group = []
   }
-  for (const item of value.children) {
+  for (let index = 0; index < value.children.length; index += 1) {
+    const item = value.children[index]!
     const isTask = typeof item.checked === "boolean"
     if (task !== undefined && task !== isTask) flush()
     task = isTask
-    group.push(item)
+    group.push({ item, index })
   }
   flush()
   return annotatePlanSources(result, value)
@@ -845,23 +881,15 @@ function tableCell(
 }
 
 /**
- * mdast table 在创建任何 HNN nodeId 前先限制几何。行内 markdown 的实际展开受统一
- * PlanLedger 逐事件精确结算；这里不能以保守估算提前拒绝，否则会丢失真正跨限 link
- * 的位置，也会与文本归一化后的最终节点数不一致。
+ * mdast table 在创建任何 HNN nodeId 前先限制几何。GFM 允许数据行比表头少或多列，
+ * 因此调用方必须先按表头补空/截断；这里只对归一化后的 rows×headerColumns 做预算检查，
+ * 不能因合法 GFM 缺格或多余单元格而拒绝。行内 markdown 的实际展开受统一 PlanLedger
+ * 逐事件精确结算；这里不能以保守估算提前拒绝。
  */
-function preflightTable(value: Extract<Content, { type: "table" }>): void {
+function preflightTable(value: Extract<Content, { type: "table" }>): number {
   const rows = value.children.length
   const columns = value.children[0]?.children.length ?? 0
   const grid = rows * columns
-  for (const row of value.children) {
-    if (row.children.length !== columns) {
-      throw new InputTooLargeError({
-        code: "input-too-large",
-        message: "Markdown 表格各行列数必须一致",
-        ...position(value)
-      })
-    }
-  }
   if (
     rows > HNN_TABLE_LIMITS.maxRows ||
     columns > HNN_TABLE_LIMITS.maxColumns ||
@@ -873,6 +901,19 @@ function preflightTable(value: Extract<Content, { type: "table" }>): void {
       ...position(value)
     })
   }
+  return columns
+}
+
+/** GFM 多余单元格按规范丢弃、缺失单元格补空，使 HNN 表格成为有界矩形。 */
+function normalizedTableCells(
+  cells: readonly TableCell[],
+  columns: number
+): TableCell[] {
+  if (cells.length === columns) return [...cells]
+  const normalized = cells.slice(0, columns)
+  while (normalized.length < columns)
+    normalized.push({ type: "tableCell", children: [] })
+  return normalized
 }
 
 type MarkdownPreflight =
@@ -1108,9 +1149,10 @@ function preflightMarkdown(
   for (let cursor = 0; cursor <= markdown.length; cursor += 1) {
     if (cursor !== markdown.length && markdown.charCodeAt(cursor) !== 10)
       continue
-    const rawLine = expandTabsForFenceScan(
-      markdown.slice(lineStart, cursor).replace(/\r$/u, "")
-    )
+    // 原始行用于 UTF-8/候选预算；tab 展开只服务于容器和 fence 的视觉列匹配。
+    // 两者不能混用，否则合法 tab-heavy text 会因扫描产生的空格被错误判为超限。
+    const sourceLine = markdown.slice(lineStart, cursor).replace(/\r$/u, "")
+    const expandedScanLine = expandTabsForFenceScan(sourceLine)
     lineStart = cursor + 1
     lineNumber += 1
     budget.lines += 1
@@ -1125,7 +1167,7 @@ function preflightMarkdown(
     // 只有确认已经退出 active 容器，才把当前行重新作为新的 list item/root 解释。
     let justClosedFence = false
     while (active) {
-      const activeBody = activeFenceBody(rawLine, active)
+      const activeBody = activeFenceBody(expandedScanLine, active)
       if (!activeBody.complete) {
         if (active.hnn) unterminatedFenceLines.add(active.line)
         active = undefined
@@ -1144,11 +1186,11 @@ function preflightMarkdown(
       break
     }
     if (active || justClosedFence) continue
-    // 任何普通可持久化 text 最终都受同一 attr 上限约束；围栏正文由 customFence
+    // 普通可持久化 text 按原始 UTF-8 字节受 text 上限约束（不计 JSON 转义）；围栏正文由 customFence
     // 逐 attr 检查并可局部可读降级，因此不能在这里把整份输入提前硬拒绝。
     if (
-      utf8Bytes(rawLine) > HNN_LIMITS.maxAttrBytes &&
-      !isExclusiveGfmImageCandidate(rawLine)
+      utf8Bytes(sourceLine) > HNN_LIMITS.maxAttrBytes &&
+      !isExclusiveGfmImageCandidate(sourceLine)
     )
       return {
         failure: "input-too-large",
@@ -1158,7 +1200,7 @@ function preflightMarkdown(
           line: lineNumber
         }
       }
-    const container = containerIdentity(rawLine, continuationPrefixes)
+    const container = containerIdentity(expandedScanLine, continuationPrefixes)
     if (container.prefixes.length > MAX_MARKDOWN_DEPTH)
       return {
         failure: "input-too-large",
@@ -1184,8 +1226,9 @@ function preflightMarkdown(
       }
       budget.blocks += 1
     } else {
-      for (let index = 0; index < container.body.length; index += 1) {
-        const unit = container.body[index]
+      // 词法标记与 URL 候选观察原始语法，不把扫描专用展开字符串当成用户正文。
+      for (let index = 0; index < sourceLine.length; index += 1) {
+        const unit = sourceLine[index]
         if (
           unit === "|" ||
           unit === "[" ||
@@ -1198,7 +1241,7 @@ function preflightMarkdown(
           budget.lexicalWork += 1
       }
       budget.lexicalWork += container.prefixes.length
-      budget.candidates += countMarkdownCandidates(container.body)
+      budget.candidates += countMarkdownCandidates(sourceLine)
       if (container.body.trim().length > 0 && previousBlank) budget.blocks += 1
     }
     if (budget.lexicalWork > MAX_LEXICAL_WORK)
@@ -1642,7 +1685,8 @@ function validatePlannedNodes(nodes: readonly HnnJsonNode[]): void {
       if (
         typeof value !== "string" ||
         value.length === 0 ||
-        !isHnnStringAttrWithinLimits(value, HNN_LIMITS.maxAttrBytes)
+        // 与 codec 一致：text 按原始 UTF-8 计预算，JSON 转义只进入 shell 总账。
+        !isUtf8WithinLimit(value, HNN_LIMITS.maxAttrBytes)
       )
         fail(`Markdown text 超过 ${HNN_LIMITS.maxAttrBytes} UTF-8 字节或不合法`)
       const marks = frame.node["marks"]
@@ -1972,6 +2016,21 @@ function jsonFenceString(
   return true
 }
 
+/**
+ * codec 对 text 使用原始 UTF-8 预算（不叠加 JSON 转义），并只要求原始长度非空，
+ * 因此纯空白正文也合法；JSON 字符串膨胀只影响 shell 总预算。此处必须与 codec 同口径，
+ * 否则 8192 个普通字符、大量反斜杠或空白正文的合法 HNN 会在最终 codec 前被误拒。
+ */
+function jsonFenceText(value: unknown): value is string {
+  if (
+    typeof value !== "string" ||
+    value.length === 0 ||
+    !isUtf8WithinLimit(value, HNN_LIMITS.maxAttrBytes)
+  )
+    jsonFenceFailure("text 不合法")
+  return true
+}
+
 function jsonFenceAttrs(type: string, raw: unknown): void {
   if (!raw || typeof raw !== "object" || Array.isArray(raw))
     jsonFenceFailure(`${type} attrs 不合法`)
@@ -2112,6 +2171,9 @@ function jsonFenceAttrs(type: string, raw: unknown): void {
 
 function jsonFenceMarks(value: unknown): void {
   if (!Array.isArray(value)) jsonFenceFailure("marks 不合法")
+  // codec canonical 会省略空 marks 字段；显式空数组是非规范形式，若不在此拒绝会漏到
+  // 最终 codec 并整份 conversion-failed，因此必须局部可读降级。
+  if (value.length === 0) jsonFenceFailure("marks 不允许为空")
   const seen = new Set<string>()
   let previousRank = -1
   for (const mark of value) {
@@ -2128,6 +2190,8 @@ function jsonFenceMarks(value: unknown): void {
     if (type === "link") {
       const attrs = record["attrs"]
       if (
+        // codec 只允许 link mark 含 type/attrs 两个包装字段，未知字段同样非法。
+        Object.keys(record).length !== 2 ||
         !attrs ||
         typeof attrs !== "object" ||
         Array.isArray(attrs) ||
@@ -2290,8 +2354,7 @@ function validateJsonFencePlan(root: HnnJsonNode): void {
     if (Object.keys(node).some((key) => !allowed.includes(key)))
       jsonFenceFailure("JSON-b64 node 包含未知字段")
     if (type === "text") {
-      if (!jsonFenceString(node["text"], HNN_LIMITS.maxAttrBytes, "text"))
-        jsonFenceFailure("text 不合法")
+      jsonFenceText(node["text"])
       if (node["marks"] !== undefined) {
         if (frame.parent === "codeBlock")
           jsonFenceFailure("codeBlock text 不可包含 marks")
@@ -2665,7 +2728,8 @@ function customFence(
   if (value.meta && value.meta.trim().length > 0)
     return invalidFence(value, diagnostics, `${language} 围栏不得包含 meta`)
   if (language === "math") {
-    if (value.value.length === 0)
+    // codec 的 requiredString 会 trim；纯空白 latex 不是合法 HNN 公式，必须局部降级。
+    if (value.value.trim().length === 0)
       return invalidFence(value, diagnostics, "math 围栏不能为空")
     return isHnnStringAttrWithinLimits(value.value, HNN_LIMITS.maxAttrBytes)
       ? [planNode("formula", { latex: value.value })]
@@ -2681,7 +2745,8 @@ function customFence(
       ? [planNode("directory", { config: "headings" })]
       : invalidFence(value, diagnostics, "directory 围栏不得包含正文")
   if (language === "hamster-note-card" || language === "hamster-note-drawing") {
-    if (value.value.length === 0)
+    // 纯空白 data 会被 codec 的 requiredString 拒绝，必须局部可读降级而非整份失败。
+    if (value.value.trim().length === 0)
       return invalidFence(
         value,
         diagnostics,
@@ -2887,8 +2952,9 @@ function blockNodes(
       return listNodes(value, diagnostics, unterminated, budget, convert)
     case "code":
       return customFence(value, diagnostics, unterminated, budget)
-    case "table":
-      preflightTable(value)
+    case "table": {
+      // 先按表头列数归一化（补空/截断），再做预算与转换，合法 GFM 缺格不再整份拒绝。
+      const columns = preflightTable(value)
       return [
         planNode(
           "table",
@@ -2897,18 +2963,20 @@ function blockNodes(
             planNode(
               "tableRow",
               {},
-              row.children.map((cell, cellIndex) =>
-                tableCell(
-                  cell,
-                  rowIndex === 0,
-                  diagnostics,
-                  value.align?.[cellIndex] ?? null
-                )
+              normalizedTableCells(row.children, columns).map(
+                (cell, cellIndex) =>
+                  tableCell(
+                    cell,
+                    rowIndex === 0,
+                    diagnostics,
+                    value.align?.[cellIndex] ?? null
+                  )
               )
             )
           )
         )
       ]
+    }
     case "html":
       importDiagnostic(
         diagnostics,
@@ -2935,7 +3003,8 @@ function blockNodes(
         "unsupported-block",
         `不支持的 Markdown ${value.type} 已作为可读代码保留`
       )
-      return fallbackCode("markdown", String(value.type))
+      // footnoteDefinition 等未知块必须保留原始可读 source 与 id，不能只写类型名。
+      return fallbackCode("markdown", readableMarkdownFragment(value))
   }
 }
 

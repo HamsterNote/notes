@@ -556,7 +556,7 @@ describe("6.7 picture upload installer：审查修复回归", () => {
     const pictures = pictureNodes(session)
     expect(pictures).toHaveLength(2)
     expect(new Set(pictures.map((node) => node.nodeId)).size).toBe(2)
-    expect(pictures.map((node) => node.src).sort()).toEqual(["https://cdn.test/a.png", "https://cdn.test/b.png"])
+    expect(pictures.map((node) => node.src)).toEqual(["https://cdn.test/a.png", "https://cdn.test/b.png"])
     expect(placeholders(session)).toHaveLength(0)
     expect(() => encodeHnn(session.editor.state.doc)).not.toThrow()
     expect(session.editor.state.doc.firstChild?.type.name).toBe("paragraph")
@@ -592,3 +592,129 @@ describe("6.7 picture upload installer：审查修复回归", () => {
   })
 })
 
+describe("PR11 #5：图片批量选择顺序不受网络完成顺序影响", () => {
+  it("后项先完成但超预算时不重排/移除前项锚点、不触发 abort", async () => {
+    const session = nearNodeLimitSession()
+    const first = deferred<{ src: string }>()
+    const second = deferred<{ src: string }>()
+    const upload = vi.fn().mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise)
+    const installer = installPictureUpload(session.editor, { upload })
+    cleanups.push(() => { installer.destroy(); session.destroy() })
+    const uploadIds = installer.enqueue([imageFile("a.png"), imageFile("b.png")], 2)
+    const before = encodeHnn(session.editor.state.doc)
+    second.resolve({ src: "https://cdn.test/b.png" })
+    await flush()
+    expect(installer.getState().items.map((item) => item.status)).toEqual(["uploading", "failed"])
+    expect(placeholders(session).map((dom) => dom.getAttribute("data-hn-upload-id"))).toEqual(uploadIds)
+    const request = (upload.mock.calls[0] as [File, { signal: AbortSignal }])[1]
+    expect(request.signal.aborted).toBe(false)
+    expect(encodeHnn(session.editor.state.doc)).toEqual(before)
+    expect(session.undo()).toBe(false)
+  })
+
+  it("a,b,c 逆序完成时即刻插入成功项，最终按选择顺序排列且各自单步 undo", async () => {
+    const { session, installer, upload } = mount()
+    const pending = [deferred<{ src: string }>(), deferred<{ src: string }>(), deferred<{ src: string }>()]
+    pending.forEach((item) => upload.mockReturnValueOnce(item.promise))
+    const uploadIds = installer.enqueue([imageFile("a.png"), imageFile("b.png"), imageFile("c.png")], 2)
+    expect(placeholders(session).map((dom) => dom.getAttribute("data-hn-upload-id"))).toEqual(uploadIds)
+
+    pending[2]!.resolve({ src: "https://cdn.test/c.png" })
+    await flush()
+    expect(pictureNodes(session).map((node) => node.src)).toEqual(["https://cdn.test/c.png"])
+    expect(placeholders(session).map((dom) => dom.getAttribute("data-hn-upload-id"))).toEqual(uploadIds.slice(0, 2))
+    pending[1]!.resolve({ src: "https://cdn.test/b.png" })
+    await flush()
+    expect(pictureNodes(session).map((node) => node.src)).toEqual(["https://cdn.test/b.png", "https://cdn.test/c.png"])
+    pending[0]!.resolve({ src: "https://cdn.test/a.png" })
+    await flush()
+    expect(pictureNodes(session).map((node) => node.src)).toEqual([
+      "https://cdn.test/a.png", "https://cdn.test/b.png", "https://cdn.test/c.png"
+    ])
+    const hnn = JSON.stringify(encodeHnn(session.editor.state.doc))
+    uploadIds.forEach((id) => expect(hnn).not.toContain(id))
+    expect(hnn).not.toContain("order")
+    expect(session.undo()).toBe(true)
+    expect(pictureNodes(session).map((node) => node.src)).toEqual(["https://cdn.test/b.png", "https://cdn.test/c.png"])
+    expect(session.undo()).toBe(true)
+    expect(pictureNodes(session).map((node) => node.src)).toEqual(["https://cdn.test/c.png"])
+    expect(session.undo()).toBe(true)
+    expect(pictureNodes(session)).toHaveLength(0)
+    expect(session.redo()).toBe(true)
+    expect(session.redo()).toBe(true)
+    expect(session.redo()).toBe(true)
+    expect(pictureNodes(session).map((node) => node.src)).toEqual([
+      "https://cdn.test/a.png", "https://cdn.test/b.png", "https://cdn.test/c.png"
+    ])
+  })
+
+  it("前项失败后后项成功，用户编辑后 retry 仍插到后项前并保持 attempt", async () => {
+    const { session, installer, upload } = mount()
+    const first = deferred<{ src: string }>()
+    const second = deferred<{ src: string }>()
+    const retry = deferred<{ src: string }>()
+    upload.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise).mockReturnValueOnce(retry.promise)
+    const [firstId] = installer.enqueue([imageFile("a.png"), imageFile("b.png")], 2)
+    first.reject(new Error("离线"))
+    second.resolve({ src: "https://cdn.test/b.png" })
+    await flush()
+    expect(installer.getState().items).toMatchObject([{ uploadId: firstId, status: "failed" }])
+    session.editor.view.dispatch(session.editor.state.tr.insertText("用户输入", 1))
+    expect(installer.retry(firstId!)).toBe(true)
+    expect(upload.mock.calls[2]?.[1]).toMatchObject({ uploadId: firstId, attempt: 2 })
+    retry.resolve({ src: "https://cdn.test/a.png" })
+    await flush()
+    expect(session.editor.state.doc.firstChild?.textContent).toBe("用户输入base")
+    expect(pictureNodes(session).map((node) => node.src)).toEqual(["https://cdn.test/a.png", "https://cdn.test/b.png"])
+    expect(placeholders(session)).toHaveLength(0)
+  })
+
+  it("取消中间项不阻塞其余项，迟到结果不能插入或扰乱顺序", async () => {
+    const { session, installer, upload } = mount()
+    const pending = [deferred<{ src: string }>(), deferred<{ src: string }>(), deferred<{ src: string }>()]
+    pending.forEach((item) => upload.mockReturnValueOnce(item.promise))
+    const [, middleId] = installer.enqueue([imageFile("a.png"), imageFile("b.png"), imageFile("c.png")], 2)
+    pending[2]!.resolve({ src: "https://cdn.test/c.png" })
+    await flush()
+    expect(installer.cancel(middleId!)).toBe(true)
+    const canceledRequest = (upload.mock.calls[1] as [File, { signal: AbortSignal }])[1]
+    expect(canceledRequest.signal.aborted).toBe(true)
+    pending[1]!.resolve({ src: "https://cdn.test/b.png" })
+    pending[0]!.resolve({ src: "https://cdn.test/a.png" })
+    await flush()
+    expect(pictureNodes(session).map((node) => node.src)).toEqual(["https://cdn.test/a.png", "https://cdn.test/c.png"])
+    expect(installer.getState().items).toHaveLength(0)
+  })
+
+  it("不同批次同位置逆序完成，仍按批次入队顺序排列", async () => {
+    const { session, installer, upload } = mount()
+    const pending = [deferred<{ src: string }>(), deferred<{ src: string }>(), deferred<{ src: string }>(), deferred<{ src: string }>()]
+    pending.forEach((item) => upload.mockReturnValueOnce(item.promise))
+    const batch1 = installer.enqueue([imageFile("a.png"), imageFile("b.png")], 2)
+    const batch2 = installer.enqueue([imageFile("c.png"), imageFile("d.png")], 2)
+    expect(placeholders(session).map((dom) => dom.getAttribute("data-hn-upload-id"))).toEqual([...batch1, ...batch2])
+    for (const index of [3, 1, 2, 0]) {
+      pending[index]!.resolve({ src: `https://cdn.test/${["a", "b", "c", "d"][index]}.png` })
+      await flush()
+    }
+    expect(pictureNodes(session).map((node) => node.src)).toEqual([
+      "https://cdn.test/a.png", "https://cdn.test/b.png", "https://cdn.test/c.png", "https://cdn.test/d.png"
+    ])
+  })
+
+  it("撤销先完成的后项后，前项锚点仍可定位，不恢复上传临时态", async () => {
+    const { session, installer, upload } = mount()
+    const first = deferred<{ src: string }>()
+    const second = deferred<{ src: string }>()
+    upload.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise)
+    const [firstId] = installer.enqueue([imageFile("a.png"), imageFile("b.png")], 2)
+    second.resolve({ src: "https://cdn.test/b.png" })
+    await flush()
+    expect(session.undo()).toBe(true)
+    expect(installer.getState().items).toMatchObject([{ uploadId: firstId }])
+    first.resolve({ src: "https://cdn.test/a.png" })
+    await flush()
+    expect(pictureNodes(session).map((node) => node.src)).toEqual(["https://cdn.test/a.png"])
+    expect(installer.getState().items).toHaveLength(0)
+  })
+})

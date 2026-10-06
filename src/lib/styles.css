@@ -440,7 +440,11 @@
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
 }
 
-/* 行/列操作按钮：小胶囊形，同样居中压在首单元格左/表头上边界 */
+/* 行/列操作按钮：小胶囊形，同样居中压在首单元格左/表头上边界。
+ * touch-action: none（PR#11-#18）：触屏拖动行/列需独占手势——默认 auto 下
+ * 浏览器会把位移抢去滚动页面并派发 pointercancel（无 pointerup），真实移动
+ * 端（CDP 390×844 复现）永远拖不动；仅操作柄禁止浏览器手势，表格其余区域
+ * 正常滚动、边界 + 与菜单条目点按不受影响。 */
 .hn-editor-content .hn-editor-table-op {
   min-width: 20px;
   height: 20px;
@@ -448,6 +452,7 @@
   transform: translate(-50%, -50%);
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
   letter-spacing: 1px;
+  touch-action: none;
 }
 
 .hn-editor-content .hn-editor-table-edge:hover,
