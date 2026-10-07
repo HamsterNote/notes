@@ -1,0 +1,132 @@
+/* 7.2 宿主引用候选菜单与引用解析状态占位。
+ * 视觉语言镜像 styles.css 的 .hn-note-mention-menu / hn-popover-in（DESIGN.md §14）：
+ * 自带 keyframes 与 surface 定义，组件自包含、不依赖全局样式表的加载顺序。 */
+
+.hn-reference-menu {
+  position: fixed;
+  z-index: 10000;
+  display: grid;
+  width: min(260px, calc(100vw - 24px));
+  max-height: min(18rem, calc(100vh - 24px));
+  gap: 0.15rem;
+  padding: 0.3rem;
+  overflow-y: auto;
+  border-radius: 10px;
+  background: #1e293b;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
+  animation: hn-reference-popover-in 0.12s ease;
+}
+
+/* 仅做淡入，避免与定位 style 冲突（与 hn-popover-in 同一动效语言） */
+@keyframes hn-reference-popover-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.hn-reference-option {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 0.65rem;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #e2e8f0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* 悬停与键盘高亮共用同一 popover 按钮态（DESIGN.md §14） */
+.hn-reference-option:hover,
+.hn-reference-option[aria-selected="true"] {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.hn-reference-option:focus-visible {
+  outline: 2px solid var(--hn-theme);
+  outline-offset: -2px;
+}
+
+.hn-reference-option-mark {
+  font-weight: 700;
+}
+
+/* 状态行（pending/empty/error）：非交互，复用空态视觉，不引入新色板 */
+.hn-reference-empty {
+  padding: 0.5rem 0.65rem;
+  color: rgba(226, 232, 240, 0.6);
+  font-size: 0.8rem;
+  text-align: left;
+  cursor: default;
+}
+
+@media (max-width: 840px) {
+  .hn-reference-menu {
+    width: min(240px, calc(100vw - 24px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hn-reference-menu {
+    animation: none;
+  }
+}
+
+/* ===== 引用解析状态占位（DOM attribute 驱动，不写 PM/HNN） =====
+ * NodeView 的 ignoreMutation 为 true，外部 attribute 不参与文档序列化、不影响 DOM
+ * selection；颜色全部复用 --hn-* token，占位符号用 CSS 伪元素生成（不进 DOM 文本）。 */
+
+.hn-editor-content .hn-editor-mention[data-hnn-resolve-status="loading"],
+.hn-editor-content .hn-editor-resource[data-hnn-resolve-status="loading"],
+.hn-editor-content .hn-editor-external-item[data-hnn-resolve-status="loading"] {
+  opacity: 0.55;
+}
+
+.hn-editor-content .hn-editor-mention[data-hnn-resolve-status="missing"],
+.hn-editor-content .hn-editor-resource[data-hnn-resolve-status="missing"],
+.hn-editor-content .hn-editor-external-item[data-hnn-resolve-status="missing"] {
+  opacity: 0.7;
+}
+
+.hn-editor-content .hn-editor-mention[data-hnn-resolve-status="missing"]::after,
+.hn-editor-content .hn-editor-resource[data-hnn-resolve-status="missing"]::after,
+.hn-editor-content .hn-editor-external-item[data-hnn-resolve-status="missing"]::after {
+  content: "？";
+  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
+}
+
+.hn-editor-content .hn-editor-mention[data-hnn-resolve-status="error"]::after,
+.hn-editor-content .hn-editor-resource[data-hnn-resolve-status="error"]::after,
+.hn-editor-content .hn-editor-external-item[data-hnn-resolve-status="error"]::after {
+  content: "！";
+  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
+}
+
+/* ===== 引用键盘可达（DESIGN.md §16：仅宿主提供 activate 时桥才补 role="link"） =====
+ * 焦点环与悬停暗示全部复用既有 --hn-theme/--hn-theme-border/--hn-theme-text token，
+ * 不引入新配色；externalItem 虚线下划线本体由 styles.css 既有规则提供，这里只补
+ * 可激活态的悬停加深与指针暗示。 */
+
+.hn-editor-content [data-hnn-node][role="link"] {
+  cursor: pointer;
+}
+
+.hn-editor-content [data-hnn-node][role="link"]:focus-visible {
+  outline: 2px solid var(--hn-theme, #3b82f6);
+  outline-offset: 1px;
+  border-radius: 4px;
+}
+
+.hn-editor-content .hn-editor-external-item[role="link"]:hover .hn-editor-external-item-name,
+.hn-editor-content .hn-editor-external-item[role="link"]:focus-visible .hn-editor-external-item-name {
+  text-decoration-color: var(--hn-theme-text, color-mix(in srgb, var(--hn-theme, #3b82f6) 75%, #1e293b));
+}

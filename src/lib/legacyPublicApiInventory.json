@@ -1,0 +1,383 @@
+{
+  "$comment": "OpenSpec 变更 migrate-to-tiptap-prosemirror 任务 1.3：冻结公共 API 导出清单并标记待移除项。此文件不面向用户、不被 src/lib/index.ts 引用，仅用于冻结清单与变更检测。移除动作在任务 8（8.1 删除、8.2 公共 API smoke）执行；Phase 1 不删除任何现有导出。",
+  "frozenForChange": "migrate-to-tiptap-prosemirror",
+  "removalTask": "8.1",
+  "publicApiTask": "8.2",
+  "phase": "deleted",
+  "publicExports": [
+    {
+      "name": "NoteContent",
+      "kind": "value",
+      "category": "旧内容组件",
+      "removalTask": "8.1",
+      "note": "由新的 NoteEditor 唯一入口替代"
+    },
+    {
+      "name": "useNoteContentUndoRedo",
+      "kind": "value",
+      "category": "自研撤销重做",
+      "removalTask": "8.1",
+      "note": "撤销重做改由 ProseMirror history 提供"
+    },
+    {
+      "name": "createNoteId",
+      "kind": "value",
+      "category": "旧块标识",
+      "removalTask": "8.1",
+      "note": "持久节点标识改由 PM 节点 attr 生成与校验"
+    },
+    {
+      "name": "noteBlockKinds",
+      "kind": "value",
+      "category": "旧块模型",
+      "removalTask": "8.1",
+      "note": "旧内容块种类常量"
+    },
+    {
+      "name": "ExternalNoteDragCancellationReason",
+      "kind": "type",
+      "category": "自研外部拖拽",
+      "removalTask": "8.1",
+      "note": "外部拖入改由原生 draggable + 宿主回调"
+    },
+    {
+      "name": "ExternalNoteDragCompletion",
+      "kind": "type",
+      "category": "自研外部拖拽",
+      "removalTask": "8.1",
+      "note": "外部拖入改由原生 draggable + 宿主回调"
+    },
+    {
+      "name": "ExternalNoteDragInput",
+      "kind": "type",
+      "category": "自研外部拖拽",
+      "removalTask": "8.1",
+      "note": "外部拖入改由原生 draggable + 宿主回调"
+    },
+    {
+      "name": "ExternalNoteDragSession",
+      "kind": "type",
+      "category": "自研外部拖拽",
+      "removalTask": "8.1",
+      "note": "外部拖入改由原生 draggable + 宿主回调"
+    },
+    {
+      "name": "ExternalNoteDragStartFailureReason",
+      "kind": "type",
+      "category": "自研外部拖拽",
+      "removalTask": "8.1",
+      "note": "外部拖入改由原生 draggable + 宿主回调"
+    },
+    {
+      "name": "ExternalNoteDragStartResult",
+      "kind": "type",
+      "category": "自研外部拖拽",
+      "removalTask": "8.1",
+      "note": "外部拖入改由原生 draggable + 宿主回调"
+    },
+    {
+      "name": "NoteExternalItem",
+      "kind": "type",
+      "category": "自研外部拖拽",
+      "removalTask": "8.1",
+      "note": "外部拖入改由原生 draggable + 宿主回调"
+    },
+    {
+      "name": "NoteBlock",
+      "kind": "type",
+      "category": "旧块模型",
+      "removalTask": "8.1",
+      "note": "旧统一块联合类型，由 ProseMirror doc/Node 替代"
+    },
+    {
+      "name": "NoteCalloutBlock",
+      "kind": "type",
+      "category": "旧块模型",
+      "removalTask": "8.1",
+      "note": "由 callout 自定义节点替代"
+    },
+    {
+      "name": "NoteCalloutTone",
+      "kind": "type",
+      "category": "旧块模型",
+      "removalTask": "8.1",
+      "note": "由 callout 节点 attr 替代"
+    },
+    {
+      "name": "NoteCardBlock",
+      "kind": "type",
+      "category": "旧块模型",
+      "removalTask": "8.1",
+      "note": "由 card atom 节点替代"
+    },
+    {
+      "name": "NoteCardData",
+      "kind": "type",
+      "category": "旧块模型",
+      "removalTask": "8.1",
+      "note": "由 card 节点可持久化 attrs 替代"
+    },
+    {
+      "name": "NoteCodeBlock",
+      "kind": "type",
+      "category": "旧块模型",
+      "removalTask": "8.1",
+      "note": "由官方 codeBlock 扩展替代"
+    },
+    {
+      "name": "NoteCollapsibleBlock",
+      "kind": "type",
+      "category": "旧块模型",
+      "removalTask": "8.1",
+      "note": "由 collapsible 自定义容器节点替代"
+    },
+    {
+      "name": "NoteContentHandle",
+      "kind": "type",
+      "category": "自研 DOM 选区/手柄接口",
+      "removalTask": "8.1",
+      "note": "由 PM 原生 selection + 编辑器 handle 替代"
+    },
+    {
+      "name": "NoteContentProps",
+      "kind": "type",
+      "category": "旧内容组件",
+      "removalTask": "8.1",
+      "note": "由新的 NoteEditor props 契约替代"
+    },
+    {
+      "name": "NoteContentTransaction",
+      "kind": "type",
+      "category": "旧内容组件",
+      "removalTask": "8.1",
+      "note": "由 PM transaction 替代"
+    },
+    {
+      "name": "NoteContentTransactionOperation",
+      "kind": "type",
+      "category": "旧内容组件",
+      "removalTask": "8.1",
+      "note": "由 PM transaction 替代"
+    },
+    {
+      "name": "NoteContentUndoRedoController",
+      "kind": "type",
+      "category": "自研撤销重做",
+      "removalTask": "8.1",
+      "note": "由 PM history 命令替代"
+    },
+    {
+      "name": "NoteContentUndoRedoHandle",
+      "kind": "type",
+      "category": "自研撤销重做",
+      "removalTask": "8.1",
+      "note": "由 PM history 命令替代"
+    },
+    {
+      "name": "NoteContentUndoRedoSnapshot",
+      "kind": "type",
+      "category": "自研撤销重做",
+      "removalTask": "8.1",
+      "note": "由 PM doc 快照替代"
+    },
+    {
+      "name": "NoteDirectoryBlock",
+      "kind": "type",
+      "category": "旧块模型",
+      "removalTask": "8.1",
+      "note": "由 directory 自定义节点（条目派生）替代"
+    },
+    {
+      "name": "NoteDrawingBlock",
+      "kind": "type",
+      "category": "旧块模型",
+      "removalTask": "8.1",
+      "note": "由 drawing atom 节点替代"
+    },
+    {
+      "name": "NoteFormulaBlock",
+      "kind": "type",
+      "category": "旧块模型",
+      "removalTask": "8.1",
+      "note": "由独立/行内公式节点替代"
+    },
+    {
+      "name": "NoteHeadingBlock",
+      "kind": "type",
+      "category": "旧块模型",
+      "removalTask": "8.1",
+      "note": "由官方 heading 扩展替代"
+    },
+    {
+      "name": "NoteLink",
+      "kind": "type",
+      "category": "旧块模型",
+      "removalTask": "8.1",
+      "note": "由 link mark + mention 节点替代"
+    },
+    {
+      "name": "NoteParagraphBlock",
+      "kind": "type",
+      "category": "旧块模型",
+      "removalTask": "8.1",
+      "note": "由官方 paragraph 扩展替代"
+    },
+    {
+      "name": "NotePictureBlock",
+      "kind": "type",
+      "category": "旧块模型",
+      "removalTask": "8.1",
+      "note": "由 picture 节点替代"
+    },
+    {
+      "name": "NoteQuoteBlock",
+      "kind": "type",
+      "category": "旧块模型",
+      "removalTask": "8.1",
+      "note": "由官方 blockquote 扩展替代"
+    },
+    {
+      "name": "NoteTheme",
+      "kind": "type",
+      "category": "旧内容组件",
+      "removalTask": "8.1",
+      "note": "主题契约随新编辑器入口重新定义"
+    },
+    {
+      "name": "NoteTodoBlock",
+      "kind": "type",
+      "category": "旧块模型",
+      "removalTask": "8.1",
+      "note": "由 taskList/taskItem 扩展替代"
+    },
+    {
+      "name": "NoteTodoItem",
+      "kind": "type",
+      "category": "旧块模型",
+      "removalTask": "8.1",
+      "note": "由 taskItem 扩展替代"
+    },
+    {
+      "name": "UseNoteContentUndoRedoResult",
+      "kind": "type",
+      "category": "自研撤销重做",
+      "removalTask": "8.1",
+      "note": "由 PM history 命令替代"
+    }
+  ],
+  "currentPublicExports": [
+    { "name": "NoteEditor", "kind": "value", "source": "./editor/NoteEditor" },
+    { "name": "NoteSaveStatus", "kind": "value", "source": "./editor/NoteSaveStatus" },
+    { "name": "MarkdownExport", "kind": "value", "source": "./editor/MarkdownExport" },
+    { "name": "HnnCodecError", "kind": "value", "source": "./hnn/codec" },
+    { "name": "decodeHnn", "kind": "value", "source": "./hnn/codec" },
+    { "name": "encodeHnn", "kind": "value", "source": "./hnn/codec" },
+    { "name": "importMarkdown", "kind": "value", "source": "./hnn/markdown" },
+    { "name": "exportMarkdown", "kind": "value", "source": "./hnn/markdown" },
+    { "name": "NoteEditorProps", "kind": "type", "source": "./editor/NoteEditor" },
+    { "name": "NoteSaveStatusProps", "kind": "type", "source": "./editor/NoteSaveStatus" },
+    { "name": "MarkdownExportContext", "kind": "type", "source": "./editor/MarkdownExport" },
+    { "name": "MarkdownExportProps", "kind": "type", "source": "./editor/MarkdownExport" },
+    { "name": "HnnDiagnostic", "kind": "type", "source": "./hnn/codec" },
+    { "name": "HnnDocument", "kind": "type", "source": "./hnn/codec" },
+    { "name": "MarkdownDiagnostic", "kind": "type", "source": "./hnn/markdown" },
+    { "name": "MarkdownExportResult", "kind": "type", "source": "./hnn/markdown" },
+    { "name": "MarkdownImportResult", "kind": "type", "source": "./hnn/markdown" },
+    { "name": "EditorSessionOptions", "kind": "type", "source": "./editor/types" },
+    { "name": "EditorSessionState", "kind": "type", "source": "./editor/types" },
+    { "name": "EditorSessionStatus", "kind": "type", "source": "./editor/types" },
+    { "name": "HostCandidateKind", "kind": "type", "source": "./editor/types" },
+    { "name": "HostCandidateProvider", "kind": "type", "source": "./editor/types" },
+    { "name": "HostCandidateState", "kind": "type", "source": "./editor/types" },
+    { "name": "HostCandidateStatus", "kind": "type", "source": "./editor/types" },
+    { "name": "HostReferenceActivate", "kind": "type", "source": "./editor/types" },
+    { "name": "HostReferenceActivation", "kind": "type", "source": "./editor/types" },
+    { "name": "HostReferenceCandidate", "kind": "type", "source": "./editor/types" },
+    { "name": "HostReferenceContext", "kind": "type", "source": "./editor/types" },
+    { "name": "HostReferenceKind", "kind": "type", "source": "./editor/types" },
+    { "name": "HostReferenceLookup", "kind": "type", "source": "./editor/types" },
+    { "name": "HostReferenceResolution", "kind": "type", "source": "./editor/types" },
+    { "name": "HostReferenceResolutionEntry", "kind": "type", "source": "./editor/types" },
+    { "name": "HostReferenceResolutionStatus", "kind": "type", "source": "./editor/types" },
+    { "name": "HostReferenceResolve", "kind": "type", "source": "./editor/types" },
+    { "name": "HostReferenceState", "kind": "type", "source": "./editor/types" },
+    { "name": "InitialLoadErrorContext", "kind": "type", "source": "./editor/types" },
+    { "name": "InitialLoadErrorHandler", "kind": "type", "source": "./editor/types" },
+    { "name": "NoteSave", "kind": "type", "source": "./editor/types" },
+    { "name": "NoteSaveContext", "kind": "type", "source": "./editor/types" },
+    { "name": "NoteSaveResult", "kind": "type", "source": "./editor/types" },
+    { "name": "PictureUploadHandler", "kind": "type", "source": "./editor/types" },
+    { "name": "PictureUploadItem", "kind": "type", "source": "./editor/types" },
+    { "name": "PictureUploadItemStatus", "kind": "type", "source": "./editor/types" },
+    { "name": "PictureUploadRequest", "kind": "type", "source": "./editor/types" },
+    { "name": "PictureUploadResult", "kind": "type", "source": "./editor/types" },
+    { "name": "PictureUploadState", "kind": "type", "source": "./editor/types" }
+  ],
+  "legacyInternalModules": [
+    {
+      "path": "src/lib/NoteContent.tsx",
+      "category": "旧内容组件",
+      "note": "旧 NoteContent 组件入口"
+    },
+    {
+      "path": "src/lib/types.ts",
+      "category": "旧块模型",
+      "note": "NoteBlock 及各类块类型定义"
+    },
+    {
+      "path": "src/lib/restrictedHtml.ts",
+      "category": "受限 HTML",
+      "note": "受限 HTML 渲染与解析"
+    },
+    {
+      "path": "src/lib/noteTextFlow.ts",
+      "category": "自研 DOM 选区",
+      "note": "跨标题/摘要/正文连续文本流"
+    },
+    {
+      "path": "src/lib/notePointerSelection.ts",
+      "category": "自研 DOM 选区",
+      "note": "自研指针驱动选区"
+    },
+    {
+      "path": "src/lib/editableSelection.ts",
+      "category": "自研 DOM 选区",
+      "note": "自研可编辑区选区处理"
+    },
+    {
+      "path": "src/lib/noteTextOffset.ts",
+      "category": "自研 DOM 选区",
+      "note": "自研文本偏移计算"
+    },
+    {
+      "path": "src/lib/noteSelectionRestore.ts",
+      "category": "自研 DOM 选区",
+      "note": "自研选区恢复"
+    },
+    {
+      "path": "src/lib/noteSelectAll.ts",
+      "category": "自研 DOM 选区",
+      "note": "自研全选"
+    },
+    {
+      "path": "src/lib/noteStructuredClipboard.ts",
+      "category": "自研剪贴板",
+      "note": "自研结构化剪贴板"
+    },
+    {
+      "path": "src/lib/noteStructuredPaste.ts",
+      "category": "自研剪贴板",
+      "note": "自研结构化粘贴"
+    },
+    {
+      "path": "src/lib/noteRegionCodec.ts",
+      "category": "自研剪贴板",
+      "note": "自研剪贴板 region codec"
+    },
+    {
+      "path": "src/lib/noteClipboardBlockCodec.ts",
+      "category": "自研剪贴板",
+      "note": "自研剪贴板块 codec"
+    }
+  ]
+}

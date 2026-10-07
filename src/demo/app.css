@@ -33,6 +33,12 @@ select {
   min-height: 100vh;
 }
 
+/* 深色演示壳：只复用既有色板（#0f172a/#1e293b/#f1f5f9/#3b82f6），不引入新配色 */
+.demo-layout--dark {
+  color: #f1f5f9;
+  background: #0f172a;
+}
+
 /* ===== 左侧边栏 ===== */
 /* sticky + height:100vh：侧边栏固定满屏高度、内部独立滚动，不随文档流滚动 */
 /* align-self:start：阻止 grid 拉伸该列，使显式 height 生效 */
@@ -52,6 +58,11 @@ select {
   scrollbar-width: thin;
 }
 
+.demo-layout--dark .demo-sidebar {
+  border-right-color: rgba(226, 232, 240, 0.12);
+  background: #1e293b;
+}
+
 .demo-sidebar-header h2 {
   margin: 0;
   font-size: 1.3rem;
@@ -61,6 +72,10 @@ select {
   margin: 0.35rem 0 0;
   color: rgba(51, 65, 85, 0.6);
   font-size: 0.85rem;
+}
+
+.demo-layout--dark .demo-sidebar-header p {
+  color: rgba(226, 232, 240, 0.6);
 }
 
 .demo-control-group {
@@ -77,68 +92,51 @@ select {
   color: #64748b;
 }
 
-.demo-external-item--compact {
-  display: none;
+.demo-sub-label {
+  margin: 0.25rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
 }
 
-/* 主题色选择行 */
-.demo-color-row {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
+.demo-field-label {
+  font-size: 0.82rem;
+  color: rgba(51, 65, 85, 0.75);
 }
 
-.demo-color-input {
-  width: 42px;
-  height: 42px;
-  padding: 0;
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  border-radius: 12px;
-  background: none;
-  cursor: pointer;
+.demo-layout--dark .demo-field-label {
+  color: rgba(226, 232, 240, 0.75);
 }
 
-.demo-color-input::-webkit-color-swatch-wrapper {
-  padding: 4px;
+.demo-hint {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.78rem;
+  line-height: 1.5;
 }
 
-.demo-color-input::-webkit-color-swatch {
-  border: none;
+/* 动态输出（已存 revision / 编辑观测）：等宽、可换行 */
+.demo-output {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 8px;
-}
-
-.demo-color-value {
+  background: #f8fafc;
+  color: rgba(51, 65, 85, 0.85);
   font-family: "SFMono-Regular", "Menlo", monospace;
-  font-size: 0.85rem;
-  color: rgba(51, 65, 85, 0.7);
+  font-size: 0.78rem;
 }
 
-/* 预设色板 */
-.demo-preset-colors {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+.demo-output--muted {
+  color: #64748b;
 }
 
-.demo-preset-swatch {
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 2px solid transparent;
-  border-radius: 8px;
-  cursor: pointer;
-  transition:
-    transform 0.12s ease,
-    box-shadow 0.12s ease;
-}
-
-.demo-preset-swatch:hover {
-  transform: scale(1.12);
-}
-
-.demo-preset-swatch--active {
-  border-color: #1e293b;
-  box-shadow: 0 0 0 2px white inset;
+.demo-layout--dark .demo-output {
+  border-color: rgba(226, 232, 240, 0.12);
+  background: #0f172a;
+  color: rgba(226, 232, 240, 0.85);
 }
 
 /* 开关行 */
@@ -146,10 +144,13 @@ select {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.5rem;
+  cursor: pointer;
 }
 
 .demo-switch {
   position: relative;
+  flex: 0 0 auto;
   width: 44px;
   height: 24px;
   padding: 0;
@@ -180,31 +181,12 @@ select {
   transform: translateX(20px);
 }
 
-.demo-hint {
-  margin: 0;
-  color: #64748b;
-  font-size: 0.78rem;
-  line-height: 1.5;
+.demo-switch:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35);
 }
 
-.demo-nowrap {
-  white-space: nowrap;
-}
-
-.demo-select-result {
-  display: block;
-  min-width: 0;
-  overflow-wrap: anywhere;
-  padding: 0.5rem 0.65rem;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 8px;
-  background: #f8fafc;
-  color: rgba(51, 65, 85, 0.85);
-  font-family: "SFMono-Regular", "Menlo", monospace;
-  font-size: 0.78rem;
-}
-
-/* 文本输入 */
+/* 文本输入 / 文档选择 */
 .demo-text-input {
   padding: 0.6rem 0.75rem;
   border: 1px solid rgba(15, 23, 42, 0.12);
@@ -223,50 +205,19 @@ select {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
-/* 范围滑块行：滑块 + 数值显示 */
-.demo-range-row {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
+.demo-layout--dark .demo-text-input {
+  border-color: rgba(226, 232, 240, 0.16);
+  background: #0f172a;
+  color: #f1f5f9;
 }
 
-.demo-range {
-  flex: 1 1 auto;
-  min-width: 0;
-  accent-color: #3b82f6;
-  cursor: pointer;
-}
-
-.demo-range-value {
-  min-width: 3.5rem;
-  text-align: right;
-  font-family: "SFMono-Regular", "Menlo", monospace;
-  font-size: 0.85rem;
-  color: rgba(51, 65, 85, 0.7);
-}
-
-/* 撤销/恢复按钮行：沿用 demo-text-input 的边框/圆角/聚焦规范，保证视觉一致 */
-.demo-undo-redo-row {
+/* ===== 按钮：沿用输入控件的边框/圆角/聚焦规范，保证视觉一致 ===== */
+.demo-button-row {
   display: flex;
   gap: 0.5rem;
 }
 
-.demo-block-jump-row {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.demo-block-jump-input {
-  min-width: 0;
-  flex: 1;
-}
-
-.demo-block-jump-button.demo-undo-redo-button {
-  flex: 0 0 auto;
-}
-
-.demo-undo-redo-button {
+.demo-button {
   flex: 1;
   padding: 0.6rem 0.75rem;
   border: 1px solid rgba(15, 23, 42, 0.12);
@@ -283,21 +234,142 @@ select {
     opacity 0.15s ease;
 }
 
-.demo-undo-redo-button:hover:not(:disabled) {
+.demo-button:hover:not(:disabled) {
   background: #ffffff;
   border-color: rgba(59, 130, 246, 0.4);
 }
 
 /* :focus-visible 保证键盘聚焦时显示可见焦点环，鼠标点击不冗余高亮 */
-.demo-undo-redo-button:focus-visible {
+.demo-button:focus-visible {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
-.demo-undo-redo-button:disabled {
+.demo-button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+.demo-button--small {
+  flex: 0 0 auto;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.78rem;
+}
+
+.demo-layout--dark .demo-button {
+  border-color: rgba(226, 232, 240, 0.16);
+  background: #0f172a;
+  color: #f1f5f9;
+}
+
+.demo-layout--dark .demo-button:hover:not(:disabled) {
+  background: #1e293b;
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+/* ===== 侧栏：诊断列表与宿主事件日志 ===== */
+.demo-note-list {
+  margin: 0;
+  padding: 0 0 0 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  color: rgba(51, 65, 85, 0.85);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.demo-note-list ul {
+  margin: 0.2rem 0 0;
+  padding-left: 1rem;
+}
+
+.demo-layout--dark .demo-note-list {
+  color: rgba(226, 232, 240, 0.85);
+}
+
+.demo-events-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.demo-event-log {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 220px;
+  overflow-y: auto;
+  scrollbar-color: rgba(100, 116, 139, 0.35) transparent;
+  scrollbar-width: thin;
+}
+
+.demo-event-item {
+  padding: 0.4rem 0.55rem;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #1e293b;
+  font-family: "SFMono-Regular", "Menlo", "Consolas", monospace;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.demo-layout--dark .demo-event-item {
+  background: #0f172a;
+  color: #f1f5f9;
+}
+
+/* ===== 侧栏底部已存 HNN 面板 ===== */
+/* margin-top:auto 把面板推到侧边栏最底部，同时允许内部 pre 缩放 */
+.demo-hnn-panel {
+  margin-top: auto;
+  font-size: 0.82rem;
+}
+
+.demo-hnn-panel summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #64748b;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.demo-hnn-panel summary:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* 等宽字体展示 HNN JSON 源码，保留原始格式 + 水平/垂直滚动 */
+.demo-hnn-document {
+  margin: 0.5rem 0 0;
+  font-family: "SFMono-Regular", "Menlo", "Consolas", monospace;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  background: #f8fafc;
+  color: #1e293b;
+  padding: 0.75rem;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 10px;
+  white-space: pre;
+  overflow: auto;
+  max-height: 320px;
+  word-wrap: normal;
+  scrollbar-color: rgba(100, 116, 139, 0.35) transparent;
+  scrollbar-width: thin;
+}
+
+.demo-layout--dark .demo-hnn-document {
+  border-color: rgba(226, 232, 240, 0.12);
+  background: #0f172a;
+  color: #f1f5f9;
 }
 
 /* ===== 主内容区 ===== */
@@ -341,7 +413,11 @@ select {
   line-height: 1.7;
 }
 
-/* 宿主包装层决定 NoteContent 的尺寸、背景与容器装饰。 */
+.demo-layout--dark .demo-desc {
+  color: rgba(226, 232, 240, 0.65);
+}
+
+/* 宿主包装层决定编辑器的尺寸、背景与容器装饰。 */
 .demo-note-preview {
   display: flex;
   flex: 1 1 auto;
@@ -358,8 +434,9 @@ select {
   overflow: hidden;
 }
 
-.demo-note-preview > .hn-note-shell {
+.demo-note-preview > .hn-editor {
   width: 100%;
+  min-height: 0;
   overflow: auto;
   scrollbar-color: rgba(100, 116, 139, 0.35) transparent;
   scrollbar-width: thin;
@@ -373,55 +450,6 @@ select {
     0 12px 40px rgba(2, 6, 23, 0.24);
 }
 
-/* ===== 侧栏：魔法链接点击事件列表 ===== */
-.demo-magic-link-events {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  max-height: 180px;
-  overflow-y: auto;
-}
-
-.demo-magic-link-event-item {
-  padding: 0.4rem 0.55rem;
-  border-radius: 8px;
-  background: #f1f5f9;
-  color: #1e293b;
-  font-family: "SFMono-Regular", "Menlo", "Consolas", monospace;
-  font-size: 0.75rem;
-  line-height: 1.5;
-  word-break: break-all;
-}
-
-/* ===== 侧栏底部 Markdown 文档数据面板 ===== */
-/* margin-top:auto 把面板推到侧边栏最底部，同时允许内部 pre 缩放 */
-.demo-markdown-panel {
-  min-height: 400px;
-  margin-top: auto;
-}
-
-/* 等宽字体展示 JSON+Markdown 源码，保留原始格式 + 水平/垂直滚动 */
-.demo-markdown-document {
-  margin: 0;
-  font-family: "SFMono-Regular", "Menlo", "Consolas", monospace;
-  font-size: 0.75rem;
-  line-height: 1.5;
-  background: #f8fafc;
-  color: #1e293b;
-  padding: 0.75rem;
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  border-radius: 10px;
-  white-space: pre;
-  overflow: auto;
-  max-height: 320px;
-  word-wrap: normal;
-  scrollbar-color: rgba(100, 116, 139, 0.35) transparent;
-  scrollbar-width: thin;
-}
-
 /* ===== 响应式：窄屏折叠侧边栏到顶部 ===== */
 @media (max-width: 840px) {
   .demo-layout {
@@ -430,6 +458,7 @@ select {
 
   .demo-main {
     order: -1;
+    padding: 2rem 1.25rem;
   }
 
   .demo-sidebar {
@@ -439,23 +468,12 @@ select {
     border-bottom: 1px solid rgba(15, 23, 42, 0.08);
   }
 
-  .demo-main {
-    padding: 2rem 1.25rem;
-  }
-
-  .demo-external-item--sidebar {
-    display: none;
-  }
-
-  .demo-external-item--compact {
-    display: flex;
-    width: 100%;
-    max-width: 60rem;
-    margin: 0 auto 1rem;
+  .demo-layout--dark .demo-sidebar {
+    border-bottom-color: rgba(226, 232, 240, 0.12);
   }
 
   /* 窄屏减小面板高度，避免占据过多竖向空间 */
-  .demo-markdown-document {
+  .demo-hnn-document {
     max-height: 240px;
   }
 }

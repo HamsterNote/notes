@@ -1,0 +1,149 @@
+/* ===== 保存状态界面（OpenSpec 7.3） =====
+ * 透明无框：不拥有自己的 background/border/radius/shadow，外层呈现由消费布局拥有
+ * （DESIGN.md §1）。配色只复用现有 hn-* token，不引入新调色板（D9）；错误/冲突
+ * 通过文字内容与警示符号表达，而非新增色相。主题走显式 --light/--dark 修饰类，
+ * 不响应媒体查询；未指定主题时继承祖先（如 .hn-editor--*）的 token。
+ */
+
+.hn-save-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.75rem;
+  box-sizing: border-box;
+  background: transparent;
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+/* 与 styles.css .hn-editor--light 完全一致的浅色 token 集；显式声明使 light 可覆盖暗色祖先 */
+.hn-save-status--light {
+  --hn-theme-soft: color-mix(in srgb, var(--hn-theme, #3b82f6) 12%, white);
+  --hn-theme-border: color-mix(in srgb, var(--hn-theme, #3b82f6) 30%, transparent);
+  --hn-theme-text: color-mix(in srgb, var(--hn-theme, #3b82f6) 75%, #1e293b);
+  --hn-bg: #ffffff;
+  --hn-surface: #f8fafc;
+  --hn-surface-hover: #f1f5f9;
+  --hn-border: rgba(15, 23, 42, 0.08);
+  --hn-border-strong: rgba(15, 23, 42, 0.14);
+  --hn-text: #1e293b;
+  --hn-text-muted: rgba(51, 65, 85, 0.65);
+  --hn-text-soft: rgba(51, 65, 85, 0.85);
+  color-scheme: light;
+}
+
+/* 与 styles.css .hn-editor--dark 完全一致的深色 token 集 */
+.hn-save-status--dark {
+  --hn-theme-soft: color-mix(in srgb, var(--hn-theme, #3b82f6) 18%, #111827);
+  --hn-theme-border: color-mix(in srgb, var(--hn-theme, #3b82f6) 48%, transparent);
+  --hn-theme-text: color-mix(in srgb, var(--hn-theme, #3b82f6) 55%, #f8fafc);
+  --hn-bg: #0f172a;
+  --hn-surface: #172033;
+  --hn-surface-hover: #202b3f;
+  --hn-border: rgba(226, 232, 240, 0.12);
+  --hn-border-strong: rgba(226, 232, 240, 0.22);
+  --hn-text: #f1f5f9;
+  --hn-text-muted: rgba(203, 213, 225, 0.72);
+  --hn-text-soft: rgba(226, 232, 240, 0.88);
+  color-scheme: dark;
+}
+
+.hn-save-status__message {
+  margin: 0;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  /* 手机窄屏下文案自然换行，按钮落到下一行（DESIGN.md §7 紧凑断点语义） */
+  flex: 1 1 14ch;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+/* clean：已保存，最不抢眼的弱文本 */
+.hn-save-status--clean {
+  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
+}
+
+/* dirty / saving：有待写出内容，稍强一档 */
+.hn-save-status--dirty {
+  color: var(--hn-text-soft, rgba(51, 65, 85, 0.85));
+}
+
+/* error / conflict：实体文本 + 警示符号，靠内容而非新色相传达严重性 */
+.hn-save-status--attention {
+  color: var(--hn-text, #1e293b);
+}
+
+.hn-save-status__glyph {
+  flex: none;
+}
+
+.hn-save-status__text {
+  min-width: 0;
+}
+
+.hn-save-status__detail {
+  display: block;
+  margin-top: 0.1rem;
+  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
+  font-size: 0.8rem;
+}
+
+/* 保存中转圈：沿用主题色 token，弱化成不喧宾夺主的小指示器 */
+.hn-save-status__spinner {
+  flex: none;
+  align-self: center;
+  width: 0.75em;
+  height: 0.75em;
+  border: 2px solid var(--hn-theme-border, rgba(59, 130, 246, 0.3));
+  border-top-color: var(--hn-theme, #3b82f6);
+  border-radius: 50%;
+  animation: hn-save-status-spin 0.8s linear infinite;
+}
+
+@keyframes hn-save-status-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hn-save-status__spinner {
+    animation: none;
+  }
+}
+
+/* 行内 pill 按钮（DESIGN.md §3 999px）：透明底，hover 复用 surface token，
+ * 键盘焦点复用标准 2px 主题色 ring（DESIGN.md §5/§9）。 */
+.hn-save-status__button {
+  flex: none;
+  appearance: none;
+  margin: 0;
+  padding: 0.22rem 0.85rem;
+  border: 1px solid var(--hn-border-strong, rgba(15, 23, 42, 0.14));
+  border-radius: 999px;
+  background: transparent;
+  color: var(--hn-text-soft, rgba(51, 65, 85, 0.85));
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.5;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.hn-save-status__button:hover:not(:disabled) {
+  background: var(--hn-surface-hover, #f1f5f9);
+  color: var(--hn-text, #1e293b);
+}
+
+.hn-save-status__button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--hn-theme, #3b82f6);
+}
+
+/* saving / 宿主禁用：降低存在感并禁止重复触发，但保持可聚焦文案可感知 */
+.hn-save-status__button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
