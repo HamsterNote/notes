@@ -42,6 +42,20 @@ jobs:
       - name: Typecheck
         run: yarn typecheck
 
+      - name: Test
+        run: yarn test
+
+      - name: Verify editor contracts
+        # 编辑器内核迁移的契约门禁：依赖锁版、旧公共 API 冻结清单、Phase 1 范围守卫。
+        # 三者独立于单元测试，必须在 Build/Publish 之前各自通过。
+        run: |
+          yarn verify:tiptap-deps
+          yarn verify:legacy-api
+          yarn verify:phase1-scope
+          # phase1-ast-guards.test.mjs 不在 vitest 的 include（仅 src/**）中，
+          # 需用 node --test 独立运行，覆盖 AST 守卫自身的解析路径。
+          node --test scripts/phase1-ast-guards.test.mjs
+
       - name: Build
         run: yarn build
 
