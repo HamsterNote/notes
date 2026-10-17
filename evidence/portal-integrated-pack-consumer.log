@@ -1,0 +1,12 @@
+command: node scripts/verify-pack-consumer.mjs evidence/hamster-note-notes-3.1.0-portal-composition-fix.tgz
+node: v24.15.0
+exit: 0
+install exit 0
+esm exit 0
+cjs exit 0
+typecheck exit 0
+build exit 0
+consumer browser 148.0.7778.96 new Provider/dual View/save + legacy NoteSave/revision PASS
+independent consumer PASS: no source aliases, private imports, or patches
+
+

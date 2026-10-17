@@ -8,11 +8,11 @@ Yarn 1.22.22 (invoked with `corepack yarn`), Linux, Chromium 148.0.7778.96.
 
 | Command | Result | Raw log |
 | --- | --- | --- |
-| `corepack yarn test` | 37 files, 776 passed; exit 0 | review-formal-tests.log |
-| `corepack yarn typecheck` | exit 0 | review-typecheck.log |
-| `corepack yarn build` | library and both demo pages; exit 0 | review-build.log |
-| `corepack yarn lint` | exit 0 | review-lint.log |
-| `node scripts/check-shared-browser.mjs` | exit 0 | browser.log |
+| `corepack yarn test` | 38 files, 780 passed; exit 0 | portal-integrated-tests.log |
+| `corepack yarn typecheck` | exit 0 | portal-integrated-typecheck.log |
+| `corepack yarn build` | library and both demo pages; exit 0 | portal-integrated-build.log |
+| `corepack yarn lint` | exit 0 | portal-integrated-lint.log |
+| `node scripts/check-shared-browser.mjs` | exit 0 | portal-integrated-shared-browser.log |
 | root ESM / CJS with jsdom | 10 expected value exports; exit 0 | root-esm.log, root-cjs.log |
 
 Logs are produced by `node scripts/capture-check.mjs <label> <command> ...`.
@@ -22,10 +22,13 @@ CAS/saved/conflict/revision contracts and CSS subpaths remain covered.
 
 ## Component Coverage
 
+The current formula portal P2 fix is documented in `review-portal-composition-fix.md`.
+It preserves the reviewer test verbatim, reproduces its failure, and adds three
+formal tests plus source/installed-pack browser composition checks.
 The P2 autosave follow-up is documented in `review-autosave-fixes.md`.
 Its regression suite reproduces six failures before the fix, then passes all
 49 affected tests; the two unmodified reviewer probes also pass. The original
-767-test logs remain historical evidence; the current formal total is 776.
+767/776-test logs remain historical evidence; the current formal total is 780.
 
 - `documentApi.types.test.tsx`: complete root Provider/View/Controller props,
   method signatures and outcome discriminants; old NoteSave still compiles;
@@ -35,7 +38,7 @@ Its regression suite reproduces six failures before the fix, then passes all
   fixture node types, metadata validation, serial saves and barriers, encoding
   failure, abort, lease ownership/queue/reentry/tombstones, composition and
   pending candidate gates, late reference candidates, resource budget.
-- `NoteDocumentProvider.test.tsx` (20 tests): real root components, native paste,
+- `NoteDocumentProvider.test.tsx` (23 tests): real root components, native paste,
   load/error/replacement, StrictMode, synchronous acquire/release notification
   unmount, both modal drafts, invalid draft/focus, single commit and peer undo,
   real callout/collapsible/picture/code inputs, focused input blur before freeze,
@@ -93,14 +96,14 @@ HAM-36 task checkboxes, npm releases or release tags are changed.
 
 ## Pack And Clean Consumption
 
-Packed source commit: `3895a5721fb9d0c86f4f8c246a29854c3b28623c`.
-Package: `@hamster-note/notes@3.1.0`, `hamster-note-notes-3.1.0-autosave-fix.tgz`.
-SHA-256: `bf823a96f009c946e1e4eaaa3fb9b58304e73abb7e062bffc2161dcc53360683`.
+Packed source commit: `a8c5c8ea48bd2cdd1212bcd5b349e68ddbee98f6`.
+Package: `@hamster-note/notes@3.1.0`, `hamster-note-notes-3.1.0-portal-composition-fix.tgz`.
+SHA-256: `ecd5326a9065de9b269218c61a5f1a00b58d6ec2b262a37e3c2db68588beb7c4`.
 `pack-identity.json` records all 145 tar entries and separate hashes for root
 ESM/CJS/declarations and both CSS assets, including fonts and declaration closure.
 Later commits only add evidence; this source identity is the pack's origin,
-not the later PR head. The original pack from `645c339` does not contain the
-autosave fixes and is superseded by this archive. Public declarations and CSS
+not the later PR head. The original and autosave-only packs are superseded by
+this archive, which includes both review rounds. Public declarations and CSS
 hashes are unchanged; runtime hashes reflect the fixes.
 
 `node scripts/verify-pack-consumer.mjs` created a new directory outside the
@@ -111,15 +114,15 @@ The old save receives baseRevision r1 and returns revision r2. No source aliases
 private imports or dependency patches were used. `consumer-identity.json`
 contains the actual tarball hash and full resolved consumer lockfile.
 
-Raw logs: `review-pack.log`, `review-pack-consumer.log`, `consumer-{install,esm,cjs,typecheck,build}.log`.
+Raw logs: `portal-integrated-pack.log`, `portal-integrated-pack-consumer.log`, `consumer-{install,esm,cjs,typecheck,build}.log`.
 The additional command `corepack yarn --cwd ../pack-consumer typecheck --skipLibCheck false`
-also passed (`consumer-declarations.log`), verifying declarations with dependency
+also passed (`portal-consumer-declarations.log`), verifying declarations with dependency
 checking enabled. Browser screenshot: `consumer.png`.
 
 To install the attached artifact in a separate React 19 project:
 
 ```sh
-corepack yarn add ./hamster-note-notes-3.1.0-autosave-fix.tgz
+corepack yarn add ./hamster-note-notes-3.1.0-portal-composition-fix.tgz
 ```
 
 Import components/types from `@hamster-note/notes`, plus

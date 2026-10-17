@@ -67,9 +67,9 @@ dist/assets/KaTeX_Main-Bold-waoOVXN0.ttf                 51.34 kB
 dist/assets/KaTeX_Main-Regular-ypZvNtVU.ttf              53.58 kB
 dist/assets/KaTeX_AMS-Regular-DRggAlZN.ttf               63.63 kB
 dist/assets/index-DAUJMime.css                           85.61 kB │ gzip:  17.18 kB
-dist/assets/index-2DvCWoCt.js                         1,322.46 kB │ gzip: 409.26 kB
-✓ built in 2.83s
-Done in 3.11s.
+dist/assets/index-Udcfb4gm.js                         1,322.69 kB │ gzip: 409.32 kB
+✓ built in 2.93s
+Done in 3.15s.
 
 
 (!) Some chunks are larger than 500 kB after minification. Consider:
