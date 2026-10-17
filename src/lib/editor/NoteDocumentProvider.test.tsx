@@ -8,7 +8,7 @@ import { HNN_CARD_EMPTY_DATA } from "../hnn/cardPayload"
 import { HNN_DRAWING_EMPTY_DATA } from "../hnn/drawingPayload"
 import { demoFixtures } from "../../demo/fixtures"
 
-afterEach(cleanup)
+afterEach(() => { cleanup(); vi.useRealTimers() })
 function initialDocument(kind?: "card" | "drawing") {
   const paragraph = { type: "paragraph", attrs: { nodeId: "123e4567-e89b-42d3-a456-426614174000" }, content: [{ type: "text", text: "共享正文" }] }
   return { schemaVersion: 1, data: { type: "doc", content: kind ? [paragraph, {
@@ -22,7 +22,7 @@ function paste(element: HTMLElement, text: string) {
 }
 function mount(overrides: Partial<NoteDocumentProviderProps> = {}) {
   const controllerRef = createRef<NoteDocumentController>()
-  const onChange = vi.fn()
+  const onChange = vi.fn<NoteDocumentProviderProps["onChange"]>()
   const props: NoteDocumentProviderProps = {
     documentId: "A", loadKey: 1, initialDocument: initialDocument(),
     initialHostSnapshot: { changeId: 0, value: { title: "", summary: "" } },
@@ -197,6 +197,29 @@ describe("formal root Provider/View lifecycle", () => {
 })
 
 describe("formal card/drawing drafts", () => {
+  it.each([
+    ["card", "取消"], ["drawing", "取消"],
+    ["card", "完成"], ["drawing", "完成"]
+  ] as const)("%s %s resumes autosave of accepted body without saving discarded draft edits", async (kind, action) => {
+    vi.useFakeTimers()
+    const h = mount({ initialDocument: initialDocument(kind) })
+    paste(h.area(), "accepted")
+    const accepted = h.onChange.mock.calls[0]![0]
+    fireEvent.click(within(h.container.querySelector('[data-view-id="a"]') as HTMLElement).getByLabelText(kind === "card" ? "编辑卡片" : "编辑画板"))
+    const dialog = within(document.body).getByRole("dialog")
+    if (kind === "card" && action === "取消") fireEvent.click(within(dialog).getByText("添加卡片"))
+    await act(async () => { await vi.advanceTimersByTimeAsync(1000) })
+    expect(h.controller().getState().save).toBe("blocked")
+    expect(h.props.onSave).not.toHaveBeenCalled()
+    fireEvent.click(within(dialog).getByText(action))
+    expect(h.controller().getState().draft.phase).toBe("none")
+    await act(async () => { await vi.advanceTimersByTimeAsync(599) })
+    expect(h.props.onSave).not.toHaveBeenCalled()
+    await act(async () => { await vi.advanceTimersByTimeAsync(1) })
+    expect(h.props.onSave).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ document: accepted }), expect.objectContaining({ reason: "autosave" }))
+    expect(h.controller().getState().save).toBe("clean")
+    expect(h.onChange).toHaveBeenCalledTimes(1)
+  })
   it("retains invalid card payload and restores owner focus after cancellation", async () => {
     const h = mount({ initialDocument: initialDocument("card") })
     const anchor = within(h.container.querySelector('[data-view-id="a"]') as HTMLElement).getByLabelText("编辑卡片")
