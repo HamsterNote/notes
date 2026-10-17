@@ -44,6 +44,6 @@
 
 ## 7. Pack 与交付证据
 
-- [ ] 7.1 在兼容门禁通过后将 package.version 设为精确 3.1.0，提交已验证源代码后用本地 pack 生成 tarball；记录完整 source commit、包内 version、tarball SHA-256、文件清单及 ESM/CJS/.d.ts/CSS/fonts 证据，不执行 npm 发布。
-- [ ] 7.2 创建仓库外干净消费副本仅安装该 pack/声明依赖，验证根 ESM/CJS、新 Provider/双 View/Controller 的编辑保存、旧 NoteSave、类型检查与消费构建；保存安装解析、实际 hash、命令和日志，不使用 private imports、aliases 或 patch。
+- [x] 7.1 在兼容门禁通过后将 package.version 设为精确 3.1.0，提交已验证源代码后用本地 pack 生成 tarball；记录完整 source commit、包内 version、tarball SHA-256、文件清单及 ESM/CJS/.d.ts/CSS/fonts 证据，不执行 npm 发布。
+- [x] 7.2 创建仓库外干净消费副本仅安装该 pack/声明依赖，验证根 ESM/CJS、新 Provider/双 View/Controller 的编辑保存、旧 NoteSave、类型检查与消费构建；保存安装解析、实际 hash、命令和日志，不使用 private imports、aliases 或 patch。
 - [ ] 7.3 交付 pack、安装说明与兼容/正式/历史/IME/资源报告，清楚标明未跑的宿主验证和 pack source commit；提交并推送实现分支、开标题包含 HAM-36 的 PR，附可复核证据。证据不齐不得宣称兼容或推动 HAM-36 的依赖切换，不修改其任务勾选。

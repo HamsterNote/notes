@@ -86,6 +86,39 @@ but cannot substitute for a real OS keyboard/IME. Actual WebBase bridge,
 host navigation and remote persistence are NOT tested. No WebBase files,
 HAM-36 task checkboxes, npm releases or release tags are changed.
 
-Pack source commit/hash, clean install and independent consumption evidence
-will be recorded in `pack-identity.json`, `consumer-identity.json` and the
-delivery addendum after the source commit is packed.
+## Pack And Clean Consumption
+
+Packed source commit: `645c3398b82f694465258b9ea82de9c3c62c2b6c`.
+Package: `@hamster-note/notes@3.1.0`, `hamster-note-notes-3.1.0.tgz`.
+SHA-256: `a7bbfe56e5dc18be8cec031c7bb2e286a04c464fd12182cc6b05fb04ef21d97e`.
+`pack-identity.json` records all 145 tar entries and separate hashes for root
+ESM/CJS/declarations and both CSS assets, including fonts and declaration closure.
+Later commits only add evidence/tooling/task completion; this source identity
+is the pack's origin, not the later PR head. The buffer limit in the evidence
+hash script was corrected after packing; the library and pack were unchanged.
+
+`node scripts/verify-pack-consumer.mjs` created a new directory outside the
+repository, installed only the tarball and declared dependencies/tooling, and
+passed install, jsdom root ESM/CJS export allowlists, TypeScript, Vite build
+and Chromium editing/saving in new dual views alongside old NoteEditor/NoteSave.
+The old save receives baseRevision r1 and returns revision r2. No source aliases,
+private imports or dependency patches were used. `consumer-identity.json`
+contains the actual tarball hash and full resolved consumer lockfile.
+
+Raw logs: `pack.log`, `pack-consumer.log`, `consumer-{install,esm,cjs,typecheck,build}.log`.
+The additional command `corepack yarn --cwd ../pack-consumer typecheck --skipLibCheck false`
+also passed (`consumer-declarations.log`), verifying declarations with dependency
+checking enabled. Browser screenshot: `consumer.png`.
+
+To install the attached artifact in a separate React 19 project:
+
+```sh
+corepack yarn add ./hamster-note-notes-3.1.0.tgz
+```
+
+Import components/types from `@hamster-note/notes`, plus
+`@hamster-note/notes/styles.css` and `@hamster-note/notes/formula.css`.
+Peer warnings for painting/react-native and Tiptap optional menu extensions
+remain visible in the clean installation log. Runtime/browser/type checks
+above pass with that actual resolution; this is not a claim that those warnings
+or every possible host dependency combination have been resolved.
