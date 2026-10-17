@@ -1,0 +1,246 @@
+{
+  "commit": "2b4a2bfc7e48f4a5bd5845fb251dc24e903e254c",
+  "version": "3.0.0",
+  "exports": [
+    {
+      "name": "NoteEditor",
+      "kind": "value",
+      "source": "./editor/NoteEditor"
+    },
+    {
+      "name": "NoteEditorProps",
+      "kind": "type",
+      "source": "./editor/NoteEditor"
+    },
+    {
+      "name": "NoteSaveStatus",
+      "kind": "value",
+      "source": "./editor/NoteSaveStatus"
+    },
+    {
+      "name": "NoteSaveStatusProps",
+      "kind": "type",
+      "source": "./editor/NoteSaveStatus"
+    },
+    {
+      "name": "MarkdownExport",
+      "kind": "value",
+      "source": "./editor/MarkdownExport"
+    },
+    {
+      "name": "MarkdownExportContext",
+      "kind": "type",
+      "source": "./editor/MarkdownExport"
+    },
+    {
+      "name": "MarkdownExportProps",
+      "kind": "type",
+      "source": "./editor/MarkdownExport"
+    },
+    {
+      "name": "HnnCodecError",
+      "kind": "value",
+      "source": "./hnn/codec"
+    },
+    {
+      "name": "decodeHnn",
+      "kind": "value",
+      "source": "./hnn/codec"
+    },
+    {
+      "name": "encodeHnn",
+      "kind": "value",
+      "source": "./hnn/codec"
+    },
+    {
+      "name": "HnnDiagnostic",
+      "kind": "type",
+      "source": "./hnn/codec"
+    },
+    {
+      "name": "HnnDocument",
+      "kind": "type",
+      "source": "./hnn/codec"
+    },
+    {
+      "name": "exportMarkdown",
+      "kind": "value",
+      "source": "./hnn/markdown"
+    },
+    {
+      "name": "importMarkdown",
+      "kind": "value",
+      "source": "./hnn/markdown"
+    },
+    {
+      "name": "MarkdownDiagnostic",
+      "kind": "type",
+      "source": "./hnn/markdown"
+    },
+    {
+      "name": "MarkdownExportResult",
+      "kind": "type",
+      "source": "./hnn/markdown"
+    },
+    {
+      "name": "MarkdownImportResult",
+      "kind": "type",
+      "source": "./hnn/markdown"
+    },
+    {
+      "name": "EditorSessionOptions",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "EditorSessionState",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "EditorSessionStatus",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "HostCandidateKind",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "HostCandidateProvider",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "HostCandidateState",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "HostCandidateStatus",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "HostReferenceActivate",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "HostReferenceActivation",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "HostReferenceCandidate",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "HostReferenceContext",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "HostReferenceKind",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "HostReferenceLookup",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "HostReferenceResolution",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "HostReferenceResolutionEntry",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "HostReferenceResolutionStatus",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "HostReferenceResolve",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "HostReferenceState",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "InitialLoadErrorContext",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "InitialLoadErrorHandler",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "NoteSave",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "NoteSaveContext",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "NoteSaveResult",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "PictureUploadHandler",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "PictureUploadItem",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "PictureUploadItemStatus",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "PictureUploadRequest",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "PictureUploadResult",
+      "kind": "type",
+      "source": "./editor/types"
+    },
+    {
+      "name": "PictureUploadState",
+      "kind": "type",
+      "source": "./editor/types"
+    }
+  ],
+  "packageExports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./formula.css": "./dist/formula.css"
+  },
+  "declarationSha256": "f43559b5d78de6825dc2641584dd8915cdeb91bc29c18926be63807d123e48e4"
+}

@@ -1,0 +1,34 @@
+command: corepack yarn test src/lib/publicApi.test.tsx src/lib/publicApi.types.test.tsx src/lib/editor/NoteEditor.test.tsx src/lib/editor/NoteEditor.integration.test.tsx src/lib/editor/NoteEditor.references.test.tsx src/lib/editor/session.test.ts
+node: v24.15.0
+exit: 0
+yarn run v1.22.22
+$ vitest run src/lib/publicApi.test.tsx src/lib/publicApi.types.test.tsx src/lib/editor/NoteEditor.test.tsx src/lib/editor/NoteEditor.integration.test.tsx src/lib/editor/NoteEditor.references.test.tsx src/lib/editor/session.test.ts
+
+ RUN  v4.1.10 /home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes
+
+
+ Test Files  6 passed (6)
+      Tests  162 passed (162)
+   Start at  22:54:54
+   Duration  6.02s (transform 3.54s, setup 127ms, import 6.83s, tests 9.12s, environment 4.39s)
+
+Done in 6.39s.
+
+(node:1046075) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/index.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/index.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/drag.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/base.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/index.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/controller.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/geometry.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/types.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/inertia.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/dom/normalize-pointer-event.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/dom/pose.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/finger.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/rotate.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/scale.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/mixin.js" points to missing source files
+

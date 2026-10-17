@@ -16,6 +16,7 @@
     "vite.config.ts",
     "vite.demo.config.ts",
     "vitest.config.ts",
+    "vitest.historical.config.ts",
     "eslint.config.js",
     "scripts/**/*.mjs"
   ]

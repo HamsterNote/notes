@@ -1,0 +1,6 @@
+command: node scripts/fixtures/pack-consumer/runtime.mjs cjs
+node: v24.15.0
+exit: 0
+["HnnCodecError","MarkdownExport","NoteDocumentProvider","NoteEditor","NoteEditorView","NoteSaveStatus","decodeHnn","encodeHnn","exportMarkdown","importMarkdown"]
+
+

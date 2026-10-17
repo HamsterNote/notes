@@ -1,0 +1,25 @@
+command: node --input-type=module -e import * as api from "../baseline-runtime-check/dist/index.js"; console.log(Object.keys(api).sort())
+node: v24.15.0
+exit: 1
+
+node:internal/modules/esm/resolve:259
+    throw new ERR_UNSUPPORTED_DIR_IMPORT(path, basePath, String(resolved));
+          ^
+
+Error [ERR_UNSUPPORTED_DIR_IMPORT]: Directory import '/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag' is not supported resolving ES modules imported from /home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/index.js
+    at finalizeResolution (node:internal/modules/esm/resolve:259:11)
+    at moduleResolve (node:internal/modules/esm/resolve:861:10)
+    at defaultResolve (node:internal/modules/esm/resolve:988:11)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:697:20)
+    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:714:38)
+    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:746:52)
+    at #resolve (node:internal/modules/esm/loader:679:17)
+    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:599:35)
+    at ModuleJob.syncLink (node:internal/modules/esm/module_job:162:33)
+    at ModuleJob.link (node:internal/modules/esm/module_job:252:17) {
+  code: 'ERR_UNSUPPORTED_DIR_IMPORT',
+  url: 'file:///home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag'
+}
+
+Node.js v24.15.0
+

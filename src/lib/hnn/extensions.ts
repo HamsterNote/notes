@@ -343,6 +343,7 @@ function isSafePictureUrl(value: string): boolean {
 
 /** 原子节点最小弹出编辑器的配置。 */
 interface HnnMiniEditorSpec {
+  editor: Editor
   /** 触发入口（按钮）；Escape 关闭时焦点还原到它。 */
   anchor: HTMLElement
   /** 弹出层与输入框共用的可访问名称。 */
@@ -360,6 +361,14 @@ interface HnnMiniEditorSpec {
   onInvalid?: (message: string) => void
   /** 关闭后回调（无论是否提交），用于释放 NodeView 的打开态。 */
   onClosed?: () => void
+}
+
+const pendingMiniEditors = new WeakMap<Editor, Set<() => boolean>>()
+
+/** Freeze preflight commits valid local formula input; invalid input stays open. */
+export function flushHnnPendingEdits(editor: Editor): boolean {
+  for (const flush of pendingMiniEditors.get(editor) ?? []) if (!flush()) return false
+  return true
 }
 
 /**
@@ -387,9 +396,18 @@ function openHnnMiniEditor(spec: HnnMiniEditorSpec): () => void {
   popover.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - 300))}px`
 
   let closed = false
+  const pending = pendingMiniEditors.get(spec.editor) ?? new Set<() => boolean>()
+  pendingMiniEditors.set(spec.editor, pending)
+  const flush = (): boolean => {
+    if (spec.validate?.(textarea.value)) return false
+    close(false)
+    return true
+  }
+  pending.add(flush)
   const close = (restoreFocus: boolean): void => {
     if (closed) return
     closed = true
+    pending.delete(flush)
     document.removeEventListener("keydown", onKeyDown, true)
     document.removeEventListener("pointerdown", onPointerDown, true)
     window.removeEventListener("scroll", onWindowChange, true)
@@ -873,6 +891,7 @@ function buildHnnExtensions(includeUndoRedo: boolean): Extensions {
         if (closeEditor !== null) return
         error.textContent = ""
         closeEditor = openHnnMiniEditor({
+          editor,
           anchor: preview as HTMLElement,
           label: "LaTeX 源码",
           value: latex,

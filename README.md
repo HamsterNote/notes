@@ -37,9 +37,10 @@ yarn build
 
 > ⚠️ **不兼容变更**：本版本整体替换了旧编辑内核。旧的 `NoteContent`、`NoteBlock` 等块模型 API、受限 HTML 渲染、自研 DOM 选区与专有剪贴板 MIME 已从包入口移除，且**不提供旧格式迁移或兼容层**。
 
-包入口仅导出以下内容：
+3.0.0 的公共入口继续保留，并新增共享文档会话：
 
 - 组件：`NoteEditor`、`NoteSaveStatus`、`MarkdownExport`
+- 共享编辑：`NoteDocumentProvider`、`NoteEditorView`，以及 `NoteDocumentController` 等公共契约类型
 - 编解码：`decodeHnn`、`encodeHnn`、`HnnCodecError`、`importMarkdown`、`exportMarkdown`
 - 类型：新组件 props、HNN/Markdown codec 类型，以及宿主回调契约（`NoteSave*`、`InitialLoadError*`、`EditorSession*`、`PictureUpload*`、`HostReference*`、`HostCandidate*` 等）
 
@@ -144,6 +145,50 @@ const onSave: NoteSave = async (snapshot, { documentId, baseRevision, signal }) 
 - 冲突不自动合并：库只暴露冲突态，由宿主以新的 `initialDocument` + 新 `loadKey` 重载远端，或按自身策略重试本地保存。
 - Demo 宿主的 `hostStore` 演示了一个真实原子实现：每次保存与「模拟另一客户端写入」都在**同一个持久化 key 的排他 Web Lock 内**完成 read→compare→write；`saveWithCas`/`overwriteExternal` 因此是异步 API。
 - Web Locks 仅在**安全上下文（HTTPS 或 localhost）**且浏览器支持时可用。若运行环境不提供 Web Locks，宿主**fail closed**：抛出显式错误且**绝不写入**，绝不降级为「read-check-write」这种非原子的伪 CAS。在线 Demo 即为 HTTPS/localhost 场景。
+
+### 3.1 共享文档
+
+```tsx
+import { useRef } from "react"
+import { NoteDocumentProvider, NoteEditorView, type NoteDocumentController } from "@hamster-note/notes"
+
+function SharedNote({ hnn, write }) {
+  const controller = useRef<NoteDocumentController>(null)
+  return <NoteDocumentProvider
+    documentId="note-1" loadKey={1} initialDocument={hnn}
+    initialHostSnapshot={{ changeId: 0, value: { title: "笔记", summary: "" } }}
+    controllerRef={controller}
+    onChange={(document, identity) => { /* 只通知，不回灌 initialDocument */ }}
+    onSave={async (payload, context) => { await write(payload, context.signal) }}
+  >
+    <NoteEditorView key="left" viewId="left" />
+    <NoteEditorView key="right" viewId="right" />
+  </NoteDocumentProvider>
+}
+```
+
+Provider 的 `onSave` 返回 `Promise<void>`，与旧 `NoteSave` 的 CAS/saved/conflict 协议分别使用。
+正文与 title/summary 分别跟踪 dirty；600ms 自动保存、按钮和宿主请求共用一个串行 barrier。
+真实写入完成后才推进捕获快照的 baseline，期间的新编辑继续串行保存。失败保留 dirty，显式重试才恢复。
+
+任意栏 undo/redo 操作全会话最近正文事件，可以撤销另一栏的动作；metadata 不进入正文历史。
+选区和 stored marks 独立，重开甚至全部暂时关闭 view 都保留共享历史。各 pane 使用稳定 React key；
+只有合法新 load 或 Provider 卸载清空历史。同 documentId/loadKey 的初始输入更新不覆盖编辑。
+dirty、草稿、保存、排队 acquire 或活动 lease 存在时，新 load 被拒绝，活动 identity 保持不变。
+
+关闭流程先捕获 sessionId/requestId，再 `setInputFrozen(true, { expectedSessionId, requestId })`。
+只有 `applied/acquired` 或 `noop/already-owned` 表示拥有 lease；再调用 `requestSave` 并等待 pending 的
+completion。宿主须核对相同 session、自己的 lease、`saved/clean` 以及真实导航完成；请求明确结束后
+使用同一 session/request/lease 释放。超时不等于远端写入或导航已经取消。最后一个 lease 释放才解锁，
+迟到 acquire 返回 request-ended，无 TTL 自动释放。强制卸载会 abort 本地操作，但不能撤销远端写入。
+
+card/drawing 草稿锁两侧正文和 undo，保存返回 blocked；用户完成才提交一次正文事务，取消零事务。
+使用 `canDetachView` 检查 pane，草稿 owner 禁止关闭。freeze 同时锁草稿 portal 与 metadata。
+Controller 仅公开状态、身份和判别结果，不公开 schema/Editor/transaction；reference 三回调配置在 Provider。
+
+双视图示例：开发环境访问 `/shared.html`。实体 IME 和 WebBase bridge 的验证边界见交付报告。
+历史选择性撤销探针单独运行 `corepack yarn test --config vitest.historical.config.ts`，保留一个已知失败；
+它不属于当前 A 契约，不得把该非零退出报告为全量通过。
 
 ### HNN 文档格式
 

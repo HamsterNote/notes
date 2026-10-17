@@ -7,7 +7,7 @@ export default defineConfig({
     noExternal: ["@system-ui-js/multi-drag"],
   },
   test: {
-    include: ["src/**/*.test.{ts,tsx}"],
+    include: ["src/lib/**/*.test.{ts,tsx}", "src/demo/**/*.test.{ts,tsx}"],
     exclude: ["node_modules", "dist"],
     setupFiles: ["src/lib/test-setup.ts"],
   },

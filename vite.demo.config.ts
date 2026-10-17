@@ -20,7 +20,10 @@ export default defineConfig({
     port: 9235
   },
   build: {
-    outDir: "dist/demo"
+    outDir: "dist/demo",
+    rollupOptions: {
+      input: { main: path.resolve(currentDirectory, "index.html"), shared: path.resolve(currentDirectory, "shared.html") }
+    }
   },
   resolve: {
     alias: {

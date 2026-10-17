@@ -1,0 +1,24 @@
+command: corepack yarn --cwd ../baseline-runtime-check build:lib
+node: v24.15.0
+exit: 0
+yarn run v1.22.22
+$ vite build --config vite.config.ts && node ./scripts/sync-library-css.mjs
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 332 modules transformed.
+rendering chunks...
+
+[vite:dts] Start generate declaration files...
+computing gzip size...
+[vite:dts] Declaration files built in 2575ms.
+
+dist/assets/styles-CY1vEyIU.css     56.33 kB │ gzip:   8.93 kB
+dist/index.js                    1,632.60 kB │ gzip: 427.88 kB │ map: 5,131.44 kB
+dist/assets/styles-CY1vEyIU.css     56.33 kB │ gzip:   8.93 kB
+dist/index.cjs                   1,103.68 kB │ gzip: 340.27 kB │ map: 4,985.00 kB
+✓ built in 7.27s
+Done in 8.19s.
+
+(node:1066362) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+

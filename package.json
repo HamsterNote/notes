@@ -1,6 +1,6 @@
 {
   "name": "@hamster-note/notes",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "React components for note content rendering and presentation.",
   "type": "module",
   "license": "MIT",
@@ -83,6 +83,7 @@
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
     "jsdom": "^29.1.1",
+    "playwright": "1.60.0",
     "prettier": "^3.6.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

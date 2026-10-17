@@ -11,7 +11,8 @@ import {
   useMemo,
   useState,
   type CSSProperties,
-  type ReactElement
+  type ReactElement,
+  type SetStateAction
 } from "react"
 import type { Editor } from "@tiptap/core"
 import {
@@ -35,6 +36,18 @@ type HnnDataDrawerProps = Readonly<{
   editor: Editor
   /** 显式主题只切换 hn-* token 修饰类，与编辑壳一致；缺省 light。 */
   theme: "light" | "dark"
+  inputFrozen?: boolean
+  coordinator?: {
+    read(): HnnDrawerSession | null
+    write(session: HnnDrawerSession | null): void
+    open(kind: "card" | "drawing"): boolean
+    canInput(): boolean
+    change(): void
+    validating(): void
+    invalid(): void
+    commit(commit: () => boolean): boolean
+    close(): void
+  } | undefined
 }>
 
 /**
@@ -47,6 +60,8 @@ type DraftState =
   | { readonly kind: "card"; readonly readOnly: false; readonly cards: CardDraft[] }
   | { readonly kind: "drawing"; readonly readOnly: true; readonly raw: string; readonly reason: string }
   | { readonly kind: "drawing"; readonly readOnly: false; readonly value: DrawingValue }
+
+export type HnnDrawerSession = { request: HnnDataEditRequest; draft: DraftState }
 
 /** HnnCard 的可变草稿形态：只暴露标题/内容编辑，几何与链接原样保留在草稿内。 */
 type CardDraft = {
@@ -118,14 +133,22 @@ const DRAWER_STYLE: DrawerStyle = { "--hn-drawer-size": "60vh" }
  * 可能已随旧会话断开的 anchor（close() 只在同会话内被显式关闭路径调用，且已用
  * anchor.isConnected 兜底）。卸载路径上不安排任何 commit/焦点副作用。
  */
-export function HnnDataDrawer({ editor, theme }: HnnDataDrawerProps): ReactElement {
+export function HnnDataDrawer({ editor, theme, coordinator, inputFrozen = false }: HnnDataDrawerProps): ReactElement {
   // 关闭后保留 session 内容直到 Drawer 退场动画结束，避免面板在退出瞬间塌缩。
-  const [session, setSession] = useState<{ request: HnnDataEditRequest; draft: DraftState } | null>(null)
-  const [open, setOpen] = useState(false)
+  const [session, setLocalSession] = useState<HnnDrawerSession | null>(() => coordinator?.read() ?? null)
+  const setSession = useCallback((action: SetStateAction<HnnDrawerSession | null>) => {
+    setLocalSession((current) => {
+      const next = typeof action === "function" ? action(current) : action
+      coordinator?.write(next)
+      return next
+    })
+  }, [coordinator])
+  const [open, setOpen] = useState(() => coordinator?.read() !== null && coordinator !== undefined)
   const [error, setError] = useState<string | null>(null)
   const [tool, setTool] = useState<DrawingTool>("pen")
 
   const openEditor = useCallback((request: HnnDataEditRequest) => {
+    if (coordinator && !coordinator.open(request.kind)) return
     setError(null)
     setTool("pen")
     // 先聚焦触发入口：组件库 modal 钩子在打开瞬间记录 document.activeElement，
@@ -150,7 +173,7 @@ export function HnnDataDrawer({ editor, theme }: HnnDataDrawerProps): ReactEleme
       })
     }
     setOpen(true)
-  }, [])
+  }, [coordinator, setSession])
 
   // 未 dispatch 的 candidate 整文档必须能通过 strict codec（含 shell 预算），否则提交失败。
   const validateCandidate = useCallback((candidateDoc: Parameters<typeof encodeHnn>[0]): string | null => {
@@ -169,34 +192,46 @@ export function HnnDataDrawer({ editor, theme }: HnnDataDrawerProps): ReactEleme
 
   /** 丢弃草稿关闭：零事务；焦点还原到触发入口（DESIGN.md §15）。 */
   const close = useCallback(() => {
+    if (coordinator && !coordinator.canInput()) return
     setOpen(false)
     setError(null)
     const request = session?.request
     if (!request) return
     request.onClosed?.()
+    coordinator?.close()
     if (request.anchor.isConnected) request.anchor.focus()
-  }, [session])
+  }, [session, coordinator])
 
   /** 完成：prepare 归一化失败或 commit 预检失败都保持开启、草稿保留、role=alert 播报。 */
   const complete = useCallback(() => {
     if (!session || session.draft.readOnly) return
+    if (coordinator && !coordinator.canInput()) return
+    coordinator?.validating()
     const { request, draft } = session
     const candidate = draft.kind === "card"
       ? prepareCardPayloadCandidate({ schemaVersion: HNN_CARD_PAYLOAD_VERSION, cards: draft.cards })
       : prepareDrawingPayloadCandidate(draft.value)
     if (!candidate.result.ok) {
+      coordinator?.invalid()
       setError(`${candidate.result.error.path}：${candidate.result.error.message}`)
       return
     }
-    const committed = request.commit(candidate.result.value)
+    let committed: ReturnType<HnnDataEditRequest["commit"]> = { ok: false, message: "Commit rejected" }
+    const data = candidate.result.value
+    const commit = () => { committed = request.commit(data); return committed.ok }
+    if (coordinator) coordinator.commit(commit)
+    else commit()
     if (!committed.ok) {
+      coordinator?.invalid()
       setError(committed.message)
       return
     }
     close()
-  }, [session, close])
+  }, [session, close, coordinator])
 
   const updateCard = useCallback((id: string, patch: Partial<Pick<CardDraft, "title" | "content">>) => {
+    if (coordinator && !coordinator.canInput()) return
+    coordinator?.change()
     setSession((current) => {
       if (current?.draft.kind !== "card" || current.draft.readOnly) return current
       return {
@@ -207,9 +242,11 @@ export function HnnDataDrawer({ editor, theme }: HnnDataDrawerProps): ReactEleme
         }
       }
     })
-  }, [])
+  }, [coordinator, setSession])
 
   const addCard = useCallback(() => {
+    if (coordinator && !coordinator.canInput()) return
+    coordinator?.change()
     setSession((current) => {
       if (current?.draft.kind !== "card" || current.draft.readOnly) return current
       const id = nextCardId(current.draft.cards)
@@ -217,10 +254,12 @@ export function HnnDataDrawer({ editor, theme }: HnnDataDrawerProps): ReactEleme
       const created: CardDraft = { id, title: "新卡片", content: "", x: offset, y: offset, width: 240, height: 160 }
       return { ...current, draft: { ...current.draft, cards: [...current.draft.cards, created] } }
     })
-  }, [])
+  }, [coordinator, setSession])
 
   /** 删除卡片同时移除其它卡片对它的父子/链接引用，保持 payload 引用完整可提交。 */
   const removeCard = useCallback((id: string) => {
+    if (coordinator && !coordinator.canInput()) return
+    coordinator?.change()
     setSession((current) => {
       if (current?.draft.kind !== "card" || current.draft.readOnly) return current
       const cards = current.draft.cards
@@ -237,15 +276,17 @@ export function HnnDataDrawer({ editor, theme }: HnnDataDrawerProps): ReactEleme
         })
       return { ...current, draft: { ...current.draft, cards } }
     })
-  }, [])
+  }, [coordinator, setSession])
 
   const setDrawingValue = useCallback((value: DrawingValue) => {
+    if (coordinator && !coordinator.canInput()) return
+    coordinator?.change()
     setSession((current) =>
       current?.draft.kind === "drawing" && !current.draft.readOnly
         ? { ...current, draft: { ...current.draft, value } }
         : current
     )
-  }, [])
+  }, [coordinator, setSession])
 
   // 草稿序列化后的双重预算（原始/JSON attr 字节），只做展示；提交前 prepare 才是权威检查。
   const budget = useMemo(() => {
@@ -272,7 +313,7 @@ export function HnnDataDrawer({ editor, theme }: HnnDataDrawerProps): ReactEleme
       style={DRAWER_STYLE}
     >
       {draft && (
-        <div className="hn-editor-data-drawer-body">
+        <fieldset disabled={inputFrozen} className="hn-editor-data-drawer-body" style={{ border: 0, margin: 0, padding: 0, minWidth: 0 }}>
           {/* 提交失败的可访问错误（role=alert 即 aria-live=assertive）；空时隐藏 */}
           <p className="hn-editor-data-drawer-error" role="alert" hidden={error === null}>
             {error ?? ""}
@@ -372,7 +413,7 @@ export function HnnDataDrawer({ editor, theme }: HnnDataDrawerProps): ReactEleme
               )}
             </span>
           </footer>
-        </div>
+        </fieldset>
       )}
     </Drawer>
   )

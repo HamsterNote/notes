@@ -10,8 +10,12 @@ export default tseslint.config(
     ignores: [
       "dist",
       "node_modules",
+      // Immutable baseline fixtures and separately reported historical research.
+      "evidence",
+      "src/prototype",
       // 非生产用 AST 守卫夹具，不在 tsconfig project 范围内，跳过类型感知检查
-      "scripts/fixtures/phase1-ast-guards/public-options.ts"
+      "scripts/fixtures/phase1-ast-guards/public-options.ts",
+      "scripts/fixtures/pack-consumer"
     ]
   },
   {
