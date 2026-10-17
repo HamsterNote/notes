@@ -1,13 +1,13 @@
 {
-  "sourceCommit": "645c3398b82f694465258b9ea82de9c3c62c2b6c",
+  "sourceCommit": "3895a5721fb9d0c86f4f8c246a29854c3b28623c",
   "packageName": "@hamster-note/notes",
   "version": "3.1.0",
-  "tarball": "evidence/hamster-note-notes-3.1.0.tgz",
-  "tarballSha256": "a7bbfe56e5dc18be8cec031c7bb2e286a04c464fd12182cc6b05fb04ef21d97e",
+  "tarball": "evidence/hamster-note-notes-3.1.0-autosave-fix.tgz",
+  "tarballSha256": "bf823a96f009c946e1e4eaaa3fb9b58304e73abb7e062bffc2161dcc53360683",
   "node": "v24.15.0",
   "artifacts": {
-    "index.js": "5073720e7b1b3a2c1453ed4d3e96cdc6a59fa7470ad9e719681e65559d5fb8e5",
-    "index.cjs": "f359ad870c27022ff4c370e00b3da1a0193889e56d6d570da08509c27d723f92",
+    "index.js": "81f2dca64a1081704095ebf60b746a8d0bee88b77d91bae0f745292a4c3798ef",
+    "index.cjs": "79da3abb885ca76125bebd6295de978b750b4e5559c8289294bc9b1cd230dcdc",
     "index.d.ts": "f43559b5d78de6825dc2641584dd8915cdeb91bc29c18926be63807d123e48e4",
     "styles.css": "3e35be4df16abee95dc2dceedd42a87f83109943e10971246b7578c6cb62127f",
     "formula.css": "a34ad8fc188e8f5a3af7ceaa2a58d7210c6c9171335a15bff2b48ebcd6a6f5b0"

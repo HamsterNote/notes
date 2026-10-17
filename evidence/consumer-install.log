@@ -6,9 +6,9 @@ info No lockfile found.
 [3/4] Linking dependencies...
 [4/4] Building fresh packages...
 success Saved lockfile.
-Done in 22.22s.
+Done in 14.63s.
 
-(node:1081787) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(node:1102718) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
 (Use `node --trace-deprecation ...` to show where the warning was created)
 warning "@hamster-note/notes > @hamster-note/painting@0.2.0" has incorrect peer dependency "react@^18.0.0".
 warning "@hamster-note/notes > @hamster-note/painting@0.2.0" has unmet peer dependency "react-native@>=0.74".

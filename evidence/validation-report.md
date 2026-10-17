@@ -8,10 +8,10 @@ Yarn 1.22.22 (invoked with `corepack yarn`), Linux, Chromium 148.0.7778.96.
 
 | Command | Result | Raw log |
 | --- | --- | --- |
-| `corepack yarn test` | 37 files, 767 passed; exit 0 | formal-tests.log |
-| `corepack yarn typecheck` | exit 0 | typecheck.log |
-| `corepack yarn build` | library and both demo pages; exit 0 | build.log |
-| `corepack yarn lint` | exit 0 | lint.log |
+| `corepack yarn test` | 37 files, 776 passed; exit 0 | review-formal-tests.log |
+| `corepack yarn typecheck` | exit 0 | review-typecheck.log |
+| `corepack yarn build` | library and both demo pages; exit 0 | review-build.log |
+| `corepack yarn lint` | exit 0 | review-lint.log |
 | `node scripts/check-shared-browser.mjs` | exit 0 | browser.log |
 | root ESM / CJS with jsdom | 10 expected value exports; exit 0 | root-esm.log, root-cjs.log |
 
@@ -22,15 +22,20 @@ CAS/saved/conflict/revision contracts and CSS subpaths remain covered.
 
 ## Component Coverage
 
+The P2 autosave follow-up is documented in `review-autosave-fixes.md`.
+Its regression suite reproduces six failures before the fix, then passes all
+49 affected tests; the two unmodified reviewer probes also pass. The original
+767-test logs remain historical evidence; the current formal total is 776.
+
 - `documentApi.types.test.tsx`: complete root Provider/View/Controller props,
   method signatures and outcome discriminants; old NoteSave still compiles;
   no Editor/PM/schema injection in the public API.
-- `documentSession.test.ts` (24 tests): shared ABA undo/redo, grouping, peer
+- `documentSession.test.ts` (29 tests): shared ABA undo/redo, grouping, peer
   selection/stored marks, stale atomic rejection, detach/reopen, all demo
   fixture node types, metadata validation, serial saves and barriers, encoding
   failure, abort, lease ownership/queue/reentry/tombstones, composition and
   pending candidate gates, late reference candidates, resource budget.
-- `NoteDocumentProvider.test.tsx` (16 tests): real root components, native paste,
+- `NoteDocumentProvider.test.tsx` (20 tests): real root components, native paste,
   load/error/replacement, StrictMode, synchronous acquire/release notification
   unmount, both modal drafts, invalid draft/focus, single commit and peer undo,
   real callout/collapsible/picture/code inputs, focused input blur before freeze,
@@ -61,8 +66,8 @@ preserved verbatim; they are not the implementation or browser demo.
 ## Resource Budget
 
 `corepack yarn test src/lib/editor/documentSession.test.ts -t budgets --disableConsoleIntercept`
-passes (one selected test; the full suite runs all 24). Raw output:
-`resource-budget.log`. After 300 alternating edits: 2 views, 111 undo events,
+passes (one selected test; the current full suite runs all 29). Raw output:
+`resource-budget.log` (measured before the autosave follow-up). After 300 alternating edits: 2 views, 111 undo events,
 0 redo, 0 mapping entries. After 200 acquisitions + 200 releases and reopening
 a view + undo: 1 view, 200 request tombstones, 0 live leases, 110 undo, 1 redo.
 
@@ -88,14 +93,15 @@ HAM-36 task checkboxes, npm releases or release tags are changed.
 
 ## Pack And Clean Consumption
 
-Packed source commit: `645c3398b82f694465258b9ea82de9c3c62c2b6c`.
-Package: `@hamster-note/notes@3.1.0`, `hamster-note-notes-3.1.0.tgz`.
-SHA-256: `a7bbfe56e5dc18be8cec031c7bb2e286a04c464fd12182cc6b05fb04ef21d97e`.
+Packed source commit: `3895a5721fb9d0c86f4f8c246a29854c3b28623c`.
+Package: `@hamster-note/notes@3.1.0`, `hamster-note-notes-3.1.0-autosave-fix.tgz`.
+SHA-256: `bf823a96f009c946e1e4eaaa3fb9b58304e73abb7e062bffc2161dcc53360683`.
 `pack-identity.json` records all 145 tar entries and separate hashes for root
 ESM/CJS/declarations and both CSS assets, including fonts and declaration closure.
-Later commits only add evidence/tooling/task completion; this source identity
-is the pack's origin, not the later PR head. The buffer limit in the evidence
-hash script was corrected after packing; the library and pack were unchanged.
+Later commits only add evidence; this source identity is the pack's origin,
+not the later PR head. The original pack from `645c339` does not contain the
+autosave fixes and is superseded by this archive. Public declarations and CSS
+hashes are unchanged; runtime hashes reflect the fixes.
 
 `node scripts/verify-pack-consumer.mjs` created a new directory outside the
 repository, installed only the tarball and declared dependencies/tooling, and
@@ -105,7 +111,7 @@ The old save receives baseRevision r1 and returns revision r2. No source aliases
 private imports or dependency patches were used. `consumer-identity.json`
 contains the actual tarball hash and full resolved consumer lockfile.
 
-Raw logs: `pack.log`, `pack-consumer.log`, `consumer-{install,esm,cjs,typecheck,build}.log`.
+Raw logs: `review-pack.log`, `review-pack-consumer.log`, `consumer-{install,esm,cjs,typecheck,build}.log`.
 The additional command `corepack yarn --cwd ../pack-consumer typecheck --skipLibCheck false`
 also passed (`consumer-declarations.log`), verifying declarations with dependency
 checking enabled. Browser screenshot: `consumer.png`.
@@ -113,7 +119,7 @@ checking enabled. Browser screenshot: `consumer.png`.
 To install the attached artifact in a separate React 19 project:
 
 ```sh
-corepack yarn add ./hamster-note-notes-3.1.0.tgz
+corepack yarn add ./hamster-note-notes-3.1.0-autosave-fix.tgz
 ```
 
 Import components/types from `@hamster-note/notes`, plus

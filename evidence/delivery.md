@@ -3,9 +3,12 @@
 PR: https://github.com/HamsterNote/notes/pull/12
 
 Branch: `agent/agent/6c0d60915bac`, base: `main`.
-Packed source: `645c3398b82f694465258b9ea82de9c3c62c2b6c`.
+Packed source: `3895a5721fb9d0c86f4f8c246a29854c3b28623c`.
 Package: `@hamster-note/notes@3.1.0`.
-Tarball SHA-256: `a7bbfe56e5dc18be8cec031c7bb2e286a04c464fd12182cc6b05fb04ef21d97e`.
+Tarball: `hamster-note-notes-3.1.0-autosave-fix.tgz`.
+Tarball SHA-256: `bf823a96f009c946e1e4eaaa3fb9b58304e73abb7e062bffc2161dcc53360683`.
+This supersedes the original pre-review pack from `645c339`, which does not
+contain the two autosave fixes. See `review-autosave-fixes.md` for the follow-up.
 
 The issue thread carries the actual package archive and verification archive as
 attachments. The verification archive contains this report, raw logs, original
@@ -20,7 +23,7 @@ package archive is not committed or published to npm.
 - `historical-probes.log`: 41 passed, one known selective-undo failure, exit 1;
   original assertions remain unchanged and are not marked skipped/xfail.
 
-All formal checks passed locally: 37 files / 767 tests, typecheck, build, lint.
+All formal checks passed locally: 37 files / 776 tests, typecheck, build, lint.
 No npm publication, merge, WebBase edit or HAM-36 checkbox update was performed.
 Physical IME and the real host bridge/navigation/storage still need acceptance
 in the host environment. GitHub CI is an external follow-up, not a claimed local
