@@ -81,6 +81,53 @@ describe("formal root Provider/View lifecycle", () => {
     expect(h.onChange).toHaveBeenCalledTimes(1)
     expect(document.activeElement).not.toBe(input)
   })
+  it.each([".hn-editor-formula-preview", ".hn-editor-inline-formula"])("retains composing portal %s and retries the same freeze request after compositionend", async (selector) => {
+    const h = mount({ initialDocument: demoFixtures[0]!.document })
+    fireEvent.click(h.container.querySelector(selector)!)
+    const textarea = document.querySelector<HTMLTextAreaElement>(".hn-editor-mini-textarea")!
+    fireEvent.compositionStart(textarea)
+    fireEvent.input(textarea, { target: { value: "x+y" }, isComposing: true })
+    const c = h.controller(), expectedSessionId = c.getState().identity!.sessionId
+    const acquire = () => c.setInputFrozen(true, { expectedSessionId, requestId: "portal-ime-retry" })
+    await act(async () => {
+      expect(await acquire()).toMatchObject({ kind: "failure", reason: "pending-edit" })
+    })
+    // A host freeze button can blur/dismiss the portal before calling acquire.
+    fireEvent.pointerDown(document.body)
+    fireEvent.blur(textarea)
+    fireEvent.keyDown(textarea, { key: "Escape" })
+    fireEvent.scroll(window)
+    expect(textarea.isConnected).toBe(true)
+    expect(textarea.value).toBe("x+y")
+    expect(h.onChange).not.toHaveBeenCalled()
+    expect(c.getState()).toMatchObject({ inputFrozen: false, dirty: { body: false } })
+    await act(async () => {
+      expect(await acquire()).toMatchObject({ kind: "failure", reason: "pending-edit" })
+    })
+    fireEvent.compositionEnd(textarea)
+    await act(async () => {
+      const result = await acquire()
+      expect(result).toMatchObject({ kind: "applied", action: "acquired" })
+      if (!("leaseId" in result)) throw new Error("missing lease")
+      expect(h.onChange).toHaveBeenCalledTimes(1)
+      expect(textarea.isConnected).toBe(false)
+      expect(c.getState().inputFrozen).toBe(true)
+      await c.setInputFrozen(false, { expectedSessionId, requestId: "portal-ime-retry", leaseId: result.leaseId })
+    })
+    fireEvent.click(within(h.container.querySelector('[data-view-id="b"]') as HTMLElement).getByLabelText("撤销"))
+    expect(c.getState().dirty.body).toBe(false)
+    expect(h.onChange).toHaveBeenCalledTimes(2)
+  })
+  it("cleans up a composing formula portal on teardown without committing incomplete input", () => {
+    const h = mount({ initialDocument: demoFixtures[0]!.document })
+    fireEvent.click(h.container.querySelector(".hn-editor-formula-preview")!)
+    const textarea = document.querySelector<HTMLTextAreaElement>(".hn-editor-mini-textarea")!
+    fireEvent.compositionStart(textarea)
+    fireEvent.input(textarea, { target: { value: "incomplete" }, isComposing: true })
+    h.unmount()
+    expect(textarea.isConnected).toBe(false)
+    expect(h.onChange).not.toHaveBeenCalled()
+  })
   it("edits through native DOM in both views and reopens without losing the shared stack", async () => {
     const h = mount()
     expect(h.area()).toBeTruthy()

@@ -365,7 +365,7 @@ interface HnnMiniEditorSpec {
 
 const pendingMiniEditors = new WeakMap<Editor, Set<() => boolean>>()
 
-/** Freeze preflight commits valid local formula input; invalid input stays open. */
+/** Freeze preflight commits valid formula input; composing or invalid input stays open. */
 export function flushHnnPendingEdits(editor: Editor): boolean {
   for (const flush of pendingMiniEditors.get(editor) ?? []) if (!flush()) return false
   return true
@@ -396,24 +396,27 @@ function openHnnMiniEditor(spec: HnnMiniEditorSpec): () => void {
   popover.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - 300))}px`
 
   let closed = false
+  let composing = false
   const pending = pendingMiniEditors.get(spec.editor) ?? new Set<() => boolean>()
   pendingMiniEditors.set(spec.editor, pending)
   const flush = (): boolean => {
-    if (spec.validate?.(textarea.value)) return false
+    if (composing || spec.validate?.(textarea.value)) return false
     close(false)
     return true
   }
   pending.add(flush)
-  const close = (restoreFocus: boolean): void => {
-    if (closed) return
+  const close = (restoreFocus: boolean, destroying = false): void => {
+    if (closed || (composing && !destroying)) return
     closed = true
     pending.delete(flush)
     document.removeEventListener("keydown", onKeyDown, true)
     document.removeEventListener("pointerdown", onPointerDown, true)
     window.removeEventListener("scroll", onWindowChange, true)
     window.removeEventListener("resize", onWindowChange)
+    textarea.removeEventListener("compositionstart", onCompositionStart)
+    textarea.removeEventListener("compositionend", onCompositionEnd)
     // 关闭即提交一次；值未变或校验失败都不产生事务，保证每次编辑会话最多一条历史步。
-    if (textarea.value !== spec.value) {
+    if (!composing && textarea.value !== spec.value) {
       const failure = spec.validate?.(textarea.value) ?? null
       if (failure === null) spec.onCommit(textarea.value)
       else spec.onInvalid?.(failure)
@@ -432,7 +435,11 @@ function openHnnMiniEditor(spec: HnnMiniEditorSpec): () => void {
     if (event.target instanceof window.Node && !popover.contains(event.target)) close(false)
   }
   const onWindowChange = (): void => close(false)
+  const onCompositionStart = (): void => { composing = true }
+  const onCompositionEnd = (): void => { composing = false }
 
+  textarea.addEventListener("compositionstart", onCompositionStart)
+  textarea.addEventListener("compositionend", onCompositionEnd)
   textarea.addEventListener("input", () => spec.onDraft?.(textarea.value))
   // 失焦同样提交关闭；外部 pointerdown 的捕获监听会先触发，两条路径幂等。
   textarea.addEventListener("blur", () => close(false))
@@ -443,7 +450,8 @@ function openHnnMiniEditor(spec: HnnMiniEditorSpec): () => void {
   document.body.append(popover)
   textarea.focus()
   textarea.select()
-  return () => close(false)
+  // NodeView teardown must release its portal without committing incomplete IME input.
+  return () => close(false, true)
 }
 
 /* ===== 代码块安全高亮 =====
