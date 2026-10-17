@@ -325,10 +325,10 @@ export class DocumentSession {
     return undefined
   }
   private requestSave(reason: SaveReason, expected: string): RequestSaveResult {
-    clearTimeout(this.timer)
     if (this.lifecycle === "disposed") return { kind: "abort", sessionId: null, cause: this.abortCause }
     if (this.lifecycle !== "ready") return { kind: "noop", sessionId: null, cause: "not-ready" }
     if (expected !== this.sessionId) return { kind: "noop", sessionId: this.sessionId, cause: "stale" }
+    clearTimeout(this.timer)
     const blocked = this.preflight()
     if (blocked) return blocked
     if (this.pending) return this.pending
@@ -457,7 +457,13 @@ export class DocumentSession {
     this.completingDraft = true
     try { return commit() } finally { this.completingDraft = false }
   }
-  endDraft(): void { this.draft = { phase: "none" }; this.draftPayload = null; this.refreshEditable() }
+  endDraft(): void {
+    this.draft = { phase: "none" }
+    this.draftPayload = null
+    this.refreshEditable()
+    const { dirty } = this.getState()
+    if (!this.pending && (dirty.body || dirty.host)) this.schedule()
+  }
   dispose(cause: "disposed" | "replaced" = "disposed"): void {
     if (this.lifecycle === "disposed") return
     this.abortCause = cause
