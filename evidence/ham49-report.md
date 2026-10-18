@@ -39,7 +39,11 @@
 
 ## 包与下游交接
 
-3.1.2 pack/registry 身份、源提交、SHA-256、文件清单和干净副本消费结果随后由独立身份文件补充。未经这些门禁不得将本报告前半部分当作正式发包成功。
+验收 pack 精确为 `@hamster-note/notes@3.1.2`，从独立 staging 的 `cc4564dd1ccf64ba20a08e41d5d68d55ccce5814` 源树经 GITHUB_REF_NAME=v3.1.2 / release:prepare、yarn build、npm pack 生成。SHA-256：`e72e98b28ecf801c6bef030c6741c5dd2198b7a49e5b0e041d1defbf25eae53f`。138 个文件，根 ESM/CJS/.d.ts/CSS 和 60 个字体齐全；精确清单与各入口摘要见 `ham49-pack-identity.json`，未改变已发布 3.1.1。
+
+仓库外全新 `consumer-3-1-2` 只安装此 pack 和声明的 React/开发依赖：安装、ESM/CJS 精确 runtime 清单、旧 fixture 与新 Controller/Provider 类型（含 README 用法）、Vite 生产构建，以及旧 NoteEditor CAS/revision 与新 Provider 双 View 保存均通过。随后在该消费副本的构建产物上运行完整公共能力浏览器套件，全部通过。无源码 alias、workspace 链接、私有导入或 patch；见 `ham49-clean-consumer.log`、`ham49-consumer/consumer-identity.json`、逐步日志、`ham49-consumer-trace.zip` 和桌面/手机截图。源码浏览器脚本中的 alias 只用于源码回归，干净消费者不含任何 alias。
+
+本地 pack 与干净消费已通过；正式发布身份另见发布核对材料。不可仅凭本地 pack 宣称 registry 已发布。
 
 HAM-36 接入顺序：精确安装 3.1.2；先更新 sidecar/store 或提交新的 resolver，再对同 session 调用 invalidateReferences；删除高亮应同时失效对应 mention/resource，全文变更可使用 document scope。缺少方法需报告版本能力不符，不能静默当作成功。
 

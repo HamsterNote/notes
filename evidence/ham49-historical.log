@@ -1,0 +1,56 @@
+command: yarn test --config vitest.historical.config.ts
+node: v24.15.0
+exit: 1
+yarn run v1.22.22
+$ vitest run --config vitest.historical.config.ts
+
+ RUN  v4.1.10 /home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-49-fb8b3794ad64/workdir/notes
+
+ ❯ src/prototype/session.test.ts (18 tests | 1 failed) 507ms
+     × 另一 pane 在本地插入范围内部继续输入时，本地 undo 保留其文本 38ms
+
+ Test Files  1 failed | 3 passed (4)
+      Tests  1 failed | 41 passed (42)
+   Start at  21:34:50
+   Duration  2.72s (transform 2.01s, setup 111ms, import 4.35s, tests 954ms, environment 3.46s)
+
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+
+(node:1972411) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-49-fb8b3794ad64/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/index.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-49-fb8b3794ad64/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/index.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-49-fb8b3794ad64/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/drag.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-49-fb8b3794ad64/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/base.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-49-fb8b3794ad64/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/index.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-49-fb8b3794ad64/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/controller.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-49-fb8b3794ad64/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/geometry.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-49-fb8b3794ad64/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/types.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-49-fb8b3794ad64/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/inertia.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-49-fb8b3794ad64/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/dom/normalize-pointer-event.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-49-fb8b3794ad64/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/dom/pose.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-49-fb8b3794ad64/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/finger.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-49-fb8b3794ad64/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/rotate.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-49-fb8b3794ad64/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/scale.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-49-fb8b3794ad64/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/mixin.js" points to missing source files
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/prototype/session.test.ts > 隔离原型：共享权威文档与本地 history > 另一 pane 在本地插入范围内部继续输入时，本地 undo 保留其文本
+AssertionError: expected '共享正文' to be 'B共享正文' // Object.is equality
+
+Expected: "B共享正文"
+Received: "共享正文"
+
+ ❯ src/prototype/session.test.ts:151:49
+    149|     expect(view(session).state.doc.textContent).toContain("ABA共享正文")
+    150|     session.undo("a")
+    151|     expect(view(session).state.doc.textContent).toBe("B共享正文")
+       |                                                 ^
+    152|     session.undo("b")
+    153|     expect(view(session).state.doc.textContent).toBe("共享正文")
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+error Command failed with exit code 1.
+

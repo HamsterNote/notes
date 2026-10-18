@@ -1,0 +1,15 @@
+command: yarn verify:phase1-scope
+node: v24.15.0
+exit: 0
+yarn run v1.22.22
+$ node ./scripts/verify-phase1-scope.mjs
+Phase 1 范围守卫 (Phase 1 task 1.4)
+  已检查依赖 39 项、源码文件 87 个、公共导出 74 个
+  范围: 禁止协作/Yjs、文件处理扩展、裸 ProseMirror 引用及公开 schema/extensions 注入契约
+
+Phase 1 范围守卫通过。
+Done in 3.33s.
+
+(node:1971335) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+

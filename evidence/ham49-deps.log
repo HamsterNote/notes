@@ -1,0 +1,57 @@
+command: yarn verify:tiptap-deps
+node: v24.15.0
+exit: 0
+yarn run v1.22.22
+$ node ./scripts/verify-tiptap-deps.mjs
+TipTap 依赖校验:
+  直接 @tiptap/*: 6 个，版本 = 3.31.3
+  yarn.lock 中 @tiptap/* + prosemirror-* 条目: 42 个
+    @tiptap/core -> 3.31.3
+    @tiptap/extension-blockquote -> 3.31.3
+    @tiptap/extension-bold -> 3.31.3
+    @tiptap/extension-bubble-menu -> 3.31.3
+    @tiptap/extension-bullet-list -> 3.31.3
+    @tiptap/extension-code -> 3.31.3
+    @tiptap/extension-code-block -> 3.31.3
+    @tiptap/extension-document -> 3.31.3
+    @tiptap/extension-dropcursor -> 3.31.3
+    @tiptap/extension-floating-menu -> 3.31.3
+    @tiptap/extension-gapcursor -> 3.31.3
+    @tiptap/extension-hard-break -> 3.31.3
+    @tiptap/extension-heading -> 3.31.3
+    @tiptap/extension-horizontal-rule -> 3.31.3
+    @tiptap/extension-italic -> 3.31.3
+    @tiptap/extension-link -> 3.31.3
+    @tiptap/extension-list -> 3.31.3
+    @tiptap/extension-list-item -> 3.31.3
+    @tiptap/extension-list-keymap -> 3.31.3
+    @tiptap/extension-ordered-list -> 3.31.3
+    @tiptap/extension-paragraph -> 3.31.3
+    @tiptap/extension-strike -> 3.31.3
+    @tiptap/extension-table -> 3.31.3
+    @tiptap/extension-text -> 3.31.3
+    @tiptap/extension-underline -> 3.31.3
+    @tiptap/extensions -> 3.31.3
+    @tiptap/pm -> 3.31.3
+    @tiptap/react -> 3.31.3
+    @tiptap/starter-kit -> 3.31.3
+    prosemirror-changeset -> 2.4.3
+    prosemirror-commands -> 1.7.2
+    prosemirror-dropcursor -> 1.8.3
+    prosemirror-gapcursor -> 1.4.1
+    prosemirror-history -> 1.5.0
+    prosemirror-inputrules -> 1.5.1
+    prosemirror-keymap -> 1.2.3
+    prosemirror-model -> 1.25.12
+    prosemirror-schema-list -> 1.5.1
+    prosemirror-state -> 1.4.4
+    prosemirror-tables -> 1.8.5
+    prosemirror-transform -> 1.12.1
+    prosemirror-view -> 1.42.5
+
+TipTap 依赖校验通过。
+Done in 0.27s.
+
+(node:1971319) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+

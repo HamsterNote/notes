@@ -1,0 +1,76 @@
+command: yarn verify:legacy-api
+node: v24.15.0
+exit: 0
+yarn run v1.22.22
+$ node ./scripts/scan-legacy-public-api.mjs
+旧公共 API 移除清单扫描
+  冻结导入变化: migrate-to-tiptap-prosemirror
+  移除任务: 8.1 / 8.2
+  阶段: deleted（allowlist=currentPublicExports）
+
+公共 API 待移除导出引用点:
+  [value] NoteContent (旧内容组件) — 0 处引用
+  [value] useNoteContentUndoRedo (自研撤销重做) — 0 处引用
+  [value] createNoteId (旧块标识) — 0 处引用
+  [value] noteBlockKinds (旧块模型) — 0 处引用
+  [type] ExternalNoteDragCancellationReason (自研外部拖拽) — 0 处引用
+  [type] ExternalNoteDragCompletion (自研外部拖拽) — 0 处引用
+  [type] ExternalNoteDragInput (自研外部拖拽) — 0 处引用
+  [type] ExternalNoteDragSession (自研外部拖拽) — 0 处引用
+  [type] ExternalNoteDragStartFailureReason (自研外部拖拽) — 0 处引用
+  [type] ExternalNoteDragStartResult (自研外部拖拽) — 0 处引用
+  [type] NoteExternalItem (自研外部拖拽) — 0 处引用
+  [type] NoteBlock (旧块模型) — 2 处引用
+      src/demo/fixtures.ts x2
+  [type] NoteCalloutBlock (旧块模型) — 0 处引用
+  [type] NoteCalloutTone (旧块模型) — 0 处引用
+  [type] NoteCardBlock (旧块模型) — 0 处引用
+  [type] NoteCardData (旧块模型) — 1 处引用
+      src/lib/hnn/cardPayload.ts x1
+  [type] NoteCodeBlock (旧块模型) — 0 处引用
+  [type] NoteCollapsibleBlock (旧块模型) — 0 处引用
+  [type] NoteContentHandle (自研 DOM 选区/手柄接口) — 0 处引用
+  [type] NoteContentProps (旧内容组件) — 0 处引用
+  [type] NoteContentTransaction (旧内容组件) — 0 处引用
+  [type] NoteContentTransactionOperation (旧内容组件) — 0 处引用
+  [type] NoteContentUndoRedoController (自研撤销重做) — 0 处引用
+  [type] NoteContentUndoRedoHandle (自研撤销重做) — 0 处引用
+  [type] NoteContentUndoRedoSnapshot (自研撤销重做) — 0 处引用
+  [type] NoteDirectoryBlock (旧块模型) — 0 处引用
+  [type] NoteDrawingBlock (旧块模型) — 0 处引用
+  [type] NoteFormulaBlock (旧块模型) — 0 处引用
+  [type] NoteHeadingBlock (旧块模型) — 0 处引用
+  [type] NoteLink (旧块模型) — 0 处引用
+  [type] NoteParagraphBlock (旧块模型) — 0 处引用
+  [type] NotePictureBlock (旧块模型) — 0 处引用
+  [type] NoteQuoteBlock (旧块模型) — 0 处引用
+  [type] NoteTheme (旧内容组件) — 0 处引用
+  [type] NoteTodoBlock (旧块模型) — 0 处引用
+  [type] NoteTodoItem (旧块模型) — 0 处引用
+  [type] UseNoteContentUndoRedoResult (自研撤销重做) — 0 处引用
+
+待移除内部模块引用点:
+  [缺失] src/lib/NoteContent.tsx (旧内容组件) — 已不存在，可能在任务 8 已移除
+  [缺失] src/lib/types.ts (旧块模型) — 已不存在，可能在任务 8 已移除
+  [缺失] src/lib/restrictedHtml.ts (受限 HTML) — 已不存在，可能在任务 8 已移除
+  [缺失] src/lib/noteTextFlow.ts (自研 DOM 选区) — 已不存在，可能在任务 8 已移除
+  [缺失] src/lib/notePointerSelection.ts (自研 DOM 选区) — 已不存在，可能在任务 8 已移除
+  [缺失] src/lib/editableSelection.ts (自研 DOM 选区) — 已不存在，可能在任务 8 已移除
+  [缺失] src/lib/noteTextOffset.ts (自研 DOM 选区) — 已不存在，可能在任务 8 已移除
+  [缺失] src/lib/noteSelectionRestore.ts (自研 DOM 选区) — 已不存在，可能在任务 8 已移除
+  [缺失] src/lib/noteSelectAll.ts (自研 DOM 选区) — 已不存在，可能在任务 8 已移除
+  [缺失] src/lib/noteStructuredClipboard.ts (自研剪贴板) — 已不存在，可能在任务 8 已移除
+  [缺失] src/lib/noteStructuredPaste.ts (自研剪贴板) — 已不存在，可能在任务 8 已移除
+  [缺失] src/lib/noteRegionCodec.ts (自研剪贴板) — 已不存在，可能在任务 8 已移除
+  [缺失] src/lib/noteClipboardBlockCodec.ts (自研剪贴板) — 已不存在，可能在任务 8 已移除
+
+说明: 本扫描仅列出与检查，不修改代码；移除动作在任务 8 执行。
+
+阶段 deleted：13 个旧实现模块已按计划移除（历史清单保留为证据）。
+
+旧公共 API 扫描通过。
+Done in 1.61s.
+
+(node:1971753) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
