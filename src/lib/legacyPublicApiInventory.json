@@ -284,6 +284,8 @@
     { "name": "NoteStateLifecycle", "kind": "type", "source": "./editor/documentTypes" },
     { "name": "OnSave", "kind": "type", "source": "./editor/documentTypes" },
     { "name": "PublicDraftState", "kind": "type", "source": "./editor/documentTypes" },
+    { "name": "ReferenceInvalidationResult", "kind": "type", "source": "./editor/documentTypes" },
+    { "name": "ReferenceInvalidationScope", "kind": "type", "source": "./editor/documentTypes" },
     { "name": "RequestSaveResult", "kind": "type", "source": "./editor/documentTypes" },
     { "name": "SaveContext", "kind": "type", "source": "./editor/documentTypes" },
     { "name": "SavePayload", "kind": "type", "source": "./editor/documentTypes" },

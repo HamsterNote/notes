@@ -1,0 +1,10 @@
+command: node scripts/check-public-host-browser.mjs
+node: v24.15.0
+exit: 0
+Port 5173 is in use, trying another one...
+PASS reference candidate/document invalidation, both views, same session/state, shared history
+PASS upload success/shared undo, failure/retry identity, cancel/abort/late, save/freeze pending
+PASS card/drawing deferred commits, detach/remove late isolation, frozen refresh, persisted HNN, desktop/mobile
+browser 148.0.7778.96 public root Provider contract PASS
+
+

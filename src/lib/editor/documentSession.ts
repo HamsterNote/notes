@@ -8,13 +8,14 @@ import { createHnnExtensions, flushHnnPendingEdits, hnnRuntimeSchema } from "../
 import { installBlockReorder } from "./blockReorder"
 import { openBlockMenu } from "./blockMenu"
 import { installHnnClipboardHistoryBoundary } from "./nativeClipboard"
-import { installHostReferences, type HostReferenceInstaller } from "./hostReferences"
+import { installHostReferences, isValidReferenceLookup, type HostReferenceInstaller } from "./hostReferences"
+import { installPictureUpload, type PictureUploadInstaller } from "./pictureUpload"
 import type { HnnDrawerSession } from "./HnnDataDrawer"
 import type {
   ActiveIdentity, DetachViewResult, FreezeOutcome, HostMetadataSnapshot,
   NoteDocumentController, NoteDocumentProviderProps, NotePublicState,
   PublicDraftState, RequestSaveResult, SavePending, SaveReason, SaveTerminal,
-  UpdateHostSnapshotResult
+  UpdateHostSnapshotResult, ReferenceInvalidationResult, ReferenceInvalidationScope
 } from "./documentTypes"
 
 type Options = Omit<NoteDocumentProviderProps, "children" | "controllerRef">
@@ -22,6 +23,7 @@ export type DocumentView = {
   editor: Editor
   instanceId: symbol
   references: HostReferenceInstaller | undefined
+  pictureUpload: PictureUploadInstaller | undefined
   cleanup: Array<() => void>
 }
 
@@ -99,24 +101,49 @@ export class DocumentSession {
         const leaseId = "leaseId" in input ? input.leaseId : undefined
         if (frozen) this.pendingAcquires++
         const result = this.freezeQueue.then(() => this.freeze(frozen, expectedSessionId, requestId, leaseId))
-          .finally(() => { if (frozen) this.pendingAcquires-- })
+          .finally(() => {
+            if (frozen) this.pendingAcquires--
+            this.flushUploads()
+          })
         this.freezeQueue = result.catch(() => undefined)
         return result
       },
-      canDetachView: (viewId, context) => this.canDetach(viewId, context.expectedSessionId)
+      canDetachView: (viewId, context) => this.canDetach(viewId, context.expectedSessionId),
+      invalidateReferences: (input) => this.invalidateReferences(input.expectedSessionId, input.scope)
     }
   }
 
   updateCallbacks(options: Options): void {
     const changed = ["onReferenceCandidates", "onReferenceActivate", "onReferenceResolve"] as const
     const presenceChanged = changed.some((key) => !!this.options[key] !== !!options[key])
+    const uploadChanged = !!this.options.onPictureUpload !== !!options.onPictureUpload
     this.options = options
+    if (uploadChanged) {
+      for (const record of this.views.values()) this.configurePictureUpload(record)
+      this.notify()
+    }
     if (presenceChanged) {
       for (const record of this.views.values()) this.configureReferences(record)
       this.notify()
     }
   }
   private get sessionId(): string | null { return this.lifecycle === "ready" ? this.identity.sessionId : null }
+  private invalidateReferences(expected: string, scope: ReferenceInvalidationScope): ReferenceInvalidationResult {
+    const sessionId = this.sessionId
+    if (this.lifecycle === "disposed") return { sessionId: null, kind: "abort", reason: "disposed" }
+    if (this.lifecycle !== "ready") return { sessionId, kind: "noop", reason: "not-ready" }
+    if (expected !== sessionId) return { sessionId, kind: "noop", reason: "stale" }
+    if (!scope || (scope.kind !== "document" && (scope.kind !== "reference" || !isValidReferenceLookup(scope.reference)))) {
+      return { sessionId, kind: "failure", reason: "invalid-scope" }
+    }
+    const reference = scope.kind === "reference" ? { kind: scope.reference.kind, resourceId: scope.reference.resourceId } : undefined
+    for (const [viewId, record] of [...this.views]) {
+      if (this.getState().lifecycle === "disposed") break
+      if (this.views.get(viewId) !== record) continue
+      record.references?.invalidate(reference)
+    }
+    return this.getState().lifecycle === "disposed" ? { sessionId: null, kind: "abort", reason: "disposed" } : { sessionId, kind: "accepted" }
+  }
   private get frozen(): boolean { return [...this.requests.values()].some((lease) => lease !== null) }
   getState(): NotePublicState {
     const body = !!this.authority && !!this.baseline && !this.authority.doc.eq(this.baseline)
@@ -142,7 +169,7 @@ export class DocumentSession {
   canReplace(): boolean {
     const state = this.getState()
     return this.lifecycle !== "disposed" && !state.dirty.body && !state.dirty.host
-      && this.draft.phase === "none" && !this.pending && !this.pendingAcquires && !this.freezing && !this.frozen
+      && this.draft.phase === "none" && !this.pending && !this.pendingAcquires && !this.freezing && !this.frozen && !this.hasUploads()
   }
   resourceUsage(): { views: number; requests: number; activeLeases: number; undoEvents: number; redoEvents: number; sessionMappingEntries: number } {
     return {
@@ -188,19 +215,65 @@ export class DocumentSession {
     })
     editor.view.setProps({ dispatchTransaction: (tr) => { this.dispatch(viewId, tr) } })
     editor.view.updateState(EditorState.create({ schema: hnnRuntimeSchema, doc: this.authority.doc, plugins: editor.state.plugins }))
-    const record: DocumentView = { editor, instanceId: Symbol(viewId), references: undefined, cleanup: [] }
+    const record: DocumentView = { editor, instanceId: Symbol(viewId), references: undefined, pictureUpload: undefined, cleanup: [] }
     this.views.set(viewId, record)
     record.cleanup.push(installHnnClipboardHistoryBoundary(editor))
     record.cleanup.push(installBlockReorder(editor, {
       openMenu: (anchor, getPos, onClosed) => {
         if (!this.canInput()) return undefined
-        const menu = openBlockMenu({ editor, anchor, getPos, onClosed, capabilities: { canUploadPicture: () => false, enqueuePictures: () => [] } })
+        const menu = openBlockMenu({ editor, anchor, getPos, onClosed, capabilities: {
+          canUploadPicture: () => !!record.pictureUpload && this.canStartUpload(),
+          enqueuePictures: (files, position) => record.pictureUpload?.enqueue(files, position) ?? []
+        } })
         return menu ? (restoreFocus?: boolean) => menu.close(restoreFocus) : undefined
       }
     }))
     this.configureReferences(record)
+    this.configurePictureUpload(record)
     this.refreshEditable()
     return record
+  }
+  private canStartUpload(): boolean {
+    return this.canInput() && this.draft.phase === "none" && !this.freezing && !this.pendingAcquires
+  }
+  private hasUploads(): boolean {
+    return [...this.views.values()].some((record) => !!record.pictureUpload?.getState().items.length)
+  }
+  private flushUploads(): void {
+    if (!this.canStartUpload()) return
+    for (const record of [...this.views.values()]) record.pictureUpload?.flushCompletions()
+  }
+  private configurePictureUpload(record: DocumentView): void {
+    if (!this.options.onPictureUpload || this.lifecycle !== "ready") {
+      record.pictureUpload?.destroy()
+      record.pictureUpload = undefined
+      return
+    }
+    if (record.pictureUpload) return
+    const current = () => this.lifecycle === "ready" && [...this.views.values()].includes(record)
+    record.pictureUpload = installPictureUpload(record.editor, {
+      upload: (file, context) => {
+        const handler = this.options.onPictureUpload
+        if (!current() || !handler) return Promise.reject(new Error("Picture upload is no longer available"))
+        return handler(file, context)
+      },
+      canStart: () => current() && this.canStartUpload(),
+      canCommit: () => current() && this.canStartUpload(),
+      dispatch: (tr) => {
+        if (!current()) return false
+        const entry = [...this.views].find(([, value]) => value === record)
+        if (!entry) return false
+        if (tr.docChanged || this.canInput()) return this.dispatch(entry[0], tr)
+        // Upload decorations are view-local and can be cancelled while a modal owns input.
+        const editor = record.editor
+        if (!tr.before.eq(editor.state.doc)) return false
+        const applied = editor.state.applyTransaction(tr)
+        if (!applied.transactions.includes(tr)) return false
+        editor.view.updateState(applied.state)
+        this.emitTransaction(editor, tr, applied.transactions.slice(1))
+        return true
+      }
+    })
   }
   private configureReferences(record: DocumentView): void {
     record.references?.destroy()
@@ -223,6 +296,7 @@ export class DocumentSession {
         ...(activate ? { activate: (reference, context) => this.options.onReferenceActivate?.(reference, context) } : {}),
         ...(resolve ? { resolve: (reference, context) => this.options.onReferenceResolve?.(reference, context) ?? null } : {})
       })
+      if (this.lifecycle !== "ready" || editor.isDestroyed) { installed.destroy(); return }
       record.references = {
         ...installed,
         selectCandidate: (...args) => this.canInput() && !this.freezing && installed.selectCandidate(...args)
@@ -231,6 +305,7 @@ export class DocumentSession {
   }
   detachView(viewId: string, record: DocumentView): void {
     if (this.views.get(viewId) !== record) return
+    record.pictureUpload?.destroy()
     record.references?.destroy()
     for (const cleanup of record.cleanup) cleanup()
     this.views.delete(viewId)
@@ -429,8 +504,8 @@ export class DocumentSession {
       if ([...this.views.values()].some(({ editor }) => editor.view.composing)) return {
         ...result, kind: "failure", reason: "composition-commit", error: new Error("Composition still pending")
       }
-      if (this.pendingEdits) return {
-        ...result, kind: "failure", reason: "pending-edit", error: new Error("Reference candidate edit still pending")
+      if (this.pendingEdits || this.hasUploads()) return {
+        ...result, kind: "failure", reason: "pending-edit", error: new Error("Reference or picture edit still pending")
       }
       const nextLease = createSessionUuid()
       this.requests.set(requestId, nextLease)
@@ -469,6 +544,7 @@ export class DocumentSession {
     this.draft = { phase: "none" }
     this.draftPayload = null
     this.refreshEditable()
+    this.flushUploads()
     const { dirty } = this.getState()
     if (!this.pending && (dirty.body || dirty.host)) this.schedule()
   }

@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest"
 import { NoteDocumentProvider, NoteEditorView, type NoteDocumentController,
   type NoteDocumentProviderProps, type NotePublicState, type SaveTerminal,
   type RequestSaveResult, type FreezeOutcome, type UpdateHostSnapshotResult,
-  type DetachViewResult, type NoteSave } from "./index"
+  type DetachViewResult, type NoteSave, type ReferenceInvalidationScope, type ReferenceInvalidationResult } from "./index"
 
 function impossible(value: never): never { throw new Error(String(value)) }
 function terminal(result: SaveTerminal): string {
@@ -53,6 +53,16 @@ function consume(controller: NoteDocumentController) {
   void controller.setInputFrozen(false, { expectedSessionId, requestId: "R", leaseId: "L" }).then(freeze)
   metadata(controller.updateHostSnapshot({ changeId: 1, value: { title: "T", summary: "S" } }, { expectedSessionId }))
   detach(controller.canDetachView("A", { expectedSessionId }))
+  const scope: ReferenceInvalidationScope = { kind: "reference", reference: { kind: "mention", resourceId: "highlight" } }
+  const result: ReferenceInvalidationResult | undefined = controller.invalidateReferences?.({ expectedSessionId, scope })
+  void result
+  // Structural adapters compiled against 3.1.1 need no new member.
+  const old: NoteDocumentController = {
+    getState: controller.getState.bind(controller), subscribe: controller.subscribe.bind(controller),
+    updateHostSnapshot: controller.updateHostSnapshot.bind(controller), requestSave: controller.requestSave.bind(controller),
+    setInputFrozen: controller.setInputFrozen.bind(controller), canDetachView: controller.canDetachView.bind(controller)
+  }
+  void old
   // @ts-expect-error The controller does not expose PM handles.
   void controller.editor
   // @ts-expect-error Expected session identity is mandatory.
@@ -74,6 +84,11 @@ describe("3.1 root type contract", () => {
       onChange: (document, identity) => { void document; void identity }, controllerRef: ref,
       onReferenceCandidates: () => [], onReferenceResolve: () => null,
       onReferenceActivate: () => undefined, onInitialLoadError: () => undefined,
+      onPictureUpload: async (file, { uploadId, attempt, signal }) => {
+        await Promise.resolve()
+        void uploadId; void attempt; void signal; void file
+        return { src: "https://example.com/image.png" }
+      },
       children: <><NoteEditorView viewId="A" /><NoteEditorView viewId="B" theme="dark" /></>
     }
     const legacy: NoteSave = async (_document, context) => {

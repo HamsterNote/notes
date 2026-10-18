@@ -1,0 +1,17 @@
+command: yarn install --frozen-lockfile
+node: v24.15.0
+exit: 0
+yarn install v1.22.22
+[1/5] Validating package.json...
+[2/5] Resolving packages...
+[3/5] Fetching packages...
+[4/5] Linking dependencies...
+[5/5] Building fresh packages...
+Done in 5.47s.
+
+(node:1973050) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+warning " > @hamster-note/painting@0.2.0" has incorrect peer dependency "react@^18.0.0".
+warning " > @hamster-note/painting@0.2.0" has unmet peer dependency "react-native@>=0.74".
+warning "@tiptap/react > @tiptap/extension-floating-menu@3.31.3" has unmet peer dependency "@floating-ui/dom@^1.0.0".
+

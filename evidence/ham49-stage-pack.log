@@ -1,0 +1,711 @@
+command: npm pack --pack-destination ../notes/evidence --json
+node: v24.15.0
+exit: 0
+[
+  {
+    "id": "@hamster-note/notes@3.1.2",
+    "name": "@hamster-note/notes",
+    "version": "3.1.2",
+    "size": 4185137,
+    "unpackedSize": 14500925,
+    "shasum": "8b76b6119ae28134b1ddf75163e8a5bbc6f522a9",
+    "integrity": "sha512-teL1eVnUu/wQelHTe7sZoT21J1uLc28CfhNUevbUsGxVUP3flsBJ+V/xzZFxjmiqDVHtjJdSvVnbv4GSwrLoEQ==",
+    "filename": "hamster-note-notes-3.1.2.tgz",
+    "files": [
+      {
+        "path": "LICENSE",
+        "size": 1069,
+        "mode": 420
+      },
+      {
+        "path": "README.md",
+        "size": 17848,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_AMS-Regular.ttf",
+        "size": 63632,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_AMS-Regular.woff",
+        "size": 33516,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_AMS-Regular.woff2",
+        "size": 28076,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Caligraphic-Bold.ttf",
+        "size": 12368,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Caligraphic-Bold.woff",
+        "size": 7716,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Caligraphic-Bold.woff2",
+        "size": 6912,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Caligraphic-Regular.ttf",
+        "size": 12344,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Caligraphic-Regular.woff",
+        "size": 7656,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Caligraphic-Regular.woff2",
+        "size": 6908,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Fraktur-Bold.ttf",
+        "size": 19584,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Fraktur-Bold.woff",
+        "size": 13296,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Fraktur-Bold.woff2",
+        "size": 11348,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Fraktur-Regular.ttf",
+        "size": 19572,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Fraktur-Regular.woff",
+        "size": 13208,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Fraktur-Regular.woff2",
+        "size": 11316,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Main-Bold.ttf",
+        "size": 51336,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Main-Bold.woff",
+        "size": 29912,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Main-Bold.woff2",
+        "size": 25324,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Main-BoldItalic.ttf",
+        "size": 32968,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Main-BoldItalic.woff",
+        "size": 19412,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Main-BoldItalic.woff2",
+        "size": 16780,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Main-Italic.ttf",
+        "size": 33580,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Main-Italic.woff",
+        "size": 19676,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Main-Italic.woff2",
+        "size": 16988,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Main-Regular.ttf",
+        "size": 53580,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Main-Regular.woff",
+        "size": 30772,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Main-Regular.woff2",
+        "size": 26272,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Math-BoldItalic.ttf",
+        "size": 31196,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Math-BoldItalic.woff",
+        "size": 18668,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Math-BoldItalic.woff2",
+        "size": 16400,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Math-Italic.ttf",
+        "size": 31308,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Math-Italic.woff",
+        "size": 18748,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Math-Italic.woff2",
+        "size": 16440,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_SansSerif-Bold.ttf",
+        "size": 24504,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_SansSerif-Bold.woff",
+        "size": 14408,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_SansSerif-Bold.woff2",
+        "size": 12216,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_SansSerif-Italic.ttf",
+        "size": 22364,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_SansSerif-Italic.woff",
+        "size": 14112,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_SansSerif-Italic.woff2",
+        "size": 12028,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_SansSerif-Regular.ttf",
+        "size": 19436,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_SansSerif-Regular.woff",
+        "size": 12316,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_SansSerif-Regular.woff2",
+        "size": 10344,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Script-Regular.ttf",
+        "size": 16648,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Script-Regular.woff",
+        "size": 10588,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Script-Regular.woff2",
+        "size": 9644,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Size1-Regular.ttf",
+        "size": 12228,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Size1-Regular.woff",
+        "size": 6496,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Size1-Regular.woff2",
+        "size": 5468,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Size2-Regular.ttf",
+        "size": 11508,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Size2-Regular.woff",
+        "size": 6188,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Size2-Regular.woff2",
+        "size": 5208,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Size3-Regular.ttf",
+        "size": 7588,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Size3-Regular.woff",
+        "size": 4420,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Size3-Regular.woff2",
+        "size": 3624,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Size4-Regular.ttf",
+        "size": 10364,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Size4-Regular.woff",
+        "size": 5980,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Size4-Regular.woff2",
+        "size": 4928,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Typewriter-Regular.ttf",
+        "size": 27556,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Typewriter-Regular.woff",
+        "size": 16028,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Typewriter-Regular.woff2",
+        "size": 13568,
+        "mode": 420
+      },
+      {
+        "path": "dist/formula.css",
+        "size": 23826,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.cjs",
+        "size": 1142637,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.cjs.map",
+        "size": 5118863,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.d.ts",
+        "size": 38,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.js",
+        "size": 1684428,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.js.map",
+        "size": 5269174,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/blockMenu.d.ts",
+        "size": 1013,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/blockMenu.d.ts.map",
+        "size": 786,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/blockReorder.d.ts",
+        "size": 5976,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/blockReorder.d.ts.map",
+        "size": 1015,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/documentSession.d.ts",
+        "size": 3051,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/documentSession.d.ts.map",
+        "size": 2840,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/documentTypes.d.ts",
+        "size": 6023,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/documentTypes.d.ts.map",
+        "size": 6070,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/HnnDataDrawer.d.ts",
+        "size": 2819,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/HnnDataDrawer.d.ts.map",
+        "size": 2050,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/hostReferenceInteractions.d.ts",
+        "size": 1558,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/hostReferenceInteractions.d.ts.map",
+        "size": 1089,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/hostReferences.d.ts",
+        "size": 2558,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/hostReferences.d.ts.map",
+        "size": 1607,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/HostReferenceUI.d.ts",
+        "size": 1282,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/HostReferenceUI.d.ts.map",
+        "size": 542,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/MarkdownExport.d.ts",
+        "size": 1802,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/MarkdownExport.d.ts.map",
+        "size": 870,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/nativeClipboard.d.ts",
+        "size": 482,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/nativeClipboard.d.ts.map",
+        "size": 261,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/NoteDocumentProvider.d.ts",
+        "size": 358,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/NoteDocumentProvider.d.ts.map",
+        "size": 396,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/NoteEditor.d.ts",
+        "size": 1785,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/NoteEditor.d.ts.map",
+        "size": 701,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/NoteSaveStatus.d.ts",
+        "size": 1214,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/NoteSaveStatus.d.ts.map",
+        "size": 561,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/pictureUpload.d.ts",
+        "size": 1788,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/pictureUpload.d.ts.map",
+        "size": 1186,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/session.d.ts",
+        "size": 4521,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/session.d.ts.map",
+        "size": 1232,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/sessionKey.d.ts",
+        "size": 328,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/sessionKey.d.ts.map",
+        "size": 227,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/types.d.ts",
+        "size": 6076,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/types.d.ts.map",
+        "size": 4093,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/budgetedTransaction.d.ts",
+        "size": 2767,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/budgetedTransaction.d.ts.map",
+        "size": 830,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/cardPayload.d.ts",
+        "size": 2320,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/cardPayload.d.ts.map",
+        "size": 1787,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/codec.d.ts",
+        "size": 987,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/codec.d.ts.map",
+        "size": 720,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/directoryEntries.d.ts",
+        "size": 442,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/directoryEntries.d.ts.map",
+        "size": 399,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/drawingPayload.d.ts",
+        "size": 1358,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/drawingPayload.d.ts.map",
+        "size": 1037,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/extensions.d.ts",
+        "size": 2984,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/extensions.d.ts.map",
+        "size": 1626,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/limits.d.ts",
+        "size": 1402,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/limits.d.ts.map",
+        "size": 379,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/markdown.d.ts",
+        "size": 1135,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/markdown.d.ts.map",
+        "size": 915,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/menuPopover.d.ts",
+        "size": 2843,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/menuPopover.d.ts.map",
+        "size": 952,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/nodeId.d.ts",
+        "size": 1851,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/nodeId.d.ts.map",
+        "size": 833,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/persistedStringBudget.d.ts",
+        "size": 953,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/persistedStringBudget.d.ts.map",
+        "size": 583,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/schema.d.ts",
+        "size": 307,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/schema.d.ts.map",
+        "size": 217,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/stringBytes.d.ts",
+        "size": 1669,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/stringBytes.d.ts.map",
+        "size": 538,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/tableEdgeControls.d.ts",
+        "size": 1687,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/tableEdgeControls.d.ts.map",
+        "size": 1124,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/urlPolicy.d.ts",
+        "size": 469,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/urlPolicy.d.ts.map",
+        "size": 258,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/index.d.ts",
+        "size": 1804,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/index.d.ts.map",
+        "size": 1324,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/test-setup.d.ts",
+        "size": 40,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/test-setup.d.ts.map",
+        "size": 121,
+        "mode": 420
+      },
+      {
+        "path": "dist/styles.css",
+        "size": 56328,
+        "mode": 420
+      },
+      {
+        "path": "package.json",
+        "size": 3321,
+        "mode": 420
+      }
+    ],
+    "entryCount": 138,
+    "bundled": []
+  }
+]
+
+

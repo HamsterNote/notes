@@ -35,6 +35,45 @@ yarn build
 
 ## 公共 API
 
+### 3.1.2 宿主引用失效与图片上传
+
+`NoteDocumentProvider` 新增可选 `onPictureUpload?: PictureUploadHandler`。提供回调后，各 View 的图片选择、图片粘贴、外部拖入与失败重试/取消均可用；内部拖动不会重复上传。无回调保留原有行为。有到有的回调替换只影响未来 attempt；移除回调会 abort 并清理全部占位，再次提供无需重挂 Provider。
+
+```tsx
+import type { NoteDocumentController, PictureUploadHandler } from "@hamster-note/notes"
+
+export function refreshHighlight(controller: NoteDocumentController, resourceId: string) {
+  const expectedSessionId = controller.getState().identity?.sessionId
+  if (!expectedSessionId) return
+  if (!controller.invalidateReferences) throw new Error("Requires notes >= 3.1.2")
+  // 先更新宿主数据；若更换 React resolver prop，须在其提交后调用。
+  for (const kind of ["mention", "resource"] as const) {
+    const result = controller.invalidateReferences({ expectedSessionId,
+      scope: { kind: "reference", reference: { kind, resourceId } } })
+    if (result.kind !== "accepted") throw new Error(JSON.stringify(result))
+  }
+  // 全文：controller.invalidateReferences({ expectedSessionId, scope: { kind: "document" } })
+}
+
+export const upload: PictureUploadHandler = async (file, { uploadId, attempt, signal }) => {
+  const response = await fetch("/images", { method: "POST", body: file, signal,
+    headers: { "X-Upload-Id": uploadId, "X-Upload-Attempt": String(attempt) } })
+  if (!response.ok) throw new Error(`Upload failed: ${response.status}`)
+  // 示例宿主端点通过 Location 返回已上传图片的 http/https URL。
+  return { src: response.headers.get("Location") ?? "", alt: file.name }
+}
+```
+
+`invalidateReferences` 在 3.1.2 创建的 Controller 上始终存在；类型上可选以兼容旧结构 adapter。结果为 `accepted`、`noop(stale|not-ready)`、`abort(disposed)` 或 `failure(invalid-scope)`，携带 sessionId。`accepted` 仅表示已受理，异步终态见引用 DOM 的 `data-hnn-resolve-status`：null 为 missing，异常为 error，合法 label 为 resolved。按 kind/resourceId 精确失效或刷新当前文档全部引用；无匹配不发请求，无 View 时安全受理。旧请求收到 abort，忽略 signal 的迟到结果也无效。普通 rerender 或 resolver 函数身份变化不会自动重拉；稳定函数读取外部 store 时，更新 store 后可直接显式失效。
+
+刷新只改变运行时引用展示，保留 session、HNN、metadata、dirty、选区、焦点、共享 history 与保存基线，不触发 onChange/onSave；freeze 期间同样可刷新。不得靠 remount 或正文改写刷新引用。
+
+上传回调接收原始 File 和 `{ uploadId, attempt, signal }`，返回 Promise<{src, alt?}>。成功只接受经过 URL 与 HNN 预算校验的 http/https 地址；结果通过共享正文提交一次，peer 可 undo/redo。失败或非法地址显示失败，用户可重试（同 uploadId、递增 attempt、新 signal）或取消。取消、锚点删除、来源 View detach（即使同 viewId 重开）、Provider dispose、移除回调都会 abort；宿主忽略 signal 的迟到结果仍被隔离，远端资源回收由宿主处理。
+
+上传期间可保存已有持久正文，占位/File/uploadId/attempt 不进入 HNN；saved/clean **不代表上传完成，也不代表可以离开**。存在 uploading、failed 或待提交结果时会话替换被拒绝，freeze acquire 返回既有 failure/pending-edit 且不消费 requestId。完成或取消后可重试同请求；acquire 入队与持有任何 lease 期间禁止新上传/retry。card/drawing 草稿期间也禁止新上传/retry，但先前请求可返回：合法成功结果延后到草稿关闭后重新校验锚点并恰好提交一次，不重新上传；期间取消或卸载可清理。受控导航仍须成功取得自身 freeze lease 并等待保存；强制卸载不保证远端上传资源清理或未完成写入持久化。
+
+公共浏览器契约：`node scripts/check-public-host-browser.mjs`。同一根入口 fixture 也由 `node scripts/verify-pack-consumer.mjs <tarball> 3.1.2 <fresh-directory> --public-host` 在无源码 alias/私有导入的干净安装中运行。HAM-36 仍须升级正式包、接通失效调用后复跑 `hnn-references.spec.ts` 和真实宿主上传；本库验证不代替 Reader 验收。
+
 > ⚠️ **不兼容变更**：本版本整体替换了旧编辑内核。旧的 `NoteContent`、`NoteBlock` 等块模型 API、受限 HTML 渲染、自研 DOM 选区与专有剪贴板 MIME 已从包入口移除，且**不提供旧格式迁移或兼容层**。
 
 3.0.0 的公共入口继续保留，并新增共享文档会话：

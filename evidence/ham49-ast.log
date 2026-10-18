@@ -1,0 +1,15 @@
+command: node --test scripts/phase1-ast-guards.test.mjs
+node: v24.15.0
+exit: 0
+✔ rejects bare ProseMirror ImportTypeNode and ImportEqualsDeclaration (23.670414ms)
+✔ resolves local aliases in public function parameter types (1454.256957ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2001.577479
+
+

@@ -1,6 +1,6 @@
 import type { ReactNode, Ref } from "react"
 import type { HnnDocument } from "../hnn/codec"
-import type { HostCandidateProvider, HostReferenceActivate, HostReferenceResolve, InitialLoadErrorHandler } from "./types"
+import type { HostCandidateProvider, HostReferenceActivate, HostReferenceLookup, HostReferenceResolve, InitialLoadErrorHandler, PictureUploadHandler } from "./types"
 
 export type DraftKind = "card" | "drawing"
 export type DraftPhase = "none" | "editing" | "validating" | "invalid"
@@ -58,6 +58,15 @@ export type DetachViewResult = { sessionId: string | null } & (
   | { kind: "blocked"; reason: "draft-owner" }
   | { kind: "noop"; reason: "unknown-view" | "not-ready" | "stale" }
 )
+export type ReferenceInvalidationScope =
+  | { kind: "reference"; reference: HostReferenceLookup }
+  | { kind: "document" }
+export type ReferenceInvalidationResult = { sessionId: string | null } & (
+  | { kind: "accepted" }
+  | { kind: "noop"; reason: "stale" | "not-ready" }
+  | { kind: "abort"; reason: "disposed" }
+  | { kind: "failure"; reason: "invalid-scope" }
+)
 export interface NoteDocumentController {
   getState(): NotePublicState
   subscribe(listener: (state: NotePublicState) => void): () => void
@@ -66,6 +75,8 @@ export interface NoteDocumentController {
   setInputFrozen(frozen: true, options: AcquireFreeze): Promise<FreezeOutcome>
   setInputFrozen(frozen: false, options: ReleaseFreeze): Promise<FreezeOutcome>
   canDetachView(viewId: string, options: { expectedSessionId: string }): DetachViewResult
+  /** Always present on 3.1.2 controllers; optional for older structural adapters. */
+  invalidateReferences?(input: { expectedSessionId: string; scope: ReferenceInvalidationScope }): ReferenceInvalidationResult
 }
 export type NoteDocumentProviderProps = {
   documentId: string
@@ -78,6 +89,7 @@ export type NoteDocumentProviderProps = {
   onReferenceCandidates?: HostCandidateProvider
   onReferenceResolve?: HostReferenceResolve
   onReferenceActivate?: HostReferenceActivate
+  onPictureUpload?: PictureUploadHandler
   onInitialLoadError?: InitialLoadErrorHandler
   children: ReactNode
 }

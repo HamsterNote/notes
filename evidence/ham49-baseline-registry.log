@@ -1,0 +1,32 @@
+command: npm view @hamster-note/notes@3.1.1 version gitHead dist --json
+node: v24.15.0
+exit: 0
+{
+  "version": "3.1.1",
+  "gitHead": "e40ee779bf36b7f5c9f5d5fd10b622c66febbeb6",
+  "dist": {
+    "shasum": "5eb888cd71d969f850967038c2ce4fcb0bc1e222",
+    "tarball": "https://registry.npmjs.org/@hamster-note/notes/-/notes-3.1.1.tgz",
+    "fileCount": 138,
+    "integrity": "sha512-/k54NncyqqB19pNskfnesTZi2SFU5xEQ/YX0kqtpjaqQ6vDoqKr0EoyMnNPPoSFCR2gczg7FOudDfv+eTd0vfQ==",
+    "signatures": [
+      {
+        "sig": "MEUCIEjn3+ANVvSOtC3eUZbPYjiwE+h0SIbAtz1K+/9xmenTAiEAo56QW4p7+UvE7WJbY3HvPieJV1DGo/UhyqDgRl95+A8=",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      },
+      {
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+        "sig": "MEYCIQC0q39dUZ536HWjHcwWIKmAZYAqa5IAxW81nD0Hq2FclQIhAMzYGU0WwqRES76llgZwluxjbAo3ltIdNyHZrGMomdR4"
+      }
+    ],
+    "attestations": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/@hamster-note%2fnotes@3.1.1",
+      "provenance": {
+        "predicateType": "https://slsa.dev/provenance/v1"
+      }
+    },
+    "unpackedSize": 14459992
+  }
+}
+
+

@@ -1,7 +1,7 @@
 import type { Editor } from "@tiptap/core"
 import { closeHistory } from "@tiptap/pm/history"
 import { Fragment, type Node as ProseMirrorNode } from "@tiptap/pm/model"
-import { Plugin, PluginKey } from "@tiptap/pm/state"
+import { Plugin, PluginKey, type Transaction } from "@tiptap/pm/state"
 import { Decoration, DecorationSet } from "@tiptap/pm/view"
 import { encodeHnn } from "../hnn/codec"
 import { HNN_LIMITS } from "../hnn/limits"
@@ -35,6 +35,7 @@ interface UploadRecord {
   token: symbol
   readonly dom: HTMLElement
   active: boolean
+  completion?: { token: symbol; src: string; alt: string }
 }
 
 interface UploadPluginState {
@@ -53,6 +54,10 @@ export interface PictureUploadOptions {
   readonly maxFileBytes?: number
   /** 状态变化回调（等价于 subscribe 的便捷入口）。 */
   readonly onStateChange?: (state: PictureUploadState) => void
+  readonly canStart?: () => boolean
+  readonly canCommit?: () => boolean
+  /** Shared sessions confirm authority acceptance; legacy editors dispatch directly. */
+  readonly dispatch?: (transaction: Transaction) => boolean
 }
 
 export interface PictureUploadInstaller {
@@ -67,6 +72,7 @@ export interface PictureUploadInstaller {
   cancel(uploadId: string): boolean
   getState(): PictureUploadState
   subscribe(listener: (state: PictureUploadState) => void): () => void
+  flushCompletions(): void
   /** 卸载：abort 全部上传、注销插件并丢弃一切陈旧结果。 */
   destroy(): void
 }
@@ -160,9 +166,14 @@ export function installPictureUpload(editor: Editor, options: PictureUploadOptio
     return span ? span.from : null
   }
 
-  const dispatchDecorationMeta = (meta: UploadMeta): void => {
-    if (destroyed || editor.isDestroyed) return
-    editor.view.dispatch(editor.state.tr.setMeta(uploadKey, meta))
+  const dispatch = (tr: Transaction): boolean => {
+    if (destroyed || editor.isDestroyed) return false
+    if (options.dispatch) return options.dispatch(tr)
+    editor.view.dispatch(tr)
+    return true
+  }
+  const dispatchDecorationMeta = (meta: UploadMeta): boolean => {
+    return dispatch(editor.state.tr.setMeta(uploadKey, meta))
   }
 
   const dropRecord = (record: UploadRecord): void => {
@@ -180,6 +191,11 @@ export function installPictureUpload(editor: Editor, options: PictureUploadOptio
 
   const complete = (record: UploadRecord, token: symbol, src: string, alt: string): void => {
     if (destroyed || editor.isDestroyed || !record.active || record.token !== token) return
+    if (options.canCommit && !options.canCommit()) {
+      record.completion = { token, src, alt }
+      return
+    }
+    delete record.completion
     const position = decorationPosition(record.uploadId)
     const pictureType = editor.state.doc.type.schema.nodes["picture"]
     if (position === null || !pictureType) {
@@ -198,10 +214,13 @@ export function installPictureUpload(editor: Editor, options: PictureUploadOptio
       handleFailure(record, token, error)
       return
     }
+    if (!dispatch(tr)) {
+      handleFailure(record, token, new Error("图片提交未被当前会话接受"))
+      return
+    }
     dropRecord(record)
-    editor.view.dispatch(tr)
     // closeHistory 只隔离前序；再补一条空 close 事务，令紧随其后的输入独立成历史步。
-    editor.view.dispatch(closeHistory(editor.state.tr))
+    if (!destroyed && !editor.isDestroyed) dispatch(closeHistory(editor.state.tr))
     notify()
   }
 
@@ -232,6 +251,7 @@ export function installPictureUpload(editor: Editor, options: PictureUploadOptio
     record.error = undefined
     renderPlaceholder(record.dom, record)
     notify()
+    if (destroyed || editor.isDestroyed || !record.active || record.token !== token) return
     let promise: Promise<PictureUploadResult>
     try {
       promise = options.upload(record.file, { uploadId: record.uploadId, attempt: record.attempt, signal: controller.signal })
@@ -246,18 +266,19 @@ export function installPictureUpload(editor: Editor, options: PictureUploadOptio
   }
 
   const enqueueAt = (files: File[], position: number | null): string[] => {
-    if (destroyed || editor.isDestroyed) return []
+    if (destroyed || editor.isDestroyed || (options.canStart && !options.canStart())) return []
     const target = position === null ? null : blockInsertPosition(editor.state.doc, position)
     if (target === null) return []
     const uploadIds: string[] = []
     for (const file of files) {
+      if (destroyed || editor.isDestroyed || (options.canStart && !options.canStart())) break
       if (options.maxFileBytes !== undefined && file.size > options.maxFileBytes) {
         const uploadId = createHnnNodeId()
         const dom = document.createElement("div")
         const record: UploadRecord = { uploadId, order: ++nextOrder, file, attempt: 1, status: "failed", error: new Error("图片文件超出大小上限"), controller: new AbortController(), token: Symbol(uploadId), dom, active: true }
         renderPlaceholder(dom, record)
         records.set(uploadId, record)
-        dispatchDecorationMeta({ kind: "add", uploadId, order: record.order, pos: target, dom })
+        if (!dispatchDecorationMeta({ kind: "add", uploadId, order: record.order, pos: target, dom })) { dropRecord(record); continue }
         uploadIds.push(uploadId)
         notify()
         continue
@@ -267,7 +288,7 @@ export function installPictureUpload(editor: Editor, options: PictureUploadOptio
       const record: UploadRecord = { uploadId, order: ++nextOrder, file, attempt: 1, status: "uploading", error: undefined, controller: new AbortController(), token: Symbol(uploadId), dom, active: true }
       renderPlaceholder(dom, record)
       records.set(uploadId, record)
-      dispatchDecorationMeta({ kind: "add", uploadId, order: record.order, pos: target, dom })
+      if (!dispatchDecorationMeta({ kind: "add", uploadId, order: record.order, pos: target, dom })) { dropRecord(record); continue }
       uploadIds.push(uploadId)
       startUpload(record)
     }
@@ -390,6 +411,7 @@ export function installPictureUpload(editor: Editor, options: PictureUploadOptio
   editor.registerPlugin(plugin)
 
   const retry = (uploadId: string): boolean => {
+    if (destroyed || editor.isDestroyed || (options.canStart && !options.canStart())) return false
     const record = records.get(uploadId)
     if (!record || !record.active || record.status === "uploading") return false
     // 超限文件不可重试：retry 必须重新校验限制，绝不因此绕过 maxFileBytes 调用宿主。
@@ -415,6 +437,13 @@ export function installPictureUpload(editor: Editor, options: PictureUploadOptio
     return () => listeners.delete(listener)
   }
 
+  const flushCompletions = (): void => {
+    for (const record of [...records.values()]) {
+      const result = record.completion
+      if (result) complete(record, result.token, result.src, result.alt)
+    }
+  }
+
   const destroy = (): void => {
     if (destroyed) return
     destroyed = true
@@ -432,5 +461,5 @@ export function installPictureUpload(editor: Editor, options: PictureUploadOptio
     }
   }
 
-  return { enqueue, retry, cancel, getState, subscribe, destroy }
+  return { enqueue, retry, cancel, getState, subscribe, flushCompletions, destroy }
 }

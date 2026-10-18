@@ -15,6 +15,7 @@ import type {
   HostReferenceActivation,
   HostReferenceCandidate,
   HostReferenceKind,
+  HostReferenceLookup,
   HostReferenceResolve,
   HostReferenceResolution,
   HostReferenceResolutionEntry,
@@ -71,6 +72,7 @@ export interface HostReferenceInstaller {
   activate(reference: HostReferenceActivation): void
   getReferenceState(): HostReferenceState
   subscribeReferences(listener: (state: HostReferenceState) => void): () => void
+  invalidate(reference?: HostReferenceLookup): void
   destroy(): void
 }
 
@@ -84,6 +86,13 @@ function isCandidateKind(value: string): value is HostCandidateKind {
 
 function withinBudget(value: string, maxBytes: number): boolean {
   return value.trim().length > 0 && utf8Bytes(value) <= maxBytes && jsonStringBytes(value) <= HNN_LIMITS.maxAttrBytes
+}
+
+export function isValidReferenceLookup(value: unknown): value is HostReferenceLookup {
+  if (!value || typeof value !== "object") return false
+  const reference = value as Partial<HostReferenceLookup>
+  return typeof reference.kind === "string" && isReferenceKind(reference.kind)
+    && typeof reference.resourceId === "string" && withinBudget(reference.resourceId, HNN_LIMITS.maxIdentifierBytes)
 }
 
 function candidateWithinBudget(candidate: HostReferenceCandidate): boolean {
@@ -235,20 +244,26 @@ export function installHostReferences(editor: Editor, options: HostReferenceOpti
     queueMicrotask(() => { referencesNotifyScheduled = false; notifyReferences() })
   }
 
-  const startResolve = (entry: ResolutionEntry): void => {
-    const resolver = options.resolve
-    // 无回调时受控 missing，不破坏文档。
-    if (!resolver) { entry.status = "missing"; entry.error = undefined; return }
-    const token = Symbol("host-resolve")
+  const startResolve = (entry: ResolutionEntry, token = Symbol("host-resolve")): void => {
+    if (destroyed || editor.isDestroyed || !entry.active) return
+    const previous = entry.controller
     entry.token = token
-    entry.status = "loading"
+    entry.label = undefined
+    entry.description = undefined
     entry.error = undefined
     const controller = new AbortController()
     entry.controller = controller
+    entry.status = "loading"
+    previous.abort()
+    if (destroyed || editor.isDestroyed || !entry.active || entry.token !== token) return
+    const resolver = options.resolve
+    // 无回调时受控 missing，不破坏文档。
+    if (!resolver) { entry.status = "missing"; entry.error = undefined; return }
     let result: HostReferenceResolution | null | Promise<HostReferenceResolution | null>
     try {
       result = resolver({ kind: entry.kind, resourceId: entry.resourceId }, { documentId, signal: controller.signal })
     } catch (error) {
+      if (destroyed || !entry.active || entry.token !== token) return
       entry.status = "error"
       entry.error = error
       return
@@ -268,6 +283,22 @@ export function installHostReferences(editor: Editor, options: HostReferenceOpti
       },
       (error) => { if (destroyed || !entry.active || entry.token !== token) return; entry.status = "error"; entry.error = error; scheduleReferencesNotify() }
     )
+  }
+
+  const invalidate = (reference?: HostReferenceLookup): void => {
+    if (destroyed || editor.isDestroyed || (reference && !isValidReferenceLookup(reference))) return
+    const entries = [...resolutionEntries.values()].filter((entry) => !reference
+      || (entry.kind === reference.kind && entry.resourceId === reference.resourceId))
+    // Invalidate every result before abort can synchronously reenter host code.
+    const pending = entries.map((entry) => {
+      const token = Symbol("host-invalidation")
+      entry.token = token
+      return { entry, token }
+    })
+    for (const { entry, token } of pending) {
+      if (entry.token === token) startResolve(entry, token)
+    }
+    notifyReferences()
   }
 
   const syncReferences = (): void => {
@@ -409,6 +440,7 @@ export function installHostReferences(editor: Editor, options: HostReferenceOpti
     activate,
     getReferenceState,
     subscribeReferences,
+    invalidate,
     destroy
   }
 }

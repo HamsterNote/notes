@@ -1,0 +1,12 @@
+command: yarn release:prepare
+node: v24.15.0
+exit: 0
+yarn run v1.22.22
+$ node ./scripts/prepare-release.mjs
+version=3.1.2
+npm_tag=latest
+Done in 0.11s.
+
+(node:1973071) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+

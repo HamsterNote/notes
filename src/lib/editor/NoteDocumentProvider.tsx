@@ -3,6 +3,7 @@ import { createContext, useContext, useImperativeHandle, useLayoutEffect, useMem
 import { DocumentSession, type DocumentView } from "./documentSession"
 import { HnnDataDrawer } from "./HnnDataDrawer"
 import { HostReferenceUI } from "./HostReferenceUI"
+import { PictureUploadControls } from "./NoteEditor"
 import type { NoteDocumentProviderProps, NoteEditorViewProps, NotePublicState } from "./documentTypes"
 import { isSafeHnnUrl } from "../hnn/urlPolicy"
 
@@ -96,6 +97,7 @@ export function NoteEditorView({ viewId, theme = "light" }: NoteEditorViewProps)
       {record?.references && <HostReferenceUI editor={record.editor} installer={record.references} />}
     </div>
     {record && session && <>
+      {record.pictureUpload && <PictureUploadControls installer={record.pictureUpload} theme={theme} disabled={locked} />}
       <HnnDataDrawer editor={record.editor} theme={theme} coordinator={bridge} inputFrozen={state?.inputFrozen ?? false} />
       <div className="hn-editor-controls">
         <button type="button" aria-label="撤销" title="撤销" disabled={locked} onClick={() => session.history(viewId, false)}>↶</button>
