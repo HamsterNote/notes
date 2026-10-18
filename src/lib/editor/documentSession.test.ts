@@ -7,7 +7,7 @@ import { demoFixtures } from "../../demo/fixtures"
 import { fireEvent } from "@testing-library/dom"
 
 const sessions: DocumentSession[] = []
-afterEach(() => { for (const s of sessions.splice(0)) s.dispose(); vi.useRealTimers() })
+afterEach(() => { for (const s of sessions.splice(0)) s.dispose(); vi.useRealTimers(); vi.unstubAllGlobals() })
 export function initialDocument() {
   return { schemaVersion: 1, data: { type: "doc", content: [{ type: "paragraph", attrs: {
     nodeId: "123e4567-e89b-42d3-a456-426614174000"
@@ -35,6 +35,36 @@ function deferred() {
 async function finish(result: RequestSaveResult): Promise<SaveTerminal> {
   return result.kind === "pending" ? result.completion : result
 }
+
+describe("session UUID generation", () => {
+  it("uses native randomUUID when available", () => {
+    const randomUUID = vi.fn(() => "123e4567-e89b-42d3-a456-426614174099")
+    vi.stubGlobal("crypto", { randomUUID })
+    const session = new DocumentSession({
+      documentId: "A", loadKey: 1, initialDocument: initialDocument(),
+      initialHostSnapshot: { changeId: 0, value: { title: "", summary: "" } }, onSave: async () => {}, onChange: () => {}
+    })
+    sessions.push(session)
+    expect(session.identity.sessionId).toBe("123e4567-e89b-42d3-a456-426614174099")
+    expect(randomUUID).toHaveBeenCalledTimes(1)
+  })
+  it("sets UUIDv4 version and variant bits on cryptographically random bytes", () => {
+    const getRandomValues = vi.fn((bytes: Uint8Array) => bytes.fill(255))
+    vi.stubGlobal("crypto", { getRandomValues })
+    const session = new DocumentSession({
+      documentId: "A", loadKey: 1, initialDocument: initialDocument(),
+      initialHostSnapshot: { changeId: 0, value: { title: "", summary: "" } }, onSave: async () => {}, onChange: () => {}
+    })
+    sessions.push(session)
+    expect(session.identity.sessionId).toBe("ffffffff-ffff-4fff-bfff-ffffffffffff")
+    expect(getRandomValues).toHaveBeenCalledExactlyOnceWith(expect.any(Uint8Array))
+    expect(getRandomValues.mock.calls[0]![0]).toHaveLength(16)
+  })
+  it.each([undefined, {}])("fails with a diagnostic when secure random APIs are unavailable (%s)", (crypto) => {
+    vi.stubGlobal("crypto", crypto)
+    expect(() => make()).toThrow("DocumentSession requires crypto.randomUUID or crypto.getRandomValues to generate secure UUIDv4 identifiers")
+  })
+})
 
 describe("formal authority and shared history", () => {
   it("routes ABA → AA → original and redo across full editors without remount", () => {

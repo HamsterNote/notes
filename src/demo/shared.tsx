@@ -2,6 +2,7 @@ import { StrictMode, useCallback, useEffect, useRef, useState } from "react"
 import { createRoot } from "react-dom/client"
 import { NoteDocumentProvider, NoteEditorView, type NoteDocumentController, type NotePublicState, type SaveTerminal } from "../lib"
 import { demoFixtures } from "./fixtures"
+import { createHnnNodeId } from "../lib/hnn/nodeId"
 import "./shared.css"
 
 const rawBlocks = demoFixtures[0]!.document.data["content"]
@@ -51,7 +52,7 @@ export function SharedDemo() {
     setFreezePending(true)
     try {
       if (frozen) {
-        const requestId = crypto.randomUUID()
+        const requestId = createHnnNodeId()
         const result = await controller.setInputFrozen(true, { expectedSessionId: identity.sessionId, requestId })
         if ((result.kind === "applied" || result.kind === "noop") && "leaseId" in result) lease.current = { requestId, leaseId: result.leaseId }
         else setError("输入尚未结束，请稍后重试")

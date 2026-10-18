@@ -8,7 +8,7 @@ import { HNN_CARD_EMPTY_DATA } from "../hnn/cardPayload"
 import { HNN_DRAWING_EMPTY_DATA } from "../hnn/drawingPayload"
 import { demoFixtures } from "../../demo/fixtures"
 
-afterEach(() => { cleanup(); vi.useRealTimers() })
+afterEach(() => { cleanup(); vi.useRealTimers(); vi.unstubAllGlobals() })
 function initialDocument(kind?: "card" | "drawing") {
   const paragraph = { type: "paragraph", attrs: { nodeId: "123e4567-e89b-42d3-a456-426614174000" }, content: [{ type: "text", text: "共享正文" }] }
   return { schemaVersion: 1, data: { type: "doc", content: kind ? [paragraph, {
@@ -34,6 +34,61 @@ function mount(overrides: Partial<NoteDocumentProviderProps> = {}) {
   const area = (id = "a") => rendered.container.querySelector(`[data-view-id="${id}"] .tiptap`) as HTMLElement
   return { ...rendered, props, controllerRef, controller, area, onChange }
 }
+it("mounts without randomUUID and preserves shared history, drafts, leases and the save barrier", async () => {
+  vi.stubGlobal("crypto", { getRandomValues: crypto.getRandomValues.bind(crypto) })
+  let finishFirstWrite!: () => void
+  const firstWrite = new Promise<void>((resolve) => { finishFirstWrite = resolve })
+  const onSave = vi.fn<NoteDocumentProviderProps["onSave"]>()
+    .mockImplementationOnce(() => firstWrite).mockResolvedValue(undefined)
+  const h = mount({ initialDocument: initialDocument("card"), onSave })
+  const c = h.controller(), expectedSessionId = c.getState().identity!.sessionId
+  expect(c.getState()).toMatchObject({ lifecycle: "ready", views: [{ viewId: "a" }, { viewId: "b" }] })
+  const peer = within(h.container.querySelector('[data-view-id="b"]') as HTMLElement)
+  paste(h.area(), "AA")
+  expect(h.area("b").textContent).toContain("AA共享正文")
+  fireEvent.click(peer.getByLabelText("撤销"))
+  expect(h.area().querySelector("p")?.textContent).toBe("共享正文")
+  fireEvent.click(peer.getByLabelText("重做"))
+  expect(h.area().querySelector("p")?.textContent).toBe("AA共享正文")
+
+  fireEvent.click(peer.getByLabelText("编辑卡片"))
+  const draft = c.getState().draft
+  if (draft.phase === "none") throw new Error("missing draft")
+  expect(c.requestSave({ expectedSessionId, reason: "host-save" })).toMatchObject({ kind: "blocked", cause: "draft-open" })
+  fireEvent.click(within(document.body).getByRole("button", { name: "取消" }))
+
+  let pending!: ReturnType<NoteDocumentController["requestSave"]>
+  await act(async () => {
+    pending = c.requestSave({ expectedSessionId, reason: "host-save" })
+    await Promise.resolve()
+  })
+  if (pending.kind !== "pending") throw new Error("missing pending save")
+  const save = pending
+  expect(onSave).toHaveBeenCalledTimes(1)
+  expect(c.getState()).toMatchObject({ save: "pending", dirty: { body: true } })
+  paste(h.area("b"), "B")
+  const latestDocument = h.onChange.mock.calls.at(-1)![0]
+  await act(async () => {
+    const lease = await c.setInputFrozen(true, { expectedSessionId, requestId: "close" })
+    if (!("leaseId" in lease)) throw new Error("missing lease")
+    expect(lease).toMatchObject({ kind: "applied", action: "acquired" })
+    expect(h.area().getAttribute("contenteditable")).toBe("false")
+    expect(h.area("b").getAttribute("contenteditable")).toBe("false")
+    expect(c.requestSave({ expectedSessionId, reason: "host-close" })).toBe(save)
+    const ids = [expectedSessionId, draft.draftId, lease.leaseId, save.operationId]
+    for (const id of ids) expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/)
+    expect(new Set(ids).size).toBe(4)
+    finishFirstWrite()
+    expect(await save.completion).toMatchObject({ kind: "saved", sessionId: expectedSessionId, operationId: save.operationId, writesCompleted: 2 })
+    expect(onSave).toHaveBeenCalledTimes(2)
+    expect(onSave.mock.calls[1]![0].document).toEqual(latestDocument)
+    expect(c.getState()).toMatchObject({ save: "clean", dirty: { body: false }, inputFrozen: true })
+    expect(await c.setInputFrozen(false, { expectedSessionId, requestId: "close", leaseId: lease.leaseId }))
+      .toMatchObject({ kind: "applied", action: "released", inputFrozen: false })
+  })
+  expect(h.area().getAttribute("contenteditable")).toBe("true")
+  expect(h.area("b").getAttribute("contenteditable")).toBe("true")
+})
 describe("formal root Provider/View lifecycle", () => {
   it.each([".hn-editor-callout-title", ".hn-editor-collapsible-title", ".hn-editor-picture-alt", ".hn-editor-code-filename"])("routes real NodeView control %s through peer history", (selector) => {
     const h = mount({ initialDocument: demoFixtures[0]!.document })
