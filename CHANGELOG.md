@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.2] - 2026-10-18
+
+### Added
+- Controller 显式候选级/文档级引用失效，使用最新 resolver，隔离 abort 后迟到结果，保留 session/HNN/history/选区和保存基线；普通 rerender 不自动失效。
+- Provider 可选 `onPictureUpload`，接通图片选择/粘贴/拖入与可访问的失败重试/取消；成功经过共享权威提交，支持双 View undo/redo。
+- 上传来源实例、锚点和 attempt 隔离；草稿期间延后结果，上传中/失败时拒绝 freeze 与会话替换，取消/卸载/回调移除后丢弃迟到结果。保存仍只包含持久 HNN。
+- 3.1.1 旧消费 fixture 与新增公共 Provider 浏览器/干净安装消费验证。旧 NoteEditor/NoteSave、结果联合、共享 A 和 lease 契约保持。
+
 ## [3.0.0] - 2026-10-07
 
 ### Added

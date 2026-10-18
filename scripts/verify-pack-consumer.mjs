@@ -5,13 +5,26 @@ import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node
 import path from "node:path"
 import { pathToFileURL } from "node:url"
 import { chromium } from "playwright"
+import { checkPublicHost } from "./public-host-browser.mjs"
 
 const tarball = path.resolve(process.argv[2] ?? "evidence/hamster-note-notes-3.1.0.tgz")
-const consumer = path.resolve("../pack-consumer")
+const expectedVersion = process.argv[3] ?? "3.1.0"
+const consumer = path.resolve(process.argv[4] ?? "../pack-consumer")
 if (existsSync(consumer)) throw new Error("Consumer directory must be absent: use a new clean checkout for a repeat")
 mkdirSync(consumer)
 cpSync("scripts/fixtures/pack-consumer", consumer, { recursive: true })
 cpSync("evidence/baseline/consumer.tsx", path.join(consumer, "legacy-consumer.tsx"))
+const publicHost = process.argv[5] === "--public-host"
+const evidence = process.argv[6] ?? "evidence"
+mkdirSync(evidence, { recursive: true })
+if (publicHost) {
+  cpSync("scripts/fixtures/public-host", path.join(consumer, "public-host"), { recursive: true })
+  const configFile = path.join(consumer, "tsconfig.json")
+  const tsconfig = JSON.parse(readFileSync(configFile, "utf8"))
+  tsconfig.include.push("public-host/*.tsx")
+  writeFileSync(configFile, JSON.stringify(tsconfig, null, 2))
+  writeFileSync(path.join(consumer, "vite.config.js"), 'export default { build: { rollupOptions: { input: { main: "index.html", capabilities: "public-host/index.html" } } } }\n')
+}
 writeFileSync(path.join(consumer, "package.json"), JSON.stringify({
   name: "notes-pack-consumer", private: true, type: "module", packageManager: "yarn@1.22.22",
   scripts: { typecheck: "tsc --noEmit", build: "vite build" },
@@ -20,15 +33,15 @@ writeFileSync(path.join(consumer, "package.json"), JSON.stringify({
 }, null, 2))
 const run = (label, command, args) => {
   const result = spawnSync(command, args, { cwd: consumer, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 })
-  writeFileSync(`evidence/consumer-${label}.log`, `exit: ${result.status}\n${result.stdout ?? ""}\n${result.stderr ?? ""}`)
-  assert.equal(result.status, 0, `${label} failed; inspect evidence/consumer-${label}.log`)
+  writeFileSync(`${evidence}/consumer-${label}.log`, `exit: ${result.status}\n${result.stdout ?? ""}\n${result.stderr ?? ""}`)
+  assert.equal(result.status, 0, `${label} failed; inspect ${evidence}/consumer-${label}.log`)
   console.log(label, "exit 0")
   return result.stdout
 }
 run("install", "corepack", ["yarn", "install", "--non-interactive"])
 const root = path.join(consumer, "node_modules/@hamster-note/notes")
 const pkg = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8"))
-assert.equal(pkg.version, "3.1.0")
+assert.equal(pkg.version, expectedVersion)
 const baseline = JSON.parse(readFileSync("evidence/baseline/inventory.json", "utf8"))
 const runtime = baseline.exports.filter((entry) => entry.kind === "value").map((entry) => entry.name)
 const expected = [...runtime, "NoteDocumentProvider", "NoteEditorView"].sort()
@@ -58,10 +71,16 @@ try {
   await legacy.getByRole("button", { name: "保存", exact: true }).click()
   await page.waitForFunction(() => JSON.parse(localStorage.getItem("legacy-save") ?? "null")?.baseRevision === "r1")
   assert.deepEqual(errors, [])
-  await page.screenshot({ path: "evidence/consumer.png", fullPage: true })
+  await page.screenshot({ path: `${evidence}/consumer.png`, fullPage: true })
   console.log("consumer browser", browser.version(), "new Provider/dual View/save + legacy NoteSave/revision PASS")
+  if (publicHost) {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
+    await context.tracing.start({ screenshots: true, snapshots: true, sources: true })
+    try { await checkPublicHost(await context.newPage(), `${server.resolvedUrls.local[0]}public-host/index.html`, "evidence/ham49-consumer") }
+    finally { await context.tracing.stop({ path: "evidence/ham49-consumer-trace.zip" }) }
+  }
 } finally { await browser.close(); await new Promise((resolve) => server.httpServer.close(resolve)) }
-writeFileSync("evidence/consumer-identity.json", JSON.stringify({
+writeFileSync(`${evidence}/consumer-identity.json`, JSON.stringify({
   packageVersion: pkg.version, tarballSha256: createHash("sha256").update(readFileSync(tarball)).digest("hex"),
   runtime: expected, installedResolution: JSON.parse(readFileSync(path.join(root, "package.json"), "utf8")).name,
   consumerLockfile: readFileSync(path.join(consumer, "yarn.lock"), "utf8"),

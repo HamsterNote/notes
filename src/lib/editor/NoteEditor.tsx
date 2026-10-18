@@ -188,7 +188,7 @@ function uploadErrorText(error: unknown): string | undefined {
  *   选中，drop 时也被上传插件按 MIME 过滤（仅 image/* 入队）；
  * - 上传状态订阅自会话内 installer；占位 decoration 与状态只存在于内存，不进 HNN。
  */
-function PictureUploadControls(props: Readonly<{ installer: PictureUploadInstaller; theme: "light" | "dark" }>) {
+export function PictureUploadControls(props: Readonly<{ installer: PictureUploadInstaller; theme: "light" | "dark"; disabled?: boolean }>) {
   const { installer } = props
   const [state, setState] = useState<PictureUploadState>(() => installer.getState())
   useLayoutEffect(() => {
@@ -209,7 +209,7 @@ function PictureUploadControls(props: Readonly<{ installer: PictureUploadInstall
 
   return (
     <div className={`hn-editor-uploads hn-editor-uploads--${props.theme}`}>
-      <button type="button" className="hn-editor-uploads__picker" onClick={openPicker}>
+      <button type="button" className="hn-editor-uploads__picker" onClick={openPicker} disabled={props.disabled}>
         插入图片
       </button>
       <input
@@ -242,6 +242,7 @@ function PictureUploadControls(props: Readonly<{ installer: PictureUploadInstall
                   type="button"
                   className="hn-editor-uploads__retry"
                   aria-label={`重试上传 ${item.fileName}`}
+                  disabled={props.disabled}
                   onClick={() => installer.retry(item.uploadId)}
                 >
                   重试

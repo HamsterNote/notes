@@ -19,7 +19,7 @@ export type {
   NoteDocumentController, NoteDocumentProviderProps, NoteEditorViewProps,
   NotePublicState, NoteStateLifecycle, OnSave, PublicDraftState, RequestSaveResult,
   SaveContext, SavePayload, SavePending, SaveReason, SaveState, SaveTerminal,
-  UpdateHostSnapshotResult
+  UpdateHostSnapshotResult, ReferenceInvalidationScope, ReferenceInvalidationResult
 } from "./editor/documentTypes"
 
 export { NoteEditor, type NoteEditorProps } from "./editor/NoteEditor"

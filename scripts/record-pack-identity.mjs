@@ -10,7 +10,7 @@ assert.equal(execFileSync("git", ["diff", "--name-only", sourceRef, "--", "src/l
 const files = execFileSync("tar", ["-tzf", tarball], { encoding: "utf8" }).trim().split("\n")
 const read = (file) => execFileSync("tar", ["-xOzf", tarball, file], { maxBuffer: 32 * 1024 * 1024 })
 const pkg = JSON.parse(read("package/package.json").toString())
-assert.equal(pkg.version, "3.1.0")
+assert.equal(pkg.version, process.argv[4] ?? "3.1.0")
 for (const file of ["dist/index.js", "dist/index.cjs", "dist/index.d.ts", "dist/styles.css", "dist/formula.css"]) {
   assert(files.includes(`package/${file}`), `Missing ${file}`)
 }
@@ -24,5 +24,5 @@ const identity = {
   artifacts: Object.fromEntries(["index.js", "index.cjs", "index.d.ts", "styles.css", "formula.css"].map((name) => [name, sha256(read(`package/dist/${name}`))])),
   files
 }
-writeFileSync("evidence/pack-identity.json", JSON.stringify(identity, null, 2) + "\n")
+writeFileSync(process.argv[5] ?? "evidence/pack-identity.json", JSON.stringify(identity, null, 2) + "\n")
 console.log(JSON.stringify({ ...identity, files: `${files.length} files; complete list in pack-identity.json` }, null, 2))
