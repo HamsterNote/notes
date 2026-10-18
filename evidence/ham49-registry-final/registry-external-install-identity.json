@@ -1,0 +1,10 @@
+{
+  "version": "3.1.2",
+  "registry": "https://registry.npmjs.org/@hamster-note/notes/-/notes-3.1.2.tgz",
+  "integrity": "sha512-teL1eVnUu/wQelHTe7sZoT21J1uLc28CfhNUevbUsGxVUP3flsBJ+V/xzZFxjmiqDVHtjJdSvVnbv4GSwrLoEQ==",
+  "outsideRepository": true,
+  "freshInstall": true,
+  "installedFilesMatch": true,
+  "fileCount": 138,
+  "noWorkspaceLinkOrPatch": true
+}

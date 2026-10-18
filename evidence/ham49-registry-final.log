@@ -1,0 +1,28 @@
+command: node ../verify-notes-registry.mjs evidence/hamster-note-notes-3.1.2.tgz 6c6ac2a700a333f1d98b373bebe5b7752dbf8ba4 evidence/ham49-registry-final
+node: v24.15.0
+exit: 0
+{
+  "version": "3.1.2",
+  "sourceCommit": "6c6ac2a700a333f1d98b373bebe5b7752dbf8ba4",
+  "gitHead": "6c6ac2a700a333f1d98b373bebe5b7752dbf8ba4",
+  "integrity": "sha512-teL1eVnUu/wQelHTe7sZoT21J1uLc28CfhNUevbUsGxVUP3flsBJ+V/xzZFxjmiqDVHtjJdSvVnbv4GSwrLoEQ==",
+  "shasum": "8b76b6119ae28134b1ddf75163e8a5bbc6f522a9",
+  "registryTarballSha256": "e72e98b28ecf801c6bef030c6741c5dd2198b7a49e5b0e041d1defbf25eae53f",
+  "acceptedTarballSha256": "e72e98b28ecf801c6bef030c6741c5dd2198b7a49e5b0e041d1defbf25eae53f",
+  "fileCount": 138,
+  "perFileDifferences": [],
+  "installedFilesMatch": true,
+  "distTags": {
+    "latest": "3.1.2"
+  },
+  "tarball": "https://registry.npmjs.org/@hamster-note/notes/-/notes-3.1.2.tgz",
+  "attestations": {
+    "url": "https://registry.npmjs.org/-/npm/v1/attestations/@hamster-note%2fnotes@3.1.2",
+    "provenance": {
+      "predicateType": "https://slsa.dev/provenance/v1"
+    }
+  },
+  "files": "138 files verified byte-for-byte"
+}
+
+

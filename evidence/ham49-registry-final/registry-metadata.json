@@ -1,0 +1,150 @@
+{
+  "bugs": {
+    "url": "https://github.com/HamsterNote/notes/issues"
+  },
+  "dist": {
+    "shasum": "8b76b6119ae28134b1ddf75163e8a5bbc6f522a9",
+    "tarball": "https://registry.npmjs.org/@hamster-note/notes/-/notes-3.1.2.tgz",
+    "fileCount": 138,
+    "integrity": "sha512-teL1eVnUu/wQelHTe7sZoT21J1uLc28CfhNUevbUsGxVUP3flsBJ+V/xzZFxjmiqDVHtjJdSvVnbv4GSwrLoEQ==",
+    "signatures": [
+      {
+        "sig": "MEUCICcUcep5O96RnK6NKAQ+XZvKz1NalMeB8zPKxKoeTB9sAiEA1cuLkZIHsthZA0dHZ1lgC1EgHcD/5A84U7Yyw1YgSx4=",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      },
+      {
+        "sig": "MEQCIEtP+zq4DBXhVswtMX1sg4iG2FnV3Z6Pk3eHeb7UqyeFAiBvd2xAfOaTs6KEYEjU/RoZGY9buaVxVcceV18wHbjecg==",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      }
+    ],
+    "attestations": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/@hamster-note%2fnotes@3.1.2",
+      "provenance": {
+        "predicateType": "https://slsa.dev/provenance/v1"
+      }
+    },
+    "unpackedSize": 14500925
+  },
+  "main": "./dist/index.cjs",
+  "name": "@hamster-note/notes",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "module": "./dist/index.js",
+  "engines": {
+    "node": ">=20.19.0",
+    "yarn": ">=1.22.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./formula.css": "./dist/formula.css"
+  },
+  "gitHead": "6c6ac2a700a333f1d98b373bebe5b7752dbf8ba4",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite --config vite.demo.config.ts --host 0.0.0.0 --port 9235",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "build": "yarn build:lib && yarn build:demo",
+    "format": "prettier . --write",
+    "preview": "vite preview --config vite.demo.config.ts --host 0.0.0.0 --port 9235",
+    "lint:fix": "eslint . --fix",
+    "build:lib": "vite build --config vite.config.ts && node ./scripts/sync-library-css.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
+    "build:demo": "vite build --config vite.demo.config.ts",
+    "release:prepare": "node ./scripts/prepare-release.mjs",
+    "verify:legacy-api": "node ./scripts/scan-legacy-public-api.mjs",
+    "verify:tiptap-deps": "node ./scripts/verify-tiptap-deps.mjs",
+    "verify:phase1-scope": "node ./scripts/verify-phase1-scope.mjs"
+  },
+  "_npmUser": {
+    "name": "GitHub Actions",
+    "email": "npm-oidc-no-reply@github.com",
+    "trustedPublisher": {
+      "id": "github",
+      "oidcConfigId": "1c234dac-b903-4e0a-bdd5-03c867e0d8c5"
+    }
+  },
+  "homepage": "https://hamsternote.github.io/notes/",
+  "repository": {
+    "url": "git+https://github.com/HamsterNote/notes.git",
+    "type": "git"
+  },
+  "_npmVersion": "11.19.0",
+  "description": "React components for note content rendering and presentation.",
+  "directories": {},
+  "maintainers": [
+    {
+      "name": "wszxdhr",
+      "email": "wszxdhr@126.com"
+    }
+  ],
+  "resolutions": {
+    "vite": "^7.0.4"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "_nodeVersion": "24.21.0",
+  "dependencies": {
+    "katex": "^0.17.0",
+    "@tiptap/pm": "3.31.3",
+    "@tiptap/core": "3.31.3",
+    "@tiptap/react": "3.31.3",
+    "@tiptap/starter-kit": "3.31.3",
+    "@hamster-note/painting": "0.2.0",
+    "@tiptap/extension-list": "3.31.3",
+    "@tiptap/extension-table": "3.31.3",
+    "@hamster-note/components": "^0.2.1-beta.2"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "_hasShrinkwrap": false,
+  "packageManager": "yarn@1.22.22",
+  "devDependencies": {
+    "vite": "^7.0.4",
+    "jsdom": "^29.1.1",
+    "react": "^19.0.0",
+    "eslint": "^9.31.0",
+    "vitest": "^4.0.10",
+    "globals": "^16.3.0",
+    "unified": "^11.0.5",
+    "prettier": "^3.6.2",
+    "react-dom": "^19.0.0",
+    "@eslint/js": "^9.31.0",
+    "playwright": "1.60.0",
+    "remark-gfm": "^4.0.1",
+    "typescript": "6.0.0-beta",
+    "@types/node": "^24.0.15",
+    "@types/mdast": "^4.0.4",
+    "@types/react": "^19.1.8",
+    "@types/unist": "^3.0.3",
+    "remark-parse": "^11.0.0",
+    "vite-plugin-dts": "^4.5.4",
+    "@types/react-dom": "^19.1.6",
+    "remark-stringify": "^11.0.0",
+    "typescript-eslint": "^8.37.0",
+    "@testing-library/dom": "^10.4.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "@testing-library/react": "^16.3.2",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "_npmOperationalInternal": {
+    "tmp": "tmp/notes_3.1.2_1792331083716_0.8983560408311093",
+    "host": "s3://npm-registry-packages-npm-production"
+  },
+  "_id": "@hamster-note/notes@3.1.2",
+  "version": "3.1.2"
+}

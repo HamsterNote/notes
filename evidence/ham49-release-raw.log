@@ -1,0 +1,1018 @@
+command: gh run view 39132603796 --repo HamsterNote/notes --log
+node: v24.15.0
+exit: 0
+publish	Set up job	﻿2026-10-18T13:40:52.2292095Z Current runner version: '2.337.0'
+publish	Set up job	2026-10-18T13:40:52.2317136Z ##[group]Runner Image Provisioner
+publish	Set up job	2026-10-18T13:40:52.2318034Z Hosted Compute Agent
+publish	Set up job	2026-10-18T13:40:52.2318627Z Version: 20261012.601
+publish	Set up job	2026-10-18T13:40:52.2319311Z Commit: f3dc54e1fb89da6852db922499a0233137369e1d
+publish	Set up job	2026-10-18T13:40:52.2320023Z Build Date: 2026-10-12T17:48:21Z
+publish	Set up job	2026-10-18T13:40:52.2321073Z Worker ID: {526ee93f-993a-43eb-a9bd-f1bc633cd4ec}
+publish	Set up job	2026-10-18T13:40:52.2321792Z Region: northcentralus
+publish	Set up job	2026-10-18T13:40:52.2322354Z Cloud: Azure
+publish	Set up job	2026-10-18T13:40:52.2322995Z ##[endgroup]
+publish	Set up job	2026-10-18T13:40:52.2324426Z ##[group]Operating System
+publish	Set up job	2026-10-18T13:40:52.2325034Z Ubuntu
+publish	Set up job	2026-10-18T13:40:52.2325560Z 24.04.5
+publish	Set up job	2026-10-18T13:40:52.2326078Z LTS
+publish	Set up job	2026-10-18T13:40:52.2326931Z ##[endgroup]
+publish	Set up job	2026-10-18T13:40:52.2327565Z ##[group]Runner Image
+publish	Set up job	2026-10-18T13:40:52.2328243Z Image: ubuntu-24.04
+publish	Set up job	2026-10-18T13:40:52.2328804Z Version: 20261012.334.1
+publish	Set up job	2026-10-18T13:40:52.2329866Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md
+publish	Set up job	2026-10-18T13:40:52.2331692Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261012.334
+publish	Set up job	2026-10-18T13:40:52.2332615Z ##[endgroup]
+publish	Set up job	2026-10-18T13:40:52.2333731Z ##[group]GITHUB_TOKEN Permissions
+publish	Set up job	2026-10-18T13:40:52.2335937Z Contents: read
+publish	Set up job	2026-10-18T13:40:52.2336542Z Metadata: read
+publish	Set up job	2026-10-18T13:40:52.2337105Z ##[endgroup]
+publish	Set up job	2026-10-18T13:40:52.2339093Z Secret source: Actions
+publish	Set up job	2026-10-18T13:40:52.2340017Z Cache mode: write
+publish	Set up job	2026-10-18T13:40:52.2341281Z Prepare workflow directory
+publish	Set up job	2026-10-18T13:40:52.2668311Z Prepare all required actions
+publish	Set up job	2026-10-18T13:40:52.2716714Z Getting action download info
+publish	Set up job	2026-10-18T13:40:52.5167278Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+publish	Set up job	2026-10-18T13:40:52.6764483Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+publish	Set up job	2026-10-18T13:40:52.9907534Z Complete job name: publish
+publish	Checkout	﻿2026-10-18T13:40:53.0629845Z ##[group]Run actions/checkout@v4
+publish	Checkout	2026-10-18T13:40:53.0631025Z with:
+publish	Checkout	2026-10-18T13:40:53.0631705Z   repository: HamsterNote/notes
+publish	Checkout	2026-10-18T13:40:53.0635812Z   token: ***
+publish	Checkout	2026-10-18T13:40:53.0636289Z   ssh-strict: true
+publish	Checkout	2026-10-18T13:40:53.0636843Z   ssh-user: git
+publish	Checkout	2026-10-18T13:40:53.0637400Z   persist-credentials: true
+publish	Checkout	2026-10-18T13:40:53.0637992Z   clean: true
+publish	Checkout	2026-10-18T13:40:53.0638504Z   sparse-checkout-cone-mode: true
+publish	Checkout	2026-10-18T13:40:53.0639069Z   fetch-depth: 1
+publish	Checkout	2026-10-18T13:40:53.0639603Z   fetch-tags: false
+publish	Checkout	2026-10-18T13:40:53.0640106Z   show-progress: true
+publish	Checkout	2026-10-18T13:40:53.0640819Z   lfs: false
+publish	Checkout	2026-10-18T13:40:53.0641307Z   submodules: false
+publish	Checkout	2026-10-18T13:40:53.0641802Z   set-safe-directory: true
+publish	Checkout	2026-10-18T13:40:53.0642397Z   allow-unsafe-pr-checkout: false
+publish	Checkout	2026-10-18T13:40:53.0643146Z ##[endgroup]
+publish	Checkout	2026-10-18T13:40:53.1646275Z Syncing repository: HamsterNote/notes
+publish	Checkout	2026-10-18T13:40:53.1648180Z ##[group]Getting Git version info
+publish	Checkout	2026-10-18T13:40:53.1648993Z Working directory is '/home/runner/work/notes/notes'
+publish	Checkout	2026-10-18T13:40:53.1650501Z [command]/usr/bin/git version
+publish	Checkout	2026-10-18T13:40:53.2933099Z git version 2.55.0
+publish	Checkout	2026-10-18T13:40:53.2952932Z ##[endgroup]
+publish	Checkout	2026-10-18T13:40:53.2968956Z Temporarily overriding HOME='/home/runner/work/_temp/69f64965-77c0-4755-9fb0-bb4fac65f3fe' before making global git config changes
+publish	Checkout	2026-10-18T13:40:53.2971304Z Adding repository directory to the temporary git global config as a safe directory
+publish	Checkout	2026-10-18T13:40:53.2974968Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/notes/notes
+publish	Checkout	2026-10-18T13:40:53.3322136Z Deleting the contents of '/home/runner/work/notes/notes'
+publish	Checkout	2026-10-18T13:40:53.3328162Z ##[group]Initializing the repository
+publish	Checkout	2026-10-18T13:40:53.3332328Z [command]/usr/bin/git init /home/runner/work/notes/notes
+publish	Checkout	2026-10-18T13:40:53.3911433Z hint: Using 'master' as the name for the initial branch. This default branch name
+publish	Checkout	2026-10-18T13:40:53.3913220Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+publish	Checkout	2026-10-18T13:40:53.3914479Z hint: to use in all of your new repositories, which will suppress this warning,
+publish	Checkout	2026-10-18T13:40:53.3915881Z hint: call:
+publish	Checkout	2026-10-18T13:40:53.3916618Z hint:
+publish	Checkout	2026-10-18T13:40:53.3917481Z hint: 	git config --global init.defaultBranch <name>
+publish	Checkout	2026-10-18T13:40:53.3918566Z hint:
+publish	Checkout	2026-10-18T13:40:53.3919513Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+publish	Checkout	2026-10-18T13:40:53.3920949Z hint: 'development'. The just-created branch can be renamed via this command:
+publish	Checkout	2026-10-18T13:40:53.3921928Z hint:
+publish	Checkout	2026-10-18T13:40:53.3922517Z hint: 	git branch -m <name>
+publish	Checkout	2026-10-18T13:40:53.3923137Z hint:
+publish	Checkout	2026-10-18T13:40:53.3923868Z hint: Disable this message with "git config set advice.defaultBranchName false"
+publish	Checkout	2026-10-18T13:40:53.3925112Z Initialized empty Git repository in /home/runner/work/notes/notes/.git/
+publish	Checkout	2026-10-18T13:40:53.3927734Z [command]/usr/bin/git remote add origin https://github.com/HamsterNote/notes
+publish	Checkout	2026-10-18T13:40:53.4211231Z ##[endgroup]
+publish	Checkout	2026-10-18T13:40:53.4212728Z ##[group]Disabling automatic garbage collection
+publish	Checkout	2026-10-18T13:40:53.4216116Z [command]/usr/bin/git config --local gc.auto 0
+publish	Checkout	2026-10-18T13:40:53.4248245Z ##[endgroup]
+publish	Checkout	2026-10-18T13:40:53.4249229Z ##[group]Setting up auth
+publish	Checkout	2026-10-18T13:40:53.4254532Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+publish	Checkout	2026-10-18T13:40:53.4282671Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+publish	Checkout	2026-10-18T13:40:53.6474882Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+publish	Checkout	2026-10-18T13:40:53.6508612Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+publish	Checkout	2026-10-18T13:40:53.6715723Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+publish	Checkout	2026-10-18T13:40:53.6747150Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+publish	Checkout	2026-10-18T13:40:53.6935392Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+publish	Checkout	2026-10-18T13:40:53.6975114Z ##[endgroup]
+publish	Checkout	2026-10-18T13:40:53.6977880Z ##[group]Fetching the repository
+publish	Checkout	2026-10-18T13:40:53.6987983Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +6c6ac2a700a333f1d98b373bebe5b7752dbf8ba4:refs/tags/v3.1.2
+publish	Checkout	2026-10-18T13:40:54.4790641Z From https://github.com/HamsterNote/notes
+publish	Checkout	2026-10-18T13:40:54.4792280Z  * [new ref]         6c6ac2a700a333f1d98b373bebe5b7752dbf8ba4 -> v3.1.2
+publish	Checkout	2026-10-18T13:40:54.4799207Z ##[endgroup]
+publish	Checkout	2026-10-18T13:40:54.4800669Z ##[group]Determining the checkout info
+publish	Checkout	2026-10-18T13:40:54.4801839Z ##[endgroup]
+publish	Checkout	2026-10-18T13:40:54.4803245Z [command]/usr/bin/git sparse-checkout disable
+publish	Checkout	2026-10-18T13:40:54.4992040Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+publish	Checkout	2026-10-18T13:40:54.5025773Z ##[group]Checking out the ref
+publish	Checkout	2026-10-18T13:40:54.5029792Z [command]/usr/bin/git checkout --progress --force refs/tags/v3.1.2
+publish	Checkout	2026-10-18T13:40:54.5494472Z Note: switching to 'refs/tags/v3.1.2'.
+publish	Checkout	2026-10-18T13:40:54.5495071Z 
+publish	Checkout	2026-10-18T13:40:54.5495543Z You are in 'detached HEAD' state. You can look around, make experimental
+publish	Checkout	2026-10-18T13:40:54.5496356Z changes and commit them, and you can discard any commits you make in this
+publish	Checkout	2026-10-18T13:40:54.5497111Z state without impacting any branches by switching back to a branch.
+publish	Checkout	2026-10-18T13:40:54.5497530Z 
+publish	Checkout	2026-10-18T13:40:54.5497871Z If you want to create a new branch to retain commits you create, you may
+publish	Checkout	2026-10-18T13:40:54.5498572Z do so (now or later) by using -c with the switch command. Example:
+publish	Checkout	2026-10-18T13:40:54.5498974Z 
+publish	Checkout	2026-10-18T13:40:54.5499384Z   git switch -c <new-branch-name>
+publish	Checkout	2026-10-18T13:40:54.5499968Z 
+publish	Checkout	2026-10-18T13:40:54.5500566Z Or undo this operation with:
+publish	Checkout	2026-10-18T13:40:54.5501512Z 
+publish	Checkout	2026-10-18T13:40:54.5501939Z   git switch -
+publish	Checkout	2026-10-18T13:40:54.5502477Z 
+publish	Checkout	2026-10-18T13:40:54.5503036Z Turn off this advice by setting config variable advice.detachedHead to false
+publish	Checkout	2026-10-18T13:40:54.5503757Z 
+publish	Checkout	2026-10-18T13:40:54.5504375Z HEAD is now at 6c6ac2a Merge pull request #14 from HamsterNote/agent/agent/fb8b3794ad64
+publish	Checkout	2026-10-18T13:40:54.5507554Z ##[endgroup]
+publish	Checkout	2026-10-18T13:40:54.5543728Z [command]/usr/bin/git log -1 --format=%H
+publish	Checkout	2026-10-18T13:40:54.5566049Z 6c6ac2a700a333f1d98b373bebe5b7752dbf8ba4
+publish	Setup Node.js	﻿2026-10-18T13:40:54.5850819Z ##[group]Run actions/setup-node@v4
+publish	Setup Node.js	2026-10-18T13:40:54.5851473Z with:
+publish	Setup Node.js	2026-10-18T13:40:54.5851958Z   node-version: 24
+publish	Setup Node.js	2026-10-18T13:40:54.5852506Z   registry-url: https://registry.npmjs.org
+publish	Setup Node.js	2026-10-18T13:40:54.5853202Z   cache: yarn
+publish	Setup Node.js	2026-10-18T13:40:54.5853736Z   always-auth: false
+publish	Setup Node.js	2026-10-18T13:40:54.5854294Z   check-latest: false
+publish	Setup Node.js	2026-10-18T13:40:54.5857355Z   token: ***
+publish	Setup Node.js	2026-10-18T13:40:54.5857832Z ##[endgroup]
+publish	Setup Node.js	2026-10-18T13:40:54.7593849Z Found in cache @ /opt/hostedtoolcache/node/24.21.0/x64
+publish	Setup Node.js	2026-10-18T13:40:54.7598848Z (node:2234) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+publish	Setup Node.js	2026-10-18T13:40:54.7600022Z (Use `node --trace-deprecation ...` to show where the warning was created)
+publish	Setup Node.js	2026-10-18T13:40:54.7601493Z ##[group]Environment details
+publish	Setup Node.js	2026-10-18T13:40:57.6233746Z node: v24.21.0
+publish	Setup Node.js	2026-10-18T13:40:57.6234253Z npm: 11.19.0
+publish	Setup Node.js	2026-10-18T13:40:57.6234761Z yarn: 1.22.22
+publish	Setup Node.js	2026-10-18T13:40:57.6236107Z ##[endgroup]
+publish	Setup Node.js	2026-10-18T13:40:57.6258718Z [command]/usr/local/bin/yarn --version
+publish	Setup Node.js	2026-10-18T13:40:57.7540017Z 1.22.22
+publish	Setup Node.js	2026-10-18T13:40:57.7607304Z [command]/usr/local/bin/yarn cache dir
+publish	Setup Node.js	2026-10-18T13:40:57.9368613Z /home/runner/.cache/yarn/v6
+publish	Setup Node.js	2026-10-18T13:40:57.9583675Z [command]/usr/local/bin/yarn config get enableGlobalCache
+publish	Setup Node.js	2026-10-18T13:40:58.1191222Z undefined
+publish	Setup Node.js	2026-10-18T13:40:58.2933966Z Cache hit for: node-cache-Linux-x64-yarn-856240dd93a16bb612410a90d9a2f55a748a342f2aa76856f58ce628bfbf93c9
+publish	Setup Node.js	2026-10-18T13:40:58.3015495Z (node:2234) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+publish	Setup Node.js	2026-10-18T13:40:59.3869600Z Received 171966464 of 343105346 (50.1%), 163.5 MBs/sec
+publish	Setup Node.js	2026-10-18T13:40:59.9971287Z Received 343105346 of 343105346 (100.0%), 202.9 MBs/sec
+publish	Setup Node.js	2026-10-18T13:40:59.9972688Z Cache Size: ~327 MB (343105346 B)
+publish	Setup Node.js	2026-10-18T13:41:00.0128621Z [command]/usr/bin/tar -xf /home/runner/work/_temp/d6558583-4c6d-4f1a-bf4c-6d363d4e8820/cache.tzst -P -C /home/runner/work/notes/notes --use-compress-program unzstd
+publish	Setup Node.js	2026-10-18T13:41:01.3124702Z Cache restored successfully
+publish	Setup Node.js	2026-10-18T13:41:01.3259230Z Cache restored from key: node-cache-Linux-x64-yarn-856240dd93a16bb612410a90d9a2f55a748a342f2aa76856f58ce628bfbf93c9
+publish	Install dependencies	﻿2026-10-18T13:41:01.4403186Z ##[group]Run yarn install --frozen-lockfile
+publish	Install dependencies	2026-10-18T13:41:01.4403916Z [36;1myarn install --frozen-lockfile[0m
+publish	Install dependencies	2026-10-18T13:41:01.4974377Z shell: /usr/bin/bash -e {0}
+publish	Install dependencies	2026-10-18T13:41:01.4974873Z env:
+publish	Install dependencies	2026-10-18T13:41:01.4975245Z   NPM_CONFIG_USERCONFIG: /home/runner/work/_temp/.npmrc
+publish	Install dependencies	2026-10-18T13:41:01.4975761Z   NODE_AUTH_TOKEN: XXXXX-XXXXX-XXXXX-XXXXX
+publish	Install dependencies	2026-10-18T13:41:01.4976174Z ##[endgroup]
+publish	Install dependencies	2026-10-18T13:41:01.6376790Z yarn install v1.22.22
+publish	Install dependencies	2026-10-18T13:41:01.7414192Z [1/5] Validating package.json...
+publish	Install dependencies	2026-10-18T13:41:01.7445565Z [2/5] Resolving packages...
+publish	Install dependencies	2026-10-18T13:41:01.8638088Z [3/5] Fetching packages...
+publish	Install dependencies	2026-10-18T13:41:02.0872850Z [4/5] Linking dependencies...
+publish	Install dependencies	2026-10-18T13:41:02.0888153Z warning " > @hamster-note/painting@0.2.0" has incorrect peer dependency "react@^18.0.0".
+publish	Install dependencies	2026-10-18T13:41:02.0889475Z warning " > @hamster-note/painting@0.2.0" has unmet peer dependency "react-native@>=0.74".
+publish	Install dependencies	2026-10-18T13:41:02.0893248Z warning "@tiptap/react > @tiptap/extension-floating-menu@3.31.3" has unmet peer dependency "@floating-ui/dom@^1.0.0".
+publish	Install dependencies	2026-10-18T13:41:11.8820086Z [5/5] Building fresh packages...
+publish	Install dependencies	2026-10-18T13:41:12.0111928Z Done in 10.38s.
+publish	Prepare version from tag	﻿2026-10-18T13:41:12.0372962Z ##[group]Run OUTPUT=$(yarn --silent release:prepare)
+publish	Prepare version from tag	2026-10-18T13:41:12.0373521Z [36;1mOUTPUT=$(yarn --silent release:prepare)[0m
+publish	Prepare version from tag	2026-10-18T13:41:12.0373970Z [36;1mprintf '%s\n' "$OUTPUT"[0m
+publish	Prepare version from tag	2026-10-18T13:41:12.0374370Z [36;1mprintf '%s\n' "$OUTPUT" >> "$GITHUB_OUTPUT"[0m
+publish	Prepare version from tag	2026-10-18T13:41:12.0417944Z shell: /usr/bin/bash -e {0}
+publish	Prepare version from tag	2026-10-18T13:41:12.0418366Z env:
+publish	Prepare version from tag	2026-10-18T13:41:12.0418713Z   NPM_CONFIG_USERCONFIG: /home/runner/work/_temp/.npmrc
+publish	Prepare version from tag	2026-10-18T13:41:12.0419222Z   NODE_AUTH_TOKEN: XXXXX-XXXXX-XXXXX-XXXXX
+publish	Prepare version from tag	2026-10-18T13:41:12.0419594Z ##[endgroup]
+publish	Prepare version from tag	2026-10-18T13:41:12.2665204Z version=3.1.2
+publish	Prepare version from tag	2026-10-18T13:41:12.2665939Z npm_tag=latest
+publish	Verify package version	﻿2026-10-18T13:41:12.2747258Z ##[group]Run test "3.1.2" = "${GITHUB_REF_NAME#v}"
+publish	Verify package version	2026-10-18T13:41:12.2747767Z [36;1mtest "3.1.2" = "${GITHUB_REF_NAME#v}"[0m
+publish	Verify package version	2026-10-18T13:41:12.2789867Z shell: /usr/bin/bash -e {0}
+publish	Verify package version	2026-10-18T13:41:12.2790384Z env:
+publish	Verify package version	2026-10-18T13:41:12.2791215Z   NPM_CONFIG_USERCONFIG: /home/runner/work/_temp/.npmrc
+publish	Verify package version	2026-10-18T13:41:12.2791687Z   NODE_AUTH_TOKEN: XXXXX-XXXXX-XXXXX-XXXXX
+publish	Verify package version	2026-10-18T13:41:12.2792093Z ##[endgroup]
+publish	Lint	﻿2026-10-18T13:41:12.2890099Z ##[group]Run yarn lint
+publish	Lint	2026-10-18T13:41:12.2890657Z [36;1myarn lint[0m
+publish	Lint	2026-10-18T13:41:12.2926144Z shell: /usr/bin/bash -e {0}
+publish	Lint	2026-10-18T13:41:12.2926619Z env:
+publish	Lint	2026-10-18T13:41:12.2927087Z   NPM_CONFIG_USERCONFIG: /home/runner/work/_temp/.npmrc
+publish	Lint	2026-10-18T13:41:12.2927734Z   NODE_AUTH_TOKEN: XXXXX-XXXXX-XXXXX-XXXXX
+publish	Lint	2026-10-18T13:41:12.2928195Z ##[endgroup]
+publish	Lint	2026-10-18T13:41:12.4262480Z yarn run v1.22.22
+publish	Lint	2026-10-18T13:41:12.4626161Z $ eslint .
+publish	Lint	2026-10-18T13:41:24.8352613Z Done in 12.41s.
+publish	Typecheck	﻿2026-10-18T13:41:24.8488199Z ##[group]Run yarn typecheck
+publish	Typecheck	2026-10-18T13:41:24.8488783Z [36;1myarn typecheck[0m
+publish	Typecheck	2026-10-18T13:41:24.8546255Z shell: /usr/bin/bash -e {0}
+publish	Typecheck	2026-10-18T13:41:24.8546968Z env:
+publish	Typecheck	2026-10-18T13:41:24.8547476Z   NPM_CONFIG_USERCONFIG: /home/runner/work/_temp/.npmrc
+publish	Typecheck	2026-10-18T13:41:24.8548157Z   NODE_AUTH_TOKEN: XXXXX-XXXXX-XXXXX-XXXXX
+publish	Typecheck	2026-10-18T13:41:24.8548776Z ##[endgroup]
+publish	Typecheck	2026-10-18T13:41:24.9941265Z yarn run v1.22.22
+publish	Typecheck	2026-10-18T13:41:25.0278828Z $ tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json
+publish	Typecheck	2026-10-18T13:41:35.0358595Z Done in 10.05s.
+publish	Test	﻿2026-10-18T13:41:35.0496235Z ##[group]Run yarn test
+publish	Test	2026-10-18T13:41:35.0496659Z [36;1myarn test[0m
+publish	Test	2026-10-18T13:41:35.0541661Z shell: /usr/bin/bash -e {0}
+publish	Test	2026-10-18T13:41:35.0542122Z env:
+publish	Test	2026-10-18T13:41:35.0542534Z   NPM_CONFIG_USERCONFIG: /home/runner/work/_temp/.npmrc
+publish	Test	2026-10-18T13:41:35.0542974Z   NODE_AUTH_TOKEN: XXXXX-XXXXX-XXXXX-XXXXX
+publish	Test	2026-10-18T13:41:35.0543393Z ##[endgroup]
+publish	Test	2026-10-18T13:41:35.1923242Z yarn run v1.22.22
+publish	Test	2026-10-18T13:41:35.2274247Z $ vitest run
+publish	Test	2026-10-18T13:41:35.5004640Z 
+publish	Test	2026-10-18T13:41:35.5006983Z [1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90m/home/runner/work/notes/notes[39m
+publish	Test	2026-10-18T13:41:35.5007707Z 
+publish	Test	2026-10-18T13:41:36.3352306Z Sourcemap for "/home/runner/work/notes/notes/node_modules/@system-ui-js/multi-drag/dist/index.js" points to missing source files
+publish	Test	2026-10-18T13:41:36.3402125Z Sourcemap for "/home/runner/work/notes/notes/node_modules/@system-ui-js/multi-drag/dist/drag/index.js" points to missing source files
+publish	Test	2026-10-18T13:41:36.3431160Z Sourcemap for "/home/runner/work/notes/notes/node_modules/@system-ui-js/multi-drag/dist/drag/drag.js" points to missing source files
+publish	Test	2026-10-18T13:41:36.3451996Z Sourcemap for "/home/runner/work/notes/notes/node_modules/@system-ui-js/multi-drag/dist/drag/base.js" points to missing source files
+publish	Test	2026-10-18T13:41:36.3534939Z Sourcemap for "/home/runner/work/notes/notes/node_modules/@system-ui-js/multi-drag-core/dist/index.js" points to missing source files
+publish	Test	2026-10-18T13:41:36.3562723Z Sourcemap for "/home/runner/work/notes/notes/node_modules/@system-ui-js/multi-drag-core/dist/controller.js" points to missing source files
+publish	Test	2026-10-18T13:41:36.3621526Z Sourcemap for "/home/runner/work/notes/notes/node_modules/@system-ui-js/multi-drag-core/dist/geometry.js" points to missing source files
+publish	Test	2026-10-18T13:41:36.3651593Z Sourcemap for "/home/runner/work/notes/notes/node_modules/@system-ui-js/multi-drag-core/dist/types.js" points to missing source files
+publish	Test	2026-10-18T13:41:36.3681586Z Sourcemap for "/home/runner/work/notes/notes/node_modules/@system-ui-js/multi-drag-core/dist/inertia.js" points to missing source files
+publish	Test	2026-10-18T13:41:36.3724282Z Sourcemap for "/home/runner/work/notes/notes/node_modules/@system-ui-js/multi-drag/dist/dom/normalize-pointer-event.js" points to missing source files
+publish	Test	2026-10-18T13:41:36.3751500Z Sourcemap for "/home/runner/work/notes/notes/node_modules/@system-ui-js/multi-drag/dist/dom/pose.js" points to missing source files
+publish	Test	2026-10-18T13:41:36.3801082Z Sourcemap for "/home/runner/work/notes/notes/node_modules/@system-ui-js/multi-drag/dist/drag/finger.js" points to missing source files
+publish	Test	2026-10-18T13:41:36.3838201Z Sourcemap for "/home/runner/work/notes/notes/node_modules/@system-ui-js/multi-drag/dist/drag/rotate.js" points to missing source files
+publish	Test	2026-10-18T13:41:36.3928198Z Sourcemap for "/home/runner/work/notes/notes/node_modules/@system-ui-js/multi-drag/dist/drag/scale.js" points to missing source files
+publish	Test	2026-10-18T13:41:36.3961752Z Sourcemap for "/home/runner/work/notes/notes/node_modules/@system-ui-js/multi-drag/dist/drag/mixin.js" points to missing source files
+publish	Test	2026-10-18T13:41:38.1243262Z [90mstderr[2m | src/lib/editor/NoteEditor.test.tsx[2m > [22m[2m内部 NoteEditor 最低呈现[2m > [22m[2m无效 B 只通知一次候选回调，A 的会话和 callbacks 保持到合法 C 切换
+publish	Test	2026-10-18T13:41:38.1272293Z [22m[39mHnnCodecError: /data/content/0: unknown 不允许作为 doc 的子节点; /data/content/0/type: 不支持的节点 unknown
+publish	Test	2026-10-18T13:41:38.1302091Z     at validateShell [90m(/home/runner/work/notes/notes/[39msrc/lib/hnn/codec.ts:800:47[90m)[39m
+publish	Test	2026-10-18T13:41:38.1311603Z     at decodeHnn [90m(/home/runner/work/notes/notes/[39msrc/lib/hnn/codec.ts:832:21[90m)[39m
+publish	Test	2026-10-18T13:41:38.1361765Z     at InitialValidator [90m(/home/runner/work/notes/notes/[39msrc/lib/editor/NoteEditor.tsx:142:52[90m)[39m
+publish	Test	2026-10-18T13:41:38.1410535Z     at Object.react_stack_bottom_frame [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:25904:20[90m)[39m
+publish	Test	2026-10-18T13:41:38.1442243Z     at renderWithHooks [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:7662:22[90m)[39m
+publish	Test	2026-10-18T13:41:38.1562385Z     at updateFunctionComponent [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:10166:19[90m)[39m
+publish	Test	2026-10-18T13:41:38.1615172Z     at beginWork [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:11778:18[90m)[39m
+publish	Test	2026-10-18T13:41:38.1636634Z     at runWithFiberInDEV [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:874:13[90m)[39m
+publish	Test	2026-10-18T13:41:38.1644681Z     at performUnitOfWork [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:17641:22[90m)[39m
+publish	Test	2026-10-18T13:41:38.1673371Z     at workLoopSync [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:17469:41[90m)[39m {
+publish	Test	2026-10-18T13:41:38.1701237Z   [stack]: [36m[Getter/Setter][39m,
+publish	Test	2026-10-18T13:41:38.1724943Z   [message]: [32m'/data/content/0: unknown 不允许作为 doc 的子节点; /data/content/0/type: 不支持的节点 unknown'[39m,
+publish	Test	2026-10-18T13:41:38.1750930Z   diagnostics: [
+publish	Test	2026-10-18T13:41:38.1770952Z     {
+publish	Test	2026-10-18T13:41:38.1801258Z       path: [32m'/data/content/0'[39m,
+publish	Test	2026-10-18T13:41:38.1832385Z       code: [32m'invalid-nesting'[39m,
+publish	Test	2026-10-18T13:41:38.1849727Z       message: [32m'unknown 不允许作为 doc 的子节点'[39m
+publish	Test	2026-10-18T13:41:38.1876139Z     },
+publish	Test	2026-10-18T13:41:38.1907046Z     {
+publish	Test	2026-10-18T13:41:38.1908550Z       path: [32m'/data/content/0/type'[39m,
+publish	Test	2026-10-18T13:41:38.1909461Z       code: [32m'unknown-node'[39m,
+publish	Test	2026-10-18T13:41:38.1910512Z       message: [32m'不支持的节点 unknown'[39m
+publish	Test	2026-10-18T13:41:38.1911649Z     },
+publish	Test	2026-10-18T13:41:38.1912350Z     [length]: [33m2[39m
+publish	Test	2026-10-18T13:41:38.1913034Z   ],
+publish	Test	2026-10-18T13:41:38.1913736Z   name: [32m'HnnCodecError'[39m
+publish	Test	2026-10-18T13:41:38.1914327Z }
+publish	Test	2026-10-18T13:41:38.1914664Z 
+publish	Test	2026-10-18T13:41:38.1915303Z The above error occurred in the <InitialValidator> component.
+publish	Test	2026-10-18T13:41:38.1915842Z 
+publish	Test	2026-10-18T13:41:38.1916731Z React will try to recreate this component tree from scratch using the error boundary you provided, InitialValidationBoundary.
+publish	Test	2026-10-18T13:41:38.1917561Z 
+publish	Test	2026-10-18T13:41:38.1917674Z 
+publish	Test	2026-10-18T13:41:38.2444816Z [90mstderr[2m | src/lib/editor/NoteEditor.test.tsx[2m > [22m[2m内部 NoteEditor 最低呈现[2m > [22m[2mA→合法 C 的 layout 提交紧邻无效 D 时，活跃 session 完整归属 accepted C
+publish	Test	2026-10-18T13:41:38.2447061Z [22m[39mHnnCodecError: /data/content/0: unknown 不允许作为 doc 的子节点; /data/content/0/type: 不支持的节点 unknown
+publish	Test	2026-10-18T13:41:38.2449209Z     at validateShell [90m(/home/runner/work/notes/notes/[39msrc/lib/hnn/codec.ts:800:47[90m)[39m
+publish	Test	2026-10-18T13:41:38.2451367Z     at decodeHnn [90m(/home/runner/work/notes/notes/[39msrc/lib/hnn/codec.ts:832:21[90m)[39m
+publish	Test	2026-10-18T13:41:38.2452965Z     at InitialValidator [90m(/home/runner/work/notes/notes/[39msrc/lib/editor/NoteEditor.tsx:142:52[90m)[39m
+publish	Test	2026-10-18T13:41:38.2455181Z     at Object.react_stack_bottom_frame [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:25904:20[90m)[39m
+publish	Test	2026-10-18T13:41:38.2457376Z     at renderWithHooks [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:7662:22[90m)[39m
+publish	Test	2026-10-18T13:41:38.2459782Z     at updateFunctionComponent [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:10166:19[90m)[39m
+publish	Test	2026-10-18T13:41:38.2465575Z     at beginWork [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:11778:18[90m)[39m
+publish	Test	2026-10-18T13:41:38.2468168Z     at runWithFiberInDEV [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:874:13[90m)[39m
+publish	Test	2026-10-18T13:41:38.2472760Z     at performUnitOfWork [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:17641:22[90m)[39m
+publish	Test	2026-10-18T13:41:38.2475453Z     at workLoopSync [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:17469:41[90m)[39m {
+publish	Test	2026-10-18T13:41:38.2476909Z   [stack]: [36m[Getter/Setter][39m,
+publish	Test	2026-10-18T13:41:38.2478351Z   [message]: [32m'/data/content/0: unknown 不允许作为 doc 的子节点; /data/content/0/type: 不支持的节点 unknown'[39m,
+publish	Test	2026-10-18T13:41:38.2479307Z   diagnostics: [
+publish	Test	2026-10-18T13:41:38.2479973Z     {
+publish	Test	2026-10-18T13:41:38.2483790Z       path: [32m'/data/content/0'[39m,
+publish	Test	2026-10-18T13:41:38.2484896Z       code: [32m'invalid-nesting'[39m,
+publish	Test	2026-10-18T13:41:38.2485794Z       message: [32m'unknown 不允许作为 doc 的子节点'[39m
+publish	Test	2026-10-18T13:41:38.2486692Z     },
+publish	Test	2026-10-18T13:41:38.2487794Z     {
+publish	Test	2026-10-18T13:41:38.2488811Z       path: [32m'/data/content/0/type'[39m,
+publish	Test	2026-10-18T13:41:38.2489523Z       code: [32m'unknown-node'[39m,
+publish	Test	2026-10-18T13:41:38.2490355Z       message: [32m'不支持的节点 unknown'[39m
+publish	Test	2026-10-18T13:41:38.2490946Z     },
+publish	Test	2026-10-18T13:41:38.2491451Z     [length]: [33m2[39m
+publish	Test	2026-10-18T13:41:38.2492007Z   ],
+publish	Test	2026-10-18T13:41:38.2492508Z   name: [32m'HnnCodecError'[39m
+publish	Test	2026-10-18T13:41:38.2493064Z }
+publish	Test	2026-10-18T13:41:38.2493249Z 
+publish	Test	2026-10-18T13:41:38.2493688Z The above error occurred in the <InitialValidator> component.
+publish	Test	2026-10-18T13:41:38.2494197Z 
+publish	Test	2026-10-18T13:41:38.2495049Z React will try to recreate this component tree from scratch using the error boundary you provided, InitialValidationBoundary.
+publish	Test	2026-10-18T13:41:38.2495811Z 
+publish	Test	2026-10-18T13:41:38.2495822Z 
+publish	Test	2026-10-18T13:41:39.0824833Z  [32m✓[39m src/lib/hnn/tableEdgeControls.test.ts [2m([22m[2m34 tests[22m[2m)[22m[33m 1746[2mms[22m[39m
+publish	Test	2026-10-18T13:41:41.7639346Z  [32m✓[39m src/lib/editor/blockReorder.test.ts [2m([22m[2m51 tests[22m[2m)[22m[33m 1428[2mms[22m[39m
+publish	Test	2026-10-18T13:41:42.0444432Z  [32m✓[39m src/lib/editor/NoteEditor.test.tsx [2m([22m[2m61 tests[22m[2m)[22m[33m 4414[2mms[22m[39m
+publish	Test	2026-10-18T13:41:42.0482230Z      [33m[2m✓[22m[39m formula 编辑器：latex 超限时关闭不提交，预览恢复持久值，文档保持可保存 [33m 336[2mms[22m[39m
+publish	Test	2026-10-18T13:41:42.0484737Z      [33m[2m✓[22m[39m formula 编辑器：latex 双重限制与 strict codec 精确等价——转义后 JSON 字节恰好 8192 提交并可保存，多一字符零事务 [33m 750[2mms[22m[39m
+publish	Test	2026-10-18T13:41:43.8284872Z  [32m✓[39m src/lib/editor/session.test.ts [2m([22m[2m40 tests[22m[2m)[22m[33m 826[2mms[22m[39m
+publish	Test	2026-10-18T13:41:44.2630104Z  [32m✓[39m src/lib/editor/hostReferenceInteractions.test.ts [2m([22m[2m39 tests[22m[2m)[22m[33m 1063[2mms[22m[39m
+publish	Test	2026-10-18T13:41:46.0262225Z  [32m✓[39m src/lib/hnn/codec.test.ts [2m([22m[2m24 tests[22m[2m)[22m[33m 1338[2mms[22m[39m
+publish	Test	2026-10-18T13:41:46.0272359Z      [33m[2m✓[22m[39m rejects noncanonical JSON, oversized shells, and preserves failed JSON input bytes [33m 490[2mms[22m[39m
+publish	Test	2026-10-18T13:41:46.0274066Z      [33m[2m✓[22m[39m PM 入口精确接受 512 KiB canonical 外壳，并在超出一字节前拒绝 [33m 566[2mms[22m[39m
+publish	Test	2026-10-18T13:41:46.0358661Z [90mstderr[2m | src/lib/editor/NoteEditor.integration.test.tsx[2m > [22m[2m6.7 图片上传接线[2m > [22m[2m无效新 key 保留旧 session 与旧上传 callback：候选 callback 不被调用
+publish	Test	2026-10-18T13:41:46.0392039Z [22m[39mHnnCodecError: /data/content/0: unknown 不允许作为 doc 的子节点; /data/content/0/type: 不支持的节点 unknown
+publish	Test	2026-10-18T13:41:46.0421783Z     at validateShell [90m(/home/runner/work/notes/notes/[39msrc/lib/hnn/codec.ts:901:47[90m)[39m
+publish	Test	2026-10-18T13:41:46.0422806Z     at decodeHnn [90m(/home/runner/work/notes/notes/[39msrc/lib/hnn/codec.ts:937:21[90m)[39m
+publish	Test	2026-10-18T13:41:46.0431735Z     at InitialValidator [90m(/home/runner/work/notes/notes/[39msrc/lib/editor/NoteEditor.tsx:142:52[90m)[39m
+publish	Test	2026-10-18T13:41:46.0433677Z     at Object.react_stack_bottom_frame [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:25904:20[90m)[39m
+publish	Test	2026-10-18T13:41:46.0435680Z     at renderWithHooks [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:7662:22[90m)[39m
+publish	Test	2026-10-18T13:41:46.0438146Z     at updateFunctionComponent [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:10166:19[90m)[39m
+publish	Test	2026-10-18T13:41:46.0440043Z     at beginWork [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:11778:18[90m)[39m
+publish	Test	2026-10-18T13:41:46.0472509Z     at runWithFiberInDEV [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:874:13[90m)[39m
+publish	Test	2026-10-18T13:41:46.0501435Z     at performUnitOfWork [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:17641:22[90m)[39m
+publish	Test	2026-10-18T13:41:46.0503663Z     at workLoopSync [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:17469:41[90m)[39m {
+publish	Test	2026-10-18T13:41:46.0521719Z   [stack]: [36m[Getter/Setter][39m,
+publish	Test	2026-10-18T13:41:46.0523293Z   [message]: [32m'/data/content/0: unknown 不允许作为 doc 的子节点; /data/content/0/type: 不支持的节点 unknown'[39m,
+publish	Test	2026-10-18T13:41:46.0524241Z   diagnostics: [
+publish	Test	2026-10-18T13:41:46.0524812Z     {
+publish	Test	2026-10-18T13:41:46.0525541Z       path: [32m'/data/content/0'[39m,
+publish	Test	2026-10-18T13:41:46.0526305Z       code: [32m'invalid-nesting'[39m,
+publish	Test	2026-10-18T13:41:46.0527152Z       message: [32m'unknown 不允许作为 doc 的子节点'[39m
+publish	Test	2026-10-18T13:41:46.0527780Z     },
+publish	Test	2026-10-18T13:41:46.0528306Z     {
+publish	Test	2026-10-18T13:41:46.0528956Z       path: [32m'/data/content/0/type'[39m,
+publish	Test	2026-10-18T13:41:46.0529762Z       code: [32m'unknown-node'[39m,
+publish	Test	2026-10-18T13:41:46.0530653Z       message: [32m'不支持的节点 unknown'[39m
+publish	Test	2026-10-18T13:41:46.0531289Z     },
+publish	Test	2026-10-18T13:41:46.0532318Z     [length]: [33m2[39m
+publish	Test	2026-10-18T13:41:46.0532862Z   ],
+publish	Test	2026-10-18T13:41:46.0533521Z   name: [32m'HnnCodecError'[39m
+publish	Test	2026-10-18T13:41:46.0534104Z }
+publish	Test	2026-10-18T13:41:46.0534412Z 
+publish	Test	2026-10-18T13:41:46.0534995Z The above error occurred in the <InitialValidator> component.
+publish	Test	2026-10-18T13:41:46.0535553Z 
+publish	Test	2026-10-18T13:41:46.0536454Z React will try to recreate this component tree from scratch using the error boundary you provided, InitialValidationBoundary.
+publish	Test	2026-10-18T13:41:46.0537284Z 
+publish	Test	2026-10-18T13:41:46.0537462Z 
+publish	Test	2026-10-18T13:41:46.4902486Z [90mstderr[2m | src/lib/editor/NoteEditor.integration.test.tsx[2m > [22m[2m7.6 Markdown 导出接线[2m > [22m[2minvalid 新 key 且移除 export callback：旧待确认诊断与 dialog 保留，旧 callback 仍可确认
+publish	Test	2026-10-18T13:41:46.4904674Z [22m[39mHnnCodecError: /data/content/0: unknown 不允许作为 doc 的子节点; /data/content/0/type: 不支持的节点 unknown
+publish	Test	2026-10-18T13:41:46.4961906Z     at validateShell [90m(/home/runner/work/notes/notes/[39msrc/lib/hnn/codec.ts:901:47[90m)[39m
+publish	Test	2026-10-18T13:41:46.4991762Z     at decodeHnn [90m(/home/runner/work/notes/notes/[39msrc/lib/hnn/codec.ts:937:21[90m)[39m
+publish	Test	2026-10-18T13:41:46.5021742Z     at InitialValidator [90m(/home/runner/work/notes/notes/[39msrc/lib/editor/NoteEditor.tsx:142:52[90m)[39m
+publish	Test	2026-10-18T13:41:46.5032052Z     at Object.react_stack_bottom_frame [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:25904:20[90m)[39m
+publish	Test	2026-10-18T13:41:46.5062157Z     at renderWithHooks [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:7662:22[90m)[39m
+publish	Test	2026-10-18T13:41:46.5065803Z     at updateFunctionComponent [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:10166:19[90m)[39m
+publish	Test	2026-10-18T13:41:46.5087642Z     at beginWork [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:11778:18[90m)[39m
+publish	Test	2026-10-18T13:41:46.5089732Z     at runWithFiberInDEV [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:874:13[90m)[39m
+publish	Test	2026-10-18T13:41:46.5092108Z     at performUnitOfWork [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:17641:22[90m)[39m
+publish	Test	2026-10-18T13:41:46.5094605Z     at workLoopSync [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:17469:41[90m)[39m {
+publish	Test	2026-10-18T13:41:46.5095874Z   [stack]: [36m[Getter/Setter][39m,
+publish	Test	2026-10-18T13:41:46.5097431Z   [message]: [32m'/data/content/0: unknown 不允许作为 doc 的子节点; /data/content/0/type: 不支持的节点 unknown'[39m,
+publish	Test	2026-10-18T13:41:46.5098402Z   diagnostics: [
+publish	Test	2026-10-18T13:41:46.5099080Z     {
+publish	Test	2026-10-18T13:41:46.5099780Z       path: [32m'/data/content/0'[39m,
+publish	Test	2026-10-18T13:41:46.5101562Z       code: [32m'invalid-nesting'[39m,
+publish	Test	2026-10-18T13:41:46.5102931Z       message: [32m'unknown 不允许作为 doc 的子节点'[39m
+publish	Test	2026-10-18T13:41:46.5103663Z     },
+publish	Test	2026-10-18T13:41:46.5104273Z     {
+publish	Test	2026-10-18T13:41:46.5104962Z       path: [32m'/data/content/0/type'[39m,
+publish	Test	2026-10-18T13:41:46.5105850Z       code: [32m'unknown-node'[39m,
+publish	Test	2026-10-18T13:41:46.5106619Z       message: [32m'不支持的节点 unknown'[39m
+publish	Test	2026-10-18T13:41:46.5107566Z     },
+publish	Test	2026-10-18T13:41:46.5108221Z     [length]: [33m2[39m
+publish	Test	2026-10-18T13:41:46.5108748Z   ],
+publish	Test	2026-10-18T13:41:46.5109471Z   name: [32m'HnnCodecError'[39m
+publish	Test	2026-10-18T13:41:46.5111347Z }
+publish	Test	2026-10-18T13:41:46.5111778Z 
+publish	Test	2026-10-18T13:41:46.5112335Z The above error occurred in the <InitialValidator> component.
+publish	Test	2026-10-18T13:41:46.5114224Z 
+publish	Test	2026-10-18T13:41:46.5115249Z React will try to recreate this component tree from scratch using the error boundary you provided, InitialValidationBoundary.
+publish	Test	2026-10-18T13:41:46.5116115Z 
+publish	Test	2026-10-18T13:41:46.5116306Z 
+publish	Test	2026-10-18T13:41:46.5136199Z [90mstderr[2m | src/lib/editor/NoteEditor.integration.test.tsx[2m > [22m[2m7.6 Markdown 导出接线[2m > [22m[2minvalid 新 key 携带 export callback：旧无导出的会话不出现伪造入口
+publish	Test	2026-10-18T13:41:46.5139938Z [22m[39mHnnCodecError: /data/content/0: unknown 不允许作为 doc 的子节点; /data/content/0/type: 不支持的节点 unknown
+publish	Test	2026-10-18T13:41:46.5141935Z     at validateShell [90m(/home/runner/work/notes/notes/[39msrc/lib/hnn/codec.ts:901:47[90m)[39m
+publish	Test	2026-10-18T13:41:46.5143434Z     at decodeHnn [90m(/home/runner/work/notes/notes/[39msrc/lib/hnn/codec.ts:937:21[90m)[39m
+publish	Test	2026-10-18T13:41:46.5144995Z     at InitialValidator [90m(/home/runner/work/notes/notes/[39msrc/lib/editor/NoteEditor.tsx:142:52[90m)[39m
+publish	Test	2026-10-18T13:41:46.5147037Z     at Object.react_stack_bottom_frame [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:25904:20[90m)[39m
+publish	Test	2026-10-18T13:41:46.5149222Z     at renderWithHooks [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:7662:22[90m)[39m
+publish	Test	2026-10-18T13:41:46.5151758Z     at updateFunctionComponent [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:10166:19[90m)[39m
+publish	Test	2026-10-18T13:41:46.5154671Z     at beginWork [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:11778:18[90m)[39m
+publish	Test	2026-10-18T13:41:46.5156847Z     at runWithFiberInDEV [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:874:13[90m)[39m
+publish	Test	2026-10-18T13:41:46.5158904Z     at performUnitOfWork [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:17641:22[90m)[39m
+publish	Test	2026-10-18T13:41:46.5161230Z     at workLoopSync [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:17469:41[90m)[39m {
+publish	Test	2026-10-18T13:41:46.5162634Z   [stack]: [36m[Getter/Setter][39m,
+publish	Test	2026-10-18T13:41:46.5164037Z   [message]: [32m'/data/content/0: unknown 不允许作为 doc 的子节点; /data/content/0/type: 不支持的节点 unknown'[39m,
+publish	Test	2026-10-18T13:41:46.5165039Z   diagnostics: [
+publish	Test	2026-10-18T13:41:46.5165619Z     {
+publish	Test	2026-10-18T13:41:46.5166386Z       path: [32m'/data/content/0'[39m,
+publish	Test	2026-10-18T13:41:46.5167228Z       code: [32m'invalid-nesting'[39m,
+publish	Test	2026-10-18T13:41:46.5168156Z       message: [32m'unknown 不允许作为 doc 的子节点'[39m
+publish	Test	2026-10-18T13:41:46.5171822Z     },
+publish	Test	2026-10-18T13:41:46.5172527Z     {
+publish	Test	2026-10-18T13:41:46.5173362Z       path: [32m'/data/content/0/type'[39m,
+publish	Test	2026-10-18T13:41:46.5174180Z       code: [32m'unknown-node'[39m,
+publish	Test	2026-10-18T13:41:46.5175158Z       message: [32m'不支持的节点 unknown'[39m
+publish	Test	2026-10-18T13:41:46.5175803Z     },
+publish	Test	2026-10-18T13:41:46.5176470Z     [length]: [33m2[39m
+publish	Test	2026-10-18T13:41:46.5177081Z   ],
+publish	Test	2026-10-18T13:41:46.5177692Z   name: [32m'HnnCodecError'[39m
+publish	Test	2026-10-18T13:41:46.5178416Z }
+publish	Test	2026-10-18T13:41:46.5178777Z 
+publish	Test	2026-10-18T13:41:46.5179278Z The above error occurred in the <InitialValidator> component.
+publish	Test	2026-10-18T13:41:46.5179891Z 
+publish	Test	2026-10-18T13:41:46.5181022Z React will try to recreate this component tree from scratch using the error boundary you provided, InitialValidationBoundary.
+publish	Test	2026-10-18T13:41:46.5181964Z 
+publish	Test	2026-10-18T13:41:46.5182147Z 
+publish	Test	2026-10-18T13:41:46.5731300Z  [32m✓[39m src/lib/editor/NoteEditor.integration.test.tsx [2m([22m[2m27 tests[22m[2m)[22m[33m 1328[2mms[22m[39m
+publish	Test	2026-10-18T13:41:46.8487474Z  [32m✓[39m src/lib/hnn/markdown.test.ts [2m([22m[2m104 tests[22m[2m)[22m[33m 9818[2mms[22m[39m
+publish	Test	2026-10-18T13:41:46.8525726Z      [33m[2m✓[22m[39m text 放宽原始字节计数后，JSON 转义膨胀仍计入累计 shell 并在 UUID 前拒绝 [33m 566[2mms[22m[39m
+publish	Test	2026-10-18T13:41:46.8527373Z      [33m[2m✓[22m[39m base64url JSON fallback 不受反引号 payload 影响，30 个大节点可导出再导入 [33m 568[2mms[22m[39m
+publish	Test	2026-10-18T13:41:46.8529142Z      [33m[2m✓[22m[39m 接近 512 KiB 的合法 HNN JSON fallback 可 export/import，不回退到旧 256 KiB 预算 [33m 1224[2mms[22m[39m
+publish	Test	2026-10-18T13:41:46.8530801Z      [33m[2m✓[22m[39m callout/collapsible 的超预算 nested body 回滚并局部保留完整围栏 [33m 391[2mms[22m[39m
+publish	Test	2026-10-18T13:41:46.8532215Z      [33m[2m✓[22m[39m 首、中、尾超限 JSON-b64 分片均整组保留，包含前后内容且严格可编码 [33m 737[2mms[22m[39m
+publish	Test	2026-10-18T13:41:46.8533848Z      [33m[2m✓[22m[39m 大尺寸坏 base64 与严格 payload 失败在容量内完整局部保留 [33m 1260[2mms[22m[39m
+publish	Test	2026-10-18T13:41:46.8535193Z      [33m[2m✓[22m[39m 非 JSON-b64 HN fence 的容量外局部 fallback 保留原因与同位置容量诊断 [33m 867[2mms[22m[39m
+publish	Test	2026-10-18T13:41:46.8536666Z      [33m[2m✓[22m[39m blockquote 中容量失败优先定位首次跨限 card，保留后续 unknown fence 诊断且不创建 UUID [33m 325[2mms[22m[39m
+publish	Test	2026-10-18T13:41:48.1202378Z  [32m✓[39m src/lib/editor/pictureUpload.test.ts [2m([22m[2m26 tests[22m[2m)[22m[33m 843[2mms[22m[39m
+publish	Test	2026-10-18T13:41:49.1654800Z  [32m✓[39m src/lib/editor/blockMenu.test.ts [2m([22m[2m27 tests[22m[2m)[22m[33m 1100[2mms[22m[39m
+publish	Test	2026-10-18T13:41:49.1689850Z [90mstderr[2m | src/lib/editor/NoteEditor.references.test.tsx[2m > [22m[2m7.2 宿主引用接线：激活与无回调语义[2m > [22m[2m三回调全无：无候选入口、无解析占位、无激活语义，文档纯文本行为
+publish	Test	2026-10-18T13:41:49.1702558Z [22m[39mTextSelection endpoint not pointing into a node with inline content (doc)
+publish	Test	2026-10-18T13:41:49.1703263Z 
+publish	Test	2026-10-18T13:41:49.4884948Z [90mstderr[2m | src/lib/editor/NoteEditor.references.test.tsx[2m > [22m[2m7.2 宿主引用接线：会话切换与同 key 能力变化[2m > [22m[2minvalid 新 key：旧 callbacks/候选/激活界面与 doc/selection/history 全部保留
+publish	Test	2026-10-18T13:41:49.4962128Z [22m[39mHnnCodecError: /data/content/0: unknown 不允许作为 doc 的子节点; /data/content/0/type: 不支持的节点 unknown
+publish	Test	2026-10-18T13:41:49.4991765Z     at validateShell [90m(/home/runner/work/notes/notes/[39msrc/lib/hnn/codec.ts:901:47[90m)[39m
+publish	Test	2026-10-18T13:41:49.5012867Z     at decodeHnn [90m(/home/runner/work/notes/notes/[39msrc/lib/hnn/codec.ts:937:21[90m)[39m
+publish	Test	2026-10-18T13:41:49.5025234Z     at InitialValidator [90m(/home/runner/work/notes/notes/[39msrc/lib/editor/NoteEditor.tsx:142:52[90m)[39m
+publish	Test	2026-10-18T13:41:49.5082148Z     at Object.react_stack_bottom_frame [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:25904:20[90m)[39m
+publish	Test	2026-10-18T13:41:49.5093276Z     at renderWithHooks [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:7662:22[90m)[39m
+publish	Test	2026-10-18T13:41:49.5122107Z     at updateFunctionComponent [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:10166:19[90m)[39m
+publish	Test	2026-10-18T13:41:49.5124113Z  [32m✓[39m src/lib/editor/NoteEditor.references.test.tsx [2m([22m[2m22 tests[22m[2m)[22m[33m 1482[2mms[22m[39m
+publish	Test	2026-10-18T13:41:49.5126277Z      [33m[2m✓[22m[39m @query 触发候选并以单事务精确替换触发串：仅持久最小信息、新 nodeId、解析不进 HNN、单步 undo [33m 357[2mms[22m[39m
+publish	Test	2026-10-18T13:41:49.5127990Z     at beginWork [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:11778:18[90m)[39m
+publish	Test	2026-10-18T13:41:49.5129734Z     at runWithFiberInDEV [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:874:13[90m)[39m
+publish	Test	2026-10-18T13:41:49.5169824Z     at performUnitOfWork [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:17641:22[90m)[39m
+publish	Test	2026-10-18T13:41:49.5172734Z     at workLoopSync [90m(/home/runner/work/notes/notes/[39mnode_modules/[4mreact-dom[24m/cjs/react-dom-client.development.js:17469:41[90m)[39m {
+publish	Test	2026-10-18T13:41:49.5174280Z   [stack]: [36m[Getter/Setter][39m,
+publish	Test	2026-10-18T13:41:49.5175326Z   [message]: [32m'/data/content/0: unknown 不允许作为 doc 的子节点; /data/content/0/type: 不支持的节点 unknown'[39m,
+publish	Test	2026-10-18T13:41:49.5176315Z   diagnostics: [
+publish	Test	2026-10-18T13:41:49.5176816Z     {
+publish	Test	2026-10-18T13:41:49.5177570Z       path: [32m'/data/content/0'[39m,
+publish	Test	2026-10-18T13:41:49.5178311Z       code: [32m'invalid-nesting'[39m,
+publish	Test	2026-10-18T13:41:49.5179141Z       message: [32m'unknown 不允许作为 doc 的子节点'[39m
+publish	Test	2026-10-18T13:41:49.5179832Z     },
+publish	Test	2026-10-18T13:41:49.5180831Z     {
+publish	Test	2026-10-18T13:41:49.5181567Z       path: [32m'/data/content/0/type'[39m,
+publish	Test	2026-10-18T13:41:49.5182196Z       code: [32m'unknown-node'[39m,
+publish	Test	2026-10-18T13:41:49.5182886Z       message: [32m'不支持的节点 unknown'[39m
+publish	Test	2026-10-18T13:41:49.5183413Z     },
+publish	Test	2026-10-18T13:41:49.5183861Z     [length]: [33m2[39m
+publish	Test	2026-10-18T13:41:49.5184400Z   ],
+publish	Test	2026-10-18T13:41:49.5184936Z   name: [32m'HnnCodecError'[39m
+publish	Test	2026-10-18T13:41:49.5185480Z }
+publish	Test	2026-10-18T13:41:49.5185783Z 
+publish	Test	2026-10-18T13:41:49.5186259Z The above error occurred in the <InitialValidator> component.
+publish	Test	2026-10-18T13:41:49.5186764Z 
+publish	Test	2026-10-18T13:41:49.5187547Z React will try to recreate this component tree from scratch using the error boundary you provided, InitialValidationBoundary.
+publish	Test	2026-10-18T13:41:49.5188408Z 
+publish	Test	2026-10-18T13:41:49.5188421Z 
+publish	Test	2026-10-18T13:41:49.6703165Z [90mstderr[2m | src/lib/editor/nativeClipboard.test.ts[2m > [22m[2m原生 PM clipboard[2m > [22m[2m标准 HTML 与 plain text 按 PM 原生语义粘贴
+publish	Test	2026-10-18T13:41:49.6717179Z [22m[39mTextSelection endpoint not pointing into a node with inline content (doc)
+publish	Test	2026-10-18T13:41:49.6758795Z 
+publish	Test	2026-10-18T13:41:50.1783431Z  [32m✓[39m src/lib/editor/nativeClipboard.test.ts [2m([22m[2m17 tests[22m[2m)[22m[33m 782[2mms[22m[39m
+publish	Test	2026-10-18T13:41:50.7997825Z [90mstderr[2m | src/lib/editor/selectionClipboard.test.ts[2m > [22m[2m6.6 原子内容节点整体选择（NodeSelection）[2m > [22m[2m选中原子节点复制后粘贴，结构可表达且 nodeId 重建为文档内唯一
+publish	Test	2026-10-18T13:41:50.8017766Z [22m[39mTextSelection endpoint not pointing into a node with inline content (doc)
+publish	Test	2026-10-18T13:41:50.8041237Z 
+publish	Test	2026-10-18T13:41:51.3361315Z  [32m✓[39m src/lib/editor/selectionClipboard.test.ts [2m([22m[2m21 tests[22m[2m)[22m[33m 902[2mms[22m[39m
+publish	Test	2026-10-18T13:41:51.4333489Z  [32m✓[39m src/lib/editor/hostReferences.test.ts [2m([22m[2m19 tests[22m[2m)[22m[33m 678[2mms[22m[39m
+publish	Test	2026-10-18T13:41:51.6691998Z  [32m✓[39m src/lib/editor/editorVisualBaseline.test.ts [2m([22m[2m33 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+publish	Test	2026-10-18T13:41:52.8517741Z [90mstdout[2m | src/lib/editor/documentSession.test.ts[2m > [22m[2mfull node assembly and asynchronous origin[2m > [22m[2mbudgets long history without expiring request-ended tombstones
+publish	Test	2026-10-18T13:41:52.8546795Z [22m[39mresource-budget {"operations":{"edits":300,"acquisitions":200,"releases":200},"afterEdits":{"views":2,"requests":0,"activeLeases":0,"undoEvents":111,"redoEvents":0,"sessionMappingEntries":0},"final":{"views":1,"requests":200,"activeLeases":0,"undoEvents":110,"redoEvents":1,"sessionMappingEntries":0}}
+publish	Test	2026-10-18T13:41:52.8560885Z 
+publish	Test	2026-10-18T13:41:53.2189674Z [90mstderr[2m | src/lib/editor/NoteDocumentProvider.test.tsx[2m > [22m[2mmounts without randomUUID and preserves shared history, drafts, leases and the save barrier
+publish	Test	2026-10-18T13:41:53.2193059Z [22m[39mlinkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+publish	Test	2026-10-18T13:41:53.2194579Z 
+publish	Test	2026-10-18T13:41:53.2196199Z [90mstderr[2m | src/lib/editor/NoteDocumentProvider.test.tsx[2m > [22m[2mmounts without randomUUID and preserves shared history, drafts, leases and the save barrier
+publish	Test	2026-10-18T13:41:53.2199724Z [22m[39mlinkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+publish	Test	2026-10-18T13:41:53.2207593Z 
+publish	Test	2026-10-18T13:41:53.2397500Z  [32m✓[39m src/lib/editor/documentSession.test.ts [2m([22m[2m33 tests[22m[2m)[22m[33m 1721[2mms[22m[39m
+publish	Test	2026-10-18T13:41:53.2426788Z      [33m[2m✓[22m[39m budgets long history without expiring request-ended tombstones [33m 449[2mms[22m[39m
+publish	Test	2026-10-18T13:41:53.9722420Z  [32m✓[39m src/lib/editor/HostReferenceUI.test.tsx [2m([22m[2m14 tests[22m[2m)[22m[33m 1045[2mms[22m[39m
+publish	Test	2026-10-18T13:41:53.9724098Z      [33m[2m✓[22m[39m 输入 @query 打开 listbox：pending 状态行 → 候选选项，aria combobox 属性齐全 [33m 357[2mms[22m[39m
+publish	Test	2026-10-18T13:41:55.2164587Z [90mstderr[2m | src/lib/editor/NoteDocumentProvider.test.tsx[2m > [22m[2mformal root Provider/View lifecycle[2m > [22m[2medits through native DOM in both views and reopens without losing the shared stack
+publish	Test	2026-10-18T13:41:55.2166801Z [22m[39mlinkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+publish	Test	2026-10-18T13:41:55.2167515Z 
+publish	Test	2026-10-18T13:41:55.2168583Z [90mstderr[2m | src/lib/editor/NoteDocumentProvider.test.tsx[2m > [22m[2mformal root Provider/View lifecycle[2m > [22m[2medits through native DOM in both views and reopens without losing the shared stack
+publish	Test	2026-10-18T13:41:55.2170416Z [22m[39mlinkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+publish	Test	2026-10-18T13:41:55.2171442Z 
+publish	Test	2026-10-18T13:41:55.5563612Z [90mstderr[2m | src/lib/editor/NoteDocumentProvider.test.tsx[2m > [22m[2mformal card/drawing drafts[2m > [22m[2mcard 取消 resumes autosave of accepted body without saving discarded draft edits
+publish	Test	2026-10-18T13:41:55.5572927Z [22m[39mlinkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+publish	Test	2026-10-18T13:41:55.5575251Z 
+publish	Test	2026-10-18T13:41:55.5577082Z [90mstderr[2m | src/lib/editor/NoteDocumentProvider.test.tsx[2m > [22m[2mformal card/drawing drafts[2m > [22m[2mcard 取消 resumes autosave of accepted body without saving discarded draft edits
+publish	Test	2026-10-18T13:41:55.5579819Z [22m[39mlinkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+publish	Test	2026-10-18T13:41:55.5581288Z 
+publish	Test	2026-10-18T13:41:55.6477209Z [90mstderr[2m | src/lib/editor/NoteDocumentProvider.test.tsx[2m > [22m[2mformal card/drawing drafts[2m > [22m[2mdrawing 取消 resumes autosave of accepted body without saving discarded draft edits
+publish	Test	2026-10-18T13:41:55.6502991Z [22m[39mlinkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+publish	Test	2026-10-18T13:41:55.6515875Z 
+publish	Test	2026-10-18T13:41:55.6518736Z [90mstderr[2m | src/lib/editor/NoteDocumentProvider.test.tsx[2m > [22m[2mformal card/drawing drafts[2m > [22m[2mdrawing 取消 resumes autosave of accepted body without saving discarded draft edits
+publish	Test	2026-10-18T13:41:55.6521716Z [22m[39mlinkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+publish	Test	2026-10-18T13:41:55.6524067Z 
+publish	Test	2026-10-18T13:41:55.7257568Z [90mstderr[2m | src/lib/editor/NoteDocumentProvider.test.tsx[2m > [22m[2mformal card/drawing drafts[2m > [22m[2mcard 完成 resumes autosave of accepted body without saving discarded draft edits
+publish	Test	2026-10-18T13:41:55.7269836Z [22m[39mlinkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+publish	Test	2026-10-18T13:41:55.7275095Z 
+publish	Test	2026-10-18T13:41:55.7279945Z [90mstderr[2m | src/lib/editor/NoteDocumentProvider.test.tsx[2m > [22m[2mformal card/drawing drafts[2m > [22m[2mcard 完成 resumes autosave of accepted body without saving discarded draft edits
+publish	Test	2026-10-18T13:41:55.7282582Z [22m[39mlinkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+publish	Test	2026-10-18T13:41:55.7283438Z 
+publish	Test	2026-10-18T13:41:55.7985218Z [90mstderr[2m | src/lib/editor/NoteDocumentProvider.test.tsx[2m > [22m[2mformal card/drawing drafts[2m > [22m[2mdrawing 完成 resumes autosave of accepted body without saving discarded draft edits
+publish	Test	2026-10-18T13:41:55.7989200Z [22m[39mlinkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+publish	Test	2026-10-18T13:41:55.7990601Z 
+publish	Test	2026-10-18T13:41:55.7992233Z [90mstderr[2m | src/lib/editor/NoteDocumentProvider.test.tsx[2m > [22m[2mformal card/drawing drafts[2m > [22m[2mdrawing 完成 resumes autosave of accepted body without saving discarded draft edits
+publish	Test	2026-10-18T13:41:55.7995602Z [22m[39mlinkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+publish	Test	2026-10-18T13:41:55.7996735Z 
+publish	Test	2026-10-18T13:41:56.0553471Z  [32m✓[39m src/lib/editor/NoteDocumentProvider.test.tsx [2m([22m[2m24 tests[22m[2m)[22m[33m 3293[2mms[22m[39m
+publish	Test	2026-10-18T13:41:56.0555647Z    [33m[2m✓[22m[39m mounts without randomUUID and preserves shared history, drafts, leases and the save barrier [33m 482[2mms[22m[39m
+publish	Test	2026-10-18T13:41:56.0557581Z      [33m[2m✓[22m[39m routes real NodeView control .hn-editor-callout-title through peer history [33m 375[2mms[22m[39m
+publish	Test	2026-10-18T13:41:56.2938404Z  [32m✓[39m src/lib/editor/MarkdownExport.test.tsx [2m([22m[2m19 tests[22m[2m)[22m[33m 700[2mms[22m[39m
+publish	Test	2026-10-18T13:41:56.3462391Z  [32m✓[39m src/lib/editor/providerUploads.test.tsx [2m([22m[2m20 tests[22m[2m)[22m[33m 1579[2mms[22m[39m
+publish	Test	2026-10-18T13:41:57.3737905Z  [32m✓[39m src/demo/hostStore.test.ts [2m([22m[2m24 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+publish	Test	2026-10-18T13:41:57.7386209Z  [32m✓[39m src/lib/hnn/extensions.test.ts [2m([22m[2m11 tests[22m[2m)[22m[33m 338[2mms[22m[39m
+publish	Test	2026-10-18T13:41:59.0113482Z  [32m✓[39m src/lib/editor/nodeViewReviewRegressions.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 337[2mms[22m[39m
+publish	Test	2026-10-18T13:41:59.6973921Z  [32m✓[39m src/lib/editor/referenceInvalidation.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[33m 463[2mms[22m[39m
+publish	Test	2026-10-18T13:42:00.8424733Z  [32m✓[39m src/lib/hnn/menuPopover.test.ts [2m([22m[2m15 tests[22m[2m)[22m[32m 118[2mms[22m[39m
+publish	Test	2026-10-18T13:42:01.2164853Z  [32m✓[39m src/lib/publicApi.types.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[33m 395[2mms[22m[39m
+publish	Test	2026-10-18T13:42:01.2221561Z      [33m[2m✓[22m[39m runtime 精确 8 项，旧导出与内部实现均不在 [33m 381[2mms[22m[39m
+publish	Test	2026-10-18T13:42:01.8754147Z  [32m✓[39m src/demo/hostHandlers.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 106[2mms[22m[39m
+publish	Test	2026-10-18T13:42:02.2122035Z  [32m✓[39m src/lib/legacyPublicApiInventory.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 23[2mms[22m[39m
+publish	Test	2026-10-18T13:42:03.4145963Z [90mstderr[2m | src/lib/publicApi.test.tsx[2m > [22m[2m7.1 公共入口 smoke[2m > [22m[2mDOM 原生交互（paste）触发 onChange，快照是 HNN
+publish	Test	2026-10-18T13:42:03.4152000Z [22m[39mlinkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+publish	Test	2026-10-18T13:42:03.4152801Z 
+publish	Test	2026-10-18T13:42:03.4701814Z  [32m✓[39m src/lib/hnn/budgetedTransaction.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 293[2mms[22m[39m
+publish	Test	2026-10-18T13:42:03.4772271Z [90mstderr[2m | src/lib/publicApi.test.tsx[2m > [22m[2m7.1 公共入口 smoke[2m > [22m[2m保存按钮以 CAS 契约调用 onSave（HNN 快照 + revision），成功后回到已保存
+publish	Test	2026-10-18T13:42:03.4803051Z [22m[39mlinkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+publish	Test	2026-10-18T13:42:03.4804233Z 
+publish	Test	2026-10-18T13:42:03.7064169Z  [32m✓[39m src/lib/publicApi.test.tsx [2m([22m[2m7 tests[22m[2m)[22m[33m 514[2mms[22m[39m
+publish	Test	2026-10-18T13:42:03.8562472Z  [32m✓[39m src/lib/hnn/nodeId.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 24[2mms[22m[39m
+publish	Test	2026-10-18T13:42:03.9862449Z  [32m✓[39m src/demo/App.test.tsx [2m([22m[2m12 tests[22m[2m)[22m[33m 6439[2mms[22m[39m
+publish	Test	2026-10-18T13:42:03.9881536Z      [33m[2m✓[22m[39m 默认装载功能巡览 fixture：全节点类型经严格 codec 校验成功渲染 [33m 676[2mms[22m[39m
+publish	Test	2026-10-18T13:42:03.9883235Z      [33m[2m✓[22m[39m 编辑 → 脏 → 保存：CAS 写出 r1，事件与侧边栏可观察 [33m 479[2mms[22m[39m
+publish	Test	2026-10-18T13:42:03.9884490Z      [33m[2m✓[22m[39m 外部修改后保存判冲突（不自动合并/覆盖），重新载入采用对方版本 [33m 863[2mms[22m[39m
+publish	Test	2026-10-18T13:42:03.9885588Z      [33m[2m✓[22m[39m 保存成功后切走再切回：以刚保存的快照与 revision 重建会话，不回落旧 fixture、不误冲突 [33m 713[2mms[22m[39m
+publish	Test	2026-10-18T13:42:03.9886708Z      [33m[2m✓[22m[39m 新建空文档（手写 HNN 空文档）可编辑并完成首次保存 [33m 385[2mms[22m[39m
+publish	Test	2026-10-18T13:42:03.9887663Z      [33m[2m✓[22m[39m 导出含降级诊断：先弹确认界面，确认前宿主绝不落盘，确认后才下载 [33m 317[2mms[22m[39m
+publish	Test	2026-10-18T13:42:03.9888935Z      [33m[2m✓[22m[39m 上传成功：演示回调返回持久 https 示例地址并插入图片，事件说明未发送文件 [33m 782[2mms[22m[39m
+publish	Test	2026-10-18T13:42:03.9912179Z      [33m[2m✓[22m[39m “下次上传失败一次”：失败后经列表重试成功（同 uploadId 幂等） [33m 1518[2mms[22m[39m
+publish	Test	2026-10-18T13:42:04.2062507Z  [32m✓[39m src/lib/hnn/cardPayload.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+publish	Test	2026-10-18T13:42:04.4806755Z  [32m✓[39m src/lib/hnn/drawingPayload.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+publish	Test	2026-10-18T13:42:04.6682463Z  [32m✓[39m src/lib/hnn/stringBytes.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+publish	Test	2026-10-18T13:42:04.9952667Z  [32m✓[39m src/lib/documentApi.types.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 5[2mms[22m[39m
+publish	Test	2026-10-18T13:42:05.1002899Z  [32m✓[39m src/lib/editor/NoteSaveStatus.test.tsx [2m([22m[2m12 tests[22m[2m)[22m[33m 301[2mms[22m[39m
+publish	Test	2026-10-18T13:42:05.1095816Z  [32m✓[39m src/lib/hnn/directoryEntries.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+publish	Test	2026-10-18T13:42:05.2612942Z  [32m✓[39m src/lib/hnn/persistedStringBudget.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+publish	Test	2026-10-18T13:42:06.2286688Z  [32m✓[39m src/lib/editor/reviewPortalComposition.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 237[2mms[22m[39m
+publish	Test	2026-10-18T13:42:06.2324645Z 
+publish	Test	2026-10-18T13:42:06.2332038Z [2m Test Files [22m [1m[32m40 passed[39m[22m[90m (40)[39m
+publish	Test	2026-10-18T13:42:06.2337433Z [2m      Tests [22m [1m[32m811 passed[39m[22m[90m (811)[39m
+publish	Test	2026-10-18T13:42:06.2338223Z [2m   Start at [22m 13:41:35
+publish	Test	2026-10-18T13:42:06.2339297Z [2m   Duration [22m 30.72s[2m (transform 3.26s, setup 306ms, import 14.64s, tests 45.79s, environment 22.60s)[22m
+publish	Test	2026-10-18T13:42:06.2341713Z 
+publish	Test	2026-10-18T13:42:06.2750073Z Done in 31.09s.
+publish	Verify editor contracts	﻿2026-10-18T13:42:06.2914242Z ##[group]Run yarn verify:tiptap-deps
+publish	Verify editor contracts	2026-10-18T13:42:06.2914712Z [36;1myarn verify:tiptap-deps[0m
+publish	Verify editor contracts	2026-10-18T13:42:06.2915109Z [36;1myarn verify:legacy-api[0m
+publish	Verify editor contracts	2026-10-18T13:42:06.2915465Z [36;1myarn verify:phase1-scope[0m
+publish	Verify editor contracts	2026-10-18T13:42:06.2915978Z [36;1m# phase1-ast-guards.test.mjs 不在 vitest 的 include（仅 src/**）中，[0m
+publish	Verify editor contracts	2026-10-18T13:42:06.2916461Z [36;1m# 需用 node --test 独立运行，覆盖 AST 守卫自身的解析路径。[0m
+publish	Verify editor contracts	2026-10-18T13:42:06.2916894Z [36;1mnode --test scripts/phase1-ast-guards.test.mjs[0m
+publish	Verify editor contracts	2026-10-18T13:42:06.2957883Z shell: /usr/bin/bash -e {0}
+publish	Verify editor contracts	2026-10-18T13:42:06.2958275Z env:
+publish	Verify editor contracts	2026-10-18T13:42:06.2958667Z   NPM_CONFIG_USERCONFIG: /home/runner/work/_temp/.npmrc
+publish	Verify editor contracts	2026-10-18T13:42:06.2959205Z   NODE_AUTH_TOKEN: XXXXX-XXXXX-XXXXX-XXXXX
+publish	Verify editor contracts	2026-10-18T13:42:06.2959572Z ##[endgroup]
+publish	Verify editor contracts	2026-10-18T13:42:06.4316753Z yarn run v1.22.22
+publish	Verify editor contracts	2026-10-18T13:42:06.4669503Z $ node ./scripts/verify-tiptap-deps.mjs
+publish	Verify editor contracts	2026-10-18T13:42:06.5106099Z TipTap 依赖校验:
+publish	Verify editor contracts	2026-10-18T13:42:06.5107006Z   直接 @tiptap/*: 6 个，版本 = 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5107980Z   yarn.lock 中 @tiptap/* + prosemirror-* 条目: 42 个
+publish	Verify editor contracts	2026-10-18T13:42:06.5175816Z     @tiptap/core -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5176527Z     @tiptap/extension-blockquote -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5177240Z     @tiptap/extension-bold -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5177859Z     @tiptap/extension-bubble-menu -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5178512Z     @tiptap/extension-bullet-list -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5179075Z     @tiptap/extension-code -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5179747Z     @tiptap/extension-code-block -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5180403Z     @tiptap/extension-document -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5181455Z     @tiptap/extension-dropcursor -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5182212Z     @tiptap/extension-floating-menu -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5182937Z     @tiptap/extension-gapcursor -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5183723Z     @tiptap/extension-hard-break -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5184477Z     @tiptap/extension-heading -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5185334Z     @tiptap/extension-horizontal-rule -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5186201Z     @tiptap/extension-italic -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5186949Z     @tiptap/extension-link -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5187748Z     @tiptap/extension-list -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5188502Z     @tiptap/extension-list-item -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5189330Z     @tiptap/extension-list-keymap -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5190091Z     @tiptap/extension-ordered-list -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5191036Z     @tiptap/extension-paragraph -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5191739Z     @tiptap/extension-strike -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5192290Z     @tiptap/extension-table -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5192909Z     @tiptap/extension-text -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5193365Z     @tiptap/extension-underline -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5193835Z     @tiptap/extensions -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5194393Z     @tiptap/pm -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5194819Z     @tiptap/react -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5195339Z     @tiptap/starter-kit -> 3.31.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5195798Z     prosemirror-changeset -> 2.4.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5196241Z     prosemirror-commands -> 1.7.2
+publish	Verify editor contracts	2026-10-18T13:42:06.5196662Z     prosemirror-dropcursor -> 1.8.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5197068Z     prosemirror-gapcursor -> 1.4.1
+publish	Verify editor contracts	2026-10-18T13:42:06.5197457Z     prosemirror-history -> 1.5.0
+publish	Verify editor contracts	2026-10-18T13:42:06.5197870Z     prosemirror-inputrules -> 1.5.1
+publish	Verify editor contracts	2026-10-18T13:42:06.5198281Z     prosemirror-keymap -> 1.2.3
+publish	Verify editor contracts	2026-10-18T13:42:06.5198672Z     prosemirror-model -> 1.25.12
+publish	Verify editor contracts	2026-10-18T13:42:06.5199076Z     prosemirror-schema-list -> 1.5.1
+publish	Verify editor contracts	2026-10-18T13:42:06.5199452Z     prosemirror-state -> 1.4.4
+publish	Verify editor contracts	2026-10-18T13:42:06.5200349Z     prosemirror-tables -> 1.8.5
+publish	Verify editor contracts	2026-10-18T13:42:06.5200829Z     prosemirror-transform -> 1.12.1
+publish	Verify editor contracts	2026-10-18T13:42:06.5201294Z     prosemirror-view -> 1.42.5
+publish	Verify editor contracts	2026-10-18T13:42:06.5201623Z 
+publish	Verify editor contracts	2026-10-18T13:42:06.5201993Z TipTap 依赖校验通过。
+publish	Verify editor contracts	2026-10-18T13:42:06.5217141Z Done in 0.09s.
+publish	Verify editor contracts	2026-10-18T13:42:06.6591454Z yarn run v1.22.22
+publish	Verify editor contracts	2026-10-18T13:42:06.6939843Z $ node ./scripts/scan-legacy-public-api.mjs
+publish	Verify editor contracts	2026-10-18T13:42:07.2694588Z 旧公共 API 移除清单扫描
+publish	Verify editor contracts	2026-10-18T13:42:07.2695654Z   冻结导入变化: migrate-to-tiptap-prosemirror
+publish	Verify editor contracts	2026-10-18T13:42:07.2696112Z   移除任务: 8.1 / 8.2
+publish	Verify editor contracts	2026-10-18T13:42:07.2696625Z   阶段: deleted（allowlist=currentPublicExports）
+publish	Verify editor contracts	2026-10-18T13:42:07.2696893Z 
+publish	Verify editor contracts	2026-10-18T13:42:07.6627158Z 公共 API 待移除导出引用点:
+publish	Verify editor contracts	2026-10-18T13:42:07.6696637Z   [value] NoteContent (旧内容组件) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.6765156Z   [value] useNoteContentUndoRedo (自研撤销重做) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.6838085Z   [value] createNoteId (旧块标识) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.6907200Z   [value] noteBlockKinds (旧块模型) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.6976800Z   [type] ExternalNoteDragCancellationReason (自研外部拖拽) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.7046530Z   [type] ExternalNoteDragCompletion (自研外部拖拽) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.7115625Z   [type] ExternalNoteDragInput (自研外部拖拽) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.7182653Z   [type] ExternalNoteDragSession (自研外部拖拽) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.7253633Z   [type] ExternalNoteDragStartFailureReason (自研外部拖拽) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.7323670Z   [type] ExternalNoteDragStartResult (自研外部拖拽) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.7386943Z   [type] NoteExternalItem (自研外部拖拽) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.7452611Z   [type] NoteBlock (旧块模型) — 2 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.7453136Z       src/demo/fixtures.ts x2
+publish	Verify editor contracts	2026-10-18T13:42:07.7519605Z   [type] NoteCalloutBlock (旧块模型) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.7584655Z   [type] NoteCalloutTone (旧块模型) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.7653717Z   [type] NoteCardBlock (旧块模型) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.7723045Z   [type] NoteCardData (旧块模型) — 1 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.7723639Z       src/lib/hnn/cardPayload.ts x1
+publish	Verify editor contracts	2026-10-18T13:42:07.7800498Z   [type] NoteCodeBlock (旧块模型) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.7865900Z   [type] NoteCollapsibleBlock (旧块模型) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.7931977Z   [type] NoteContentHandle (自研 DOM 选区/手柄接口) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.7997437Z   [type] NoteContentProps (旧内容组件) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.8060495Z   [type] NoteContentTransaction (旧内容组件) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.8126148Z   [type] NoteContentTransactionOperation (旧内容组件) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.8188831Z   [type] NoteContentUndoRedoController (自研撤销重做) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.8253803Z   [type] NoteContentUndoRedoHandle (自研撤销重做) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.8321583Z   [type] NoteContentUndoRedoSnapshot (自研撤销重做) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.8390968Z   [type] NoteDirectoryBlock (旧块模型) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.8459761Z   [type] NoteDrawingBlock (旧块模型) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.8527491Z   [type] NoteFormulaBlock (旧块模型) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.8593811Z   [type] NoteHeadingBlock (旧块模型) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.8662231Z   [type] NoteLink (旧块模型) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.8741438Z   [type] NoteParagraphBlock (旧块模型) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.8811778Z   [type] NotePictureBlock (旧块模型) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.8876990Z   [type] NoteQuoteBlock (旧块模型) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.8942160Z   [type] NoteTheme (旧内容组件) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.9007193Z   [type] NoteTodoBlock (旧块模型) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.9072982Z   [type] NoteTodoItem (旧块模型) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.9140447Z   [type] UseNoteContentUndoRedoResult (自研撤销重做) — 0 处引用
+publish	Verify editor contracts	2026-10-18T13:42:07.9140935Z 
+publish	Verify editor contracts	2026-10-18T13:42:07.9141240Z 待移除内部模块引用点:
+publish	Verify editor contracts	2026-10-18T13:42:07.9142005Z   [缺失] src/lib/NoteContent.tsx (旧内容组件) — 已不存在，可能在任务 8 已移除
+publish	Verify editor contracts	2026-10-18T13:42:07.9142641Z   [缺失] src/lib/types.ts (旧块模型) — 已不存在，可能在任务 8 已移除
+publish	Verify editor contracts	2026-10-18T13:42:07.9143389Z   [缺失] src/lib/restrictedHtml.ts (受限 HTML) — 已不存在，可能在任务 8 已移除
+publish	Verify editor contracts	2026-10-18T13:42:07.9144137Z   [缺失] src/lib/noteTextFlow.ts (自研 DOM 选区) — 已不存在，可能在任务 8 已移除
+publish	Verify editor contracts	2026-10-18T13:42:07.9144900Z   [缺失] src/lib/notePointerSelection.ts (自研 DOM 选区) — 已不存在，可能在任务 8 已移除
+publish	Verify editor contracts	2026-10-18T13:42:07.9146304Z   [缺失] src/lib/editableSelection.ts (自研 DOM 选区) — 已不存在，可能在任务 8 已移除
+publish	Verify editor contracts	2026-10-18T13:42:07.9147192Z   [缺失] src/lib/noteTextOffset.ts (自研 DOM 选区) — 已不存在，可能在任务 8 已移除
+publish	Verify editor contracts	2026-10-18T13:42:07.9148174Z   [缺失] src/lib/noteSelectionRestore.ts (自研 DOM 选区) — 已不存在，可能在任务 8 已移除
+publish	Verify editor contracts	2026-10-18T13:42:07.9148927Z   [缺失] src/lib/noteSelectAll.ts (自研 DOM 选区) — 已不存在，可能在任务 8 已移除
+publish	Verify editor contracts	2026-10-18T13:42:07.9150001Z   [缺失] src/lib/noteStructuredClipboard.ts (自研剪贴板) — 已不存在，可能在任务 8 已移除
+publish	Verify editor contracts	2026-10-18T13:42:07.9151115Z   [缺失] src/lib/noteStructuredPaste.ts (自研剪贴板) — 已不存在，可能在任务 8 已移除
+publish	Verify editor contracts	2026-10-18T13:42:07.9151836Z   [缺失] src/lib/noteRegionCodec.ts (自研剪贴板) — 已不存在，可能在任务 8 已移除
+publish	Verify editor contracts	2026-10-18T13:42:07.9152623Z   [缺失] src/lib/noteClipboardBlockCodec.ts (自研剪贴板) — 已不存在，可能在任务 8 已移除
+publish	Verify editor contracts	2026-10-18T13:42:07.9152966Z 
+publish	Verify editor contracts	2026-10-18T13:42:07.9153406Z 说明: 本扫描仅列出与检查，不修改代码；移除动作在任务 8 执行。
+publish	Verify editor contracts	2026-10-18T13:42:07.9153791Z 
+publish	Verify editor contracts	2026-10-18T13:42:07.9154211Z 阶段 deleted：13 个旧实现模块已按计划移除（历史清单保留为证据）。
+publish	Verify editor contracts	2026-10-18T13:42:07.9154528Z 
+publish	Verify editor contracts	2026-10-18T13:42:07.9154828Z 旧公共 API 扫描通过。
+publish	Verify editor contracts	2026-10-18T13:42:07.9306621Z Done in 1.27s.
+publish	Verify editor contracts	2026-10-18T13:42:08.0695743Z yarn run v1.22.22
+publish	Verify editor contracts	2026-10-18T13:42:08.1034285Z $ node ./scripts/verify-phase1-scope.mjs
+publish	Verify editor contracts	2026-10-18T13:42:09.6299331Z Phase 1 范围守卫 (Phase 1 task 1.4)
+publish	Verify editor contracts	2026-10-18T13:42:09.6300551Z   已检查依赖 39 项、源码文件 87 个、公共导出 74 个
+publish	Verify editor contracts	2026-10-18T13:42:09.6301290Z   范围: 禁止协作/Yjs、文件处理扩展、裸 ProseMirror 引用及公开 schema/extensions 注入契约
+publish	Verify editor contracts	2026-10-18T13:42:09.6301736Z 
+publish	Verify editor contracts	2026-10-18T13:42:09.6301948Z Phase 1 范围守卫通过。
+publish	Verify editor contracts	2026-10-18T13:42:09.6555577Z Done in 1.59s.
+publish	Verify editor contracts	2026-10-18T13:42:10.4892409Z ✔ rejects bare ProseMirror ImportTypeNode and ImportEqualsDeclaration (6.925962ms)
+publish	Verify editor contracts	2026-10-18T13:42:10.4898201Z ✔ resolves local aliases in public function parameter types (525.627375ms)
+publish	Verify editor contracts	2026-10-18T13:42:10.5092552Z ℹ tests 2
+publish	Verify editor contracts	2026-10-18T13:42:10.5093158Z ℹ suites 0
+publish	Verify editor contracts	2026-10-18T13:42:10.5093770Z ℹ pass 2
+publish	Verify editor contracts	2026-10-18T13:42:10.5094190Z ℹ fail 0
+publish	Verify editor contracts	2026-10-18T13:42:10.5095266Z ℹ cancelled 0
+publish	Verify editor contracts	2026-10-18T13:42:10.5095795Z ℹ skipped 0
+publish	Verify editor contracts	2026-10-18T13:42:10.5096195Z ℹ todo 0
+publish	Verify editor contracts	2026-10-18T13:42:10.5096789Z ℹ duration_ms 814.923786
+publish	Build	﻿2026-10-18T13:42:10.5186334Z ##[group]Run yarn build
+publish	Build	2026-10-18T13:42:10.5186894Z [36;1myarn build[0m
+publish	Build	2026-10-18T13:42:10.5245709Z shell: /usr/bin/bash -e {0}
+publish	Build	2026-10-18T13:42:10.5246284Z env:
+publish	Build	2026-10-18T13:42:10.5246826Z   NPM_CONFIG_USERCONFIG: /home/runner/work/_temp/.npmrc
+publish	Build	2026-10-18T13:42:10.5247486Z   NODE_AUTH_TOKEN: XXXXX-XXXXX-XXXXX-XXXXX
+publish	Build	2026-10-18T13:42:10.5248081Z ##[endgroup]
+publish	Build	2026-10-18T13:42:10.6601152Z yarn run v1.22.22
+publish	Build	2026-10-18T13:42:10.6945870Z $ yarn build:lib && yarn build:demo
+publish	Build	2026-10-18T13:42:10.8684456Z $ vite build --config vite.config.ts && node ./scripts/sync-library-css.mjs
+publish	Build	2026-10-18T13:42:11.7121021Z [36mvite v7.3.6 [32mbuilding client environment for production...[36m[39m
+publish	Build	2026-10-18T13:42:14.2369438Z transforming...
+publish	Build	2026-10-18T13:42:16.9998452Z [32m✓[39m 352 modules transformed.
+publish	Build	2026-10-18T13:42:17.4343107Z rendering chunks...
+publish	Build	2026-10-18T13:42:17.7202148Z [32m
+publish	Build	2026-10-18T13:42:17.7203447Z [36m[vite:dts][32m Start generate declaration files...[39m
+publish	Build	2026-10-18T13:42:17.7231683Z computing gzip size...
+publish	Build	2026-10-18T13:42:17.8894287Z [32m[36m[vite:dts][32m Declaration files built in 2701ms.
+publish	Build	2026-10-18T13:42:17.8922156Z [39m
+publish	Build	2026-10-18T13:42:17.9519219Z [2mdist/[22m[35massets/styles-CY1vEyIU.css  [39m[1m[2m   56.33 kB[22m[1m[22m[2m │ gzip:   8.93 kB[22m
+publish	Build	2026-10-18T13:42:17.9572702Z [2mdist/[22m[36mindex.js                    [39m[1m[33m1,684.43 kB[39m[22m[2m │ gzip: 439.66 kB[22m[2m │ map: 5,269.17 kB[22m
+publish	Build	2026-10-18T13:42:18.6494492Z [2mdist/[22m[35massets/styles-CY1vEyIU.css  [39m[1m[2m   56.33 kB[22m[1m[22m[2m │ gzip:   8.93 kB[22m
+publish	Build	2026-10-18T13:42:18.6496057Z [2mdist/[22m[36mindex.cjs                   [39m[1m[33m1,142.64 kB[39m[22m[2m │ gzip: 351.65 kB[22m[2m │ map: 5,118.86 kB[22m
+publish	Build	2026-10-18T13:42:18.6496851Z [32m✓ built in 6.91s[39m
+publish	Build	2026-10-18T13:42:18.9864654Z $ vite build --config vite.demo.config.ts
+publish	Build	2026-10-18T13:42:19.1439320Z [36mvite v7.3.6 [32mbuilding client environment for production...[36m[39m
+publish	Build	2026-10-18T13:42:19.1961257Z transforming...
+publish	Build	2026-10-18T13:42:22.1790615Z [32m✓[39m 369 modules transformed.
+publish	Build	2026-10-18T13:42:22.4042809Z rendering chunks...
+publish	Build	2026-10-18T13:42:22.7158462Z computing gzip size...
+publish	Build	2026-10-18T13:42:22.7597184Z [2mdist/demo/[22m[32mshared.html                                      [39m[1m[2m    0.55 kB[22m[1m[22m[2m │ gzip:   0.33 kB[22m
+publish	Build	2026-10-18T13:42:22.7598895Z [2mdist/demo/[22m[32mindex.html                                       [39m[1m[2m    0.63 kB[22m[1m[22m[2m │ gzip:   0.34 kB[22m
+publish	Build	2026-10-18T13:42:22.7600601Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Size3-Regular-CTq5MqoE.woff         [39m[1m[2m    4.42 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7602108Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Size4-Regular-Dl5lxZxV.woff2        [39m[1m[2m    4.93 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7603733Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Size2-Regular-Dy4dx90m.woff2        [39m[1m[2m    5.21 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7604759Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Size1-Regular-mCD8mA8B.woff2        [39m[1m[2m    5.47 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7605910Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Size4-Regular-BF-4gkZK.woff         [39m[1m[2m    5.98 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7606850Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Size2-Regular-oD1tc_U0.woff         [39m[1m[2m    6.19 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7607746Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Size1-Regular-C195tn64.woff         [39m[1m[2m    6.50 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7609007Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Caligraphic-Regular-Di6jR-x-.woff2  [39m[1m[2m    6.91 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7610007Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Caligraphic-Bold-Dq_IR9rO.woff2     [39m[1m[2m    6.91 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7611558Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Size3-Regular-DgpXs0kz.ttf          [39m[1m[2m    7.59 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7612606Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Caligraphic-Regular-CTRA-rTL.woff   [39m[1m[2m    7.66 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7614047Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Caligraphic-Bold-BEiXGLvX.woff      [39m[1m[2m    7.72 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7615077Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Script-Regular-D3wIWfF6.woff2       [39m[1m[2m    9.64 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7616047Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_SansSerif-Regular-DDBCnlJ7.woff2    [39m[1m[2m   10.34 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7617080Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Size4-Regular-DWFBv043.ttf          [39m[1m[2m   10.36 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7618074Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Script-Regular-D5yQViql.woff        [39m[1m[2m   10.59 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7619097Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Fraktur-Regular-CTYiF6lA.woff2      [39m[1m[2m   11.32 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7630533Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Fraktur-Bold-CL6g_b3V.woff2         [39m[1m[2m   11.35 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7632102Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Size2-Regular-B7gKUWhC.ttf          [39m[1m[2m   11.51 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7633194Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_SansSerif-Italic-C3H0VqGB.woff2     [39m[1m[2m   12.03 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7634338Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_SansSerif-Bold-D1sUS0GD.woff2       [39m[1m[2m   12.22 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7635399Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Size1-Regular-Dbsnue_I.ttf          [39m[1m[2m   12.23 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7636396Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_SansSerif-Regular-CS6fqUqJ.woff     [39m[1m[2m   12.32 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7637493Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Caligraphic-Regular-wX97UBjC.ttf    [39m[1m[2m   12.34 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7638547Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Caligraphic-Bold-ATXxdsX0.ttf       [39m[1m[2m   12.37 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7639536Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Fraktur-Regular-Dxdc4cR9.woff       [39m[1m[2m   13.21 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7640800Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Fraktur-Bold-BsDP51OF.woff          [39m[1m[2m   13.30 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7641911Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Typewriter-Regular-CO6r4hn1.woff2   [39m[1m[2m   13.57 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7643022Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_SansSerif-Italic-DN2j7dab.woff      [39m[1m[2m   14.11 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7643773Z [33m
+publish	Build	2026-10-18T13:42:22.7644797Z (!) Some chunks are larger than 500 kB after minification. Consider:
+publish	Build	2026-10-18T13:42:22.7645373Z - Using dynamic import() to code-split the application
+publish	Build	2026-10-18T13:42:22.7646279Z - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+publish	Build	2026-10-18T13:42:22.7647267Z - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+publish	Build	2026-10-18T13:42:22.7648194Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_SansSerif-Bold-DbIhKOiC.woff        [39m[1m[2m   14.41 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7649201Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Typewriter-Regular-C0xS9mPB.woff    [39m[1m[2m   16.03 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7650309Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Math-BoldItalic-CZnvNsCZ.woff2      [39m[1m[2m   16.40 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7651460Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Math-Italic-t53AETM-.woff2          [39m[1m[2m   16.44 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7652397Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Script-Regular-C5JkGWo-.ttf         [39m[1m[2m   16.65 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7653395Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Main-BoldItalic-DxDJ3AOS.woff2      [39m[1m[2m   16.78 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7654537Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Main-Italic-NWA7e6Wa.woff2          [39m[1m[2m   16.99 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7655507Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Math-BoldItalic-iY-2wyZ7.woff       [39m[1m[2m   18.67 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7656494Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Math-Italic-DA0__PXp.woff           [39m[1m[2m   18.75 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7657467Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Main-BoldItalic-SpSLRI95.woff       [39m[1m[2m   19.41 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7658425Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_SansSerif-Regular-BNo7hRIc.ttf      [39m[1m[2m   19.44 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7659360Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Fraktur-Regular-CB_wures.ttf        [39m[1m[2m   19.57 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7661066Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Fraktur-Bold-BdnERNNW.ttf           [39m[1m[2m   19.58 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7662175Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Main-Italic-BMLOBm91.woff           [39m[1m[2m   19.68 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7663347Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_SansSerif-Italic-YYjJ1zSn.ttf       [39m[1m[2m   22.36 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7664548Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_SansSerif-Bold-CFMepnvq.ttf         [39m[1m[2m   24.50 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7665623Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Main-Bold-Cx986IdX.woff2            [39m[1m[2m   25.32 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7666602Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Main-Regular-B22Nviop.woff2         [39m[1m[2m   26.27 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7667719Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Typewriter-Regular-D3Ib7_Hf.ttf     [39m[1m[2m   27.56 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7668892Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_AMS-Regular-BQhdFMY1.woff2          [39m[1m[2m   28.08 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7669981Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Main-Bold-Jm3AIy58.woff             [39m[1m[2m   29.91 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7671292Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Main-Regular-Dr94JaBh.woff          [39m[1m[2m   30.77 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7672340Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Math-BoldItalic-B3XSjfu4.ttf        [39m[1m[2m   31.20 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7673302Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Math-Italic-flOr_0UB.ttf            [39m[1m[2m   31.31 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7674438Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Main-BoldItalic-DzxPMmG6.ttf        [39m[1m[2m   32.97 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7675553Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_AMS-Regular-DMm9YOAa.woff           [39m[1m[2m   33.52 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7676540Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Main-Italic-3WenGoN9.ttf            [39m[1m[2m   33.58 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7677747Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Main-Bold-waoOVXN0.ttf              [39m[1m[2m   51.34 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7678763Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_Main-Regular-ypZvNtVU.ttf           [39m[1m[2m   53.58 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7679840Z [2mdist/demo/[22m[2massets/[22m[32mKaTeX_AMS-Regular-DRggAlZN.ttf            [39m[1m[2m   63.63 kB[22m[1m[22m
+publish	Build	2026-10-18T13:42:22.7681323Z [2mdist/demo/[22m[2massets/[22m[35mshared-KriR6rJu.css                       [39m[1m[2m    1.32 kB[22m[1m[22m[2m │ gzip:   0.57 kB[22m
+publish	Build	2026-10-18T13:42:22.7682425Z [2mdist/demo/[22m[2massets/[22m[35mfixtures-btnDsV_T.css                     [39m[1m[2m   25.39 kB[22m[1m[22m[2m │ gzip:   4.75 kB[22m
+publish	Build	2026-10-18T13:42:22.7683499Z [2mdist/demo/[22m[2massets/[22m[35mmain-D0-zupV-.css                         [39m[1m[2m   36.03 kB[22m[1m[22m[2m │ gzip:   9.74 kB[22m
+publish	Build	2026-10-18T13:42:22.7684740Z [2mdist/demo/[22m[2massets/[22m[36mmain-GBGH_KVm.js                          [39m[1m[2m   17.22 kB[22m[1m[22m[2m │ gzip:   6.51 kB[22m
+publish	Build	2026-10-18T13:42:22.7686037Z [2mdist/demo/[22m[2massets/[22m[36mshared-BLdQM2JF.js                        [39m[1m[2m   24.09 kB[22m[1m[22m[2m │ gzip:   7.61 kB[22m
+publish	Build	2026-10-18T13:42:22.7687243Z [2mdist/demo/[22m[2massets/[22m[36mfixtures-r12JeJHA.js                      [39m[1m[33m1,321.11 kB[39m[22m[2m │ gzip: 409.43 kB[22m
+publish	Build	2026-10-18T13:42:22.7688081Z [32m✓ built in 3.60s[39m
+publish	Build	2026-10-18T13:42:22.8161913Z Done in 12.16s.
+publish	Publish package	﻿2026-10-18T13:42:22.8292915Z ##[group]Run npm publish --access public --tag "latest"
+publish	Publish package	2026-10-18T13:42:22.8293489Z [36;1mnpm publish --access public --tag "latest"[0m
+publish	Publish package	2026-10-18T13:42:22.8333873Z shell: /usr/bin/bash -e {0}
+publish	Publish package	2026-10-18T13:42:22.8334298Z env:
+publish	Publish package	2026-10-18T13:42:22.8334704Z   NPM_CONFIG_USERCONFIG: /home/runner/work/_temp/.npmrc
+publish	Publish package	2026-10-18T13:42:22.8335628Z   NODE_AUTH_TOKEN: ***
+publish	Publish package	2026-10-18T13:42:22.8335950Z ##[endgroup]
+publish	Publish package	2026-10-18T13:42:24.3954920Z npm warn Unknown user config "always-auth". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+publish	Publish package	2026-10-18T13:42:26.0911625Z npm warn publish npm auto-corrected some errors in your package.json when publishing.  Please run "npm pkg fix" to address these errors.
+publish	Publish package	2026-10-18T13:42:26.0913018Z npm warn publish errors corrected:
+publish	Publish package	2026-10-18T13:42:26.0914124Z npm warn publish "repository.url" was normalized to "git+https://github.com/HamsterNote/notes.git"
+publish	Publish package	2026-10-18T13:42:26.0959607Z npm notice
+publish	Publish package	2026-10-18T13:42:26.0962384Z npm notice 📦  @hamster-note/notes@3.1.2
+publish	Publish package	2026-10-18T13:42:26.0963450Z npm notice Tarball Contents
+publish	Publish package	2026-10-18T13:42:26.0986359Z npm notice 1.1kB LICENSE
+publish	Publish package	2026-10-18T13:42:26.0987146Z npm notice 17.8kB README.md
+publish	Publish package	2026-10-18T13:42:26.0987826Z npm notice 63.6kB dist/fonts/KaTeX_AMS-Regular.ttf
+publish	Publish package	2026-10-18T13:42:26.0988665Z npm notice 33.5kB dist/fonts/KaTeX_AMS-Regular.woff
+publish	Publish package	2026-10-18T13:42:26.0989385Z npm notice 28.1kB dist/fonts/KaTeX_AMS-Regular.woff2
+publish	Publish package	2026-10-18T13:42:26.0990326Z npm notice 12.4kB dist/fonts/KaTeX_Caligraphic-Bold.ttf
+publish	Publish package	2026-10-18T13:42:26.0991153Z npm notice 7.7kB dist/fonts/KaTeX_Caligraphic-Bold.woff
+publish	Publish package	2026-10-18T13:42:26.0991887Z npm notice 6.9kB dist/fonts/KaTeX_Caligraphic-Bold.woff2
+publish	Publish package	2026-10-18T13:42:26.0992668Z npm notice 12.3kB dist/fonts/KaTeX_Caligraphic-Regular.ttf
+publish	Publish package	2026-10-18T13:42:26.0994061Z npm notice 7.7kB dist/fonts/KaTeX_Caligraphic-Regular.woff
+publish	Publish package	2026-10-18T13:42:26.0994855Z npm notice 6.9kB dist/fonts/KaTeX_Caligraphic-Regular.woff2
+publish	Publish package	2026-10-18T13:42:26.0995571Z npm notice 19.6kB dist/fonts/KaTeX_Fraktur-Bold.ttf
+publish	Publish package	2026-10-18T13:42:26.0996412Z npm notice 13.3kB dist/fonts/KaTeX_Fraktur-Bold.woff
+publish	Publish package	2026-10-18T13:42:26.0997158Z npm notice 11.3kB dist/fonts/KaTeX_Fraktur-Bold.woff2
+publish	Publish package	2026-10-18T13:42:26.0997932Z npm notice 19.6kB dist/fonts/KaTeX_Fraktur-Regular.ttf
+publish	Publish package	2026-10-18T13:42:26.0998621Z npm notice 13.2kB dist/fonts/KaTeX_Fraktur-Regular.woff
+publish	Publish package	2026-10-18T13:42:26.0999541Z npm notice 11.3kB dist/fonts/KaTeX_Fraktur-Regular.woff2
+publish	Publish package	2026-10-18T13:42:26.1000445Z npm notice 51.3kB dist/fonts/KaTeX_Main-Bold.ttf
+publish	Publish package	2026-10-18T13:42:26.1001160Z npm notice 29.9kB dist/fonts/KaTeX_Main-Bold.woff
+publish	Publish package	2026-10-18T13:42:26.1001900Z npm notice 25.3kB dist/fonts/KaTeX_Main-Bold.woff2
+publish	Publish package	2026-10-18T13:42:26.1002576Z npm notice 33.0kB dist/fonts/KaTeX_Main-BoldItalic.ttf
+publish	Publish package	2026-10-18T13:42:26.1003466Z npm notice 19.4kB dist/fonts/KaTeX_Main-BoldItalic.woff
+publish	Publish package	2026-10-18T13:42:26.1004219Z npm notice 16.8kB dist/fonts/KaTeX_Main-BoldItalic.woff2
+publish	Publish package	2026-10-18T13:42:26.1005011Z npm notice 33.6kB dist/fonts/KaTeX_Main-Italic.ttf
+publish	Publish package	2026-10-18T13:42:26.1005753Z npm notice 19.7kB dist/fonts/KaTeX_Main-Italic.woff
+publish	Publish package	2026-10-18T13:42:26.1006470Z npm notice 17.0kB dist/fonts/KaTeX_Main-Italic.woff2
+publish	Publish package	2026-10-18T13:42:26.1007319Z npm notice 53.6kB dist/fonts/KaTeX_Main-Regular.ttf
+publish	Publish package	2026-10-18T13:42:26.1008024Z npm notice 30.8kB dist/fonts/KaTeX_Main-Regular.woff
+publish	Publish package	2026-10-18T13:42:26.1008810Z npm notice 26.3kB dist/fonts/KaTeX_Main-Regular.woff2
+publish	Publish package	2026-10-18T13:42:26.1009518Z npm notice 31.2kB dist/fonts/KaTeX_Math-BoldItalic.ttf
+publish	Publish package	2026-10-18T13:42:26.1010493Z npm notice 18.7kB dist/fonts/KaTeX_Math-BoldItalic.woff
+publish	Publish package	2026-10-18T13:42:26.1011420Z npm notice 16.4kB dist/fonts/KaTeX_Math-BoldItalic.woff2
+publish	Publish package	2026-10-18T13:42:26.1012137Z npm notice 31.3kB dist/fonts/KaTeX_Math-Italic.ttf
+publish	Publish package	2026-10-18T13:42:26.1012860Z npm notice 18.7kB dist/fonts/KaTeX_Math-Italic.woff
+publish	Publish package	2026-10-18T13:42:26.1013914Z npm notice 16.4kB dist/fonts/KaTeX_Math-Italic.woff2
+publish	Publish package	2026-10-18T13:42:26.1014676Z npm notice 24.5kB dist/fonts/KaTeX_SansSerif-Bold.ttf
+publish	Publish package	2026-10-18T13:42:26.1015449Z npm notice 14.4kB dist/fonts/KaTeX_SansSerif-Bold.woff
+publish	Publish package	2026-10-18T13:42:26.1016557Z npm notice 12.2kB dist/fonts/KaTeX_SansSerif-Bold.woff2
+publish	Publish package	2026-10-18T13:42:26.1017476Z npm notice 22.4kB dist/fonts/KaTeX_SansSerif-Italic.ttf
+publish	Publish package	2026-10-18T13:42:26.1018262Z npm notice 14.1kB dist/fonts/KaTeX_SansSerif-Italic.woff
+publish	Publish package	2026-10-18T13:42:26.1019094Z npm notice 12.0kB dist/fonts/KaTeX_SansSerif-Italic.woff2
+publish	Publish package	2026-10-18T13:42:26.1019891Z npm notice 19.4kB dist/fonts/KaTeX_SansSerif-Regular.ttf
+publish	Publish package	2026-10-18T13:42:26.1020894Z npm notice 12.3kB dist/fonts/KaTeX_SansSerif-Regular.woff
+publish	Publish package	2026-10-18T13:42:26.1021689Z npm notice 10.3kB dist/fonts/KaTeX_SansSerif-Regular.woff2
+publish	Publish package	2026-10-18T13:42:26.1022488Z npm notice 16.6kB dist/fonts/KaTeX_Script-Regular.ttf
+publish	Publish package	2026-10-18T13:42:26.1023296Z npm notice 10.6kB dist/fonts/KaTeX_Script-Regular.woff
+publish	Publish package	2026-10-18T13:42:26.1024072Z npm notice 9.6kB dist/fonts/KaTeX_Script-Regular.woff2
+publish	Publish package	2026-10-18T13:42:26.1024821Z npm notice 12.2kB dist/fonts/KaTeX_Size1-Regular.ttf
+publish	Publish package	2026-10-18T13:42:26.1025566Z npm notice 6.5kB dist/fonts/KaTeX_Size1-Regular.woff
+publish	Publish package	2026-10-18T13:42:26.1026375Z npm notice 5.5kB dist/fonts/KaTeX_Size1-Regular.woff2
+publish	Publish package	2026-10-18T13:42:26.1027115Z npm notice 11.5kB dist/fonts/KaTeX_Size2-Regular.ttf
+publish	Publish package	2026-10-18T13:42:26.1027826Z npm notice 6.2kB dist/fonts/KaTeX_Size2-Regular.woff
+publish	Publish package	2026-10-18T13:42:26.1028582Z npm notice 5.2kB dist/fonts/KaTeX_Size2-Regular.woff2
+publish	Publish package	2026-10-18T13:42:26.1029347Z npm notice 7.6kB dist/fonts/KaTeX_Size3-Regular.ttf
+publish	Publish package	2026-10-18T13:42:26.1030327Z npm notice 4.4kB dist/fonts/KaTeX_Size3-Regular.woff
+publish	Publish package	2026-10-18T13:42:26.1031046Z npm notice 3.6kB dist/fonts/KaTeX_Size3-Regular.woff2
+publish	Publish package	2026-10-18T13:42:26.1031731Z npm notice 10.4kB dist/fonts/KaTeX_Size4-Regular.ttf
+publish	Publish package	2026-10-18T13:42:26.1032562Z npm notice 6.0kB dist/fonts/KaTeX_Size4-Regular.woff
+publish	Publish package	2026-10-18T13:42:26.1033259Z npm notice 4.9kB dist/fonts/KaTeX_Size4-Regular.woff2
+publish	Publish package	2026-10-18T13:42:26.1034180Z npm notice 27.6kB dist/fonts/KaTeX_Typewriter-Regular.ttf
+publish	Publish package	2026-10-18T13:42:26.1034940Z npm notice 16.0kB dist/fonts/KaTeX_Typewriter-Regular.woff
+publish	Publish package	2026-10-18T13:42:26.1035728Z npm notice 13.6kB dist/fonts/KaTeX_Typewriter-Regular.woff2
+publish	Publish package	2026-10-18T13:42:26.1036502Z npm notice 23.8kB dist/formula.css
+publish	Publish package	2026-10-18T13:42:26.1037057Z npm notice 1.1MB dist/index.cjs
+publish	Publish package	2026-10-18T13:42:26.1037662Z npm notice 5.1MB dist/index.cjs.map
+publish	Publish package	2026-10-18T13:42:26.1038225Z npm notice 38B dist/index.d.ts
+publish	Publish package	2026-10-18T13:42:26.1038789Z npm notice 1.7MB dist/index.js
+publish	Publish package	2026-10-18T13:42:26.1039407Z npm notice 5.3MB dist/index.js.map
+publish	Publish package	2026-10-18T13:42:26.1040011Z npm notice 1.0kB dist/lib/editor/blockMenu.d.ts
+publish	Publish package	2026-10-18T13:42:26.1040871Z npm notice 786B dist/lib/editor/blockMenu.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1041587Z npm notice 6.0kB dist/lib/editor/blockReorder.d.ts
+publish	Publish package	2026-10-18T13:42:26.1042836Z npm notice 1.0kB dist/lib/editor/blockReorder.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1043604Z npm notice 3.1kB dist/lib/editor/documentSession.d.ts
+publish	Publish package	2026-10-18T13:42:26.1044375Z npm notice 2.8kB dist/lib/editor/documentSession.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1045086Z npm notice 6.0kB dist/lib/editor/documentTypes.d.ts
+publish	Publish package	2026-10-18T13:42:26.1045878Z npm notice 6.1kB dist/lib/editor/documentTypes.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1046639Z npm notice 2.8kB dist/lib/editor/HnnDataDrawer.d.ts
+publish	Publish package	2026-10-18T13:42:26.1047405Z npm notice 2.0kB dist/lib/editor/HnnDataDrawer.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1048285Z npm notice 1.6kB dist/lib/editor/hostReferenceInteractions.d.ts
+publish	Publish package	2026-10-18T13:42:26.1049164Z npm notice 1.1kB dist/lib/editor/hostReferenceInteractions.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1050059Z npm notice 2.6kB dist/lib/editor/hostReferences.d.ts
+publish	Publish package	2026-10-18T13:42:26.1051049Z npm notice 1.6kB dist/lib/editor/hostReferences.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1051877Z npm notice 1.3kB dist/lib/editor/HostReferenceUI.d.ts
+publish	Publish package	2026-10-18T13:42:26.1052661Z npm notice 542B dist/lib/editor/HostReferenceUI.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1053406Z npm notice 1.8kB dist/lib/editor/MarkdownExport.d.ts
+publish	Publish package	2026-10-18T13:42:26.1054281Z npm notice 870B dist/lib/editor/MarkdownExport.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1055021Z npm notice 482B dist/lib/editor/nativeClipboard.d.ts
+publish	Publish package	2026-10-18T13:42:26.1056113Z npm notice 261B dist/lib/editor/nativeClipboard.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1056906Z npm notice 358B dist/lib/editor/NoteDocumentProvider.d.ts
+publish	Publish package	2026-10-18T13:42:26.1057887Z npm notice 396B dist/lib/editor/NoteDocumentProvider.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1058760Z npm notice 1.8kB dist/lib/editor/NoteEditor.d.ts
+publish	Publish package	2026-10-18T13:42:26.1059492Z npm notice 701B dist/lib/editor/NoteEditor.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1060466Z npm notice 1.2kB dist/lib/editor/NoteSaveStatus.d.ts
+publish	Publish package	2026-10-18T13:42:26.1061259Z npm notice 561B dist/lib/editor/NoteSaveStatus.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1062033Z npm notice 1.8kB dist/lib/editor/pictureUpload.d.ts
+publish	Publish package	2026-10-18T13:42:26.1062843Z npm notice 1.2kB dist/lib/editor/pictureUpload.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1063530Z npm notice 4.5kB dist/lib/editor/session.d.ts
+publish	Publish package	2026-10-18T13:42:26.1064245Z npm notice 1.2kB dist/lib/editor/session.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1065016Z npm notice 328B dist/lib/editor/sessionKey.d.ts
+publish	Publish package	2026-10-18T13:42:26.1065734Z npm notice 227B dist/lib/editor/sessionKey.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1066425Z npm notice 6.1kB dist/lib/editor/types.d.ts
+publish	Publish package	2026-10-18T13:42:26.1067081Z npm notice 4.1kB dist/lib/editor/types.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1067773Z npm notice 2.8kB dist/lib/hnn/budgetedTransaction.d.ts
+publish	Publish package	2026-10-18T13:42:26.1068544Z npm notice 830B dist/lib/hnn/budgetedTransaction.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1069277Z npm notice 2.3kB dist/lib/hnn/cardPayload.d.ts
+publish	Publish package	2026-10-18T13:42:26.1070024Z npm notice 1.8kB dist/lib/hnn/cardPayload.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1070858Z npm notice 987B dist/lib/hnn/codec.d.ts
+publish	Publish package	2026-10-18T13:42:26.1071526Z npm notice 720B dist/lib/hnn/codec.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1072261Z npm notice 442B dist/lib/hnn/directoryEntries.d.ts
+publish	Publish package	2026-10-18T13:42:26.1073000Z npm notice 399B dist/lib/hnn/directoryEntries.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1073704Z npm notice 1.4kB dist/lib/hnn/drawingPayload.d.ts
+publish	Publish package	2026-10-18T13:42:26.1074658Z npm notice 1.0kB dist/lib/hnn/drawingPayload.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1075425Z npm notice 3.0kB dist/lib/hnn/extensions.d.ts
+publish	Publish package	2026-10-18T13:42:26.1076190Z npm notice 1.6kB dist/lib/hnn/extensions.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1076865Z npm notice 1.4kB dist/lib/hnn/limits.d.ts
+publish	Publish package	2026-10-18T13:42:26.1077504Z npm notice 379B dist/lib/hnn/limits.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1078286Z npm notice 1.1kB dist/lib/hnn/markdown.d.ts
+publish	Publish package	2026-10-18T13:42:26.1078963Z npm notice 915B dist/lib/hnn/markdown.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1079721Z npm notice 2.8kB dist/lib/hnn/menuPopover.d.ts
+publish	Publish package	2026-10-18T13:42:26.1080548Z npm notice 952B dist/lib/hnn/menuPopover.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1081260Z npm notice 1.9kB dist/lib/hnn/nodeId.d.ts
+publish	Publish package	2026-10-18T13:42:26.1082013Z npm notice 833B dist/lib/hnn/nodeId.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1082749Z npm notice 953B dist/lib/hnn/persistedStringBudget.d.ts
+publish	Publish package	2026-10-18T13:42:26.1083764Z npm notice 583B dist/lib/hnn/persistedStringBudget.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1084523Z npm notice 307B dist/lib/hnn/schema.d.ts
+publish	Publish package	2026-10-18T13:42:26.1085283Z npm notice 217B dist/lib/hnn/schema.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1085992Z npm notice 1.7kB dist/lib/hnn/stringBytes.d.ts
+publish	Publish package	2026-10-18T13:42:26.1086784Z npm notice 538B dist/lib/hnn/stringBytes.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1087538Z npm notice 1.7kB dist/lib/hnn/tableEdgeControls.d.ts
+publish	Publish package	2026-10-18T13:42:26.1088316Z npm notice 1.1kB dist/lib/hnn/tableEdgeControls.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1089171Z npm notice 469B dist/lib/hnn/urlPolicy.d.ts
+publish	Publish package	2026-10-18T13:42:26.1089879Z npm notice 258B dist/lib/hnn/urlPolicy.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1090840Z npm notice 1.8kB dist/lib/index.d.ts
+publish	Publish package	2026-10-18T13:42:26.1091465Z npm notice 1.3kB dist/lib/index.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1092121Z npm notice 40B dist/lib/test-setup.d.ts
+publish	Publish package	2026-10-18T13:42:26.1092876Z npm notice 121B dist/lib/test-setup.d.ts.map
+publish	Publish package	2026-10-18T13:42:26.1093502Z npm notice 56.3kB dist/styles.css
+publish	Publish package	2026-10-18T13:42:26.1094103Z npm notice 3.3kB package.json
+publish	Publish package	2026-10-18T13:42:26.1094695Z npm notice Tarball Details
+publish	Publish package	2026-10-18T13:42:26.1095344Z npm notice name: @hamster-note/notes
+publish	Publish package	2026-10-18T13:42:26.1096401Z npm notice version: 3.1.2
+publish	Publish package	2026-10-18T13:42:26.1097052Z npm notice filename: hamster-note-notes-3.1.2.tgz
+publish	Publish package	2026-10-18T13:42:26.1097843Z npm notice package size: 4.2 MB
+publish	Publish package	2026-10-18T13:42:26.1098471Z npm notice unpacked size: 14.5 MB
+publish	Publish package	2026-10-18T13:42:26.1099938Z npm notice shasum: 8b76b6119ae28134b1ddf75163e8a5bbc6f522a9
+publish	Publish package	2026-10-18T13:42:26.1101072Z npm notice integrity: sha512-teL1eVnUu/wQe[...]Vnbv4GSwrLoEQ==
+publish	Publish package	2026-10-18T13:42:26.1101760Z npm notice total files: 138
+publish	Publish package	2026-10-18T13:42:26.1102287Z npm notice
+publish	Publish package	2026-10-18T13:42:27.3900835Z npm notice npm tokens that bypass 2FA are being restricted for account changes and direct publishing. Learn how to prepare: https://gh.io/npm-gat-bypass2fa-deprecation
+publish	Publish package	2026-10-18T13:42:27.8903233Z npm notice Publishing to https://registry.npmjs.org/ with tag latest and public access
+publish	Publish package	2026-10-18T13:42:33.0179875Z npm notice publish Signed provenance statement with source and build information from GitHub Actions
+publish	Publish package	2026-10-18T13:42:33.0181589Z npm notice publish Provenance statement published to transparency log: https://search.sigstore.dev/?logIndex=3311992108
+publish	Publish package	2026-10-18T13:42:35.7634907Z npm notice Your package is being processed and may take a few minutes to become available.
+publish	Publish package	2026-10-18T13:42:35.7636802Z + @hamster-note/notes@3.1.2
+publish	Post Setup Node.js	﻿2026-10-18T13:42:35.8026185Z Post job cleanup.
+publish	Post Setup Node.js	2026-10-18T13:42:35.9242657Z (node:2946) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+publish	Post Setup Node.js	2026-10-18T13:42:35.9243955Z (Use `node --trace-deprecation ...` to show where the warning was created)
+publish	Post Setup Node.js	2026-10-18T13:42:35.9245413Z Cache hit occurred on the primary key node-cache-Linux-x64-yarn-856240dd93a16bb612410a90d9a2f55a748a342f2aa76856f58ce628bfbf93c9, not saving cache.
+publish	Post Checkout	﻿2026-10-18T13:42:35.9509738Z Post job cleanup.
+publish	Post Checkout	2026-10-18T13:42:36.0343542Z [command]/usr/bin/git version
+publish	Post Checkout	2026-10-18T13:42:36.0383375Z git version 2.55.0
+publish	Post Checkout	2026-10-18T13:42:36.0417758Z Temporarily overriding HOME='/home/runner/work/_temp/c9c10851-dbbc-485b-bf9a-a164da2fafa1' before making global git config changes
+publish	Post Checkout	2026-10-18T13:42:36.0419147Z Adding repository directory to the temporary git global config as a safe directory
+publish	Post Checkout	2026-10-18T13:42:36.0422895Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/notes/notes
+publish	Post Checkout	2026-10-18T13:42:36.0461806Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+publish	Post Checkout	2026-10-18T13:42:36.0493587Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+publish	Post Checkout	2026-10-18T13:42:36.0720818Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+publish	Post Checkout	2026-10-18T13:42:36.0748984Z http.https://github.com/.extraheader
+publish	Post Checkout	2026-10-18T13:42:36.0759419Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+publish	Post Checkout	2026-10-18T13:42:36.0796047Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+publish	Post Checkout	2026-10-18T13:42:36.1002125Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+publish	Post Checkout	2026-10-18T13:42:36.1041260Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+publish	Complete job	﻿2026-10-18T13:42:36.1408868Z Cleaning up orphan processes
+publish	Complete job	2026-10-18T13:42:36.1702762Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+
+

@@ -1,0 +1,16 @@
+command: node ../verify-notes-registry-install.mjs evidence/ham49-registry-final ../consumer-registry-3-1-2
+node: v24.15.0
+exit: 0
+{"cwd":"/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-49-fb8b3794ad64/workdir/consumer-registry-3-1-2","command":["npm","install","--ignore-scripts","--legacy-peer-deps","--no-audit","--no-fund","--save-exact","@hamster-note/notes@3.1.2","react@19.0.0","react-dom@19.0.0"]}
+{
+  "version": "3.1.2",
+  "registry": "https://registry.npmjs.org/@hamster-note/notes/-/notes-3.1.2.tgz",
+  "integrity": "sha512-teL1eVnUu/wQelHTe7sZoT21J1uLc28CfhNUevbUsGxVUP3flsBJ+V/xzZFxjmiqDVHtjJdSvVnbv4GSwrLoEQ==",
+  "outsideRepository": true,
+  "freshInstall": true,
+  "installedFilesMatch": true,
+  "fileCount": 138,
+  "noWorkspaceLinkOrPatch": true
+}
+
+

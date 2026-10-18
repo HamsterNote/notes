@@ -2,7 +2,9 @@
 
 ## 安装与身份
 
-正式消费使用 `yarn add --exact @hamster-note/notes@3.1.2`（WebBase 按自身包管理器用 `pnpm add --save-exact @hamster-note/notes@3.1.2`）。不得使用源码 alias、workspace link、私有 import 或包 patch。验收 pack 的源提交为 `cc4564dd1ccf64ba20a08e41d5d68d55ccce5814`；3.1.2 tag 指向 merge commit `6c6ac2a700a333f1d98b373bebe5b7752dbf8ba4`，其产品源码、README、scripts 与验收源完全一致。registry 身份见最终 registry-identity.json；本地验收包见 ham49-pack-identity.json。
+正式消费使用 `yarn add --exact @hamster-note/notes@3.1.2`（WebBase 按自身包管理器用 `pnpm add --save-exact @hamster-note/notes@3.1.2`）。不得使用源码 alias、workspace link、私有 import 或包 patch。验收 pack 的源提交为 `cc4564dd1ccf64ba20a08e41d5d68d55ccce5814`；3.1.2 tag 指向 merge commit `6c6ac2a700a333f1d98b373bebe5b7752dbf8ba4`，其产品源码、README、scripts 与验收源完全一致。registry 身份见 `ham49-registry-final/registry-identity.json`；本地验收包见 ham49-pack-identity.json。
+
+正式发布已成功：[实现 PR #14](https://github.com/HamsterNote/notes/pull/14)、[Release](https://github.com/HamsterNote/notes/actions/runs/39132603796)。registry 精确 3.1.2 的 gitHead 与 tag 一致，latest=3.1.2；正式 tarball 与验收包 SHA-256 均为 `e72e98b28ecf801c6bef030c6741c5dd2198b7a49e5b0e041d1defbf25eae53f`，138 文件逐字节相同。SHA-1/SHA-512 integrity 与 registry metadata 一致。仓库外全新 registry 精确安装及安装文件核验通过，见 `ham49-registry-clean-install.log` 和 `ham49-registry-final/registry-external-install-identity.json`；已完成的干净 pack 类型/构建/浏览器证据适用于同一字节包。
 
 ## 引用失效时序
 

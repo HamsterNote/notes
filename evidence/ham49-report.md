@@ -32,6 +32,9 @@
 | 3.1.1 registry/独立安装基线 | ESM/CJS/类型/build/浏览器均通过 | ham49-baseline-registry.log、ham49-baseline-consumer.log、ham49-baseline/ |
 | 公共 Provider Chromium | 候选/全文 missing、保栈、双 View、上传成功/失败/retry/cancel/late、草稿、freeze、HNN 与桌面/手机通过 | ham49-browser-first.log、ham49-public-host-trace.zip、截图 |
 | 原共享 Chromium 回归 | 原生交错、undo/redo、重开、freeze、草稿、save 通过 | ham49-old-browser.log |
+| tag Release | completed / success，精确 merge head | ham49-release-final.log、ham49-release-raw.log |
+| 正式 registry 包 | 3.1.2 / latest / gitHead / SHA-1 / SHA-512 / SHA-256 / 138 文件一致 | ham49-registry-final.log、ham49-registry-final/registry-identity.json |
+| 仓库外 registry 精确安装 | 全新目录安装，lock 与全部 138 文件一致 | ham49-registry-clean-install.log、ham49-registry-final/registry-external-install-identity.json |
 
 初跑失败日志保留：新测试夹具中 externalItem 误放 inline、JSDOM focus 延迟同步与严格 TS/lint 诊断已修正；全量前两次分别因两个新增类型尚未登记到两份明确导出清单而失败，最后 811/811 为一次完整执行，不合并多轮结果冒充全绿。
 
@@ -45,10 +48,18 @@
 
 PR #14 已合并（https://github.com/HamsterNote/notes/pull/14），merge commit `6c6ac2a700a333f1d98b373bebe5b7752dbf8ba4`；与验收 head `b9161517bc3de04877d07c42e8f122321f43df0e` 的完整树差异为空。tag v3.1.2 指向该 merge commit；验收源到 merge 的 src/lib/package/README/scripts/.github 差异为空。源树/完整树/tag 原始证据为 ham49-source-tree.log / ham49-merge-tree.log / ham49-tag.log。PR 的 Test and Build 与 CodeQL 检查已通过，见 ham49-merged-pr.log。
 
-Release：https://github.com/HamsterNote/notes/actions/runs/39132603796 。本次最后一次读取时仍 in_progress，已过 lint/typecheck、正在 test；精确 registry 3.1.2 端点返回 HTTP 404。因此仅确认本地 pack 和干净消费完成，**不声明正式 registry 发布或正式安装已通过**。已登记平台持久唤醒，后续读取 Release 最终结果、核对 npm 实包逐文件差异与仓库外安装；5.4/5.5 仍未勾选，HAM-49 保持 in_progress。
+Release：https://github.com/HamsterNote/notes/actions/runs/39132603796 。最终状态 completed / success，head 为上述 merge commit；发布步骤于 2026-10-18T13:42:35Z 完成。最终状态及完整工作流日志见 `ham49-release-final.log` / `ham49-release-raw.log`。此前进行中及 registry 404 的日志保留为历史，最终核验已成功，不再需要发布唤醒。
+
+正式 registry 精确版本 3.1.2、gitHead 与 v3.1.2 一致，latest=3.1.2。正式 tarball 为 https://registry.npmjs.org/@hamster-note/notes/-/notes-3.1.2.tgz ，SHA-256 与验收 pack 完全相同：`e72e98b28ecf801c6bef030c6741c5dd2198b7a49e5b0e041d1defbf25eae53f`；SHA-1 `8b76b6119ae28134b1ddf75163e8a5bbc6f522a9`；integrity `sha512-teL1eVnUu/wQelHTe7sZoT21J1uLc28CfhNUevbUsGxVUP3flsBJ+V/xzZFxjmiqDVHtjJdSvVnbv4GSwrLoEQ==`。138 个文件清单相同且全部逐字节一致，无差异。见 `ham49-registry-final/registry-metadata.json`、`registry-identity.json` 和 `ham49-registry-final.log`。
+
+补做真正位于 notes 仓库外的新目录精确 registry 安装：npm install --ignore-scripts --legacy-peer-deps --no-audit --no-fund --save-exact @hamster-note/notes@3.1.2 react@19.0.0 react-dom@19.0.0。锁文件 resolved/integrity、精确依赖版本、非链接安装以及全部 138 个已安装文件摘要均验证通过，无 alias/workspace link/patch。`ham49-registry-clean-install.log` 与 `ham49-registry-final/registry-external-install-identity.json` 为该独立安装证据；首次 registry 脚本的 `fresh-install` 在 evidence 内，仅作为额外安装核验。由于正式 tarball 与已完成类型/构建/Chromium 的仓库外验收包字节完全相同，本轮未重复跑已绿全量或浏览器。
+
+Release 原始日志记录已签发 npm provenance，透明日志 https://search.sigstore.dev/?logIndex=3311992108 ；registry metadata 提供 https://registry.npmjs.org/-/npm/v1/attestations/@hamster-note%2fnotes@3.1.2 。本轮核验了 registry tarball 的 SHA-1/SHA-512/SHA-256，未独立验证 provenance 签名链。
 
 HAM-36 接入顺序：精确安装 3.1.2；先更新 sidecar/store 或提交新的 resolver，再对同 session 调用 invalidateReferences；删除高亮应同时失效对应 mention/resource，全文变更可使用 document scope。缺少方法需报告版本能力不符，不能静默当作成功。
 
 上传配置参见 README，复跑入口为 public-host fixture 和 check-public-host-browser.mjs / verify-pack-consumer.mjs 的 --public-host。库侧的受控 callback 验证不等于真实远端存储上传已验收。
 
 不修改 WebBase 或 HAM-36 tasks。HAM-36 升级正式包后仍需复跑 `webview/e2e-app/hnn-references.spec.ts` 中原删除高亮 missing 断言与真实宿主上传。不得放宽原断言、用 remount/私有 API/正文改写/patch 绕过，不代勾选 4.2/5.3/6.1。不声明 Reader 宿主 E2E、实体 IME、native 或真实远端上传已通过；强制卸载不保证远端资源回收/未完成写入持久化。
+
+本 change 的上游交付任务 19/19 完成，严格校验见 `ham49-openspec-final.log`，任务状态见 `ham49-tasks-final.log`。发布收尾记录由 https://github.com/HamsterNote/notes/pull/15 交付；产品源码、3.1.2 tag 与已发布包不变。HAM-49 交付待验收为 in_review，done 由人类确认。
