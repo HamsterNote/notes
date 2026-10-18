@@ -27,7 +27,6 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       external: [
-        "@system-ui-js/multi-drag",
         "react",
         "react-dom",
         "react/jsx-runtime"

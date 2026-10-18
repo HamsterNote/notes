@@ -1,0 +1,17 @@
+:root { font-family: system-ui, sans-serif; color: #242629; background: #f5f6f7; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+button, input { font: inherit; }
+.shared-header { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; padding: 16px 24px; border-bottom: 1px solid #d9dce0; background: white; }
+.shared-header > input { min-width: 140px; width: 220px; font-size: 20px; border: 0; padding: 4px; }
+.shared-header > span { font-size: 13px; color: #46705a; margin-right: auto; }
+.shared-header label { display: flex; align-items: center; gap: 4px; white-space: nowrap; font-size: 14px; }
+.shared-header button { background: #263b30; color: white; border: 0; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+.shared-panes { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1px; background: #d9dce0; }
+.shared-panes--single { grid-template-columns: minmax(0, 1fr); }
+.shared-panes > .hn-editor { min-width: 0; background: white; padding: 24px; }
+.shared-panes .tiptap { min-height: 65vh; }
+.shared-workspace > [role="alert"] { padding: 12px 24px; color: #a72a36; background: #fff1f3; margin: 0; }
+.hn-editor-controls button { cursor: pointer; padding: 5px 10px; border: 1px solid #d9dce0; border-radius: 4px; background: white; }
+.hn-editor-controls button:disabled { cursor: default; opacity: 0.5; }
+@media (max-width: 700px) { .shared-panes { grid-template-columns: minmax(0, 1fr); } .shared-header { padding: 12px; gap: 12px; } .shared-panes > .hn-editor { padding: 16px; } }

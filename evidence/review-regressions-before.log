@@ -1,0 +1,101 @@
+command: corepack yarn test src/lib/editor/documentSession.test.ts src/lib/editor/NoteDocumentProvider.test.tsx
+node: v24.15.0
+exit: 1
+yarn run v1.22.22
+$ vitest run src/lib/editor/documentSession.test.ts src/lib/editor/NoteDocumentProvider.test.tsx
+
+ RUN  v4.1.10 /home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes
+
+ ❯ src/lib/editor/documentSession.test.ts (29 tests | 2 failed) 1261ms
+     × stale save leaves the current body autosave deadline intact 24ms
+     × stale save leaves the current metadata autosave deadline intact 23ms
+ ❯ src/lib/editor/NoteDocumentProvider.test.tsx (20 tests | 4 failed) 1742ms
+     × card 取消 resumes autosave of accepted body without saving discarded draft edits 113ms
+     × drawing 取消 resumes autosave of accepted body without saving discarded draft edits 55ms
+     × card 完成 resumes autosave of accepted body without saving discarded draft edits 44ms
+     × drawing 完成 resumes autosave of accepted body without saving discarded draft edits 51ms
+
+ Test Files  2 failed (2)
+      Tests  6 failed | 43 passed (49)
+   Start at  23:38:31
+   Duration  3.84s (transform 998ms, setup 67ms, import 1.71s, tests 3.00s, environment 1.93s)
+
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+
+(node:1100418) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/index.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/index.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/drag.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/base.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/index.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/controller.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/geometry.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/types.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/inertia.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/dom/normalize-pointer-event.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/dom/pose.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/finger.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/rotate.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/scale.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-39-6c0d60915bac/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/mixin.js" points to missing source files
+stderr | src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > card 取消 resumes autosave of accepted body without saving discarded draft edits
+linkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+
+stderr | src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > card 取消 resumes autosave of accepted body without saving discarded draft edits
+linkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+
+stderr | src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > drawing 取消 resumes autosave of accepted body without saving discarded draft edits
+linkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+
+stderr | src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > drawing 取消 resumes autosave of accepted body without saving discarded draft edits
+linkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+
+stderr | src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > card 完成 resumes autosave of accepted body without saving discarded draft edits
+linkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+
+stderr | src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > card 完成 resumes autosave of accepted body without saving discarded draft edits
+linkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+
+stderr | src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > drawing 完成 resumes autosave of accepted body without saving discarded draft edits
+linkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+
+stderr | src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > drawing 完成 resumes autosave of accepted body without saving discarded draft edits
+linkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > card 取消 resumes autosave of accepted body without saving discarded draft edits
+ FAIL  src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > drawing 取消 resumes autosave of accepted body without saving discarded draft edits
+ FAIL  src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > card 完成 resumes autosave of accepted body without saving discarded draft edits
+ FAIL  src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > drawing 完成 resumes autosave of accepted body without saving discarded draft edits
+AssertionError: expected "vi.fn()" to be called once with arguments: [ ObjectContaining{…}, …(1) ]
+
+Number of calls: 0
+
+ ❯ src/lib/editor/NoteDocumentProvider.test.tsx:172:28
+    170|     expect(h.props.onSave).not.toHaveBeenCalled()
+    171|     await act(async () => { await vi.advanceTimersByTimeAsync(1) })
+    172|     expect(h.props.onSave).toHaveBeenCalledExactlyOnceWith(expect.obje…
+       |                            ^
+    173|     expect(h.controller().getState().save).toBe("clean")
+    174|     expect(h.onChange).toHaveBeenCalledTimes(1)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  src/lib/editor/documentSession.test.ts > metadata and save barrier > stale save leaves the current body autosave deadline intact
+ FAIL  src/lib/editor/documentSession.test.ts > metadata and save barrier > stale save leaves the current metadata autosave deadline intact
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+ ❯ src/lib/editor/documentSession.test.ts:179:28
+    177|     expect(options.onSave).not.toHaveBeenCalled()
+    178|     await vi.advanceTimersByTimeAsync(1)
+    179|     expect(options.onSave).toHaveBeenCalledTimes(1)
+       |                            ^
+    180|     expect(c.getState().dirty).toEqual({ body: false, host: false })
+    181|   })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+error Command failed with exit code 1.
+

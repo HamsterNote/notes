@@ -1,0 +1,8 @@
+command: corepack yarn --cwd ../pack-consumer typecheck --skipLibCheck false
+node: v24.15.0
+exit: 0
+yarn run v1.22.22
+$ tsc --noEmit --skipLibCheck false
+Done in 1.84s.
+
+

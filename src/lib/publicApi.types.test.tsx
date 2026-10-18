@@ -21,6 +21,8 @@ interface ExpectedExport {
 }
 
 const EXPECTED_VALUE_EXPORTS: readonly ExpectedExport[] = [
+  { name: "NoteDocumentProvider", kind: "value", source: "./editor/NoteDocumentProvider" },
+  { name: "NoteEditorView", kind: "value", source: "./editor/NoteDocumentProvider" },
   { name: "NoteEditor", kind: "value", source: "./editor/NoteEditor" },
   { name: "NoteSaveStatus", kind: "value", source: "./editor/NoteSaveStatus" },
   { name: "MarkdownExport", kind: "value", source: "./editor/MarkdownExport" },
@@ -32,6 +34,12 @@ const EXPECTED_VALUE_EXPORTS: readonly ExpectedExport[] = [
 ]
 
 const EXPECTED_TYPE_EXPORTS: readonly ExpectedExport[] = [
+  ...[
+    "ActiveIdentity", "AcquireFreeze", "ReleaseFreeze", "DetachViewResult", "DraftKind", "DraftPhase", "EncodingState",
+    "FreezeOutcome", "HostMetadataSnapshot", "NoteDocumentController", "NoteDocumentProviderProps", "NoteEditorViewProps",
+    "NotePublicState", "NoteStateLifecycle", "OnSave", "PublicDraftState", "RequestSaveResult", "SaveContext", "SavePayload",
+    "SavePending", "SaveReason", "SaveState", "SaveTerminal", "UpdateHostSnapshotResult"
+  ].map((name): ExpectedExport => ({ name, kind: "type", source: "./editor/documentTypes" })),
   { name: "NoteEditorProps", kind: "type", source: "./editor/NoteEditor" },
   { name: "NoteSaveStatusProps", kind: "type", source: "./editor/NoteSaveStatus" },
   { name: "MarkdownExportContext", kind: "type", source: "./editor/MarkdownExport" },
@@ -75,6 +83,8 @@ const EXPECTED_TYPE_EXPORTS: readonly ExpectedExport[] = [
 const EXPECTED_ALL = [...EXPECTED_VALUE_EXPORTS, ...EXPECTED_TYPE_EXPORTS]
 
 const ALLOWED_SOURCES = new Set([
+  "./editor/NoteDocumentProvider",
+  "./editor/documentTypes",
   "./editor/NoteEditor",
   "./editor/NoteSaveStatus",
   "./editor/MarkdownExport",

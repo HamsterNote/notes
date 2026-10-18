@@ -1,0 +1,10 @@
+command: corepack yarn lint
+node: v24.15.0
+exit: 0
+yarn run v1.22.22
+$ eslint .
+Done in 31.71s.
+
+(node:1103763) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+

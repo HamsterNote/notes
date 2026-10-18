@@ -1,0 +1,27 @@
+command: node scripts/check-shared-browser.mjs
+node: v24.15.0
+exit: 0
+Port 5173 is in use, trying another one...
+browser 148.0.7778.96
+selection-before-right {
+  anchor: '<p nodeid="123e4567-e89b-42d3-a456-426614174000">AA共享正文</p>',
+  offset: 0
+}
+selection-after-arrow {
+  anchor: '<p nodeid="123e4567-e89b-42d3-a456-426614174000">AA共享正文</p>',
+  offset: 1
+}
+actual ABA共享正文 ABA共享正文 errors []
+body ABA共享正文
+actual AA共享正文 AA共享正文 errors []
+body AA共享正文
+actual 共享正文 共享正文 errors []
+body 共享正文
+actual ABA共享正文 ABA共享正文 errors []
+body ABA共享正文
+actual ABA共享正文 ABA共享正文 errors []
+body ABA共享正文
+PASS: native interleaving, keyboard/toolbar undo-redo, reopen, freeze, draft, save, responsive layout
+NOT RUN: physical IME and WebBase host bridge
+
+

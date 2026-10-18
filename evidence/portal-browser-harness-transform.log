@@ -1,0 +1,18 @@
+command: node scripts/check-portal-composition-browser.mjs
+node: v24.15.0
+exit: 1
+11:42:54 PM [vite] (client) Re-optimizing dependencies because vite config has changed
+Port 5173 is in use, trying another one...
+browser 148.0.7778.96 entry /src/lib/index.ts root source
+
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+page.waitForFunction: Timeout 30000ms exceeded.
+    at /home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-36-5634e6826028/workdir/notes-pr12/scripts/check-portal-composition-browser.mjs:42:16 {
+  name: 'TimeoutError'
+}
+
+Node.js v24.15.0
+

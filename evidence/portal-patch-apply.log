@@ -1,0 +1,5 @@
+command: git -C ../notes-portal-patch-check apply --check ../portal-composition.patch
+node: v24.15.0
+exit: 0
+
+

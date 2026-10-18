@@ -184,10 +184,10 @@ describe("根入口切换后的公共 API (task 7.1 / 8.1 / 8.2)", () => {
     }
   })
 
-  it("当前 allowlist 无重复且 value 恰为 runtime 八项", () => {
+  it("当前 allowlist 无重复且 value 恰为 additive runtime 十项", () => {
     const names = inventory.currentPublicExports.map((entry) => entry.name)
     expect(new Set(names).size).toBe(names.length)
-    expect(inventory.currentPublicExports.filter((entry) => entry.kind === "value")).toHaveLength(8)
+    expect(inventory.currentPublicExports.filter((entry) => entry.kind === "value")).toHaveLength(10)
   })
 
   it("历史 13 个旧实现模块在 deleted 阶段全部不存在", () => {

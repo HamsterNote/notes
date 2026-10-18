@@ -12,6 +12,16 @@
  */
 import "./styles.css"
 
+export { NoteDocumentProvider, NoteEditorView } from "./editor/NoteDocumentProvider"
+export type {
+  ActiveIdentity, AcquireFreeze, ReleaseFreeze, DetachViewResult,
+  DraftKind, DraftPhase, EncodingState, FreezeOutcome, HostMetadataSnapshot,
+  NoteDocumentController, NoteDocumentProviderProps, NoteEditorViewProps,
+  NotePublicState, NoteStateLifecycle, OnSave, PublicDraftState, RequestSaveResult,
+  SaveContext, SavePayload, SavePending, SaveReason, SaveState, SaveTerminal,
+  UpdateHostSnapshotResult
+} from "./editor/documentTypes"
+
 export { NoteEditor, type NoteEditorProps } from "./editor/NoteEditor"
 export { NoteSaveStatus, type NoteSaveStatusProps } from "./editor/NoteSaveStatus"
 export {
