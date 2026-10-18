@@ -1,0 +1,5 @@
+command: git diff --exit-code b9161517bc3de04877d07c42e8f122321f43df0e 6c6ac2a700a333f1d98b373bebe5b7752dbf8ba4
+node: v24.15.0
+exit: 0
+
+

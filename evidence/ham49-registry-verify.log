@@ -1,0 +1,24 @@
+command: node ../verify-notes-registry.mjs evidence/hamster-note-notes-3.1.2.tgz 6c6ac2a700a333f1d98b373bebe5b7752dbf8ba4 evidence/ham49-registry
+node: v24.15.0
+exit: 1
+
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Registry exact version HTTP 404
+
+404 !== 200
+
+    at file:///home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-49-fb8b3794ad64/workdir/verify-notes-registry.mjs:11:8
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 404,
+  expected: 200,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.15.0
+

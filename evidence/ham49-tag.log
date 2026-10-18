@@ -1,0 +1,6 @@
+command: git show-ref --verify refs/tags/v3.1.2
+node: v24.15.0
+exit: 0
+6c6ac2a700a333f1d98b373bebe5b7752dbf8ba4 refs/tags/v3.1.2
+
+
