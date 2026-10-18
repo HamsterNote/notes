@@ -13,6 +13,11 @@ export async function checkPublicHost(page, url, prefix = "evidence/ham49-public
   for (const view of ["a", "b"]) await status(view, "mention", "resolved")
   await a.locator(".tiptap > p").first().click()
   await page.keyboard.press("Control+Home"); await page.keyboard.type("edit ")
+  // Let ordinary autosave settle before comparing state across reference refreshes.
+  await page.waitForFunction(() => {
+    const statuses = [...document.querySelectorAll(".hn-editor-controls [role=status]")]
+    return statuses.length === 2 && statuses.every((element) => element.textContent === "已保存")
+  })
   await page.getByRole("button", { name: "Snapshot", exact: true }).click()
   const before = JSON.parse(await page.locator("[data-result]").textContent())
   const changes = await page.evaluate(() => localStorage.getItem("changes"))
