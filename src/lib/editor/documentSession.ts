@@ -3,6 +3,7 @@ import { closeHistory, history, redo, redoDepth, undo, undoDepth } from "@tiptap
 import { EditorState, type Transaction } from "@tiptap/pm/state"
 import type { Node as PmNode } from "@tiptap/pm/model"
 import { decodeHnn, encodeHnn } from "../hnn/codec"
+import { createHnnNodeId } from "../hnn/nodeId"
 import { createHnnExtensions, flushHnnPendingEdits, hnnRuntimeSchema } from "../hnn/extensions"
 import { installBlockReorder } from "./blockReorder"
 import { openBlockMenu } from "./blockMenu"
@@ -22,6 +23,13 @@ export type DocumentView = {
   instanceId: symbol
   references: HostReferenceInstaller | undefined
   cleanup: Array<() => void>
+}
+
+function createSessionUuid(): string {
+  const crypto = globalThis.crypto
+  if (typeof crypto?.randomUUID === "function") return crypto.randomUUID()
+  if (typeof crypto?.getRandomValues === "function") return createHnnNodeId()
+  throw new Error("DocumentSession requires crypto.randomUUID or crypto.getRandomValues to generate secure UUIDv4 identifiers")
 }
 
 function copyHost(value: HostMetadataSnapshot): HostMetadataSnapshot {
@@ -68,7 +76,7 @@ export class DocumentSession {
   private abortCause: "disposed" | "replaced" = "disposed"
 
   constructor(private options: Options) {
-    this.identity = { documentId: options.documentId, loadKey: options.loadKey, sessionId: crypto.randomUUID() }
+    this.identity = { documentId: options.documentId, loadKey: options.loadKey, sessionId: createSessionUuid() }
     try {
       if (typeof options.loadKey === "number" && !Number.isFinite(options.loadKey)) throw new TypeError("Invalid loadKey")
       this.host = copyHost(options.initialHostSnapshot)
@@ -335,7 +343,7 @@ export class DocumentSession {
     if (reason === "autosave" && this.failure) return this.failure
     const dirty = this.getState().dirty
     if (!dirty.body && !dirty.host) return { kind: "clean", sessionId: this.identity.sessionId }
-    const operationId = crypto.randomUUID()
+    const operationId = createSessionUuid()
     this.failure = undefined
     const completion = Promise.resolve().then(() => this.drain(reason, operationId)).then((result) => {
       this.pending = undefined
@@ -424,7 +432,7 @@ export class DocumentSession {
       if (this.pendingEdits) return {
         ...result, kind: "failure", reason: "pending-edit", error: new Error("Reference candidate edit still pending")
       }
-      const nextLease = crypto.randomUUID()
+      const nextLease = createSessionUuid()
       this.requests.set(requestId, nextLease)
       this.refreshEditable()
       if (this.getState().lifecycle === "disposed") return { identity: null, requestId, kind: "abort", reason: "disposed" }
@@ -436,7 +444,7 @@ export class DocumentSession {
   }
   beginDraft(viewId: string, kind: "card" | "drawing"): boolean {
     if (!this.canInput() || this.freezing) return false
-    this.draft = { phase: "editing", draftId: crypto.randomUUID(), kind, ownerViewId: viewId, changed: false }
+    this.draft = { phase: "editing", draftId: createSessionUuid(), kind, ownerViewId: viewId, changed: false }
     this.refreshEditable()
     return true
   }
