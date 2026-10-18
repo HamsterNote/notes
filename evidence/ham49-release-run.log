@@ -1,0 +1,6 @@
+command: gh run list --repo HamsterNote/notes --workflow Release --branch v3.1.2 --limit 1 --json databaseId,status,conclusion,headSha,url
+node: v24.15.0
+exit: 0
+[{"conclusion":"","databaseId":39132603796,"headSha":"6c6ac2a700a333f1d98b373bebe5b7752dbf8ba4","status":"in_progress","url":"https://github.com/HamsterNote/notes/actions/runs/39132603796"}]
+
+

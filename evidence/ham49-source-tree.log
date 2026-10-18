@@ -1,0 +1,5 @@
+command: git diff --exit-code cc4564dd1ccf64ba20a08e41d5d68d55ccce5814 6c6ac2a700a333f1d98b373bebe5b7752dbf8ba4 -- src/lib package.json README.md scripts .github
+node: v24.15.0
+exit: 0
+
+

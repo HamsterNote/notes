@@ -43,7 +43,9 @@
 
 仓库外全新 `consumer-3-1-2` 只安装此 pack 和声明的 React/开发依赖：安装、ESM/CJS 精确 runtime 清单、旧 fixture 与新 Controller/Provider 类型（含 README 用法）、Vite 生产构建，以及旧 NoteEditor CAS/revision 与新 Provider 双 View 保存均通过。随后在该消费副本的构建产物上运行完整公共能力浏览器套件，全部通过。无源码 alias、workspace 链接、私有导入或 patch；见 `ham49-clean-consumer.log`、`ham49-consumer/consumer-identity.json`、逐步日志、`ham49-consumer-trace.zip` 和桌面/手机截图。源码浏览器脚本中的 alias 只用于源码回归，干净消费者不含任何 alias。
 
-本地 pack 与干净消费已通过；正式发布身份另见发布核对材料。不可仅凭本地 pack 宣称 registry 已发布。
+PR #14 已合并（https://github.com/HamsterNote/notes/pull/14），merge commit `6c6ac2a700a333f1d98b373bebe5b7752dbf8ba4`；与验收 head `b9161517bc3de04877d07c42e8f122321f43df0e` 的完整树差异为空。tag v3.1.2 指向该 merge commit；验收源到 merge 的 src/lib/package/README/scripts/.github 差异为空。源树/完整树/tag 原始证据为 ham49-source-tree.log / ham49-merge-tree.log / ham49-tag.log。PR 的 Test and Build 与 CodeQL 检查已通过，见 ham49-merged-pr.log。
+
+Release：https://github.com/HamsterNote/notes/actions/runs/39132603796 。本次最后一次读取时仍 in_progress，已过 lint/typecheck、正在 test；精确 registry 3.1.2 端点返回 HTTP 404。因此仅确认本地 pack 和干净消费完成，**不声明正式 registry 发布或正式安装已通过**。已登记平台持久唤醒，后续读取 Release 最终结果、核对 npm 实包逐文件差异与仓库外安装；5.4/5.5 仍未勾选，HAM-49 保持 in_progress。
 
 HAM-36 接入顺序：精确安装 3.1.2；先更新 sidecar/store 或提交新的 resolver，再对同 session 调用 invalidateReferences；删除高亮应同时失效对应 mention/resource，全文变更可使用 document scope。缺少方法需报告版本能力不符，不能静默当作成功。
 
