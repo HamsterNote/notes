@@ -6,7 +6,12 @@ import "@hamster-note/notes/formula.css"
 
 const id = (n: number) => `123e4567-e89b-42d3-a456-${String(n).padStart(12, "0")}`
 const initial = { schemaVersion: 1, data: { type: "doc", content: new URLSearchParams(location.search).has("geometry")
-  ? ["First", "Long paragraph ".repeat(30), ""].map((text, index) => ({ type: "paragraph", attrs: { nodeId: id(index) },
+  ? [
+    [1, "First heading"], [0, "Paragraph before headings"],
+    [1, "Long H1 heading ".repeat(12)], [0, "Long paragraph ".repeat(30)],
+    [2, "Second heading"], [0, ""], [3, "Long H3 heading ".repeat(16)],
+    [1, ""], [2, ""], [3, ""], [0, "Last paragraph"]
+  ].map(([level, text], index) => ({ type: level ? "heading" : "paragraph", attrs: { nodeId: id(index), ...(level ? { level } : {}) },
     ...(text ? { content: [{ type: "text", text }] } : {}) }))
   : [
   { type: "paragraph", attrs: { nodeId: id(0) }, content: [

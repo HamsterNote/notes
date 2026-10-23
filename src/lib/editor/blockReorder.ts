@@ -625,6 +625,68 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
 
   const plugin = new Plugin({
     key: pluginKey,
+    view: () => {
+      let frame: number | null = null
+      let disposed = false
+      const observed = new Set<Element>()
+      const layoutHandles = (): void => {
+        frame = null
+        const root = view.dom
+        const rootRect = root.getBoundingClientRect()
+        const rootStyle = window.getComputedStyle(root)
+        const number = (value: string): number => Number.parseFloat(value) || 0
+        const border = number(rootStyle.borderTopWidth)
+        const width = number(rootStyle.width) + (rootStyle.boxSizing === "border-box" ? 0 :
+          number(rootStyle.paddingLeft) + number(rootStyle.paddingRight) +
+          number(rootStyle.borderLeftWidth) + number(rootStyle.borderRightWidth))
+        const scale = rootRect.width / width
+        if (!Number.isFinite(scale) || scale <= 0) return
+
+        // 先读完各块首行，再写 widget；不触碰 PM 管理的正文或文档事务。
+        const positions: Array<{ handle: HTMLElement; top: number }> = []
+        for (const block of Array.from(root.children)) {
+          const handle = block.previousElementSibling
+          if (!(handle instanceof HTMLElement) || !handle.classList.contains(HANDLE_CLASS)) continue
+          const line = block.matches("p,h1,h2,h3,h4,h5,h6,pre") ? block :
+            block.querySelector("p,h1,h2,h3,h4,h5,h6,pre") ?? block
+          const style = window.getComputedStyle(line)
+          const lineHeight = number(style.lineHeight) || number(style.fontSize) * 1.2
+          const top = (line.getBoundingClientRect().top - rootRect.top) / scale - border + root.scrollTop +
+            number(style.borderTopWidth) + number(style.paddingTop) + lineHeight / 2
+          positions.push({ handle, top })
+        }
+        for (const { handle, top } of positions) handle.style.top = `${top}px`
+      }
+      const scheduleLayout = (): void => {
+        if (!disposed && frame === null) frame = window.requestAnimationFrame(layoutHandles)
+      }
+      const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(scheduleLayout)
+      const update = (): void => {
+        const elements = new Set<Element>([view.dom, ...Array.from(view.dom.children)
+          .filter((element) => !element.classList.contains(HANDLE_CLASS))])
+        for (const element of observed) {
+          if (!elements.has(element)) { observer?.unobserve(element); observed.delete(element) }
+        }
+        for (const element of elements) {
+          if (!observed.has(element)) { observer?.observe(element); observed.add(element) }
+        }
+        scheduleLayout()
+      }
+      window.addEventListener("resize", scheduleLayout)
+      document.fonts?.addEventListener("loadingdone", scheduleLayout)
+      void document.fonts?.ready.then(scheduleLayout)
+      update()
+      return {
+        update,
+        destroy: () => {
+          disposed = true
+          if (frame !== null) window.cancelAnimationFrame(frame)
+          observer?.disconnect()
+          window.removeEventListener("resize", scheduleLayout)
+          document.fonts?.removeEventListener("loadingdone", scheduleLayout)
+        }
+      }
+    },
     state: {
       init: (_config, instance) => buildDecorations(instance.doc),
       apply: (tr, old) => (tr.docChanged ? buildDecorations(tr.doc) : old)
