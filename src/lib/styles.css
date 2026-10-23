@@ -116,7 +116,7 @@
 }
 
 /* 顶层块间距沿用 --hn-body-gap（0.625rem），标题前后额外留白建立层级 */
-.hn-editor-content > * + * {
+.hn-editor-content > * + :where(:not(.hn-editor-block-handle)) {
   margin-top: 0.625rem;
 }
 
@@ -1055,8 +1055,7 @@
   user-select: none;
   opacity: 0;
   pointer-events: none;
-  /* 静态位置随块间距（> * + * 的 0.625rem 对 handle 同样生效）落在所属块顶；
-     再下移“首行行高一半 - handle 半高”，对齐首行文本中心 */
+  /* 装饰节点不参与块间距，静态位置从所属块顶部计算首行中心。 */
   transform: translateY(calc(0.925rem - 12px));
   transition:
     background 0.15s ease,

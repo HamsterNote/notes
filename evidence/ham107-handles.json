@@ -1,0 +1,245 @@
+{
+  "browser": "148.0.7778.96",
+  "measurements": [
+    {
+      "width": 320,
+      "zoom": 1,
+      "blocks": [
+        {
+          "text": "First",
+          "delta": 0.0000030517578117894573
+        },
+        {
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "delta": 0.0000030517578117894573
+        },
+        {
+          "text": "",
+          "delta": -0.000012207031250710543
+        },
+        {
+          "text": "First",
+          "delta": -0.000012207031250710543
+        },
+        {
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "delta": -0.000012207031250710543
+        },
+        {
+          "text": "",
+          "delta": 0.00004882812499928946
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "zoom": 2,
+      "blocks": [
+        {
+          "text": "First",
+          "delta": -0.000012207031250710543
+        },
+        {
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "delta": -0.000012207031250710543
+        },
+        {
+          "text": "",
+          "delta": 0.00004882812499928946
+        },
+        {
+          "text": "First",
+          "delta": 0.00004882812499928946
+        },
+        {
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "delta": 0.00004882812499928946
+        },
+        {
+          "text": "",
+          "delta": -0.00019531250000071054
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "zoom": 1,
+      "blocks": [
+        {
+          "text": "First",
+          "delta": 0.0000030517578117894573
+        },
+        {
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "delta": 0.0000030517578117894573
+        },
+        {
+          "text": "",
+          "delta": -0.000012207031250710543
+        },
+        {
+          "text": "First",
+          "delta": -0.000012207031250710543
+        },
+        {
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "delta": -0.000012207031250710543
+        },
+        {
+          "text": "",
+          "delta": 0.00004882812499928946
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "zoom": 2,
+      "blocks": [
+        {
+          "text": "First",
+          "delta": -0.000004577636719460543
+        },
+        {
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "delta": -0.000012207031250710543
+        },
+        {
+          "text": "",
+          "delta": 0.00004882812499928946
+        },
+        {
+          "text": "First",
+          "delta": 0.00004882812499928946
+        },
+        {
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "delta": 0.00004882812499928946
+        },
+        {
+          "text": "",
+          "delta": 0.00004882812499928946
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "zoom": 1,
+      "blocks": [
+        {
+          "text": "First",
+          "delta": 0.0000030517578117894573
+        },
+        {
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "delta": 0.0000030517578117894573
+        },
+        {
+          "text": "",
+          "delta": -0.000012207031250710543
+        },
+        {
+          "text": "First",
+          "delta": 0.0000030517578117894573
+        },
+        {
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "delta": 0.0000030517578117894573
+        },
+        {
+          "text": "",
+          "delta": -0.000012207031250710543
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "zoom": 2,
+      "blocks": [
+        {
+          "text": "First",
+          "delta": 0.0000030517578117894573
+        },
+        {
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "delta": 0.0000030517578117894573
+        },
+        {
+          "text": "",
+          "delta": 0.00004882812499928946
+        },
+        {
+          "text": "First",
+          "delta": 0.0000030517578117894573
+        },
+        {
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "delta": 0.0000030517578117894573
+        },
+        {
+          "text": "",
+          "delta": 0.00004882812499928946
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "zoom": 1,
+      "blocks": [
+        {
+          "text": "First",
+          "delta": 0.0000030517578117894573
+        },
+        {
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "delta": 0.0000030517578117894573
+        },
+        {
+          "text": "",
+          "delta": -0.000012207031250710543
+        },
+        {
+          "text": "First",
+          "delta": 0.0000030517578117894573
+        },
+        {
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "delta": 0.0000030517578117894573
+        },
+        {
+          "text": "",
+          "delta": -0.000012207031250710543
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "zoom": 2,
+      "blocks": [
+        {
+          "text": "First",
+          "delta": 0.0000030517578117894573
+        },
+        {
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "delta": 0.0000030517578117894573
+        },
+        {
+          "text": "",
+          "delta": -0.000012207031250710543
+        },
+        {
+          "text": "First",
+          "delta": 0.0000030517578117894573
+        },
+        {
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "delta": 0.0000030517578117894573
+        },
+        {
+          "text": "",
+          "delta": -0.000012207031250710543
+        }
+      ]
+    }
+  ]
+}
