@@ -1,0 +1,1615 @@
+{
+  "browser": "148.0.7778.96",
+  "measurements": [
+    {
+      "width": 320,
+      "zoom": 1,
+      "phase": "resize",
+      "blocks": [
+        {
+          "tag": "H1",
+          "text": "First heading",
+          "height": 37.421875,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "P",
+          "text": "Paragraph before headings",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading ",
+          "height": 449.0625,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "P",
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "height": 443.90625,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H2",
+          "text": "Second heading",
+          "height": 29.125,
+          "lineHeight": 29.12,
+          "delta": -0.013125000000000497
+        },
+        {
+          "tag": "P",
+          "text": "",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H3",
+          "text": "Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading ",
+          "height": 228.59375,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "H1",
+          "text": "",
+          "height": 37.421875,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "H2",
+          "text": "",
+          "height": 29.125,
+          "lineHeight": 29.12,
+          "delta": -0.013125000000000497
+        },
+        {
+          "tag": "H3",
+          "text": "",
+          "height": 22.859375,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "P",
+          "text": "Last paragraph",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "First heading",
+          "height": 37.421875,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "P",
+          "text": "Paragraph before headings",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading ",
+          "height": 449.0625,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "P",
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "height": 443.90625,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H2",
+          "text": "Second heading",
+          "height": 29.125,
+          "lineHeight": 29.12,
+          "delta": -0.013125000000000497
+        },
+        {
+          "tag": "P",
+          "text": "",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H3",
+          "text": "Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading ",
+          "height": 228.59375,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "H1",
+          "text": "",
+          "height": 37.421875,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "H2",
+          "text": "",
+          "height": 29.125,
+          "lineHeight": 29.12,
+          "delta": -0.013125000000000497
+        },
+        {
+          "tag": "H3",
+          "text": "",
+          "height": 22.859375,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "P",
+          "text": "Last paragraph",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        }
+      ]
+    },
+    {
+      "width": 320,
+      "zoom": 2,
+      "phase": "resize",
+      "blocks": [
+        {
+          "tag": "H1",
+          "text": "First heading",
+          "height": 112.2890625,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "P",
+          "text": "Paragraph before headings",
+          "height": 88.78125,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading ",
+          "height": 1384.8984375,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "P",
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "height": 1775.625,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H2",
+          "text": "Second heading",
+          "height": 58.234375,
+          "lineHeight": 29.12,
+          "delta": -0.005312500000000497
+        },
+        {
+          "tag": "P",
+          "text": "",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H3",
+          "text": "Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading ",
+          "height": 732,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "H1",
+          "text": "",
+          "height": 37.4296875,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "H2",
+          "text": "",
+          "height": 29.1171875,
+          "lineHeight": 29.12,
+          "delta": -0.005312500000000497
+        },
+        {
+          "tag": "H3",
+          "text": "",
+          "height": 22.875,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "P",
+          "text": "Last paragraph",
+          "height": 59.1875,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "First heading",
+          "height": 112.2890625,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "P",
+          "text": "Paragraph before headings",
+          "height": 88.78125,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading ",
+          "height": 1384.8984375,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "P",
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "height": 1775.625,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H2",
+          "text": "Second heading",
+          "height": 58.234375,
+          "lineHeight": 29.12,
+          "delta": -0.005312500000000497
+        },
+        {
+          "tag": "P",
+          "text": "",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H3",
+          "text": "Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading ",
+          "height": 732,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "H1",
+          "text": "",
+          "height": 37.4296875,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "H2",
+          "text": "",
+          "height": 29.1171875,
+          "lineHeight": 29.12,
+          "delta": -0.005312500000000497
+        },
+        {
+          "tag": "H3",
+          "text": "",
+          "height": 22.875,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "P",
+          "text": "Last paragraph",
+          "height": 59.1875,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "zoom": 1,
+      "phase": "resize",
+      "blocks": [
+        {
+          "tag": "H1",
+          "text": "First heading",
+          "height": 37.421875,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "P",
+          "text": "Paragraph before headings",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading ",
+          "height": 336.796875,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "P",
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "height": 355.125,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H2",
+          "text": "Second heading",
+          "height": 29.125,
+          "lineHeight": 29.12,
+          "delta": -0.013125000000000497
+        },
+        {
+          "tag": "P",
+          "text": "",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H3",
+          "text": "Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading ",
+          "height": 182.875,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "H1",
+          "text": "",
+          "height": 37.421875,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "H2",
+          "text": "",
+          "height": 29.125,
+          "lineHeight": 29.12,
+          "delta": -0.013125000000000497
+        },
+        {
+          "tag": "H3",
+          "text": "",
+          "height": 22.859375,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "P",
+          "text": "Last paragraph",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "First heading",
+          "height": 37.421875,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "P",
+          "text": "Paragraph before headings",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading ",
+          "height": 336.796875,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "P",
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "height": 355.125,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H2",
+          "text": "Second heading",
+          "height": 29.125,
+          "lineHeight": 29.12,
+          "delta": -0.013125000000000497
+        },
+        {
+          "tag": "P",
+          "text": "",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H3",
+          "text": "Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading ",
+          "height": 182.875,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "H1",
+          "text": "",
+          "height": 37.421875,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "H2",
+          "text": "",
+          "height": 29.125,
+          "lineHeight": 29.12,
+          "delta": -0.013125000000000497
+        },
+        {
+          "tag": "H3",
+          "text": "",
+          "height": 22.859375,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "P",
+          "text": "Last paragraph",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "zoom": 2,
+      "phase": "resize",
+      "blocks": [
+        {
+          "tag": "H1",
+          "text": "First heading",
+          "height": 74.859375,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "P",
+          "text": "Paragraph before headings",
+          "height": 59.1875,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading ",
+          "height": 898.3125,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "P",
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "height": 887.8125,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H2",
+          "text": "Second heading",
+          "height": 58.234375,
+          "lineHeight": 29.12,
+          "delta": -0.005312500000000497
+        },
+        {
+          "tag": "P",
+          "text": "",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H3",
+          "text": "Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading ",
+          "height": 549,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "H1",
+          "text": "",
+          "height": 37.4296875,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "H2",
+          "text": "",
+          "height": 29.1171875,
+          "lineHeight": 29.12,
+          "delta": -0.005312500000000497
+        },
+        {
+          "tag": "H3",
+          "text": "",
+          "height": 22.875,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "P",
+          "text": "Last paragraph",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "First heading",
+          "height": 74.859375,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "P",
+          "text": "Paragraph before headings",
+          "height": 59.1875,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading ",
+          "height": 898.3125,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "P",
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "height": 887.8125,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H2",
+          "text": "Second heading",
+          "height": 58.234375,
+          "lineHeight": 29.12,
+          "delta": -0.005312500000000497
+        },
+        {
+          "tag": "P",
+          "text": "",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H3",
+          "text": "Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading ",
+          "height": 549,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "H1",
+          "text": "",
+          "height": 37.4296875,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "H2",
+          "text": "",
+          "height": 29.1171875,
+          "lineHeight": 29.12,
+          "delta": -0.005312500000000497
+        },
+        {
+          "tag": "H3",
+          "text": "",
+          "height": 22.875,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "P",
+          "text": "Last paragraph",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "zoom": 1,
+      "phase": "resize",
+      "blocks": [
+        {
+          "tag": "H1",
+          "text": "First heading",
+          "height": 37.421875,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "P",
+          "text": "Paragraph before headings",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading ",
+          "height": 449.0625,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "P",
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "height": 355.125,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H2",
+          "text": "Second heading",
+          "height": 29.125,
+          "lineHeight": 29.12,
+          "delta": -0.013125000000000497
+        },
+        {
+          "tag": "P",
+          "text": "",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H3",
+          "text": "Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading ",
+          "height": 182.875,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "H1",
+          "text": "",
+          "height": 37.421875,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "H2",
+          "text": "",
+          "height": 29.125,
+          "lineHeight": 29.12,
+          "delta": -0.013125000000000497
+        },
+        {
+          "tag": "H3",
+          "text": "",
+          "height": 22.859375,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "P",
+          "text": "Last paragraph",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "First heading",
+          "height": 37.421875,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "P",
+          "text": "Paragraph before headings",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading ",
+          "height": 449.0625,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "P",
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "height": 355.125,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H2",
+          "text": "Second heading",
+          "height": 29.125,
+          "lineHeight": 29.12,
+          "delta": -0.013125000000000497
+        },
+        {
+          "tag": "P",
+          "text": "",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H3",
+          "text": "Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading ",
+          "height": 182.875,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "H1",
+          "text": "",
+          "height": 37.421875,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "H2",
+          "text": "",
+          "height": 29.125,
+          "lineHeight": 29.12,
+          "delta": -0.013125000000000497
+        },
+        {
+          "tag": "H3",
+          "text": "",
+          "height": 22.859375,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "P",
+          "text": "Last paragraph",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "zoom": 2,
+      "phase": "resize",
+      "blocks": [
+        {
+          "tag": "H1",
+          "text": "First heading",
+          "height": 74.859375,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "P",
+          "text": "Paragraph before headings",
+          "height": 59.1875,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading ",
+          "height": 898.3125,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "P",
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "height": 887.8125,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H2",
+          "text": "Second heading",
+          "height": 58.234375,
+          "lineHeight": 29.12,
+          "delta": -0.005312500000000497
+        },
+        {
+          "tag": "P",
+          "text": "",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H3",
+          "text": "Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading ",
+          "height": 549,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "H1",
+          "text": "",
+          "height": 37.4296875,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "H2",
+          "text": "",
+          "height": 29.1171875,
+          "lineHeight": 29.12,
+          "delta": -0.005312500000000497
+        },
+        {
+          "tag": "H3",
+          "text": "",
+          "height": 22.875,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "P",
+          "text": "Last paragraph",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "First heading",
+          "height": 74.859375,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "P",
+          "text": "Paragraph before headings",
+          "height": 59.1875,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading ",
+          "height": 898.3125,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "P",
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "height": 887.8125,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H2",
+          "text": "Second heading",
+          "height": 58.234375,
+          "lineHeight": 29.12,
+          "delta": -0.005312500000000497
+        },
+        {
+          "tag": "P",
+          "text": "",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H3",
+          "text": "Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading ",
+          "height": 549,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "H1",
+          "text": "",
+          "height": 37.4296875,
+          "lineHeight": 37.44,
+          "delta": -0.0012499999999988631
+        },
+        {
+          "tag": "H2",
+          "text": "",
+          "height": 29.1171875,
+          "lineHeight": 29.12,
+          "delta": -0.005312500000000497
+        },
+        {
+          "tag": "H3",
+          "text": "",
+          "height": 22.875,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "P",
+          "text": "Last paragraph",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "zoom": 1,
+      "phase": "resize",
+      "blocks": [
+        {
+          "tag": "H1",
+          "text": "First heading",
+          "height": 54.0625,
+          "lineHeight": 54.08,
+          "delta": -0.008749999999999147
+        },
+        {
+          "tag": "P",
+          "text": "Paragraph before headings",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading ",
+          "height": 432.5,
+          "lineHeight": 54.08,
+          "delta": -0.008749999999999147
+        },
+        {
+          "tag": "P",
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "height": 207.15625,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H2",
+          "text": "Second heading",
+          "height": 29.125,
+          "lineHeight": 29.12,
+          "delta": -0.013125000000000497
+        },
+        {
+          "tag": "P",
+          "text": "",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H3",
+          "text": "Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading ",
+          "height": 91.4375,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "H1",
+          "text": "",
+          "height": 54.0625,
+          "lineHeight": 54.08,
+          "delta": -0.008749999999999147
+        },
+        {
+          "tag": "H2",
+          "text": "",
+          "height": 29.125,
+          "lineHeight": 29.12,
+          "delta": -0.013125000000000497
+        },
+        {
+          "tag": "H3",
+          "text": "",
+          "height": 22.859375,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "P",
+          "text": "Last paragraph",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "First heading",
+          "height": 54.0625,
+          "lineHeight": 54.08,
+          "delta": -0.008749999999999147
+        },
+        {
+          "tag": "P",
+          "text": "Paragraph before headings",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading ",
+          "height": 432.5,
+          "lineHeight": 54.08,
+          "delta": -0.008749999999999147
+        },
+        {
+          "tag": "P",
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "height": 207.15625,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H2",
+          "text": "Second heading",
+          "height": 29.125,
+          "lineHeight": 29.12,
+          "delta": -0.013125000000000497
+        },
+        {
+          "tag": "P",
+          "text": "",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H3",
+          "text": "Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading ",
+          "height": 91.4375,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "H1",
+          "text": "",
+          "height": 54.0625,
+          "lineHeight": 54.08,
+          "delta": -0.008749999999999147
+        },
+        {
+          "tag": "H2",
+          "text": "",
+          "height": 29.125,
+          "lineHeight": 29.12,
+          "delta": -0.013125000000000497
+        },
+        {
+          "tag": "H3",
+          "text": "",
+          "height": 22.859375,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "P",
+          "text": "Last paragraph",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "zoom": 2,
+      "phase": "resize",
+      "blocks": [
+        {
+          "tag": "H1",
+          "text": "First heading",
+          "height": 108.15625,
+          "lineHeight": 54.08,
+          "delta": -0.0009374999999991473
+        },
+        {
+          "tag": "P",
+          "text": "Paragraph before headings",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading ",
+          "height": 1297.875,
+          "lineHeight": 54.08,
+          "delta": -0.0009374999999991473
+        },
+        {
+          "tag": "P",
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "height": 591.875,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H2",
+          "text": "Second heading",
+          "height": 29.1171875,
+          "lineHeight": 29.12,
+          "delta": -0.005312500000000497
+        },
+        {
+          "tag": "P",
+          "text": "",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H3",
+          "text": "Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading ",
+          "height": 251.625,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "H1",
+          "text": "",
+          "height": 54.078125,
+          "lineHeight": 54.08,
+          "delta": -0.0009374999999991473
+        },
+        {
+          "tag": "H2",
+          "text": "",
+          "height": 29.1171875,
+          "lineHeight": 29.12,
+          "delta": -0.005312500000000497
+        },
+        {
+          "tag": "H3",
+          "text": "",
+          "height": 22.875,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "P",
+          "text": "Last paragraph",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "First heading",
+          "height": 108.15625,
+          "lineHeight": 54.08,
+          "delta": -0.0009374999999991473
+        },
+        {
+          "tag": "P",
+          "text": "Paragraph before headings",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading ",
+          "height": 1297.875,
+          "lineHeight": 54.08,
+          "delta": -0.0009374999999991473
+        },
+        {
+          "tag": "P",
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "height": 591.875,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H2",
+          "text": "Second heading",
+          "height": 29.1171875,
+          "lineHeight": 29.12,
+          "delta": -0.005312500000000497
+        },
+        {
+          "tag": "P",
+          "text": "",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H3",
+          "text": "Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading ",
+          "height": 251.625,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "H1",
+          "text": "",
+          "height": 54.078125,
+          "lineHeight": 54.08,
+          "delta": -0.0009374999999991473
+        },
+        {
+          "tag": "H2",
+          "text": "",
+          "height": 29.1171875,
+          "lineHeight": 29.12,
+          "delta": -0.005312500000000497
+        },
+        {
+          "tag": "H3",
+          "text": "",
+          "height": 22.875,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "P",
+          "text": "Last paragraph",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "zoom": 2,
+      "phase": "typography",
+      "blocks": [
+        {
+          "tag": "H1",
+          "text": "First heading",
+          "height": 108.15625,
+          "lineHeight": 54.08,
+          "delta": -0.0009374999999991473
+        },
+        {
+          "tag": "P",
+          "text": "Paragraph before headings",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading ",
+          "height": 1297.875,
+          "lineHeight": 54.08,
+          "delta": -0.0009374999999991473
+        },
+        {
+          "tag": "P",
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "height": 591.875,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H2",
+          "text": "Second heading",
+          "height": 68.6953125,
+          "lineHeight": 56.7,
+          "delta": -0.006250000000001421
+        },
+        {
+          "tag": "P",
+          "text": "",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H3",
+          "text": "Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading ",
+          "height": 251.625,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "H1",
+          "text": "",
+          "height": 54.078125,
+          "lineHeight": 54.08,
+          "delta": -0.0009374999999991473
+        },
+        {
+          "tag": "H2",
+          "text": "",
+          "height": 68.6953125,
+          "lineHeight": 56.7,
+          "delta": -0.006250000000001421
+        },
+        {
+          "tag": "H3",
+          "text": "",
+          "height": 22.875,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "P",
+          "text": "Last paragraph",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "First heading",
+          "height": 108.15625,
+          "lineHeight": 54.08,
+          "delta": -0.0009374999999991473
+        },
+        {
+          "tag": "P",
+          "text": "Paragraph before headings",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading ",
+          "height": 1297.875,
+          "lineHeight": 54.08,
+          "delta": -0.0009374999999991473
+        },
+        {
+          "tag": "P",
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "height": 591.875,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H2",
+          "text": "Second heading",
+          "height": 68.6953125,
+          "lineHeight": 56.7,
+          "delta": -0.006250000000001421
+        },
+        {
+          "tag": "P",
+          "text": "",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H3",
+          "text": "Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading ",
+          "height": 251.625,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "H1",
+          "text": "",
+          "height": 54.078125,
+          "lineHeight": 54.08,
+          "delta": -0.0009374999999991473
+        },
+        {
+          "tag": "H2",
+          "text": "",
+          "height": 68.6953125,
+          "lineHeight": 56.7,
+          "delta": -0.006250000000001421
+        },
+        {
+          "tag": "H3",
+          "text": "",
+          "height": 22.875,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "P",
+          "text": "Last paragraph",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "zoom": 2,
+      "phase": "heading-conversion",
+      "blocks": [
+        {
+          "tag": "H1",
+          "text": "First heading",
+          "height": 108.15625,
+          "lineHeight": 54.08,
+          "delta": -0.0009374999999991473
+        },
+        {
+          "tag": "P",
+          "text": "Paragraph before headings",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading ",
+          "height": 1297.875,
+          "lineHeight": 54.08,
+          "delta": -0.0009374999999991473
+        },
+        {
+          "tag": "P",
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "height": 591.875,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H2",
+          "text": "Second heading",
+          "height": 68.6953125,
+          "lineHeight": 56.7,
+          "delta": -0.006250000000001421
+        },
+        {
+          "tag": "P",
+          "text": "",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H2",
+          "text": "Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading ",
+          "height": 919.125,
+          "lineHeight": 56.7,
+          "delta": -0.006250000000001421
+        },
+        {
+          "tag": "H1",
+          "text": "",
+          "height": 54.078125,
+          "lineHeight": 54.08,
+          "delta": -0.0009374999999991473
+        },
+        {
+          "tag": "H2",
+          "text": "",
+          "height": 68.6953125,
+          "lineHeight": 56.7,
+          "delta": -0.006250000000001421
+        },
+        {
+          "tag": "H3",
+          "text": "",
+          "height": 22.875,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "P",
+          "text": "Last paragraph",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "First heading",
+          "height": 108.15625,
+          "lineHeight": 54.08,
+          "delta": -0.0009374999999991473
+        },
+        {
+          "tag": "P",
+          "text": "Paragraph before headings",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H1",
+          "text": "Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading Long H1 heading ",
+          "height": 1297.875,
+          "lineHeight": 54.08,
+          "delta": -0.0009374999999991473
+        },
+        {
+          "tag": "P",
+          "text": "Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph Long paragraph ",
+          "height": 591.875,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H2",
+          "text": "Second heading",
+          "height": 68.6953125,
+          "lineHeight": 56.7,
+          "delta": -0.006250000000001421
+        },
+        {
+          "tag": "P",
+          "text": "",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        },
+        {
+          "tag": "H2",
+          "text": "Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading Long H3 heading ",
+          "height": 919.125,
+          "lineHeight": 56.7,
+          "delta": -0.006250000000001421
+        },
+        {
+          "tag": "H1",
+          "text": "",
+          "height": 54.078125,
+          "lineHeight": 54.08,
+          "delta": -0.0009374999999991473
+        },
+        {
+          "tag": "H2",
+          "text": "",
+          "height": 68.6953125,
+          "lineHeight": 56.7,
+          "delta": -0.006250000000001421
+        },
+        {
+          "tag": "H3",
+          "text": "",
+          "height": 22.875,
+          "lineHeight": 22.88,
+          "delta": -0.0024999999999995026
+        },
+        {
+          "tag": "P",
+          "text": "Last paragraph",
+          "height": 29.59375,
+          "lineHeight": 29.6,
+          "delta": -0.0031250000000007105
+        }
+      ]
+    }
+  ]
+}

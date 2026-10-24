@@ -116,7 +116,7 @@
 }
 
 /* 顶层块间距沿用 --hn-body-gap（0.625rem），标题前后额外留白建立层级 */
-.hn-editor-content > * + * {
+.hn-editor-content > * + :where(:not(.hn-editor-block-handle)) {
   margin-top: 0.625rem;
 }
 
@@ -1012,8 +1012,8 @@
 
 /* ===== Phase 6.5 顶层块重排（handle widget + drop indicator，DESIGN.md §9/§13） =====
  * handle 是 PM widget decoration，与顶层块同为 .hn-editor-content 的直接子节点，
- * 以绝对定位落在左侧 gutter（.hn-editor 的 4rem 内边距内）；top:auto 取其静态
- * 位置（紧邻所属块之前的间距带），再以 translateY 对齐首行文本中心。
+ * 以绝对定位落在左侧 gutter（.hn-editor 的 4rem 内边距内）；插件按所属块的实际
+ * 首行位置设置 top，translateY(-50%) 兼容桌面与紧凑手柄尺寸。
  * 定位与指示线全部复用 --hn-* token，不引入新颜色。 */
 .hn-editor-content {
   position: relative;
@@ -1055,9 +1055,7 @@
   user-select: none;
   opacity: 0;
   pointer-events: none;
-  /* 静态位置随块间距（> * + * 的 0.625rem 对 handle 同样生效）落在所属块顶；
-     再下移“首行行高一半 - handle 半高”，对齐首行文本中心 */
-  transform: translateY(calc(0.925rem - 12px));
+  transform: translateY(-50%);
   transition:
     background 0.15s ease,
     color 0.15s ease,
@@ -1167,7 +1165,6 @@
     height: 20px;
     opacity: 0.55;
     pointer-events: auto;
-    transform: translateY(calc(0.925rem - 10px));
   }
 
   .hn-editor-content > .hn-editor-block-handle + *::before {
