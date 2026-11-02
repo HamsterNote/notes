@@ -26,7 +26,7 @@
 
 ### 2. 复用重排状态机，入口从 handle 扩展到块正文
 
-从编辑器根代理触摸/笔 pointerdown，解析直接顶层块 nodeId 与实时位置；排除嵌套控件、链接、表单、popover、已有非空选区和组合输入。按下可以自然产生焦点变化，但不能预先阻止默认滚动。沿用 pending → active → commit/cancel：500ms、10px；第二指针或取消撤销；激活后捕获对应指针、清除本次新生成的 DOM 选区、抑制该手势 contextmenu/click。
+从编辑器根代理触摸/笔 pointerdown，解析直接顶层块 nodeId 与实时位置；在 document capture 的 pointerdown 阶段按当前拥有编辑焦点的视图选区 head 判定聚焦顶层块，长按该块保留原生文字选择、不创建 pendingHold。其他块或失焦视图内的块才可产生拖动意图，默认按下随后引起的自然聚焦不回溯取消本次意图；排除嵌套控件、链接、表单、popover、已有非空选区和组合输入。按下可以自然产生焦点变化，但不能预先阻止默认滚动。沿用 pending → active → commit/cancel：500ms、10px；第二指针或取消撤销；从 pending 起抑制目标块 contextmenu，挂起取消即解除且不影响其他块或聚焦块的普通长按；激活后捕获对应指针、清除本次新生成的 DOM 选区、抑制残余 click。
 
 仅 pending 阶段自然生成、尚未由用户完成的选区可在激活时清除，手势开始前已有的文本选区始终优先。浏览器若在激活前因原生滚动或文本选择取消 pointer，应取消本次排序；不能全局设置 `touch-action:none` 去牺牲正文滚动。移动浏览器接管风险由浏览器验证覆盖。
 

@@ -6,7 +6,7 @@ Change: `improve-notes-mobile-interactions`, spec-driven, **15/15 tasks complete
 
 | Issue requirement | Implementation and evidence |
 | --- | --- |
-| Long-press block sorting | `blockReorder.ts`: body touch/pen entry, 500ms/10px threshold, captured pointer on stable editor root, persistent source highlight/drop line, final-up coordinates, single transaction + history fences. Unit tests cover pending/active cancellation, second contact, freeze, document changes, breakpoint, unmount, identity and vibration failure. Browser matrix confirms trusted touch sorting and undo. |
+| Long-press block sorting | `blockReorder.ts`: body touch/pen entry, 500ms/10px threshold on an initially unfocused block, captured pointer on stable editor root, persistent source highlight/drop line, final-up coordinates, single transaction + history fences. Unit tests cover pending/active cancellation, second contact, freeze, document changes, breakpoint, unmount, identity and vibration failure. The focused top-level block is determined from the focused view and selection head before pointerdown; its hold remains native. Pending target context menus are suppressed immediately. Ten acceptance regression tests cover touch/pen focus, retained blurred cursors, nested blocks and contextmenu boundaries. Browser matrix confirms trusted touch focused/unfocused holds, sorting and undo. |
 | Hide mobile left handle | Shared matchMedia/CSS boundary ≤840px, hidden gutter and handle, no hit/Tab/accessibility reachability. 840px and 841px unit + browser cases pass. |
 | Mobile focus popover | Per-view toolbar below the owning top-level block: 转换为、插入、加粗、斜体、下划线、上移、下移. Horizontal same-surface expansion, live block validation, capability/structure/boundary reasons, stored marks at collapsed cursor. |
 | Desktop selection popover | Exactly 加粗、斜体、下划线; native mouse and keyboard text ranges, mixed/full mark behavior, excludes nodes/cells/code/IME/freeze. |
@@ -18,12 +18,16 @@ Single editor and Provider views install and clean up the same toolbar. Shared f
 
 - `corepack yarn lint`: PASS.
 - `corepack yarn typecheck`: PASS.
-- `corepack yarn test`: PASS, **41 files / 840 tests** (formal suite).
+- `corepack yarn test`: PASS, **41 files / 850 tests** (formal suite).
 - `corepack yarn build`: PASS, library and Demo. Existing dependency sourcemap / chunk size warnings remain warnings.
 - `openspec validate improve-notes-mobile-interactions --strict`: PASS.
 - `node scripts/check-mobile-interactions.mjs`: PASS, **10/10 cases**, Chromium **148.0.7778.96**.
 
-Browser widths: **320, 390, 840, 841, 1440 CSS px**, each in light/dark theme. Script starts and closes the repository Demo and browser synchronously. It opens an HNN fixture through the Demo file input, uses native mouse drag and keyboard selection, and uses CDP `Input.dispatchTouchEvent` for browser-generated touch/pointer events (`isTrusted=true`). It checks hold/sort/undo, scroll-before-threshold cancellation with an actual scroll delta, labels, keyboard arrows/Home/End/Enter/Space/Escape, long wrapped text, visible-height changes, offscreen anchors, cross-breakpoint toolbar replacement and no page/toolbar horizontal overflow. Exact results: `ham124-browser-results.json`; screenshots: `ham124-<width>-<theme>.png`.
+Browser widths: **320, 390, 840, 841, 1440 CSS px**, each in light/dark theme. Script starts and closes the repository Demo and browser synchronously. It opens an HNN fixture through the Demo file input, uses native mouse drag and keyboard selection, and uses CDP `Input.dispatchTouchEvent` for browser-generated touch/pointer events (`isTrusted=true`). It checks focused-block hold without drag/vibration, unfocused-block hold/sort/undo, pending/active/cancelled contextmenu boundaries, scroll-before-threshold cancellation with actual editor/page scroll deltas, labels, keyboard arrows/Home/End/Enter/Space/Escape, long wrapped text, visible-height changes, offscreen anchors, cross-breakpoint toolbar replacement and no page/toolbar horizontal overflow. Exact results: `ham124-browser-results.json`; screenshots: `ham124-<width>-<theme>.png`.
+
+The script verifies the focused paragraph and actual touch hit target before each gesture, and measures both editor and page scrolling to handle browser scroll chaining.
+
+Contextmenu cancellation is measured using explicitly **synthetic cancelable MouseEvent probes** in the real browser; these are separate from trusted touch input and do not prove that an OS menu was displayed or hidden. For all six mobile cases, focused pending/held probes are unprevented, pending target and active probes are prevented, and other-block/pending-cancel/scroll-cancel probes are unprevented. Headless Chromium produced an empty native text range after the focused hold: this verifies non-interference (no drag or vibration), not successful OS word-selection UI. Physical-device word selection and system menu appearance remain acceptance checks.
 
 The browser test found a real DOM-target regression: applying a widget-only class to content caused PM to replace the native touch target. The final implementation captures on the stable editor root and renders content feedback only through PM decorations. Nonpassive touchmove registration precedes touchstart; pending touches retain native scrolling.
 

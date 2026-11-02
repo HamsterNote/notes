@@ -577,12 +577,19 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
     const child = topLevelChildren(view.state.doc)[index]
     const dom = blockDomAt(index)
     if (!child || !dom) return
+    // Decide intent before this pointerdown's default action moves focus/caret.
+    // A retained selection in a blurred view does not make that block focused.
+    const selection = view.state.selection
+    const focusedPos = selection.$head.depth > 0 ? selection.$head.before(1) : selection.from
+    if (view.hasFocus() && focusedPos === child.offset) return
     // Capture on the stable editor root. Never mutate the content node as if it
     // were a widget handle: PM can replace it, losing the browser touch target.
     onHandlePointerDown(pointer, view.dom, () => child.offset)
   }
   const suppressResidual = (event: Event): void => {
-    if (gesture?.kind === "pointer" || (event.type !== "dragstart" && suppressHandleClick)) {
+    const pendingContextMenu = event.type === "contextmenu" && pendingHold !== null &&
+      event.target instanceof window.Node && blockDomAt(pendingHold.fromIndex)?.contains(event.target)
+    if (pendingContextMenu || gesture?.kind === "pointer" || (event.type !== "dragstart" && suppressHandleClick)) {
       event.preventDefault()
       event.stopImmediatePropagation()
       if (event.type === "click") suppressHandleClick = false

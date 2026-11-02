@@ -78,17 +78,71 @@ try {
           window.__ham124Events = []
           window.__ham124Vibrations = []
           for (const type of ["touchstart", "touchmove", "touchend", "pointerdown", "pointermove", "pointerup", "pointercancel", "dragstart", "contextmenu", "selectstart"])
-            document.addEventListener(type, e => window.__ham124Events.push({ type: e.type, trusted: e.isTrusted, cancelable: e.cancelable }), { capture: true })
+            document.addEventListener(type, e => { if (e.type !== "contextmenu" || e.isTrusted) window.__ham124Events.push({ type: e.type, trusted: e.isTrusted, cancelable: e.cancelable }) }, { capture: true })
           Object.defineProperty(navigator, "vibrate", { configurable: true, value: ms => { window.__ham124Vibrations.push(ms); return false } })
         })
         const cdp = await context.newCDPSession(page)
-        const first = await page.locator(".hn-editor-content > p").first().boundingBox()
-        const third = await page.locator(".hn-editor-content > p").nth(2).boundingBox()
-        const x = first.x + 12, y = first.y + 10
+        let x, y, third
+        const positionTarget = async () => {
+          // Focusing another paragraph may scroll; measure the actual touch target anew.
+          await page.keyboard.press("Escape")
+          await page.locator(".hn-editor-content > p").first().evaluate(el => el.scrollIntoView({ block: "center", behavior: "instant" }))
+          const first = await page.locator(".hn-editor-content > p").first().boundingBox()
+          third = await page.locator(".hn-editor-content > p").nth(2).boundingBox()
+          x = first.x + 12
+          y = first.y + 10
+          assert.equal(await page.evaluate(([x, y]) => document.elementFromPoint(x, y)?.closest("p")?.textContent, [x, y]), "HAM124 first paragraph", "touch hit target")
+        }
+        const focusOtherBlock = async () => {
+          await page.keyboard.press("Escape")
+          await page.locator(".hn-editor-content > p").nth(1).click({ position: { x: 12, y: 10 } })
+          await page.keyboard.press("Home")
+          await page.waitForFunction(() => {
+            const selection = getSelection()
+            const node = selection?.anchorNode
+            const element = node?.nodeType === Node.TEXT_NODE ? node.parentElement : node
+            return selection?.isCollapsed && element?.closest("p")?.textContent === "HAM124 second paragraph"
+          })
+        }
         const touch = async (type, points) => cdp.send("Input.dispatchTouchEvent", { type, touchPoints: points.map(([x, y]) => ({ x, y, id: 1 })) })
+        // Synthetic contextmenu probes test cancellation only; all touch input is trusted CDP.
+        const contextMenu = (index = 0) => page.locator(".hn-editor-content > p").nth(index).evaluate(el => {
+          const event = new MouseEvent("contextmenu", { bubbles: true, cancelable: true })
+          el.dispatchEvent(event)
+          return event.defaultPrevented
+        })
+        const contextMenus = { probe: "synthetic cancelable MouseEvent; not an OS menu observation" }
+        await page.locator(".hn-editor-content > p").first().click({ position: { x: 12, y: 10 } })
+        await positionTarget()
         await touch("touchStart", [[x, y]])
+        contextMenus.focusedPending = await contextMenu()
+        assert.equal(contextMenus.focusedPending, false)
+        await page.waitForTimeout(550)
+        assert.equal(await page.locator(".hn-editor-block-dragging").count(), 0, "focused block retains native hold")
+        contextMenus.focusedHeld = await contextMenu()
+        assert.equal(contextMenus.focusedHeld, false)
+        assert.deepEqual(await page.evaluate(() => window.__ham124Vibrations), [])
+        const nativeSelectionAfterHold = await page.evaluate(() => getSelection().toString())
+        await touch("touchEnd", [])
+        // Other block is focused at pointerdown; natural focus change must not cancel drag intent.
+        await focusOtherBlock()
+        await positionTarget()
+        await touch("touchStart", [[x, y]])
+        contextMenus.pending = await contextMenu()
+        contextMenus.pendingOtherBlock = await contextMenu(1)
+        assert.equal(contextMenus.pending, true)
+        assert.equal(contextMenus.pendingOtherBlock, false)
+        await touch("touchCancel", [])
+        contextMenus.cancelledPending = await contextMenu()
+        assert.equal(contextMenus.cancelledPending, false)
+        await focusOtherBlock()
+        await positionTarget()
+        await touch("touchStart", [[x, y]])
+        assert.equal(await contextMenu(), true)
         await page.waitForTimeout(550) // Protocol gesture hold, not a CI/background poll.
         assert.equal(await page.locator(".hn-editor-block-dragging").count(), 1, `body hold ${width}/${theme}`)
+        contextMenus.active = await contextMenu()
+        assert.equal(contextMenus.active, true)
         await touch("touchMove", [[x, third.y + third.height - 2]])
         await page.waitForTimeout(100)
         await touch("touchEnd", [])
@@ -102,11 +156,10 @@ try {
         // Independent undo followed by native scrolling before 500ms; no sorting or vibration.
         await page.keyboard.press("Control+z")
         assert.equal((await order(page))[0], "HAM124 first paragraph")
-        await page.locator(".hn-editor-content > p").first().scrollIntoViewIfNeeded()
-        await page.locator(".hn-editor-content > p").first().click({ position: { x: 12, y: 10 } })
-        await page.keyboard.press("Escape")
+        await focusOtherBlock()
+        await positionTarget()
         const start = await page.locator(".hn-editor-content > p").first().boundingBox()
-        const beforeScroll = await page.locator(".demo-note-preview > .hn-editor").evaluate(el => el.scrollTop)
+        const beforeScroll = await page.locator(".demo-note-preview > .hn-editor").evaluate(el => ({ editor: el.scrollTop, page: scrollY }))
         await touch("touchStart", [[start.x + 15, start.y + 24]])
         await touch("touchMove", [[start.x + 15, start.y - 50]])
         await touch("touchMove", [[start.x + 15, start.y - 100]])
@@ -115,8 +168,11 @@ try {
         assert.equal((await order(page))[0], "HAM124 first paragraph")
         assert.equal(await page.locator(".hn-editor-block-dragging").count(), 0)
         assert.deepEqual(await page.evaluate(() => window.__ham124Vibrations), [10])
-        const afterScroll = await page.locator(".demo-note-preview > .hn-editor").evaluate(el => el.scrollTop)
-        assert(afterScroll > beforeScroll, "native touch scroll remains available")
+        const afterScroll = await page.locator(".demo-note-preview > .hn-editor").evaluate(el => ({ editor: el.scrollTop, page: scrollY }))
+        const scrollDelta = { editor: afterScroll.editor - beforeScroll.editor, page: afterScroll.page - beforeScroll.page }
+        assert(scrollDelta.editor > 0 || scrollDelta.page > 0, "native touch scroll remains available")
+        contextMenus.scrollCancelled = await contextMenu()
+        assert.equal(contextMenus.scrollCancelled, false)
         // Long block, visible viewport resize (same layout width), and offscreen anchor.
         const long = page.locator(".hn-editor-content > p").nth(3)
         await long.click({ position: { x: 10, y: 10 } })
@@ -131,7 +187,7 @@ try {
         await page.locator(".demo-note-preview > .hn-editor").evaluate(el => { el.scrollTop = el.scrollHeight })
         await page.waitForTimeout(50)
         assert.equal(await page.locator(toolbarSelector).count(), 0, "offscreen anchor closes toolbar")
-        results.push({ width, theme, layout: "mobile", result: "PASS", trustedTouch: events, scrollDelta: afterScroll - beforeScroll, vibration: "stubbed false return, [10]; no hardware claim" })
+        results.push({ width, theme, layout: "mobile", result: "PASS", trustedTouch: events, contextMenus, focusedHold: { drag: false, vibration: false, nativeSelectionAfterHold }, scrollDelta, vibration: "stubbed false return, [10]; no hardware claim" })
       } else {
         // Actual mouse drag creates a native TextSelection, then all three marks.
         const first = await page.locator(".hn-editor-content > p").first().boundingBox()
@@ -164,7 +220,7 @@ try {
       assert.deepEqual(errors, [], "browser errors")
     } catch (error) {
       await page.screenshot({ path: `evidence/ham124-failure-${width}-${theme}.png` })
-      console.log("failure context", await page.evaluate(() => ({ focus: document.activeElement?.outerHTML.slice(0, 200), toolbar: document.querySelector(".hn-editor-interaction-toolbar")?.outerHTML, scrollY, viewport: { width: innerWidth, height: innerHeight } })))
+      console.log("failure context", await page.evaluate(() => ({ focus: document.activeElement?.outerHTML.slice(0, 200), selection: { text: getSelection()?.toString(), anchor: getSelection()?.anchorNode?.parentElement?.outerHTML }, events: window.__ham124Events?.slice(-12), toolbar: document.querySelector(".hn-editor-interaction-toolbar")?.outerHTML, scrollY, viewport: { width: innerWidth, height: innerHeight } })))
       throw error
     } finally {
       await context.tracing.stop({ path: `evidence/ham124-${width}-${theme}-trace.zip` })
@@ -173,7 +229,7 @@ try {
     console.log("PASS", width, theme)
   }
   const report = { browser: browser.version(), command: "node scripts/check-mobile-interactions.mjs", results,
-    limitations: "Web Chromium touch emulation with trusted touch input; viewport resize approximates keyboard occlusion. No physical device, OS keyboard, or hardware vibration evidence." }
+    limitations: "Web Chromium touch emulation with trusted touch input; viewport resize approximates keyboard occlusion. Contextmenu cancellation uses explicitly synthetic probes, not OS menu observation. Focused hold checks non-interference; native selection text is recorded as observed. No physical device, OS keyboard, or hardware vibration evidence." }
   writeFileSync("evidence/ham124-browser-results.json", JSON.stringify(report, null, 2) + "\n")
   console.log(JSON.stringify({ browser: report.browser, cases: results.length, result: "PASS" }))
 } finally { await browser?.close(); await server.close() }

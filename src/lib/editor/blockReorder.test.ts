@@ -1067,6 +1067,107 @@ describe("mobile body hold and cancellation contract", () => {
   })
   afterEach(() => { current.destroy(); vi.unstubAllGlobals() })
   const down = () => blockDoms(current)[0]!.dispatchEvent(pointerEvent("pointerdown"))
+  const contextMenu = (block = blockDoms(current)[0]!) => {
+    const event = new window.MouseEvent("contextmenu", { bubbles: true, cancelable: true })
+    block.dispatchEvent(event)
+    return event
+  }
+  it.each(["touch", "pen"])("leaves a focused block's collapsed cursor and native selection alone (%s)", pointerType => {
+    const { editor } = current
+    editor.view.focus()
+    editor.commands.setTextSelection(1)
+    expect(editor.view.hasFocus()).toBe(true)
+    const original = editor.state.doc
+    const update = vi.fn()
+    editor.on("update", update)
+    const capture = vi.fn()
+    editor.view.dom.setPointerCapture = capture
+    blockDoms(current)[0]!.dispatchEvent(pointerEvent("pointerdown", { pointerType }))
+    expect(contextMenu().defaultPrevented).toBe(false)
+    vi.advanceTimersByTime(500)
+    expect(active()).toBeNull()
+    expect(capture).not.toHaveBeenCalled()
+    // A DOM range representing native selection must not be cleared by a drag timer.
+    const range = document.createRange()
+    range.selectNodeContents(blockDoms(current)[0]!)
+    window.getSelection()!.removeAllRanges()
+    window.getSelection()!.addRange(range)
+    vi.advanceTimersByTime(500)
+    expect(window.getSelection()!.toString()).toBe("a")
+    expect(contextMenu().defaultPrevented).toBe(false)
+    document.dispatchEvent(pointerEvent("pointerup", { clientY: 260 }))
+    expect(editor.state.doc).toBe(original)
+    expect(update).not.toHaveBeenCalled()
+    expect(undoDepth(editor.state)).toBe(0)
+  })
+  it("drags an unfocused target even when another block has focus and pointerdown then naturally focuses the target", () => {
+    const { editor } = current
+    editor.view.focus()
+    editor.commands.setTextSelection(4) // second paragraph, different from the hold target
+    down()
+    // Simulate the pointerdown default action after our capture listener decided intent.
+    editor.commands.setTextSelection(1)
+    vi.advanceTimersByTime(500)
+    expect(active()).not.toBeNull()
+    document.dispatchEvent(pointerEvent("pointerup", { clientY: 260 }))
+    expect(topLevelTexts(current)).toEqual(["b", "c", "a"])
+  })
+  it("a blurred view's retained cursor does not prevent dragging that block", () => {
+    current.editor.view.focus()
+    current.editor.commands.setTextSelection(1)
+    current.editor.view.dom.blur()
+    expect(current.editor.view.hasFocus()).toBe(false)
+    down(); vi.advanceTimersByTime(500)
+    expect(active()).not.toBeNull()
+  })
+  it("treats text nested in the focused top-level block as native selection", () => {
+    current.destroy()
+    current = sessionFor(nestedDocument())
+    current.editor.view.focus()
+    let position = 0
+    current.editor.state.doc.descendants((node, pos) => { if (node.isText && node.text === "nested") position = pos })
+    current.editor.commands.setTextSelection(position)
+    const nested = current.editor.view.dom.querySelector("li li p")!
+    nested.dispatchEvent(pointerEvent("pointerdown"))
+    vi.advanceTimersByTime(500)
+    expect(active()).toBeNull()
+    const event = new window.MouseEvent("contextmenu", { bubbles: true, cancelable: true })
+    nested.dispatchEvent(event)
+    expect(event.defaultPrevented).toBe(false)
+  })
+  it("suppresses target contextmenu immediately and at 499ms, then throughout active dragging", () => {
+    current.editor.view.focus()
+    current.editor.commands.setTextSelection(4)
+    expect(contextMenu().defaultPrevented).toBe(false)
+    down()
+    expect(contextMenu().defaultPrevented).toBe(true)
+    expect(contextMenu(blockDoms(current)[1]).defaultPrevented).toBe(false)
+    const click = new window.MouseEvent("click", { bubbles: true, cancelable: true })
+    blockDoms(current)[0]!.dispatchEvent(click)
+    expect(click.defaultPrevented).toBe(false)
+    vi.advanceTimersByTime(499)
+    expect(contextMenu().defaultPrevented).toBe(true)
+    vi.advanceTimersByTime(1)
+    expect(active()).not.toBeNull()
+    expect(contextMenu().defaultPrevented).toBe(true)
+    document.dispatchEvent(pointerEvent("pointercancel"))
+    current.editor.commands.setTextSelection(1)
+    down() // next gesture on the focused block clears only residual suppression
+    expect(contextMenu().defaultPrevented).toBe(false)
+    vi.advanceTimersByTime(500)
+    expect(active()).toBeNull()
+  })
+  it.each(["up", "cancel", "move", "second"])("releases pending contextmenu suppression after %s", kind => {
+    down()
+    expect(contextMenu().defaultPrevented).toBe(true)
+    if (kind === "up") document.dispatchEvent(pointerEvent("pointerup"))
+    if (kind === "cancel") document.dispatchEvent(pointerEvent("pointercancel"))
+    if (kind === "move") document.dispatchEvent(pointerEvent("pointermove", { clientX: 11 }))
+    if (kind === "second") document.body.dispatchEvent(pointerEvent("pointerdown", { pointerId: 2 }))
+    expect(contextMenu().defaultPrevented).toBe(false)
+    vi.advanceTimersByTime(500)
+    expect(contextMenu().defaultPrevented).toBe(false)
+  })
   it("activates at 500ms with exactly 10px tolerance and uses final up coordinates", () => {
     const vibrate = vi.fn(() => true)
     Object.defineProperty(navigator, "vibrate", { configurable: true, value: vibrate })
