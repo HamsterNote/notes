@@ -107,7 +107,7 @@ describe("HNN v1 codec", () => {
     expect([...HNN_NODE_TYPES].sort()).toEqual([
       "blockquote", "bulletList", "callout", "card", "codeBlock", "collapsible", "directory", "doc", "drawing", "externalItem", "formula", "hardBreak", "heading", "horizontalRule", "inlineFormula", "listItem", "mention", "orderedList", "paragraph", "picture", "resource", "table", "tableCell", "tableHeader", "tableRow", "taskItem", "taskList", "text"
     ])
-    expect([...HNN_MARK_TYPES].sort()).toEqual(["bold", "code", "italic", "link", "strike"])
+    expect([...HNN_MARK_TYPES].sort()).toEqual(["bold", "code", "italic", "link", "strike", "underline"])
     expect(hnnSchema.topNodeType.name).toBe("doc")
   })
 

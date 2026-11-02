@@ -1652,7 +1652,6 @@ function buildHnnExtensions(includeUndoRedo: boolean): Extensions {
       gapcursor: false,
       // codec schema 不需要 history；编辑会话仅通过此封闭装配启用官方 UndoRedo。
       undoRedo: includeUndoRedo ? {} : false,
-      underline: false,
       trailingNode: false
     }),
     TaskList,

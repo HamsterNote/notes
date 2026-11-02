@@ -1,3 +1,4 @@
+import { editorLayout } from "./interactionLayout"
 import type { Editor } from "@tiptap/core"
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model"
 import { closeHistory } from "@tiptap/pm/history"
@@ -14,9 +15,9 @@ import { Decoration, DecorationSet, type EditorView } from "@tiptap/pm/view"
  *   阶段 preventDefault + stopImmediatePropagation，PM 原生 drop 不会二次执行；
  *   另有插件 handleDOMEvents.drop/dragover 双保险：仅认领携带重排 MIME 的事件，
  *   外部图片/文件 drop 不携带此 MIME，原样交还 PM，未来图片 drop 不会双写。
- * - 移动端：手柄 Pointer Events 长按 500ms 启动；长按阈值前的位移（>10px）、
+ * - 移动布局：正文触摸/笔 Pointer Events 长按 500ms 启动；长按前位移（>10px）、
  *   提前抬起、pointercancel、卸载都会取消挂起手势且不产生任何事务，原生滚动保留。
- *   长按未激活的快速点按（click）不拖拽，改为打开块操作菜单（DESIGN.md §9）。
+ *   长按未激活时保留自然点击和聚焦，移动工具栏提供块操作（DESIGN.md §6）。
  * - 手柄同时是块操作菜单入口（D9/任务 7.5）：可聚焦按钮（role/tabindex/aria），
  *   点击、Enter/Space/ArrowDown 打开菜单，菜单内提供键盘可用的上移/下移（与拖拽
  *   共享同一提交入口）；菜单打开期间手柄保持 token 激活态，关闭后 aria-expanded
@@ -181,6 +182,7 @@ type LiveSpan = { top: number; bottom: number; dom: HTMLElement | null }
  */
 export function installBlockReorder(editor: Editor, options: BlockReorderOptions = {}): () => void {
   const view = editor.view
+  const layout = editorLayout()
   const pluginKey = new PluginKey<DecorationSet>("hnnBlockReorder")
   let gesture: ActiveGesture | null = null
   let pendingHold: PendingHold | null = null
@@ -217,7 +219,7 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
    * 再次激活同一手柄为切换关闭（焦点归还手柄），激活另一手柄则先关旧菜单。
    */
   const openHandleMenu = (handle: HTMLElement, getPos: () => number | undefined): void => {
-    if (!view.editable || !options.openMenu) return
+    if (!view.editable || layout.isMobile() || !options.openMenu) return
     if (menuClose) {
       const sameAnchor = menuAnchor === handle
       closeHandleMenu(sameAnchor)
@@ -354,7 +356,7 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
 
   const onTouchMove = (event: Event): void => {
     // 激活后阻止本次触摸手势的后续原生滚动（非 passive 才能生效）。
-    event.preventDefault()
+    if (gesture?.kind === "pointer") event.preventDefault()
   }
 
   const addNativeListeners = (): void => {
@@ -372,7 +374,6 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
     document.addEventListener("pointerup", onActivePointerUp)
     document.addEventListener("pointercancel", onActivePointerCancel)
     document.addEventListener("selectstart", onSelectStart, true)
-    document.addEventListener("touchmove", onTouchMove, { passive: false })
   }
 
   const removeActivePointerListeners = (): void => {
@@ -380,7 +381,6 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
     document.removeEventListener("pointerup", onActivePointerUp)
     document.removeEventListener("pointercancel", onActivePointerCancel)
     document.removeEventListener("selectstart", onSelectStart, true)
-    document.removeEventListener("touchmove", onTouchMove)
   }
 
   function finishGesture(commit: boolean): void {
@@ -391,7 +391,7 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
     removeActivePointerListeners()
     // 手柄 --dragging 直写 widget DOM：PM 对 widget 内部 mutation 一律 ignore，
     // 不触发重绘（内容 DOM 已不再有任何手写 class，重绘路径整体消失）。
-    active.handle.classList.remove(HANDLE_DRAGGING_CLASS)
+    if (active.handle.classList.contains(HANDLE_CLASS)) active.handle.classList.remove(HANDLE_DRAGGING_CLASS)
     // 先清视觉装饰（meta-only，不碰 doc/selection/history），再按需提交重排。
     setDragVisual(null)
     if (active.kind === "pointer" && active.pointerId !== null) {
@@ -402,7 +402,7 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
       }
       // pointer drop 后浏览器会补发一个 click：吃掉它避免误开菜单；
       // pointercancel 不产生 click，标志立即复位。
-      suppressHandleClick = commit
+      suppressHandleClick = true
     }
     if (commit && active.boundary !== null) {
       reorderTopLevelBlock(view, active.fromIndex, active.boundary)
@@ -456,6 +456,7 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
     const active = gesture
     if (!active || active.kind !== "pointer") return
     if ((event as ReorderPointerEvent).pointerId !== active.pointerId) return
+    updateBoundary(active, (event as ReorderPointerEvent).clientY)
     finishGesture(true)
   }
 
@@ -474,7 +475,9 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
     document.removeEventListener("pointermove", onPendingPointerMove)
     document.removeEventListener("pointerup", onPendingPointerUp)
     document.removeEventListener("pointercancel", onPendingPointerCancel)
-    if (uninstalled) return
+    if (uninstalled || !view.editable || editor.view.composing) return
+    closeHandleMenu(false)
+    view.dom.dispatchEvent(new Event("hnn-reorder-start"))
     gesture = {
       kind: "pointer",
       pointerId: pending.pointerId,
@@ -482,7 +485,7 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
       handle: pending.handle,
       boundary: pending.fromIndex
     }
-    pending.handle.classList.add(HANDLE_DRAGGING_CLASS)
+    if (pending.handle.classList.contains(HANDLE_CLASS)) pending.handle.classList.add(HANDLE_DRAGGING_CLASS)
     setDragVisual({ fromIndex: pending.fromIndex, boundary: null })
     // 激活后清除原生文本选区，剩余手势期间禁止再生成（DESIGN.md §13）。
     window.getSelection()?.removeAllRanges()
@@ -491,11 +494,12 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
     } catch {
       // jsdom 无 pointer capture；真实浏览器对失效 pointer 可能抛错，均不致命。
     }
+    try { navigator.vibrate?.(10) } catch { /* Optional browser enhancement. */ }
     addActivePointerListeners()
   }
 
   const onHandleDragStart = (event: ReorderDragEvent, handle: HTMLElement, getPos: () => number | undefined): void => {
-    if (!view.editable || gesture) {
+    if (!view.editable || layout.isMobile() || gesture) {
       event.preventDefault()
       return
     }
@@ -536,8 +540,8 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
 
   const onHandlePointerDown = (event: ReorderPointerEvent, handle: HTMLElement, getPos: () => number | undefined): void => {
     // 鼠标走原生 draggable；这里只接管触摸/笔。
-    if (event.pointerType === "mouse") return
-    if (!view.editable || gesture || pendingHold) return
+    if (event.pointerType !== "touch" && event.pointerType !== "pen") return
+    if (!view.editable || editor.view.composing || gesture || pendingHold) return
     const fromIndex = resolveFromIndex(getPos)
     if (fromIndex < 0) return
     pendingHold = {
@@ -552,6 +556,56 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
     document.addEventListener("pointerup", onPendingPointerUp)
     document.addEventListener("pointercancel", onPendingPointerCancel)
   }
+
+  const onBodyPointerDown = (event: Event): void => {
+    const pointer = event as ReorderPointerEvent
+    // The second contact cancels the entire gesture, even outside this editor.
+    if ((pendingHold && pendingHold.pointerId !== pointer.pointerId) ||
+        (gesture?.kind === "pointer" && gesture.pointerId !== pointer.pointerId)) {
+      cancelPendingHold()
+      finishGesture(false)
+      return
+    }
+    // A fresh gesture must not inherit suppression from an earlier cancelled pointer.
+    if (!pendingHold && !gesture) suppressHandleClick = false
+    if (!layout.isMobile() || !view.editable || view.composing || !view.state.selection.empty ||
+        !window.getSelection()?.isCollapsed) return
+    const target = event.target
+    if (!(target instanceof Element) || !view.dom.contains(target) ||
+        target.closest('a,button,input,textarea,select,[role="button"],[contenteditable="false"],.hn-editor-block-handle')) return
+    const index = topLevelChildren(view.state.doc).findIndex((_node, i) => blockDomAt(i)?.contains(target))
+    const child = topLevelChildren(view.state.doc)[index]
+    const dom = blockDomAt(index)
+    if (!child || !dom) return
+    // Capture on the stable editor root. Never mutate the content node as if it
+    // were a widget handle: PM can replace it, losing the browser touch target.
+    onHandlePointerDown(pointer, view.dom, () => child.offset)
+  }
+  const suppressResidual = (event: Event): void => {
+    if (gesture?.kind === "pointer" || (event.type !== "dragstart" && suppressHandleClick)) {
+      event.preventDefault()
+      event.stopImmediatePropagation()
+      if (event.type === "click") suppressHandleClick = false
+    }
+  }
+  // Register before touchstart: Chromium decides whether a gesture can block scrolling
+  // at its start. A listener added after the 500ms hold is too late and gets pointercancel.
+  // Pending gestures remain native because onTouchMove only cancels an active drag.
+  document.addEventListener("touchmove", onTouchMove, { passive: false })
+  document.addEventListener("pointerdown", onBodyPointerDown, true)
+  view.dom.addEventListener("dragstart", suppressResidual, true)
+  view.dom.addEventListener("click", suppressResidual, true)
+  view.dom.addEventListener("contextmenu", suppressResidual, true)
+  const cancelInteraction = (): void => {
+    cancelPendingHold()
+    finishGesture(false)
+    closeHandleMenu(false)
+    for (const handle of view.dom.querySelectorAll<HTMLElement>(".hn-editor-block-handle")) {
+      handle.tabIndex = layout.isMobile() ? -1 : 0
+      handle.setAttribute("aria-hidden", String(layout.isMobile()))
+    }
+  }
+  const removeLayoutListener = layout.subscribe(cancelInteraction)
 
   const createHandle = (_view: EditorView, getPos: () => number | undefined): HTMLElement => {
     const handle = document.createElement("span")
@@ -662,6 +716,11 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
       }
       const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(scheduleLayout)
       const update = (): void => {
+        if (!view.editable) cancelInteraction()
+        for (const handle of view.dom.querySelectorAll<HTMLElement>(".hn-editor-block-handle")) {
+          handle.tabIndex = layout.isMobile() ? -1 : 0
+          handle.setAttribute("aria-hidden", String(layout.isMobile()))
+        }
         const elements = new Set<Element>([view.dom, ...Array.from(view.dom.children)
           .filter((element) => !element.classList.contains(HANDLE_CLASS))])
         for (const element of observed) {
@@ -746,8 +805,15 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
   editor.on("update", onExternalDocChange)
 
   return () => {
+    cancelInteraction()
     uninstalled = true
     editor.off("update", onExternalDocChange)
+    removeLayoutListener()
+    document.removeEventListener("touchmove", onTouchMove)
+    document.removeEventListener("pointerdown", onBodyPointerDown, true)
+    view.dom.removeEventListener("dragstart", suppressResidual, true)
+    view.dom.removeEventListener("click", suppressResidual, true)
+    view.dom.removeEventListener("contextmenu", suppressResidual, true)
     cancelPendingHold()
     finishGesture(false)
     closeHandleMenu(false)

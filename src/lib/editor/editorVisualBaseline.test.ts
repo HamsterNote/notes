@@ -208,17 +208,16 @@ describe("7.5 基线：桌面 handle 与重排预览（D10 优先于 DESIGN.md �
     expect(indicator).toContain("var(--hn-theme-soft")
   })
 
-  it("840px 紧凑断点（含边界）内 handle 常显半透明：触屏唯一重排入口", () => {
+  it("840px 紧凑断点（含边界）隐藏 handle 和命中区域", () => {
     const block = compactMediaBlock(css, ".hn-editor-block-handle")
     const handleRule = ruleBody(block, ".hn-editor-content > .hn-editor-block-handle")
-    expect(handleRule).toContain("opacity: 0.55")
-    expect(handleRule).toContain("pointer-events: auto")
+    expect(handleRule).toContain("display: none")
     // 紧凑断点收进 1.5rem 内边距
     const shellRule = ruleBody(block, ".hn-editor {")
     expect(shellRule).toContain("1.5rem 1.5rem 2rem")
   })
 
-  it("重排实现是桌面原生 draggable + 移动端手柄 500ms 长按（非 DESIGN 旧整行长按）", () => {
+  it("重排实现是桌面原生 draggable + 移动端正文 500ms 长按", () => {
     expect(blockReorderSource).toContain("HNN_REORDER_HOLD_MS = 500")
     expect(blockReorderSource).toContain('handle.setAttribute("draggable", "true")')
     expect(blockReorderSource).toContain('handle.setAttribute("data-drag-handle", "")')

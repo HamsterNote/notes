@@ -750,7 +750,7 @@ describe("移动端 Pointer Events 手柄长按 500ms", () => {
       document.dispatchEvent(pointerEvent("pointermove", { clientY: 260 }))
       expect(blocks[2]!.classList.contains("hn-editor-block-drop-after")).toBe(true)
 
-      document.dispatchEvent(pointerEvent("pointerup"))
+      document.dispatchEvent(pointerEvent("pointerup", { clientY: 260 }))
       expect(topLevelTexts(session)).toEqual(["b", "c", "a"])
       expect(handle.classList.contains("hn-editor-block-handle--dragging")).toBe(false)
       expect(blocks[2]!.classList.contains("hn-editor-block-drop-after")).toBe(false)
@@ -982,7 +982,7 @@ describe("拖拽视觉：PM 装饰持续性与事务零扰动（bug-7.5-2 回归
       expect(blocks[2]!.classList.contains("hn-editor-block-drop-after")).toBe(true)
       expect(undoDepth(session.editor.state)).toBe(undoDepthBefore)
 
-      document.dispatchEvent(pointerEvent("pointerup"))
+      document.dispatchEvent(pointerEvent("pointerup", { clientY: 260 }))
       expect(topLevelTexts(session)).toEqual(["b", "c", "a"])
       expect(undoDepth(session.editor.state)).toBe(undoDepthBefore + 1)
       expect(session.undo()).toBe(true)
@@ -1045,5 +1045,96 @@ describe("重排持久化", () => {
     } finally {
       session.destroy()
     }
+  })
+})
+
+describe("mobile body hold and cancellation contract", () => {
+  const active = () => document.querySelector(".hn-editor-block-dragging")
+  let current: EditorSession
+  let media: EventTarget
+  let mobile: boolean
+  beforeEach(() => {
+    vi.useFakeTimers()
+    mobile = true
+    media = new EventTarget()
+    vi.stubGlobal("matchMedia", () => ({ get matches() { return mobile },
+      addEventListener: media.addEventListener.bind(media), removeEventListener: media.removeEventListener.bind(media) }))
+    window.getSelection()?.removeAllRanges()
+    current = sessionFor(paragraphsDocument("a", "b", "c"))
+    blockDoms(current).forEach((block, index) => {
+      vi.spyOn(block, "getBoundingClientRect").mockReturnValue(new DOMRect(0, index * 100, 200, 80))
+    })
+  })
+  afterEach(() => { current.destroy(); vi.unstubAllGlobals() })
+  const down = () => blockDoms(current)[0]!.dispatchEvent(pointerEvent("pointerdown"))
+  it("activates at 500ms with exactly 10px tolerance and uses final up coordinates", () => {
+    const vibrate = vi.fn(() => true)
+    Object.defineProperty(navigator, "vibrate", { configurable: true, value: vibrate })
+    down()
+    vi.advanceTimersByTime(499)
+    expect(active()).toBeNull()
+    document.dispatchEvent(pointerEvent("pointermove", { clientX: 10 }))
+    vi.advanceTimersByTime(1)
+    expect(active()).not.toBeNull()
+    expect(vibrate).toHaveBeenCalledExactlyOnceWith(10)
+    // No pointermove at the destination: the up event is authoritative.
+    document.dispatchEvent(pointerEvent("pointerup", { clientY: 260 }))
+    expect(topLevelTexts(current)).toEqual(["b", "c", "a"])
+    expect(topLevelNodeIds(current)).toEqual([ids[1], ids[2], ids[0]])
+    expect(undoDepth(current.editor.state)).toBe(1)
+    expect(current.undo()).toBe(true)
+    expect(topLevelTexts(current)).toEqual(["a", "b", "c"])
+    expect(active()).toBeNull()
+    Reflect.deleteProperty(navigator, "vibrate")
+  })
+  it.each(["move", "up", "cancel", "second"])("pending %s cancels with zero document changes", kind => {
+    const update = vi.fn()
+    current.editor.on("update", update)
+    down()
+    if (kind === "move") document.dispatchEvent(pointerEvent("pointermove", { clientX: 10.01 }))
+    if (kind === "up") document.dispatchEvent(pointerEvent("pointerup"))
+    if (kind === "cancel") document.dispatchEvent(pointerEvent("pointercancel"))
+    if (kind === "second") document.body.dispatchEvent(pointerEvent("pointerdown", { pointerId: 2 }))
+    vi.advanceTimersByTime(600)
+    expect(active()).toBeNull()
+    expect(update).not.toHaveBeenCalled()
+  })
+  it.each(["missing", "false", "throws"])("vibration %s never blocks dragging", kind => {
+    const value = kind === "missing" ? undefined : vi.fn(() => { if (kind === "throws") throw Error("denied"); return false })
+    Object.defineProperty(navigator, "vibrate", { configurable: true, value })
+    down(); vi.advanceTimersByTime(500)
+    expect(active()).not.toBeNull()
+    document.dispatchEvent(pointerEvent("pointerup", { clientY: 260 }))
+    expect(topLevelTexts(current)).toEqual(["b", "c", "a"])
+    Reflect.deleteProperty(navigator, "vibrate")
+  })
+  it.each(["cancel", "second", "freeze", "breakpoint", "doc", "unmount", "same"])("active %s clears visuals and never reorders", kind => {
+    down(); vi.advanceTimersByTime(500)
+    expect(active()).not.toBeNull()
+    if (kind === "cancel") document.dispatchEvent(pointerEvent("pointercancel"))
+    if (kind === "second") document.body.dispatchEvent(pointerEvent("pointerdown", { pointerId: 2 }))
+    if (kind === "freeze") current.editor.setEditable(false)
+    if (kind === "breakpoint") { mobile = false; media.dispatchEvent(new Event("change")) }
+    if (kind === "doc") current.editor.commands.insertContentAt(1, "X")
+    if (kind === "unmount") current.destroy()
+    document.dispatchEvent(pointerEvent("pointerup", { clientY: kind === "same" ? 0 : 260 }))
+    expect(active()).toBeNull()
+    if (kind !== "unmount") expect(topLevelTexts(current)).toEqual([kind === "doc" ? "Xa" : "a", "b", "c"])
+  })
+  it("prioritizes existing ranges, composition and interactive descendants", () => {
+    const { editor } = current
+    editor.commands.setTextSelection({ from: 1, to: 2 })
+    down(); vi.advanceTimersByTime(500)
+    expect(active()).toBeNull()
+    editor.commands.setTextSelection(1)
+    Object.defineProperty(editor.view, "composing", { configurable: true, value: true })
+    down(); vi.advanceTimersByTime(500)
+    expect(active()).toBeNull()
+    Object.defineProperty(editor.view, "composing", { configurable: true, value: false })
+    const button = document.createElement("button")
+    blockDoms(current)[0]!.appendChild(button)
+    button.dispatchEvent(pointerEvent("pointerdown")); vi.advanceTimersByTime(500)
+    expect(active()).toBeNull()
+    button.remove()
   })
 })

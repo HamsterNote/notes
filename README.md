@@ -229,6 +229,14 @@ Controller 仅公开状态、身份和判别结果，不公开 schema/Editor/tra
 历史选择性撤销探针单独运行 `corepack yarn test --config vitest.historical.config.ts`，保留一个已知失败；
 它不属于当前 A 契约，不得把该非零退出报告为全量通过。
 
+### 移动交互与下划线兼容性
+
+布局宽度 ≤840px 时隐藏 handle，正文支持 500ms 长按顶层块排序；移动聚焦块下方显示中文横向操作工具栏，>840px 的非空文字选区显示加粗、斜体、下划线工具栏。长按前位移超过 10px 会保留原生滚动；震动仅为浏览器可用时的一次 10ms 增强。
+
+下划线是封闭 schema 中的持久 `underline` mark，与加粗/斜体一起支持 HNN、HTML 剪贴板、共享历史及预算校验。HNN 外壳仍为 `schemaVersion:1`；既有不含下划线的文档继续可读，**旧 notes 消费者会拒绝含 underline 的新文档，需先升级消费者，不能直接用旧库无损回退**。Markdown 使用已有 `hamster-note-json-b64` 围栏保存下划线，不新增方言；默认保存流程不变。
+
+Web 浏览器验收：`node scripts/check-mobile-interactions.mjs`（需已安装 Playwright Chromium）。脚本自动启动/关闭本仓库 Demo，覆盖 320/390/840/841/1440px、明暗主题、鼠标、键盘和浏览器真实触摸事件；结果、截图和 trace 写入 `evidence/ham124-*`。触摸来自 Chromium CDP，事件 `isTrusted=true`；视口缩高近似键盘遮挡，震动调用为降级契约测试，不是实体设备、系统软键盘或硬件震动证据。本 change 不含原生构建、宿主升级或发布。
+
 ### HNN 文档格式
 
 ```ts

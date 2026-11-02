@@ -1,3 +1,4 @@
+import { installInteractionToolbar } from "./interactionToolbar"
 import { Editor } from "@tiptap/core"
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model"
 import { encodeHnn, decodeHnn, type HnnDocument } from "../hnn/codec"
@@ -57,6 +58,7 @@ export class EditorSession {
   #pending: PendingSave | undefined
   #listeners = new Set<Listener>()
   #removeClipboardHistoryBoundary: (() => void) | undefined
+  #removeInteractionToolbar: (() => void) | undefined
   #removeBlockReorder: (() => void) | undefined
   #pictureUpload: PictureUploadInstaller | undefined
   // 上传 handler 独立成字段：installer 闭包运行期读取，同 key 更新 callback 时未来请求
@@ -116,6 +118,10 @@ export class EditorSession {
         })
         return handle ? (restoreFocus?: boolean) => handle.close(restoreFocus) : undefined
       }
+    })
+    this.#removeInteractionToolbar = installInteractionToolbar(this.editor, {
+      canUploadPicture: () => this.#pictureUpload !== undefined,
+      enqueuePictures: (files, position) => this.#pictureUpload?.enqueue(files, position) ?? []
     })
     // 初始即带上传回调的会话直接安装（任务 6.7）；构造后同 key 新增/更新/移除回调由
     // configurePictureUpload 驱动。与重排的 drop 所有权互斥：重排只认领自定义 MIME 的
@@ -339,6 +345,7 @@ export class EditorSession {
     this.#listeners.clear()
     this.#removeClipboardHistoryBoundary?.()
     // 先取消进行中的拖拽手势与 document 监听，再销毁视图。
+    this.#removeInteractionToolbar?.()
     this.#removeBlockReorder?.()
     this.editor.destroy()
   }

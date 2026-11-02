@@ -1,3 +1,4 @@
+import { installInteractionToolbar } from "./interactionToolbar"
 import { Editor, Extension } from "@tiptap/core"
 import { closeHistory, history, redo, redoDepth, undo, undoDepth } from "@tiptap/pm/history"
 import { EditorState, type Transaction } from "@tiptap/pm/state"
@@ -227,6 +228,10 @@ export class DocumentSession {
         } })
         return menu ? (restoreFocus?: boolean) => menu.close(restoreFocus) : undefined
       }
+    }))
+    record.cleanup.push(installInteractionToolbar(editor, {
+      canUploadPicture: () => !!record.pictureUpload && this.canStartUpload(),
+      enqueuePictures: (files, position) => record.pictureUpload?.enqueue(files, position) ?? []
     }))
     this.configureReferences(record)
     this.configurePictureUpload(record)

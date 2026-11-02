@@ -2737,3 +2737,16 @@ describe("内部 Markdown codec", () => {
     }
   })
 })
+
+it("preserves underline and combined marks in the existing JSON fence without inventing Markdown syntax", () => {
+  const document = encodeHnn(hnnSchema.nodeFromJSON({ type: "doc", content: [{
+    type: "paragraph", attrs: { nodeId: "123e4567-e89b-42d3-a456-426614174000" },
+    content: [{ type: "text", text: "下划线", marks: [{ type: "bold" }, { type: "italic" }, { type: "underline" }] }]
+  }] }))
+  const result = exportMarkdown(document)
+  expect(result.markdown).toContain("hamster-note-json-b64")
+  const restored = imported(result.markdown).document
+  const originalText = decodeHnn(document).firstChild!.firstChild!
+  const restoredText = decodeHnn(restored).firstChild!.firstChild!
+  expect(restoredText.toJSON()).toEqual(originalText.toJSON())
+})

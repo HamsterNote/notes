@@ -1,0 +1,253 @@
+{
+  "browser": "148.0.7778.96",
+  "command": "node scripts/check-mobile-interactions.mjs",
+  "results": [
+    {
+      "width": 320,
+      "theme": "light",
+      "layout": "mobile",
+      "result": "PASS",
+      "trustedTouch": [
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchmove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        }
+      ],
+      "scrollDelta": 109,
+      "vibration": "stubbed false return, [10]; no hardware claim"
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "layout": "mobile",
+      "result": "PASS",
+      "trustedTouch": [
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchmove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        }
+      ],
+      "scrollDelta": 109,
+      "vibration": "stubbed false return, [10]; no hardware claim"
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "layout": "mobile",
+      "result": "PASS",
+      "trustedTouch": [
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchmove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        }
+      ],
+      "scrollDelta": 109,
+      "vibration": "stubbed false return, [10]; no hardware claim"
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "layout": "mobile",
+      "result": "PASS",
+      "trustedTouch": [
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchmove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        }
+      ],
+      "scrollDelta": 109,
+      "vibration": "stubbed false return, [10]; no hardware claim"
+    },
+    {
+      "width": 840,
+      "theme": "light",
+      "layout": "mobile",
+      "result": "PASS",
+      "trustedTouch": [
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchmove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        }
+      ],
+      "scrollDelta": 109,
+      "vibration": "stubbed false return, [10]; no hardware claim"
+    },
+    {
+      "width": 840,
+      "theme": "dark",
+      "layout": "mobile",
+      "result": "PASS",
+      "trustedTouch": [
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchmove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        }
+      ],
+      "scrollDelta": 109,
+      "vibration": "stubbed false return, [10]; no hardware claim"
+    },
+    {
+      "width": 841,
+      "theme": "light",
+      "layout": "desktop",
+      "result": "PASS",
+      "mouseSelection": "HAM124 first parag",
+      "keyboardSelection": true,
+      "breakpoint": "840 mobile"
+    },
+    {
+      "width": 841,
+      "theme": "dark",
+      "layout": "desktop",
+      "result": "PASS",
+      "mouseSelection": "HAM124 first parag",
+      "keyboardSelection": true,
+      "breakpoint": "840 mobile"
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "layout": "desktop",
+      "result": "PASS",
+      "mouseSelection": "HAM124 first parag",
+      "keyboardSelection": true,
+      "breakpoint": "840 mobile"
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "layout": "desktop",
+      "result": "PASS",
+      "mouseSelection": "HAM124 first parag",
+      "keyboardSelection": true,
+      "breakpoint": "840 mobile"
+    }
+  ],
+  "limitations": "Web Chromium touch emulation with trusted touch input; viewport resize approximates keyboard occlusion. No physical device, OS keyboard, or hardware vibration evidence."
+}

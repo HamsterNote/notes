@@ -245,7 +245,7 @@ describe("打开/关闭与手柄激活态（DESIGN.md §9）", () => {
       handle.dispatchEvent(pointerEvent("pointerdown", { clientX: 10, clientY: 10 }))
       vi.advanceTimersByTime(HNN_REORDER_HOLD_MS)
       document.dispatchEvent(pointerEvent("pointermove", { clientY: 260 }))
-      document.dispatchEvent(pointerEvent("pointerup"))
+      document.dispatchEvent(pointerEvent("pointerup", { clientY: 260 }))
       expect(topLevelTexts(session)).toEqual(["b", "c", "a"])
 
       // 重排提交后装饰集重建：重新查询被移动块（"a" 现居 index 2）的手柄。

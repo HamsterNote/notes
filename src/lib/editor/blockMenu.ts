@@ -105,11 +105,10 @@ function isLosslessConversion(node: ProseMirrorNode, targetType: NodeType): bool
   return true
 }
 
-export function openBlockMenu(options: OpenBlockMenuOptions): AnchoredMenuHandle | null {
-  const { editor, anchor, getPos, capabilities, onClosed } = options
+export function getBlockCommands(editor: Editor, getPos: () => number | undefined, capabilities: BlockMenuCapabilities) {
 
   /** 激活瞬间的实时块解析；块已不存在（外部删改）时返回 null，动作整体放弃。 */
-  const resolveBlock = (): { pos: number; index: number; count: number; node: import("@tiptap/pm/model").Node } | null => {
+  let resolveBlock = (): { pos: number; index: number; count: number; node: import("@tiptap/pm/model").Node } | null => {
     const pos = getPos()
     if (typeof pos !== "number") return null
     const doc = editor.state.doc
@@ -126,7 +125,15 @@ export function openBlockMenu(options: OpenBlockMenuOptions): AnchoredMenuHandle
   }
 
   const initial = resolveBlock()
-  if (!initial || !editor.view.editable) return null
+  if (!initial || editor.isDestroyed || !editor.view.editable) return null
+  const nodeId: unknown = initial.node.attrs["nodeId"]
+  const resolveInitial = resolveBlock
+  // Revalidate identity as well as position; a replacement at the same offset is not our target.
+  resolveBlock = () => {
+    if (editor.isDestroyed || !editor.view.editable) return null
+    const block = resolveInitial()
+    return block?.node.attrs["nodeId"] === nodeId ? block : null
+  }
 
   const moveItems: AnchoredMenuEntry[] = [
     {
@@ -242,7 +249,7 @@ export function openBlockMenu(options: OpenBlockMenuOptions): AnchoredMenuHandle
       disabledReason: "宿主未提供图片上传能力",
       onActivate: () => {
         const pos = insertPosAfterBlock()
-        if (pos === null || !capabilities.canUploadPicture()) return
+        if (pos === null || !editor.view.editable || !capabilities.canUploadPicture()) return
         // 与 NoteEditor picker 同一通道：hidden input → enqueue(files, position)，
         // 占位/失败/重试/abort 语义与既有上传完全一致。
         const input = document.createElement("input")
@@ -251,7 +258,10 @@ export function openBlockMenu(options: OpenBlockMenuOptions): AnchoredMenuHandle
         input.multiple = true
         input.style.display = "none"
         input.addEventListener("change", () => {
-          if (input.files && input.files.length > 0) capabilities.enqueuePictures(input.files, pos)
+          const livePos = insertPosAfterBlock()
+          if (livePos !== null && capabilities.canUploadPicture() && input.files?.length) {
+            capabilities.enqueuePictures(input.files, livePos)
+          }
           input.remove()
         }, { once: true })
         document.body.appendChild(input)
@@ -260,9 +270,16 @@ export function openBlockMenu(options: OpenBlockMenuOptions): AnchoredMenuHandle
     }
   ]
 
+  return { moveItems, conversionItems, insertItems }
+}
+
+export function openBlockMenu(options: OpenBlockMenuOptions): AnchoredMenuHandle | null {
+  const { editor, anchor, getPos, capabilities, onClosed } = options
+  const commands = getBlockCommands(editor, getPos, capabilities)
+  if (!commands) return null
   return openAnchoredMenu({
     anchor,
-    items: [...moveItems, "divider", ...conversionItems, "divider", ...insertItems],
+    items: [...commands.moveItems, "divider", ...commands.conversionItems, "divider", ...commands.insertItems],
     ariaLabel: "块操作菜单",
     onClose: onClosed
   })
