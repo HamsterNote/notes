@@ -340,8 +340,14 @@ export class DocumentSession {
       for (const tr of applied.transactions) {
         next = next.apply(tr)
       }
+      const sameSelection = transaction.selectionSet && !transaction.docChanged
+        && applied.state.selection.eq(editor.state.selection)
       this.authority = next
       editor.view.updateState(applied.state)
+      // Explicit selection commands supersede pending native selectionchange,
+      // even when undo already restored the same model selection. updateState
+      // skips that DOM write for equal selections; focus forces it for this view.
+      if (sameSelection && editor.view.hasFocus()) editor.view.focus()
       this.emitTransaction(editor, transaction, applied.transactions.slice(1))
       for (const peer of this.views.values()) {
         if (peer === record) continue
