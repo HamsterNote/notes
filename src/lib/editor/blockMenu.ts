@@ -212,7 +212,7 @@ export function getBlockCommands(editor: Editor, getPos: () => number | undefine
               const text = flattenedText(node)
               const value = liveTargetType.name === "heading" ? text.split("\n", 1)[0]! : text
               const replacement = liveTargetType.create(
-                { nodeId: node.attrs["nodeId"], ...target.attrs },
+                { nodeId: node.attrs["nodeId"] as unknown, ...target.attrs },
                 value ? editor.schema.text(value) : null
               )
               tr.replaceWith(pos, pos + node.nodeSize, replacement)

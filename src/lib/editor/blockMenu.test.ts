@@ -799,7 +799,7 @@ describe("复合块显式展平（HAM-133）", () => {
   it.each(composites)("$type 展平保留外层ID，去标记/属性且单步撤销重做、可编码", node => {
     const session = sessionFor({ schemaVersion: 1, data: { type: "doc", content: [node] } })
     try {
-      const before = session.editor.state.doc.toJSON()
+      const before: unknown = session.editor.state.doc.toJSON()
       const updates: unknown[] = []
       session.editor.on("update", ({ transaction }) => { if (transaction.docChanged) updates.push(transaction) })
       const convert = command(session, "转换为正文")
