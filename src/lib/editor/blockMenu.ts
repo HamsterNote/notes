@@ -8,13 +8,8 @@
  * - 上移/下移：与拖拽重排共享同一个 reorderTopLevelBlock 提交入口（同一
  *   single-transaction/undo 边界），首/末块禁用并说明原因——这就是键盘可用的
  *   块重排通道（D9）。
- * - 转换为正文/标题/代码块，或将文本块包裹为引用：仅 paragraph/heading/codeBlock 开放，
- *   并且必须无损——按目标类型的 content 表达式（validContent）与 marks 规则判定：
- *   目标 codeBlock（text*、marks=""）只接受纯文本，源块含 link 等 marks 或
- *   mention/resource/inlineFormula/hardBreak 等内联 atom 时禁用并说明原因；菜单
- *   初态与激活瞬间都复核（文档变化后可从不兼容变兼容或反之）。所有转换经统一
- *   预算化事务（补齐 nodeId + encodeHnn 整文档预检）提交，随后补历史栅栏；绝不
- *   为转换丢弃 marks/内联结构，也绝不产生无法再编码的文档。
+ * - 文本块互转保留无损校验；复合块转文本块显式展平为正文纯文本（有损提示），
+ *   引用目标无损包裹原块。所有转换走预算化事务与独立撤销边界。
  * - 插入表格/公式/图片：插到当前块之后（合法空结构，预算化单事务 + 历史栅栏）；
  *   图片仅宿主提供上传回调时可用（DESIGN.md §12），激活后走与 picker 相同的
  *   hidden input → PictureUploadInstaller.enqueue 通道，占位/失败/重试语义一致。
@@ -108,6 +103,21 @@ function isLosslessConversion(node: ProseMirrorNode, targetType: NodeType): bool
   return true
 }
 
+/** 复合容器才可有损展平；图片、画板等无正文的原子块不在此路径。 */
+function canFlatten(node: ProseMirrorNode, targetType: NodeType): boolean {
+  return !TEXT_BLOCK_TYPES.has(node.type.name) && node.isBlock && !node.isLeaf &&
+    TEXT_BLOCK_TYPES.has(targetType.name)
+}
+
+/** 只取正文，块属性不混入正文；原子内联节点用其可读文本替代。 */
+function flattenedText(node: ProseMirrorNode): string {
+  return node.textBetween(0, node.content.size, "\n", (leaf) => {
+    if (leaf.type.name === "hardBreak") return "\n"
+    if (leaf.type.name === "inlineFormula" || leaf.type.name === "formula") return String(leaf.attrs["latex"] ?? "")
+    return String(leaf.attrs["name"] ?? leaf.attrs["alt"] ?? "")
+  })
+}
+
 export function getBlockCommands(editor: Editor, getPos: () => number | undefined, capabilities: BlockMenuCapabilities) {
 
   /** 激活瞬间的实时块解析；块已不存在（外部删改）时返回 null，动作整体放弃。 */
@@ -165,14 +175,17 @@ export function getBlockCommands(editor: Editor, getPos: () => number | undefine
   const conversionItems: AnchoredMenuEntry[] = CONVERSION_TARGETS.map((target) => {
     const isTextBlock = TEXT_BLOCK_TYPES.has(initial.node.type.name)
     const targetType = editor.schema.nodes[target.type]
-    // 初态即按 schema 判定无损：目标 content/marks 承接不了源块内容时禁用并说明原因，
-    // 不改变视觉，也绝不静默 flatten。
-    const lossless = isTextBlock && targetType !== undefined && isLosslessConversion(initial.node, targetType)
+    const flatten = targetType !== undefined && canFlatten(initial.node, targetType)
+    const lossless = targetType !== undefined && (isTextBlock || !initial.node.isLeaf) &&
+      isLosslessConversion(initial.node, targetType)
     const isCurrent = initial.node.type.name === target.type &&
       (target.type !== "heading" || initial.node.attrs["level"] === target.attrs?.["level"])
     return {
       label: `转换为${target.label}`,
-      disabled: !lossless || isCurrent,
+      disabled: (!lossless && !flatten) || isCurrent,
+      ...(flatten ? { description: target.type === "heading"
+        ? "仅保留正文第一行纯文本；丢弃其余行、嵌套结构、标记和块属性"
+        : "正文按换行合并为纯文本；丢弃嵌套结构、标记和块属性" } : {}),
       disabledReason: !isTextBlock
         ? "该块包含复合结构，转换会丢失内容"
         : !lossless
@@ -181,19 +194,30 @@ export function getBlockCommands(editor: Editor, getPos: () => number | undefine
       onActivate: () => {
         const block = resolveBlock()
         if (!block || !editor.view.editable) return
-        if (!TEXT_BLOCK_TYPES.has(block.node.type.name)) return
         const liveTargetType = editor.schema.nodes[target.type]
         if (!liveTargetType) return
         // 激活瞬间再次按实时块内容复核无损；菜单打开期间的文档变化可令初态可用的
         // 条目变为不兼容（或反之），此时整体放弃，零 doc/selection/history/dirty 变更。
-        if (!isLosslessConversion(block.node, liveTargetType)) return
+        const flattenLive = canFlatten(block.node, liveTargetType)
+        // 有损/无损路径变化后需要重新打开菜单，不能执行未经提示的展平。
+        if (flattenLive !== flatten) return
+        if (!flattenLive && !isLosslessConversion(block.node, liveTargetType)) return
         const { pos, node } = block
-        // 单事务：attrs 函数形式保留 nodeId 等既有属性，目标缺的走 schema 默认；
-        // 只有目标 content/marks 能完整承接源内容时才走到这里，PM 不会清除任何 marks。
+        // 单事务：无损路径保留内容/属性；有损路径只保留外层nodeId与提取的纯文本。
         // captureChainTransaction 只捕获不 dispatch，commitBudgetedTransaction 补齐新
         // 节点 ID、encodeHnn 整文档预算预检通过后才提交（含 512 节点/外壳上限）。
         const candidate = captureChainTransaction(editor, (chain) =>
           chain.command(({ tr }) => {
+            if (flattenLive) {
+              const text = flattenedText(node)
+              const value = liveTargetType.name === "heading" ? text.split("\n", 1)[0]! : text
+              const replacement = liveTargetType.create(
+                { nodeId: node.attrs["nodeId"], ...target.attrs },
+                value ? editor.schema.text(value) : null
+              )
+              tr.replaceWith(pos, pos + node.nodeSize, replacement)
+              return true
+            }
             if (liveTargetType.name === "blockquote") {
               const range = tr.doc.resolve(pos).blockRange(tr.doc.resolve(pos + node.nodeSize))
               if (!range) return false
@@ -289,7 +313,10 @@ export function openBlockMenu(options: OpenBlockMenuOptions): AnchoredMenuHandle
   if (!commands) return null
   return openAnchoredMenu({
     anchor,
-    items: [...commands.moveItems, "divider", ...commands.conversionItems, "divider", ...commands.insertItems],
+    items: [...commands.moveItems, "divider", {
+      label: "转换为",
+      children: commands.conversionItems
+    }, "divider", ...commands.insertItems],
     ariaLabel: "块操作菜单",
     onClose: onClosed
   })

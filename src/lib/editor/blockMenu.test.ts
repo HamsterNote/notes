@@ -12,7 +12,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { encodeHnn, type HnnDocument } from "../hnn/codec"
 import { HNN_REORDER_HOLD_MS } from "./blockReorder"
-import { openBlockMenu } from "./blockMenu"
+import { getBlockCommands, openBlockMenu } from "./blockMenu"
 import { createEditorSession, type EditorSession } from "./session"
 
 const ids = [
@@ -86,11 +86,14 @@ function menu(): HTMLElement | null {
 function items(): HTMLButtonElement[] {
   const element = menu()
   expect(element).not.toBeNull()
-  return Array.from(element!.querySelectorAll<HTMLButtonElement>('[role="menuitem"]'))
+  return Array.from(document.querySelectorAll<HTMLButtonElement>('.hn-editor-menu [role="menuitem"]'))
 }
 
 /** 按可见文案取菜单条目（两步确认会改文案，调用方需在确认前取）。 */
 function item(label: string): HTMLButtonElement {
+  if (label.startsWith("转换为") && label !== "转换为" && !items().some(button => button.textContent === label)) {
+    items().find(button => button.textContent === "转换为")!.click()
+  }
   const found = items().find((button) => button.textContent === label)
   expect(found, `菜单条目：${label}`).toBeDefined()
   return found!
@@ -364,13 +367,13 @@ describe("安全转换（不可丢复合内容，不适用禁用）", () => {
     }
   })
 
-  it("表格等复合块：全部转换项禁用并注明会丢内容，绝不静默 flatten；插入项仍可用", () => {
+  it("表格复合块可展平转文本并提示损失，也可无损包裹引用", () => {
     const session = sessionFor(tableDocument())
     try {
       clickHandle(session, 1) // 表格块的菜单
       for (const label of ["转换为正文", "转换为标题 1", "转换为标题 2", "转换为标题 3", "转换为代码块", "转换为引用"]) {
-        expect(item(label).disabled).toBe(true)
-        expect(item(label).title).toBe("该块包含复合结构，转换会丢失内容")
+        expect(item(label).disabled).toBe(false)
+        if (label !== "转换为引用") expect(item(label).title).toContain("丢弃")
       }
       expect(item("插入表格").disabled).toBe(false)
       expect(topLevelTypes(session)).toEqual(["paragraph", "table"])
@@ -473,13 +476,14 @@ describe("引用转换（HAM-133）", () => {
     }
   })
 
-  it("激活时变成只读或复合块则拒绝转换", () => {
+  it("激活时变成只读则拒绝转换，引用不重复包裹", () => {
     const session = sessionFor(paragraphsDocument("a"))
     try {
       clickHandle(session, 0)
+      const convert = item("转换为引用")
       session.editor.setEditable(false)
       const before = session.editor.state.doc
-      item("转换为引用").click()
+      convert.click()
       expect(session.editor.state.doc.eq(before)).toBe(true)
       expect(session.undo()).toBe(false)
       session.editor.setEditable(true)
@@ -772,5 +776,94 @@ describe("只读守卫（double-guard）", () => {
     } finally {
       session.destroy()
     }
+  })
+})
+
+
+describe("复合块显式展平（HAM-133）", () => {
+  const capabilities = { canUploadPicture: () => false, enqueuePictures: () => [] }
+  const id = (i: number) => `123e4567-e89b-42d3-a456-${String(i + 200).padStart(12, "0")}`
+  const paragraph = (i: number, text: string) => ({ type: "paragraph", attrs: { nodeId: id(i) },
+    ...(text ? { content: [{ type: "text", text, marks: [{ type: "bold" }] }] } : {}) })
+  const command = (session: EditorSession, label: string) => {
+    const commands = getBlockCommands(session.editor, () => 0, capabilities)!
+    return commands.conversionItems.find(entry => entry !== "divider" && entry.label === label) as Exclude<typeof commands.conversionItems[number], "divider">
+  }
+  const composites = [
+    { type: "blockquote", attrs: { nodeId: id(0), author: "署名" }, content: [paragraph(1, "first"), paragraph(2, "second")] },
+    ...["bulletList", "orderedList", "taskList"].map(type => ({ type, attrs: { nodeId: id(0), ...(type === "orderedList" ? { start: 1 } : {}) }, content: [1, 2].map(i => ({
+      type: type === "taskList" ? "taskItem" : "listItem", attrs: { nodeId: id(i + 3), ...(type === "taskList" ? { checked: false } : {}) }, content: [paragraph(i, i === 1 ? "first" : "second")]
+    })) })),
+    ...["callout", "collapsible"].map(type => ({ type, attrs: { nodeId: id(0), title: "容器标题", ...(type === "callout" ? { tone: "info" } : { collapsed: true }) }, content: [paragraph(1, "first"), paragraph(2, "second")] }))
+  ]
+  it.each(composites)("$type 展平保留外层ID，去标记/属性且单步撤销重做、可编码", node => {
+    const session = sessionFor({ schemaVersion: 1, data: { type: "doc", content: [node] } })
+    try {
+      const before = session.editor.state.doc.toJSON()
+      const updates: unknown[] = []
+      session.editor.on("update", ({ transaction }) => { if (transaction.docChanged) updates.push(transaction) })
+      const convert = command(session, "转换为正文")
+      expect(convert.disabled).toBe(false)
+      expect(convert.description).toContain("丢弃")
+      convert.onActivate!()
+      const block = session.editor.state.doc.firstChild!
+      expect(block.type.name).toBe("paragraph")
+      expect(block.textContent).toBe("first\nsecond")
+      expect(block.attrs["nodeId"]).toBe(id(0))
+      expect(block.firstChild!.marks).toEqual([])
+      expect(updates).toHaveLength(1)
+      const encoded = encodeHnn(session.editor.state.doc)
+      const reloaded = sessionFor(encoded)
+      try { expect(reloaded.editor.state.doc.firstChild!.textContent).toBe("first\nsecond") } finally { reloaded.destroy() }
+      expect(session.undo()).toBe(true)
+      expect(session.editor.state.doc.toJSON()).toEqual(before)
+      expect(session.redo()).toBe(true)
+      expect(session.editor.state.doc.firstChild!.textContent).toBe("first\nsecond")
+    } finally { session.destroy() }
+  })
+  it.each(["转换为标题 1", "转换为代码块"])("%s：标题取第一行，代码保留全部行", label => {
+    const session = sessionFor({ schemaVersion: 1, data: { type: "doc", content: [composites[0]] } })
+    try {
+      command(session, label).onActivate!()
+      const node = session.editor.state.doc.firstChild!
+      expect(node.textContent).toBe(label.includes("标题") ? "first" : "first\nsecond")
+      expect(node.attrs["nodeId"]).toBe(id(0))
+      expect(() => encodeHnn(session.editor.state.doc)).not.toThrow()
+    } finally { session.destroy() }
+  })
+  it("hardBreak和内联名称/公式保留可读文本，嵌套列表项按换行合并", () => {
+    const node = { type: "blockquote", attrs: { nodeId: id(0) }, content: [{ type: "paragraph", attrs: { nodeId: id(1) }, content: [
+      { type: "text", text: "a" }, { type: "hardBreak", attrs: { nodeId: id(13) } },
+      { type: "mention", attrs: { nodeId: id(11), resourceId: "note", name: "引用名" } },
+      { type: "inlineFormula", attrs: { nodeId: id(12), latex: "x+1" } }
+    ] }, { type: "bulletList", attrs: { nodeId: id(2) }, content: [{ type: "listItem", attrs: { nodeId: id(3) }, content: [paragraph(4, "nested")] }] }] }
+    const session = sessionFor({ schemaVersion: 1, data: { type: "doc", content: [node] } })
+    try { command(session, "转换为正文").onActivate!(); expect(session.editor.state.doc.firstChild!.textContent).toBe("a\n引用名x+1\nnested") }
+    finally { session.destroy() }
+  })
+  it("合并后单个文本超8KiB时预算拒绝，文档/选区/历史/dirty零变化", () => {
+    const node = { ...composites[0], content: [paragraph(1, "a".repeat(5000)), paragraph(2, "b".repeat(5000))] }
+    const session = sessionFor({ schemaVersion: 1, data: { type: "doc", content: [node] } })
+    try {
+      const before = session.editor.state
+      command(session, "转换为正文").onActivate!()
+      expect(session.editor.state.doc).toBe(before.doc)
+      expect(session.editor.state.selection.eq(before.selection)).toBe(true)
+      expect(session.state.dirty).toBe(false)
+      expect(session.undo()).toBe(false)
+    } finally { session.destroy() }
+  })
+  it("空复合内容可展平，外部替换同位置但不同身份时旧命令拒绝", () => {
+    const session = sessionFor({ schemaVersion: 1, data: { type: "doc", content: [{ type: "blockquote", attrs: { nodeId: id(0) }, content: [paragraph(1, "")] }] } })
+    try {
+      const old = command(session, "转换为正文")
+      session.editor.view.dispatch(session.editor.state.tr.setNodeMarkup(0, undefined, { nodeId: id(10) }))
+      const before = session.editor.state.doc
+      old.onActivate!()
+      expect(session.editor.state.doc).toBe(before)
+      command(session, "转换为正文").onActivate!()
+      expect(session.editor.state.doc.firstChild!.type.name).toBe("paragraph")
+      expect(session.editor.state.doc.firstChild!.textContent).toBe("")
+    } finally { session.destroy() }
   })
 })

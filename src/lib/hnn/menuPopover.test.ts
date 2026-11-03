@@ -247,6 +247,16 @@ describe("menuPopover：底部溢出定位（bug-7.5-3 回归）", () => {
     expect(menu.classList.contains("hn-editor-menu--scroll")).toBe(false)
   })
 
+  it("子菜单在右侧空间不足时向左翻转，短视口限高可滚动", () => {
+    stubLayout({ top: 770, bottom: 800, left: 1000 }, { width: 200, height: 1000 })
+    const handle = openAnchoredMenu({ anchor, ariaLabel: "子菜单", placement: "submenu", items: [{ label: "转换" }] })
+    expect(handle.element.style.left).toBe("796px")
+    expect(handle.element.style.top).toBe("8px")
+    expect(handle.element.style.maxHeight).toBe("884px")
+    expect(handle.element.classList.contains("hn-editor-menu--scroll")).toBe(true)
+    handle.close()
+  })
+
   it("菜单内部滚动不触发关闭；菜单外滚动与 resize 仍关闭", () => {
     stubLayout({ top: 770, bottom: 800, left: 100 }, { width: 200, height: 900 })
     openMenu()
@@ -264,5 +274,69 @@ describe("menuPopover：底部溢出定位（bug-7.5-3 回归）", () => {
     openMenu()
     window.dispatchEvent(new window.Event("resize"))
     expect(host.querySelector(".hn-editor-menu")).toBeNull()
+  })
+})
+
+
+describe("menuPopover：转换二级菜单", () => {
+  function openNested(onClose = vi.fn()) {
+    const action = vi.fn()
+    const handle = openAnchoredMenu({ anchor, ariaLabel: "块操作菜单", onClose, items: [
+      { label: "转换为", children: [
+        { label: "正文", disabled: true, disabledReason: "当前已是该类型" },
+        { label: "标题", description: "将丢弃结构", onActivate: action },
+        { label: "代码块", onActivate: action }
+      ] }, { label: "插入表格" }
+    ] })
+    const parent = items()[0]!
+    return { handle, parent, action, onClose }
+  }
+  const sub = () => host.querySelector<HTMLElement>('[aria-label="转换为选项"]')!
+  it("父项只展开；Right进入、上下跳禁用、Left/Esc逐层返回，最终回锚点", () => {
+    const { parent, action, onClose } = openNested()
+    expect(parent.getAttribute("aria-haspopup")).toBe("menu")
+    keydown(parent, "ArrowRight")
+    expect(parent.getAttribute("aria-expanded")).toBe("true")
+    expect(document.activeElement?.textContent).toBe("标题")
+    expect((document.activeElement as HTMLButtonElement).title).toBe("将丢弃结构")
+    keydown(sub(), "ArrowDown")
+    expect(document.activeElement?.textContent).toBe("代码块")
+    keydown(sub(), "ArrowDown")
+    expect(document.activeElement?.textContent).toBe("标题")
+    keydown(sub(), "ArrowLeft")
+    expect(sub()).toBeNull()
+    expect(document.activeElement).toBe(parent)
+    parent.click()
+    keydown(sub(), "Escape")
+    expect(document.activeElement).toBe(parent)
+    expect(parent.getAttribute("aria-expanded")).toBe("false")
+    keydown(menuElement(), "Escape")
+    expect(document.activeElement).toBe(anchor)
+    expect(host.querySelectorAll('[role="menu"]')).toHaveLength(0)
+    expect(action).not.toHaveBeenCalled()
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+  it("鼠标在子菜单内不被父菜单外部监听提前关闭，执行恰好一次并清理整棵菜单", () => {
+    const { parent, action, onClose } = openNested()
+    parent.click()
+    const target = sub().querySelectorAll<HTMLButtonElement>("button")[1]!
+    target.dispatchEvent(new window.PointerEvent("pointerdown", { bubbles: true }))
+    expect(sub()).not.toBeNull()
+    target.click()
+    expect(action).toHaveBeenCalledTimes(1)
+    expect(onClose).toHaveBeenCalledTimes(1)
+    expect(host.querySelectorAll('[role="menu"]')).toHaveLength(0)
+  })
+  it.each(["tab", "outside", "scroll", "destroy"])("%s关闭整棵菜单；内部滚动保留层级", mode => {
+    const { parent, handle, onClose } = openNested()
+    parent.click()
+    sub().dispatchEvent(new Event("scroll"))
+    expect(sub()).not.toBeNull()
+    if (mode === "tab") keydown(sub(), "Tab")
+    if (mode === "outside") document.body.dispatchEvent(new window.PointerEvent("pointerdown", { bubbles: true }))
+    if (mode === "scroll") window.dispatchEvent(new Event("scroll"))
+    if (mode === "destroy") handle.close()
+    expect(host.querySelectorAll('[role="menu"]')).toHaveLength(0)
+    expect(onClose).toHaveBeenCalledTimes(1)
   })
 })

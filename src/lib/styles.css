@@ -1634,3 +1634,10 @@
 .hn-editor-toolbar-row button[aria-pressed="true"] { background: rgba(255, 255, 255, 0.14); }
 .hn-editor-toolbar-row button:focus-visible { outline: 2px solid var(--hn-theme, #3b82f6); outline-offset: -2px; }
 .hn-editor-toolbar-row button:disabled { color: rgba(226, 232, 240, 0.38); cursor: default; }
+
+/* 级联菜单沿用现有按钮视觉，只标明可展开的父项。 */
+.hn-editor-menu-item[aria-haspopup="menu"]::after {
+  content: "›";
+  float: right;
+  margin-left: 1rem;
+}
