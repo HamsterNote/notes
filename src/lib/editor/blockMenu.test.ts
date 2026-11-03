@@ -10,7 +10,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
-import type { HnnDocument } from "../hnn/codec"
+import { encodeHnn, type HnnDocument } from "../hnn/codec"
 import { HNN_REORDER_HOLD_MS } from "./blockReorder"
 import { openBlockMenu } from "./blockMenu"
 import { createEditorSession, type EditorSession } from "./session"
@@ -368,12 +368,125 @@ describe("安全转换（不可丢复合内容，不适用禁用）", () => {
     const session = sessionFor(tableDocument())
     try {
       clickHandle(session, 1) // 表格块的菜单
-      for (const label of ["转换为正文", "转换为标题 1", "转换为标题 2", "转换为标题 3", "转换为代码块"]) {
+      for (const label of ["转换为正文", "转换为标题 1", "转换为标题 2", "转换为标题 3", "转换为代码块", "转换为引用"]) {
         expect(item(label).disabled).toBe(true)
         expect(item(label).title).toBe("该块包含复合结构，转换会丢失内容")
       }
       expect(item("插入表格").disabled).toBe(false)
       expect(topLevelTypes(session)).toEqual(["paragraph", "table"])
+    } finally {
+      session.destroy()
+    }
+  })
+})
+
+describe("引用转换（HAM-133）", () => {
+  it.each(["paragraph", "heading", "codeBlock"])("%s 整体包裹，保留子节点身份和光标，一步撤销/重做并可重载", (type) => {
+    const session = sessionFor({
+      schemaVersion: 1,
+      data: { type: "doc", content: [{
+        type,
+        attrs: { nodeId: ids[0], ...(type === "heading" ? { level: 2 } : {}),
+          ...(type === "codeBlock" ? { language: "javascript", filename: "sample.js" } : {}) },
+        content: [{ type: "text", text: "quoted text" }]
+      }] }
+    })
+    try {
+      session.editor.commands.setTextSelection(4)
+      const original = session.editor.state.doc.firstChild!
+      clickHandle(session, 0)
+      expect(item("转换为引用").disabled).toBe(false)
+      item("转换为引用").click()
+      const quote = session.editor.state.doc.firstChild!
+      expect(quote.type.name).toBe("blockquote")
+      expect(quote.firstChild!.eq(original)).toBe(true)
+      expect(quote.attrs["nodeId"]).toEqual(expect.any(String))
+      expect(quote.attrs["nodeId"]).not.toBe(ids[0])
+      expect(quote.attrs["author"]).toBeNull()
+      expect(session.editor.state.selection.from).toBe(5)
+      const snapshot = encodeHnn(session.editor.state.doc)
+      const reloaded = sessionFor(snapshot)
+      try {
+        expect(reloaded.editor.state.doc.toJSON()).toEqual(session.editor.state.doc.toJSON())
+      } finally {
+        reloaded.destroy()
+      }
+      // 输入仍落在被包裹的原文本块；转换与后续输入分属两个 undo step。
+      session.editor.commands.insertContent("X")
+      expect(session.editor.state.doc.firstChild!.firstChild!.textContent).toContain("X")
+      expect(session.undo()).toBe(true)
+      expect(session.editor.state.doc.firstChild!.eq(quote)).toBe(true)
+      expect(session.undo()).toBe(true)
+      expect(session.editor.state.doc.firstChild!.eq(original)).toBe(true)
+      expect(session.state.dirty).toBe(false)
+      expect(session.redo()).toBe(true)
+      expect(session.editor.state.doc.firstChild!.eq(quote)).toBe(true)
+    } finally {
+      session.destroy()
+    }
+  })
+
+  it("包裹保留 marks、引用和公式等内联 atom，菜单期间新增的内容也完整保留", () => {
+    const session = sessionFor({
+      schemaVersion: 1,
+      data: { type: "doc", content: [{
+        type: "paragraph", attrs: { nodeId: ids[0] }, content: [
+          { type: "text", text: "bold link", marks: [{ type: "link", attrs: { href: "https://example.test" } }, { type: "bold" }] },
+          { type: "mention", attrs: { nodeId: ids[1], resourceId: "r", name: "R" } },
+          { type: "hardBreak", attrs: { nodeId: ids[2] } },
+          { type: "inlineFormula", attrs: { nodeId: ids[3], latex: "x" } }
+        ]
+      }] }
+    })
+    try {
+      clickHandle(session, 0)
+      expect(item("转换为引用").disabled).toBe(false)
+      session.editor.view.dispatch(session.editor.state.tr.insertText("live", 1).setMeta("addToHistory", false))
+      const original = session.editor.state.doc.firstChild!
+      item("转换为引用").click()
+      expect(session.editor.state.doc.firstChild!.firstChild!.eq(original)).toBe(true)
+      expect(() => encodeHnn(session.editor.state.doc)).not.toThrow()
+    } finally {
+      session.destroy()
+    }
+  })
+
+  it("增加引用外层超出512节点预算时零文档/选区/历史/dirty变更", () => {
+    const nodeId = (index: number) => `123e4567-e89b-42d3-a456-${String(index).padStart(12, "0")}`
+    const content = Array.from({ length: 250 }, (_, index) => ({
+      type: "paragraph", attrs: { nodeId: nodeId(index) }, content: [
+        { type: "text", text: `p${index}` },
+        ...(index < 11 ? [{ type: "hardBreak", attrs: { nodeId: nodeId(1000 + index) } }] : [])
+      ]
+    }))
+    const session = sessionFor({ schemaVersion: 1, data: { type: "doc", content } })
+    try {
+      const before = session.editor.state
+      clickHandle(session, 0)
+      item("转换为引用").click()
+      expect(session.editor.state.doc.eq(before.doc)).toBe(true)
+      expect(session.editor.state.selection.eq(before.selection)).toBe(true)
+      expect(session.undo()).toBe(false)
+      expect(session.state.dirty).toBe(false)
+    } finally {
+      session.destroy()
+    }
+  })
+
+  it("激活时变成只读或复合块则拒绝转换", () => {
+    const session = sessionFor(paragraphsDocument("a"))
+    try {
+      clickHandle(session, 0)
+      session.editor.setEditable(false)
+      const before = session.editor.state.doc
+      item("转换为引用").click()
+      expect(session.editor.state.doc.eq(before)).toBe(true)
+      expect(session.undo()).toBe(false)
+      session.editor.setEditable(true)
+      clickHandle(session, 0)
+      item("转换为引用").click()
+      clickHandle(session, 0)
+      expect(item("转换为引用").disabled).toBe(true)
     } finally {
       session.destroy()
     }

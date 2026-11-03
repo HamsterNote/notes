@@ -8,7 +8,7 @@
  * - 上移/下移：与拖拽重排共享同一个 reorderTopLevelBlock 提交入口（同一
  *   single-transaction/undo 边界），首/末块禁用并说明原因——这就是键盘可用的
  *   块重排通道（D9）。
- * - 转换为正文/标题/代码块：仅 paragraph/heading/codeBlock 三种文本块之间开放，
+ * - 转换为正文/标题/代码块，或将文本块包裹为引用：仅 paragraph/heading/codeBlock 开放，
  *   并且必须无损——按目标类型的 content 表达式（validContent）与 marks 规则判定：
  *   目标 codeBlock（text*、marks=""）只接受纯文本，源块含 link 等 marks 或
  *   mention/resource/inlineFormula/hardBreak 等内联 atom 时禁用并说明原因；菜单
@@ -24,7 +24,7 @@
  */
 
 import type { Editor } from "@tiptap/core"
-import type { Node as ProseMirrorNode, NodeType } from "@tiptap/pm/model"
+import { Fragment, type Node as ProseMirrorNode, type NodeType } from "@tiptap/pm/model"
 
 import { encodeHnn } from "../hnn/codec"
 import {
@@ -71,11 +71,14 @@ const CONVERSION_TARGETS: readonly ConversionTarget[] = [
   { type: "heading", label: "标题 1", attrs: { level: 1 } },
   { type: "heading", label: "标题 2", attrs: { level: 2 } },
   { type: "heading", label: "标题 3", attrs: { level: 3 } },
-  { type: "codeBlock", label: "代码块" }
+  { type: "codeBlock", label: "代码块" },
+  { type: "blockquote", label: "引用" }
 ]
 
 /** 目标类型能否无损承接源块内容（切换目标时不丢 marks、mention/resource/inlineFormula/hardBreak）。 */
 function isLosslessConversion(node: ProseMirrorNode, targetType: NodeType): boolean {
+  // 引用是容器：原文本块整体作为子节点，保留其类型、attrs、nodeId 与内联结构。
+  if (targetType.name === "blockquote") return targetType.validContent(Fragment.from(node))
   // 目标 content 表达式必须整体接受源内容：codeBlock 的 text* 会拒绝 mention/resource/
   // inlineFormula/hardBreak 等内联 atom（validContent 直接给出 schema 层的答案）。
   if (!targetType.validContent(node.content)) return false
@@ -191,6 +194,13 @@ export function getBlockCommands(editor: Editor, getPos: () => number | undefine
         // 节点 ID、encodeHnn 整文档预算预检通过后才提交（含 512 节点/外壳上限）。
         const candidate = captureChainTransaction(editor, (chain) =>
           chain.command(({ tr }) => {
+            if (liveTargetType.name === "blockquote") {
+              const range = tr.doc.resolve(pos).blockRange(tr.doc.resolve(pos + node.nodeSize))
+              if (!range) return false
+              // wrap 映射光标到原文本块内部；新外层 ID 由预算事务补齐，不复用子节点 ID。
+              tr.wrap(range, [{ type: liveTargetType }])
+              return true
+            }
             tr.setBlockType(pos, pos + node.nodeSize, liveTargetType, (current) => ({
               ...current.attrs,
               ...target.attrs
