@@ -10,7 +10,7 @@
   "wechatKeyboardTested": false,
   "editorDom": "span.hn-note-editable[data-editable-block-id]",
   "exactInstalledCommitAndNotesVersion": null,
-  "equivalentToReportedApp": false,
+  "equivalentToReportedApp": null,
   "rootCauseKnown": false,
   "fixed": false,
   "runs": [
