@@ -166,6 +166,7 @@ export function openAnchoredMenu(options: OpenAnchoredMenuOptions): AnchoredMenu
       button.setAttribute("aria-description", entry.description)
     }
     if (entry.children) {
+      button.setAttribute("aria-label", entry.label)
       button.setAttribute("aria-haspopup", "menu")
       button.setAttribute("aria-expanded", "false")
     }

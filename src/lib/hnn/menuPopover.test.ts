@@ -294,6 +294,7 @@ describe("menuPopover：转换二级菜单", () => {
   const sub = () => host.querySelector<HTMLElement>('[aria-label="转换为选项"]')!
   it("父项只展开；Right进入、上下跳禁用、Left/Esc逐层返回，最终回锚点", () => {
     const { parent, action, onClose } = openNested()
+    expect(parent.getAttribute("aria-label")).toBe("转换为")
     expect(parent.getAttribute("aria-haspopup")).toBe("menu")
     keydown(parent, "ArrowRight")
     expect(parent.getAttribute("aria-expanded")).toBe("true")
