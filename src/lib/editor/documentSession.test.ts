@@ -67,6 +67,57 @@ describe("session UUID generation", () => {
 })
 
 describe("formal authority and shared history", () => {
+  it("synchronizes an equal Select All after undo before pending native selectionchange", async () => {
+    vi.useFakeTimers()
+    const { session, a, b, c, options } = make()
+    const editor = a.editor
+    document.body.appendChild(editor.view.dom)
+    try {
+      editor.view.focus()
+      editor.commands.selectAll()
+      editor.commands.insertContent("replacement")
+      expect(session.history("a", false)).toBe(true)
+      const restored = editor.state.selection
+      expect(restored.from).toBe(0)
+      expect(restored.to).toBe(editor.state.doc.content.size)
+      const peerSelection = b.editor.state.selection
+      const changes = vi.mocked(options.onChange).mock.calls.length
+
+      // A browser selection can lag behind the restored model after undo. Its
+      // selectionchange has not been consumed when the next command arrives.
+      const native = window.getSelection()!
+      const text = editor.view.dom.querySelector("p")!.firstChild!
+      native.collapse(text, 1)
+      expect(editor.state.selection.eq(restored)).toBe(true)
+
+      editor.commands.selectAll()
+      expect(native.toString()).toBe("共享正文")
+      document.dispatchEvent(new Event("selectionchange"))
+      await vi.advanceTimersByTimeAsync(50)
+      expect(editor.state.selection.eq(restored)).toBe(true)
+      expect(b.editor.state.selection.eq(peerSelection)).toBe(true)
+      expect(options.onChange).toHaveBeenCalledTimes(changes)
+      expect(c.getState().dirty.body).toBe(false)
+      expect(session.history("a", true)).toBe(true)
+      expect(editor.state.doc.textContent).toBe("replacement")
+    } finally {
+      editor.view.dom.remove()
+    }
+  })
+  it("does not take focus from another view for an equal selection command", () => {
+    const { a, b } = make()
+    document.body.append(a.editor.view.dom, b.editor.view.dom)
+    try {
+      a.editor.commands.selectAll()
+      b.editor.view.focus()
+      a.editor.commands.selectAll()
+      expect(b.editor.view.hasFocus()).toBe(true)
+      expect(a.editor.view.hasFocus()).toBe(false)
+    } finally {
+      a.editor.view.dom.remove()
+      b.editor.view.dom.remove()
+    }
+  })
   it("routes ABA → AA → original and redo across full editors without remount", () => {
     const { session, a, b, insert, options } = make()
     const aDom = a.editor.view.dom, bDom = b.editor.view.dom
