@@ -474,6 +474,28 @@ describe("只读模式（view.editable = false）", () => {
 })
 
 describe("桌面原生拖拽（draggable + data-drag-handle）", () => {
+  it("代码块预览保留当前语言、文件名与代码文本", () => {
+    const session = sessionFor({
+      schemaVersion: 1,
+      data: { type: "doc", content: [{
+        type: "codeBlock",
+        attrs: { nodeId: ids[0], language: "javascript", filename: "example.js" },
+        content: [{ type: "text", text: "const answer = 42" }]
+      }] }
+    })
+    try {
+      const transfer = dataTransferStub()
+      handles(session)[0]!.dispatchEvent(dragEvent("dragstart", { dataTransfer: transfer }))
+      const image = transfer.setDragImage.mock.calls[0]![0]
+      expect(image.querySelector("select")!.value).toBe("javascript")
+      expect(image.querySelector("input")!.value).toBe("example.js")
+      expect(image.querySelector(".hn-editor-code-editor")!.textContent).toBe("const answer = 42")
+      expect(image.querySelector("[data-drag-handle], .hn-editor-block-handle")).toBeNull()
+    } finally {
+      session.destroy()
+    }
+  })
+
   it("拖拽图是无手柄的独立块副本，保留内容和抓取偏移，下一任务移除且不污染文档", () => {
     vi.useFakeTimers()
     const session = sessionFor(paragraphsDocument("preview text", "tail"))

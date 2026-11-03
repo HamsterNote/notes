@@ -576,6 +576,11 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
             width: window.getComputedStyle(view.dom).width, pointerEvents: "none"
           })
           const image = sourceDom.cloneNode(true) as HTMLElement
+          // cloneNode 不复制 select 的当前选中状态，代码语言需与真实卡片一致。
+          const sourceSelects = sourceDom.querySelectorAll("select")
+          image.querySelectorAll("select").forEach((select, index) => {
+            select.value = sourceSelects[index]!.value
+          })
           image.querySelectorAll(`.${HANDLE_CLASS}, [data-drag-handle]`).forEach((element) => element.remove())
           image.removeAttribute("id")
           image.querySelectorAll("[id]").forEach((element) => element.removeAttribute("id"))
