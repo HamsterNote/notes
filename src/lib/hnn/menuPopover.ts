@@ -19,6 +19,10 @@
 /** 普通菜单条目；"divider" 字面量渲染为分隔线（role="separator"）。 */
 export interface AnchoredMenuItem {
   readonly label: string
+  /** 有子项时激活只展开，不执行动作。 */
+  readonly children?: readonly AnchoredMenuEntry[]
+  /** 启用条目也可显示风险/行为说明。 */
+  readonly description?: string
   /** 危险操作样式（DESIGN.md §10 红色删除项）。 */
   readonly danger?: boolean
   readonly disabled?: boolean
@@ -37,6 +41,9 @@ export interface OpenAnchoredMenuOptions {
   readonly items: readonly AnchoredMenuEntry[]
   /** 菜单容器的 aria-label。 */
   readonly ariaLabel: string
+  /** 内部级联菜单：贴父项右侧，空间不足时向左翻转。 */
+  readonly placement?: "submenu"
+  readonly onTab?: () => void
   /** 菜单因任何原因关闭后恰好调用一次（含 Esc/外部点击/滚动/执行完成）。 */
   readonly onClose?: () => void
 }
@@ -55,12 +62,14 @@ const VIEWPORT_MARGIN = 8
 
 /** 视口过短限高时挂的类：启用内部滚动（styles.css 的 .hn-editor-menu--scroll）。 */
 const MENU_SCROLL_CLASS = "hn-editor-menu--scroll"
+let nextMenuId = 0
 
 export function openAnchoredMenu(options: OpenAnchoredMenuOptions): AnchoredMenuHandle {
   const { anchor, items, ariaLabel, onClose } = options
 
   const element = document.createElement("div")
   element.className = "hn-editor-menu"
+  element.id = `hn-editor-menu-${++nextMenuId}`
   element.setAttribute("role", "menu")
   element.setAttribute("aria-label", ariaLabel)
 
@@ -69,6 +78,30 @@ export function openAnchoredMenu(options: OpenAnchoredMenuOptions): AnchoredMenu
   const buttons: HTMLButtonElement[] = []
   const buttonItems: AnchoredMenuItem[] = []
   let confirmingIndex: number | null = null
+  let child: AnchoredMenuHandle | null = null
+  let childIndex: number | null = null
+
+  const openChild = (index: number): void => {
+    const item = buttonItems[index]
+    if (!item?.children || item.disabled) return
+    if (childIndex === index && child) { child.close(true); return }
+    child?.close(false)
+    clearConfirm()
+    childIndex = index
+    const button = buttons[index]!
+    const wrapAction = (entry: AnchoredMenuEntry): AnchoredMenuEntry => entry === "divider" ? entry : {
+      ...entry,
+      ...(entry.children ? { children: entry.children.map(wrapAction) } : {}),
+      onActivate: () => { close(false); entry.onActivate?.() }
+    }
+    child = openAnchoredMenu({
+      anchor: button, items: item.children.map(wrapAction), ariaLabel: `${item.label}选项`, placement: "submenu",
+      onTab: () => { close(false); options.onTab?.() },
+      onClose: () => { child = null; childIndex = null; button.setAttribute("aria-expanded", "false"); button.removeAttribute("aria-controls") }
+    })
+    button.setAttribute("aria-expanded", "true")
+    button.setAttribute("aria-controls", child.element.id)
+  }
 
   const clearConfirm = (): void => {
     if (confirmingIndex === null) return
@@ -98,6 +131,7 @@ export function openAnchoredMenu(options: OpenAnchoredMenuOptions): AnchoredMenu
   const activate = (index: number): void => {
     const item = buttonItems[index]
     if (!item || item.disabled) return
+    if (item.children) { openChild(index); return }
     // 两步确认：首次只进入确认态，焦点留在原条目上等待第二次激活。
     if (item.confirmLabel !== undefined && confirmingIndex !== index) {
       clearConfirm()
@@ -127,6 +161,15 @@ export function openAnchoredMenu(options: OpenAnchoredMenuOptions): AnchoredMenu
     button.setAttribute("role", "menuitem")
     button.setAttribute("tabindex", "-1")
     button.textContent = entry.label
+    if (entry.description) {
+      button.title = entry.description
+      button.setAttribute("aria-description", entry.description)
+    }
+    if (entry.children) {
+      button.setAttribute("aria-label", entry.label)
+      button.setAttribute("aria-haspopup", "menu")
+      button.setAttribute("aria-expanded", "false")
+    }
     if (entry.disabled) {
       button.disabled = true
       button.setAttribute("aria-disabled", "true")
@@ -136,6 +179,7 @@ export function openAnchoredMenu(options: OpenAnchoredMenuOptions): AnchoredMenu
     button.addEventListener("mousedown", (event) => event.preventDefault())
     button.addEventListener("click", () => activate(index))
     button.addEventListener("focus", () => {
+      if (child && childIndex !== index) child.close(false)
       if (confirmingIndex !== null && confirmingIndex !== index) clearConfirm()
     })
     buttons.push(button)
@@ -157,33 +201,48 @@ export function openAnchoredMenu(options: OpenAnchoredMenuOptions): AnchoredMenu
   const menuWidth = element.offsetWidth
   const menuHeight = element.offsetHeight
 
-  let left = anchorRect.left
-  if (left + menuWidth > viewportWidth - VIEWPORT_MARGIN) {
-    left = Math.max(VIEWPORT_MARGIN, viewportWidth - VIEWPORT_MARGIN - menuWidth)
-  }
-  element.style.left = `${left}px`
+  if (options.placement === "submenu") {
+    const right = anchorRect.right + ANCHOR_GAP
+    const left = right + menuWidth <= viewportWidth - VIEWPORT_MARGIN
+      ? right : Math.max(VIEWPORT_MARGIN, anchorRect.left - ANCHOR_GAP - menuWidth)
+    element.style.left = `${Math.min(left, Math.max(VIEWPORT_MARGIN, viewportWidth - menuWidth - VIEWPORT_MARGIN))}px`
+    const available = Math.max(0, viewportHeight - VIEWPORT_MARGIN * 2)
+    if (menuHeight > available) {
+      element.classList.add(MENU_SCROLL_CLASS)
+      element.style.maxHeight = `${available}px`
+    }
+    element.style.top = `${Math.max(VIEWPORT_MARGIN, Math.min(anchorRect.top,
+      viewportHeight - VIEWPORT_MARGIN - Math.min(menuHeight, available)))}px`
+  } else {
+    let left = anchorRect.left
+    if (left + menuWidth > viewportWidth - VIEWPORT_MARGIN) {
+      left = Math.max(VIEWPORT_MARGIN, viewportWidth - VIEWPORT_MARGIN - menuWidth)
+    }
+    element.style.left = `${left}px`
 
-  const belowSpace = viewportHeight - anchorRect.bottom - ANCHOR_GAP - VIEWPORT_MARGIN
-  const aboveSpace = anchorRect.top - ANCHOR_GAP - VIEWPORT_MARGIN
-  const flip = menuHeight > belowSpace && aboveSpace > belowSpace
-  const available = Math.max(flip ? aboveSpace : belowSpace, 0)
-  if (menuHeight > available) {
-    element.classList.add(MENU_SCROLL_CLASS)
-    element.style.maxHeight = `${available}px`
+    const belowSpace = viewportHeight - anchorRect.bottom - ANCHOR_GAP - VIEWPORT_MARGIN
+    const aboveSpace = anchorRect.top - ANCHOR_GAP - VIEWPORT_MARGIN
+    const flip = menuHeight > belowSpace && aboveSpace > belowSpace
+    const available = Math.max(flip ? aboveSpace : belowSpace, 0)
+    if (menuHeight > available) {
+      element.classList.add(MENU_SCROLL_CLASS)
+      element.style.maxHeight = `${available}px`
+    }
+    const effectiveHeight = Math.min(menuHeight, available)
+    const unclampedTop = flip ? anchorRect.top - ANCHOR_GAP - effectiveHeight : anchorRect.bottom + ANCHOR_GAP
+    // 最终钳制：菜单整体（含翻转后）绝不越出视口上下缘。
+    const top = Math.min(
+      Math.max(unclampedTop, VIEWPORT_MARGIN),
+      Math.max(viewportHeight - VIEWPORT_MARGIN - effectiveHeight, VIEWPORT_MARGIN)
+    )
+    element.style.top = `${top}px`
   }
-  const effectiveHeight = Math.min(menuHeight, available)
-  const unclampedTop = flip ? anchorRect.top - ANCHOR_GAP - effectiveHeight : anchorRect.bottom + ANCHOR_GAP
-  // 最终钳制：菜单整体（含翻转后）绝不越出视口上下缘。
-  const top = Math.min(
-    Math.max(unclampedTop, VIEWPORT_MARGIN),
-    Math.max(viewportHeight - VIEWPORT_MARGIN - effectiveHeight, VIEWPORT_MARGIN)
-  )
-  element.style.top = `${top}px`
 
   let closed = false
   const close = (restoreFocus = false): void => {
     if (closed) return
     closed = true
+    child?.close(false)
     element.removeEventListener("keydown", onMenuKeyDown)
     document.removeEventListener("pointerdown", onDocumentPointerDown, true)
     window.removeEventListener("scroll", onWindowScroll, true)
@@ -196,6 +255,14 @@ export function openAnchoredMenu(options: OpenAnchoredMenuOptions): AnchoredMenu
   const onMenuKeyDown = (event: KeyboardEvent): void => {
     const focused = buttons.findIndex((button) => button === document.activeElement)
     switch (event.key) {
+      case "ArrowRight":
+        if (buttonItems[focused]?.children) { event.preventDefault(); openChild(focused) }
+        return
+      case "ArrowLeft":
+        if (options.placement === "submenu") {
+          event.preventDefault(); event.stopPropagation(); close(true)
+        }
+        return
       case "ArrowDown":
         event.preventDefault()
         moveFocus(focused, 1)
@@ -221,20 +288,21 @@ export function openAnchoredMenu(options: OpenAnchoredMenuOptions): AnchoredMenu
       case "Tab":
         // 不拦默认行为：焦点按自然顺序离开，菜单同步关闭。
         close(false)
+        options.onTab?.()
         return
       default:
     }
   }
   const onDocumentPointerDown = (event: Event): void => {
     if (!(event.target instanceof window.Node)) return
-    if (element.contains(event.target) || anchor.contains(event.target)) return
+    if (element.contains(event.target) || child?.element.contains(event.target) || anchor.contains(event.target)) return
     close(false)
   }
   const onWindowChange = (): void => close(false)
   const onWindowScroll = (event: Event): void => {
     // 菜单限高后的内部滚动是到达条目的唯一途径：scroll 不冒泡，但 capture
     // 阶段能拿到真实滚动目标——目标在菜单内部则不关，外部滚动保持“滚动即关”。
-    if (event.target instanceof window.Node && element.contains(event.target)) return
+    if (event.target instanceof window.Node && (element.contains(event.target) || child?.element.contains(event.target))) return
     close(false)
   }
 

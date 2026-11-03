@@ -117,6 +117,10 @@ export function installInteractionToolbar(editor: Editor, capabilities: BlockMen
       button.textContent = item.label
       button.disabled = !!item.disabled
       button.tabIndex = -1
+      if (item.description) {
+        button.title = item.description
+        button.setAttribute("aria-description", item.description)
+      }
       if (item.disabled && item.disabledReason) {
         button.title = item.disabledReason
         button.setAttribute("aria-description", item.disabledReason)

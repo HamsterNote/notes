@@ -167,7 +167,7 @@ function dataTransferStub() {
     },
     effectAllowed: "",
     dropEffect: "",
-    setDragImage: vi.fn()
+    setDragImage: vi.fn<(element: Element, x: number, y: number) => void>()
   }
 }
 
@@ -474,6 +474,78 @@ describe("只读模式（view.editable = false）", () => {
 })
 
 describe("桌面原生拖拽（draggable + data-drag-handle）", () => {
+  it("代码块预览保留当前语言、文件名与代码文本", () => {
+    const session = sessionFor({
+      schemaVersion: 1,
+      data: { type: "doc", content: [{
+        type: "codeBlock",
+        attrs: { nodeId: ids[0], language: "javascript", filename: "example.js" },
+        content: [{ type: "text", text: "const answer = 42" }]
+      }] }
+    })
+    try {
+      const transfer = dataTransferStub()
+      handles(session)[0]!.dispatchEvent(dragEvent("dragstart", { dataTransfer: transfer }))
+      const image = transfer.setDragImage.mock.calls[0]![0]
+      expect(image.querySelector("select")!.value).toBe("javascript")
+      expect(image.querySelector("input")!.value).toBe("example.js")
+      expect(image.querySelector(".hn-editor-code-editor")!.textContent).toBe("const answer = 42")
+      expect(image.querySelector("[data-drag-handle], .hn-editor-block-handle")).toBeNull()
+    } finally {
+      session.destroy()
+    }
+  })
+
+  it("拖拽图是无手柄的独立块副本，保留内容和抓取偏移，下一任务移除且不污染文档", () => {
+    vi.useFakeTimers()
+    const session = sessionFor(paragraphsDocument("preview text", "tail"))
+    try {
+      layoutBlocks(session)
+      const source = blockDoms(session)[0]!
+      const image = source.cloneNode(true) as HTMLElement
+      // 覆盖 widget 位于块内的情况，不改动真实 PM contentDOM。
+      image.append(handles(session)[0]!.cloneNode(true))
+      vi.spyOn(source, "cloneNode").mockReturnValue(image)
+      const transfer = dataTransferStub()
+      let connectedDuringCapture = false
+      transfer.setDragImage.mockImplementation(element => { connectedDuringCapture = element.isConnected })
+      handles(session)[0]!.dispatchEvent(dragEvent("dragstart", { dataTransfer: transfer, clientX: -28, clientY: 12 }))
+      expect(transfer.setDragImage).toHaveBeenCalledWith(image, -28, 12)
+      expect(connectedDuringCapture).toBe(true)
+      expect(image).not.toBe(source)
+      expect(image.textContent).toBe("preview text")
+      expect(image.querySelector("[data-drag-handle], .hn-editor-block-handle")).toBeNull()
+      expect(image.parentElement!.getAttribute("aria-hidden")).toBe("true")
+      expect(session.editor.view.dom.contains(image)).toBe(false)
+      expect(source.isConnected).toBe(true)
+      expect(session.state.dirty).toBe(false)
+      expect(undoDepth(session.editor.state)).toBe(0)
+      vi.advanceTimersByTime(0)
+      expect(image.isConnected).toBe(false)
+      expect(document.querySelector("[data-hnn-drag-image]")).toBeNull()
+    } finally {
+      session.destroy()
+    }
+  })
+
+  it.each(["dragend", "destroy", "throw"])("预览在 %s 路径同步清理", (mode) => {
+    vi.useFakeTimers()
+    const session = sessionFor(paragraphsDocument("a", "b"))
+    try {
+      const transfer = dataTransferStub()
+      if (mode === "throw") transfer.setDragImage.mockImplementation(() => { throw new Error("no snapshot") })
+      const handle = handles(session)[0]!
+      handle.dispatchEvent(dragEvent("dragstart", { dataTransfer: transfer }))
+      if (mode === "dragend") handle.dispatchEvent(dragEvent("dragend", { dataTransfer: transfer }))
+      if (mode === "destroy") session.destroy()
+      expect(document.querySelector("[data-hnn-drag-image]")).toBeNull()
+      vi.advanceTimersByTime(0)
+      expect(document.querySelector("[data-hnn-drag-image]")).toBeNull()
+    } finally {
+      if (!session.editor.isDestroyed) session.destroy()
+    }
+  })
+
   it("dragstart → dragover 预览 → drop 提交，恰好一个 transaction，PM 原生 drop 被抑制", () => {
     const session = sessionFor(paragraphsDocument("a", "b", "c"))
     const pmDropProbe = vi.fn()

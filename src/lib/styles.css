@@ -272,8 +272,13 @@
 
 /* 代码块卡片：与 hn-note-code-card 共享深色底、浅字与等宽栈，两种主题下保持一致 */
 .hn-editor-content .hn-editor-code-card {
-  border: 1px solid var(--hn-border-strong, rgba(15, 23, 42, 0.14));
   border-radius: var(--hn-radius, 24px);
+}
+
+/* 外层不裁剪左侧 hover 桥；原边框、背景和圆角裁剪原样移到内层。 */
+.hn-editor-content .hn-editor-code-surface {
+  border: 1px solid var(--hn-border-strong, rgba(15, 23, 42, 0.14));
+  border-radius: inherit;
   background: #0f172a;
   overflow: hidden;
 }
@@ -1629,3 +1634,10 @@
 .hn-editor-toolbar-row button[aria-pressed="true"] { background: rgba(255, 255, 255, 0.14); }
 .hn-editor-toolbar-row button:focus-visible { outline: 2px solid var(--hn-theme, #3b82f6); outline-offset: -2px; }
 .hn-editor-toolbar-row button:disabled { color: rgba(226, 232, 240, 0.38); cursor: default; }
+
+/* 级联菜单沿用现有按钮视觉，只标明可展开的父项。 */
+.hn-editor-menu-item[aria-haspopup="menu"]::after {
+  content: "›";
+  float: right;
+  margin-left: 1rem;
+}
