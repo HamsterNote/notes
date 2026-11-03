@@ -272,8 +272,13 @@
 
 /* 代码块卡片：与 hn-note-code-card 共享深色底、浅字与等宽栈，两种主题下保持一致 */
 .hn-editor-content .hn-editor-code-card {
-  border: 1px solid var(--hn-border-strong, rgba(15, 23, 42, 0.14));
   border-radius: var(--hn-radius, 24px);
+}
+
+/* 外层不裁剪左侧 hover 桥；原边框、背景和圆角裁剪原样移到内层。 */
+.hn-editor-content .hn-editor-code-surface {
+  border: 1px solid var(--hn-border-strong, rgba(15, 23, 42, 0.14));
+  border-radius: inherit;
   background: #0f172a;
   overflow: hidden;
 }

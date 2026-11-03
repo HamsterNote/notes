@@ -538,6 +538,9 @@ function buildHnnExtensions(includeUndoRedo: boolean): Extensions {
         const dom = document.createElement("div")
         applyDomAttrs(dom, HTMLAttributes)
         dom.classList.add("hn-editor-code-card")
+        // 圆角裁剪在内部，外层保留块左侧的 hover 桥与拖拽落点线。
+        const surface = document.createElement("div")
+        surface.className = "hn-editor-code-surface"
 
         const meta = document.createElement("div")
         meta.className = "hn-editor-code-meta"
@@ -581,7 +584,8 @@ function buildHnnExtensions(includeUndoRedo: boolean): Extensions {
         const editorCode = document.createElement("code")
         editorPre.append(editorCode)
         editing.append(highlightPre, editorPre)
-        dom.append(meta, editing)
+        surface.append(meta, editing)
+        dom.append(surface)
 
         const syncFromNode = (current: typeof node): void => {
           const language = String(current.attrs["language"] ?? "plaintext")

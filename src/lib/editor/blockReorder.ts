@@ -192,6 +192,15 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
   /** 当前打开的块菜单（同一时间至多一个）与其锚点手柄。 */
   let menuClose: ((restoreFocus?: boolean) => void) | null = null
   let menuAnchor: HTMLElement | null = null
+  let dragImageShell: HTMLElement | null = null
+  let dragImageTimer: number | null = null
+
+  const clearDragImage = (): void => {
+    if (dragImageTimer !== null) window.clearTimeout(dragImageTimer)
+    dragImageTimer = null
+    dragImageShell?.remove()
+    dragImageShell = null
+  }
 
   const blockDomAt = (index: number): HTMLElement | null => {
     const child = topLevelChildren(view.state.doc)[index]
@@ -411,6 +420,7 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
   }
 
   function finishGesture(commit: boolean): void {
+    clearDragImage()
     const active = gesture
     if (!active) return
     gesture = null
@@ -552,8 +562,32 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
       if (sourceDom && typeof dataTransfer.setDragImage === "function") {
         const rect = sourceDom.getBoundingClientRect()
         try {
-          dataTransfer.setDragImage(sourceDom, event.clientX - rect.left, event.clientY - rect.top)
+          clearDragImage()
+          // 保留编辑器的主题/CSS 上下文，但放在 PM contentDOM 之外，避免扰动正文。
+          // shell 复用内容类和原宽度，使副本换行、代码卡片与真实块一致。
+          const shell = view.dom.cloneNode(false) as HTMLElement
+          shell.removeAttribute("id")
+          shell.removeAttribute("aria-label")
+          shell.setAttribute("aria-hidden", "true")
+          shell.setAttribute("inert", "")
+          shell.setAttribute("data-hnn-drag-image", "")
+          Object.assign(shell.style, {
+            position: "fixed", left: "-10000px", top: "0", margin: "0",
+            width: window.getComputedStyle(view.dom).width, pointerEvents: "none"
+          })
+          const image = sourceDom.cloneNode(true) as HTMLElement
+          image.querySelectorAll(`.${HANDLE_CLASS}, [data-drag-handle]`).forEach((element) => element.remove())
+          image.removeAttribute("id")
+          image.querySelectorAll("[id]").forEach((element) => element.removeAttribute("id"))
+          image.style.margin = "0"
+          shell.append(image)
+          dragImageShell = shell
+          view.dom.parentElement?.append(shell)
+          dataTransfer.setDragImage(image, event.clientX - rect.left, event.clientY - rect.top)
+          // 浏览器在 dragstart 返回后采集位图；下一任务清理，取消/卸载也有兜底。
+          dragImageTimer = window.setTimeout(clearDragImage, 0)
         } catch {
+          clearDragImage()
           // setDragImage 失败不影响拖拽本身。
         }
       }
@@ -735,12 +769,16 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
         for (const block of Array.from(root.children)) {
           const handle = block.previousElementSibling
           if (!(handle instanceof HTMLElement) || !handle.classList.contains(HANDLE_CLASS)) continue
+          const codeHeader = block.matches(".hn-editor-code-card") ? block.querySelector(".hn-editor-code-meta") : null
           const line = block.matches("p,h1,h2,h3,h4,h5,h6,pre") ? block :
             block.querySelector("p,h1,h2,h3,h4,h5,h6,pre") ?? block
           const style = window.getComputedStyle(line)
           const lineHeight = number(style.lineHeight) || number(style.fontSize) * 1.2
-          const top = (line.getBoundingClientRect().top - rootRect.top) / scale - border + root.scrollTop +
-            number(style.borderTopWidth) + number(style.paddingTop) + lineHeight / 2
+          const headerRect = codeHeader?.getBoundingClientRect()
+          const top = headerRect
+            ? (headerRect.top + headerRect.height / 2 - rootRect.top) / scale - border + root.scrollTop
+            : (line.getBoundingClientRect().top - rootRect.top) / scale - border + root.scrollTop +
+              number(style.borderTopWidth) + number(style.paddingTop) + lineHeight / 2
           positions.push({ handle, top })
         }
         for (const { handle, top } of positions) handle.style.top = `${top}px`
