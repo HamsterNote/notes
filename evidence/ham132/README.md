@@ -1,6 +1,6 @@
 # HAM-132 IME investigation
 
-Status: **not reproduced; not fixed**. No production editor code changed.
+Status: **awaiting reproduction; not fixed**. No production editor code changed.
 The passing checks below characterize the ordinary composition path and provide
 a fixture for collecting the failing iOS sequence. They are not evidence that
 the reported App issue is resolved.
@@ -9,9 +9,10 @@ the reported App issue is resolved.
 
 Read-only inspection of WebBase commit `614f9e776643ec68038d04c05b7d1926f92cbbbc`:
 
-- `webview/src/window-content/HnnDocumentSession.tsx` uses the public
+- The inspected source's `webview/src/window-content/HnnDocumentSession.tsx` uses the public
   `NoteDocumentProvider`; `HnnWindowDocumentView.tsx:118` mounts `NoteEditorView`.
-  Title/summary are separate input/textarea controls. The reported body is PM.
+  Title/summary are separate input/textarea controls. This confirms the source's
+  PM integration, not the editor used by the reporter's installed App.
 - `webview/package.json` pins `vendor/hamster-note-notes-3.1.3-ham107.1.tgz` and
   patches its shared-session explicit selection synchronization. That predates
   HAM-124; the screenshot's visible mobile handles are consistent with this,
@@ -80,8 +81,39 @@ only this blank test document: composition/key/beforeinput/input/selection
 events, target ranges, DOM selection paths, DOM and HNN snapshots. Record
 device/iOS, keyboard, and candidate confirmation method alongside the JSON.
 
-Mac operator task HAM-135 owns real iOS IME/App evidence, not business code.
-Remaining acceptance: capture the first unexpected block split, replay its
-actual event sequence in a failing regression, fix the demonstrated cause,
-then validate the upgraded host. Do not suppress all composition transactions
-based solely on the screenshot; PM must still reconcile native text mutations.
+## iOS evidence and reporter update
+
+The reporter clarified **WeChat Keyboard, Space confirmation**, and currently
+cannot reproduce the problem. This changes the target from the initially
+assumed system Pinyin keyboard. The reporter's App, iOS and keyboard versions
+and whether those changed are still unknown.
+
+Mac operator task HAM-135 completed actual system Pinyin testing on an existing
+iPhone 17e **simulator**, iOS runtime 27.2, Preview App 1.1.0 (build 1).
+Candidate tap once and Space twice each produced `你好哈哈` in one body block;
+closing, persisting and reopening retained the same text. Independently
+analyzing all 271 logged event snapshots confirms a maximum of one body block
+in each run. `ios-summary.json` records counts, the commit events, and the
+original evidence attachment identity; raw logs/screenshots are on HAM-135.
+
+The observed Space sequence was `insertCompositionText → insertFromComposition
+→ compositionend`, with trusted events and `isComposing=true` on the input
+events. No DOM Space keydown was emitted; Space confirmation was established
+by the operator's physical soft-keyboard taps, not inferred from keyboard events.
+
+These are **not tests of the reporter's environment or of the current PM
+editor**. The installed App's DOM is
+`span.hn-note-editable[data-editable-block-id]`, and its saved document uses
+`notes.blocks`, unlike the current PM/HNN schema. Its exact source/package
+version is unknown; the inspected WebBase checkout cannot identify that build.
+The WebView UA reports iOS 18_7 while the simulator runtime reports 27.2; neither
+value is substituted for the other. WeChat Keyboard was not installed/tested,
+and the online Demo returned GitHub Pages 404. No reporter device was accessed.
+
+No failing sequence has been captured, so the root cause remains unknown and
+the issue awaits reproducible evidence. Preserve this draft and the capture
+tools. When the same App/iOS/WeChat Keyboard combination reproduces, obtain a
+keyboard-visible recording and event log, identify the actual installed editor,
+then reproduce the split in a failing regression before changing that editor.
+Do not suppress PM transactions or mark the issue fixed based on these
+non-equivalent, passing checks.
