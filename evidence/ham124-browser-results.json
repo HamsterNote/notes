@@ -138,10 +138,10 @@
         "probe": "synthetic cancelable MouseEvent; not an OS menu observation",
         "focusedPending": false,
         "focusedHeld": false,
-        "pending": true,
+        "pending": false,
         "pendingOtherBlock": false,
         "cancelledPending": false,
-        "active": true,
+        "active": false,
         "scrollCancelled": false
       },
       "focusedHold": {
@@ -291,10 +291,10 @@
         "probe": "synthetic cancelable MouseEvent; not an OS menu observation",
         "focusedPending": false,
         "focusedHeld": false,
-        "pending": true,
+        "pending": false,
         "pendingOtherBlock": false,
         "cancelledPending": false,
-        "active": true,
+        "active": false,
         "scrollCancelled": false
       },
       "focusedHold": {
@@ -444,10 +444,10 @@
         "probe": "synthetic cancelable MouseEvent; not an OS menu observation",
         "focusedPending": false,
         "focusedHeld": false,
-        "pending": true,
+        "pending": false,
         "pendingOtherBlock": false,
         "cancelledPending": false,
-        "active": true,
+        "active": false,
         "scrollCancelled": false
       },
       "focusedHold": {
@@ -597,10 +597,10 @@
         "probe": "synthetic cancelable MouseEvent; not an OS menu observation",
         "focusedPending": false,
         "focusedHeld": false,
-        "pending": true,
+        "pending": false,
         "pendingOtherBlock": false,
         "cancelledPending": false,
-        "active": true,
+        "active": false,
         "scrollCancelled": false
       },
       "focusedHold": {
@@ -750,10 +750,10 @@
         "probe": "synthetic cancelable MouseEvent; not an OS menu observation",
         "focusedPending": false,
         "focusedHeld": false,
-        "pending": true,
+        "pending": false,
         "pendingOtherBlock": false,
         "cancelledPending": false,
-        "active": true,
+        "active": false,
         "scrollCancelled": false
       },
       "focusedHold": {
@@ -903,10 +903,10 @@
         "probe": "synthetic cancelable MouseEvent; not an OS menu observation",
         "focusedPending": false,
         "focusedHeld": false,
-        "pending": true,
+        "pending": false,
         "pendingOtherBlock": false,
         "cancelledPending": false,
-        "active": true,
+        "active": false,
         "scrollCancelled": false
       },
       "focusedHold": {

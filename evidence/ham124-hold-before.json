@@ -1,0 +1,240 @@
+{
+  "browser": "148.0.7778.96",
+  "command": "node scripts/check-mobile-hold.mjs --before-ref=66034bb",
+  "source": "blockReorder.ts from 66034bb, remaining checkout unchanged",
+  "results": [
+    {
+      "scenario": "other-block-cursor",
+      "precondition": {
+        "selected": "",
+        "anchor": "HAM124 second paragraph"
+      },
+      "beforeOrder": [
+        "HAM124 first paragraph",
+        "HAM124 second paragraph",
+        "HAM124 third paragraph"
+      ],
+      "pending": {
+        "dragging": false,
+        "selection": "",
+        "userSelect": "auto",
+        "inlineStyle": null
+      },
+      "syntheticProbes": {
+        "selectstartPrevented": false,
+        "contextmenuPrevented": true,
+        "heldContextmenuPrevented": true
+      },
+      "held": {
+        "dragging": true,
+        "selection": "",
+        "userSelect": "auto",
+        "inlineStyle": null
+      },
+      "afterOrder": [
+        "HAM124 second paragraph",
+        "HAM124 third paragraph",
+        "HAM124 first paragraph"
+      ],
+      "restored": {
+        "dragging": false,
+        "selection": "HAM124 first paragraph",
+        "userSelect": "auto",
+        "inlineStyle": ""
+      },
+      "events": [
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "ms": 1665.4000005722046,
+          "prevented": false
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "ms": 1665.5,
+          "prevented": false
+        },
+        {
+          "type": "touchmove",
+          "trusted": true,
+          "ms": 2465.800000190735,
+          "prevented": false
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "ms": 2582.6000003814697,
+          "prevented": false
+        }
+      ],
+      "selections": [
+        {
+          "ms": 2168.4000005722046,
+          "rawText": "",
+          "text": "",
+          "userSelect": "auto"
+        },
+        {
+          "ms": 2466.7000007629395,
+          "rawText": "",
+          "text": "",
+          "userSelect": "auto"
+        },
+        {
+          "ms": 2610.5,
+          "rawText": "HAM124 first paragraph",
+          "text": "HAM124 first paragraph",
+          "userSelect": "auto"
+        }
+      ]
+    },
+    {
+      "scenario": "other-block-range",
+      "precondition": {
+        "selected": "H",
+        "anchor": "HAM124 second paragraph"
+      },
+      "beforeOrder": [
+        "HAM124 first paragraph",
+        "HAM124 second paragraph",
+        "HAM124 third paragraph"
+      ],
+      "pending": {
+        "dragging": false,
+        "selection": "H",
+        "userSelect": "auto",
+        "inlineStyle": null
+      },
+      "syntheticProbes": {
+        "selectstartPrevented": false,
+        "contextmenuPrevented": false,
+        "heldContextmenuPrevented": false
+      },
+      "held": {
+        "dragging": false,
+        "selection": "H",
+        "userSelect": "auto",
+        "inlineStyle": null
+      },
+      "afterOrder": [
+        "HAM124 first paragraph",
+        "HAM124 second paragraph",
+        "HAM124 third paragraph"
+      ],
+      "restored": {
+        "dragging": false,
+        "selection": "H",
+        "userSelect": "auto",
+        "inlineStyle": ""
+      },
+      "events": [
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "ms": 853,
+          "prevented": false
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "ms": 853.0999994277954,
+          "prevented": false
+        },
+        {
+          "type": "touchmove",
+          "trusted": true,
+          "ms": 1659.3999996185303,
+          "prevented": false
+        },
+        {
+          "type": "pointercancel",
+          "trusted": true,
+          "ms": 1660.1999998092651,
+          "prevented": false
+        },
+        {
+          "type": "touchend",
+          "trusted": true,
+          "ms": 1777.2999992370605,
+          "prevented": false
+        }
+      ],
+      "selections": []
+    },
+    {
+      "scenario": "focused-block",
+      "precondition": {
+        "selected": "",
+        "anchor": "HAM124 first paragraph"
+      },
+      "beforeOrder": [
+        "HAM124 first paragraph",
+        "HAM124 second paragraph",
+        "HAM124 third paragraph"
+      ],
+      "pending": {
+        "dragging": false,
+        "selection": "",
+        "userSelect": "auto",
+        "inlineStyle": null
+      },
+      "syntheticProbes": {
+        "selectstartPrevented": false,
+        "contextmenuPrevented": false,
+        "heldContextmenuPrevented": false
+      },
+      "held": {
+        "dragging": false,
+        "selection": "",
+        "userSelect": "auto",
+        "inlineStyle": null
+      },
+      "afterOrder": [
+        "HAM124 first paragraph",
+        "HAM124 second paragraph",
+        "HAM124 third paragraph"
+      ],
+      "restored": {
+        "dragging": false,
+        "selection": "",
+        "userSelect": "auto",
+        "inlineStyle": ""
+      },
+      "events": [
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "ms": 815.9000005722046,
+          "prevented": false
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "ms": 816.1000003814697,
+          "prevented": false
+        },
+        {
+          "type": "touchmove",
+          "trusted": true,
+          "ms": 1615.1999998092651,
+          "prevented": false
+        },
+        {
+          "type": "pointercancel",
+          "trusted": true,
+          "ms": 1616,
+          "prevented": false
+        },
+        {
+          "type": "touchend",
+          "trusted": true,
+          "ms": 1735,
+          "prevented": false
+        }
+      ],
+      "selections": []
+    }
+  ],
+  "limitations": "Trusted Chromium CDP touch and native keyboard input; explicit synthetic event cancellation probes. Not a physical phone/OS menu or hardware vibration test. Native long-press word-selection pointercancel is reported only if observed."
+}

@@ -351,7 +351,36 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
   }
 
   const onSelectStart = (event: Event): void => {
-    event.preventDefault()
+    if (event.target instanceof window.Node && view.dom.contains(event.target)) event.preventDefault()
+  }
+
+  const clearPointerSelection = (): void => {
+    const selection = window.getSelection()
+    if (selection && !selection.isCollapsed &&
+        ((selection.anchorNode && view.dom.contains(selection.anchorNode)) ||
+         (selection.focusNode && view.dom.contains(selection.focusNode)))) selection.removeAllRanges()
+  }
+
+  // The editor root is stable across PM decoration updates. Never style the
+  // content node directly: DOMObserver can replace it and lose the touch target.
+  let restorePointerSelection: (() => void) | null = null
+  const suppressPointerSelection = (): void => {
+    if (restorePointerSelection) return
+    const properties = ["user-select", "-webkit-user-select", "-webkit-touch-callout"]
+    const previous = properties.map(property => [property, view.dom.style.getPropertyValue(property), view.dom.style.getPropertyPriority(property)] as const)
+    for (const property of properties) view.dom.style.setProperty(property, "none", "important")
+    document.addEventListener("selectstart", onSelectStart, true)
+    document.addEventListener("selectionchange", clearPointerSelection)
+    restorePointerSelection = () => {
+      document.removeEventListener("selectstart", onSelectStart, true)
+      document.removeEventListener("selectionchange", clearPointerSelection)
+      for (const [property, value, priority] of previous) {
+        if (value) view.dom.style.setProperty(property, value, priority)
+        else view.dom.style.removeProperty(property)
+      }
+      restorePointerSelection = null
+    }
+    clearPointerSelection()
   }
 
   const onTouchMove = (event: Event): void => {
@@ -373,14 +402,12 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
     document.addEventListener("pointermove", onActivePointerMove)
     document.addEventListener("pointerup", onActivePointerUp)
     document.addEventListener("pointercancel", onActivePointerCancel)
-    document.addEventListener("selectstart", onSelectStart, true)
   }
 
   const removeActivePointerListeners = (): void => {
     document.removeEventListener("pointermove", onActivePointerMove)
     document.removeEventListener("pointerup", onActivePointerUp)
     document.removeEventListener("pointercancel", onActivePointerCancel)
-    document.removeEventListener("selectstart", onSelectStart, true)
   }
 
   function finishGesture(commit: boolean): void {
@@ -389,6 +416,7 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
     gesture = null
     removeNativeListeners()
     removeActivePointerListeners()
+    if (active.kind === "pointer") restorePointerSelection?.()
     // 手柄 --dragging 直写 widget DOM：PM 对 widget 内部 mutation 一律 ignore，
     // 不触发重绘（内容 DOM 已不再有任何手写 class，重绘路径整体消失）。
     if (active.handle.classList.contains(HANDLE_CLASS)) active.handle.classList.remove(HANDLE_DRAGGING_CLASS)
@@ -417,6 +445,7 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
     document.removeEventListener("pointermove", onPendingPointerMove)
     document.removeEventListener("pointerup", onPendingPointerUp)
     document.removeEventListener("pointercancel", onPendingPointerCancel)
+    restorePointerSelection?.()
   }
 
   function onPendingPointerMove(event: Event): void {
@@ -475,7 +504,10 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
     document.removeEventListener("pointermove", onPendingPointerMove)
     document.removeEventListener("pointerup", onPendingPointerUp)
     document.removeEventListener("pointercancel", onPendingPointerCancel)
-    if (uninstalled || !view.editable || editor.view.composing) return
+    if (uninstalled || !view.editable || editor.view.composing) {
+      restorePointerSelection?.()
+      return
+    }
     closeHandleMenu(false)
     view.dom.dispatchEvent(new Event("hnn-reorder-start"))
     gesture = {
@@ -552,6 +584,7 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
       handle,
       timer: window.setTimeout(activatePointerDrag, HNN_REORDER_HOLD_MS)
     }
+    suppressPointerSelection()
     document.addEventListener("pointermove", onPendingPointerMove)
     document.addEventListener("pointerup", onPendingPointerUp)
     document.addEventListener("pointercancel", onPendingPointerCancel)
@@ -568,8 +601,7 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
     }
     // A fresh gesture must not inherit suppression from an earlier cancelled pointer.
     if (!pendingHold && !gesture) suppressHandleClick = false
-    if (!layout.isMobile() || !view.editable || view.composing || !view.state.selection.empty ||
-        !window.getSelection()?.isCollapsed) return
+    if (!layout.isMobile() || !view.editable || view.composing) return
     const target = event.target
     if (!(target instanceof Element) || !view.dom.contains(target) ||
         target.closest('a,button,input,textarea,select,[role="button"],[contenteditable="false"],.hn-editor-block-handle')) return
@@ -587,9 +619,7 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
     onHandlePointerDown(pointer, view.dom, () => child.offset)
   }
   const suppressResidual = (event: Event): void => {
-    const pendingContextMenu = event.type === "contextmenu" && pendingHold !== null &&
-      event.target instanceof window.Node && blockDomAt(pendingHold.fromIndex)?.contains(event.target)
-    if (pendingContextMenu || gesture?.kind === "pointer" || (event.type !== "dragstart" && suppressHandleClick)) {
+    if (gesture?.kind === "pointer" || (event.type !== "dragstart" && suppressHandleClick)) {
       event.preventDefault()
       event.stopImmediatePropagation()
       if (event.type === "click") suppressHandleClick = false
@@ -597,12 +627,11 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
   }
   // Register before touchstart: Chromium decides whether a gesture can block scrolling
   // at its start. A listener added after the 500ms hold is too late and gets pointercancel.
-  // Pending gestures remain native because onTouchMove only cancels an active drag.
+  // Pending gestures retain native scrolling; onTouchMove only cancels an active drag.
   document.addEventListener("touchmove", onTouchMove, { passive: false })
   document.addEventListener("pointerdown", onBodyPointerDown, true)
   view.dom.addEventListener("dragstart", suppressResidual, true)
   view.dom.addEventListener("click", suppressResidual, true)
-  view.dom.addEventListener("contextmenu", suppressResidual, true)
   const cancelInteraction = (): void => {
     cancelPendingHold()
     finishGesture(false)
@@ -635,8 +664,6 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
 
     // 手柄按下不交给 PM（不移动 selection），但不 preventDefault，原生拖拽需要默认行为。
     handle.addEventListener("mousedown", (event) => event.stopPropagation())
-    // 移动端长按弹出的上下文菜单会打断拖拽手势。
-    handle.addEventListener("contextmenu", (event) => event.preventDefault())
     handle.addEventListener("dragstart", (event) => onHandleDragStart(event as ReorderDragEvent, handle, getPos))
     handle.addEventListener("dragend", () => finishGesture(false))
     handle.addEventListener("pointerdown", (event) => onHandlePointerDown(event as ReorderPointerEvent, handle, getPos))
@@ -820,7 +847,6 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
     document.removeEventListener("pointerdown", onBodyPointerDown, true)
     view.dom.removeEventListener("dragstart", suppressResidual, true)
     view.dom.removeEventListener("click", suppressResidual, true)
-    view.dom.removeEventListener("contextmenu", suppressResidual, true)
     cancelPendingHold()
     finishGesture(false)
     closeHandleMenu(false)

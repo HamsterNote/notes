@@ -9,8 +9,8 @@
 
 ## 2. 移动端正文长按排序
 
-- [x] 2.1 在 `blockReorder.ts` 为移动布局块正文接入触摸/笔入口，按 pointerdown 前的焦点排除当前聚焦顶层块（保留原生文字选择），并排除内部交互控件、已有非空选区和 IME；以 `blockReorder.test.ts` 假时钟覆盖聚焦/未聚焦/其他块聚焦、按下后自然聚焦不改变意图、499/500ms、10px/超过10px、提前抬起、第二指针和 pointercancel。
-- [x] 2.2 激活时复用源块高亮和落点线，添加可选单次10ms震动、pointer capture 和残余 click 抑制；从 pendingHold 到 active 均抑制目标块 contextmenu，聚焦块及取消/结束后的普通交互不受影响；测试震动缺失/拒绝/抛错均可继续拖动，取消后样式清理及 contextmenu 抑制边界。
+- [x] 2.1 在 `blockReorder.ts` 为移动布局块正文接入触摸/笔入口，按 pointerdown 前的焦点排除当前聚焦顶层块（保留原生文字选择），并排除内部交互控件和 IME；其他块/失焦视图保留的非空选区不得误杀未聚焦目标；以 `blockReorder.test.ts` 假时钟覆盖聚焦/未聚焦/其他块聚焦、按下后自然聚焦不改变意图、499/500ms、10px/超过10px、提前抬起、第二指针和 pointercancel。
+- [x] 2.2 激活时复用源块高亮和落点线，添加可选单次10ms震动、pointer capture 和残余 click 抑制；从 pendingHold 到 active 临时禁止本视图 selectstart/选区生成（user-select、WebKit callout 保护），全部退出路径恢复原样；所有 contextmenu 放行，聚焦块原生选择不受影响；测试震动缺失/拒绝/抛错均可继续拖动，pending/active 取消后监听和样式恢复、contextmenu 放行及已有选区回归。
 - [x] 2.3 pointerup 使用最终坐标计算落点，复用单事务重排和历史栅栏；以有效移动、原地、docChanged、freeze、跨断点、卸载测试验证节点身份保留、取消零正文事务、前后输入与排序分属撤销事件。
 
 ## 3. 两类文字 popover
@@ -24,5 +24,5 @@
 
 - [x] 4.1 同时在 `session.ts` 和 `documentSession.ts` 的每个视图装配及清理交互；以单编辑器和 Provider 双视图测试验证共享格式/排序撤销、freeze、会话切换、视图卸载、迟到回调无副作用及无焦点抢占。
 - [x] 4.2 执行 `yarn lint`、`yarn typecheck`、`yarn test`、`yarn build`，确认已有块菜单、HNN/Markdown、上传、选区和共享会话回归通过；记录实际结果，不以文档存在替代产品验收。
-- [x] 4.3 使用仓库 Demo 和现有 Playwright 依赖编写/执行 Web 浏览器交互验证脚本，交付可复现脚本及结果；覆盖 320/390/840/841/1440px、明暗主题、鼠标和真实触摸事件序列的聚焦块原生长按选择、未聚焦块长按排序、pending/active contextmenu 边界及滚动取消、长文本、键盘导航及可见视口变化，确认排序、文字按钮、定位和页面无横向溢出。仓库没有现成 E2E script，不虚构 `test:e2e` 命令；浏览器不支持的震动仅验证降级及调用契约，不将模拟调用声称为硬件证据。
+- [x] 4.3 使用仓库 Demo 和现有 Playwright 依赖编写/执行 Web 浏览器交互验证脚本，交付可复现脚本及结果；覆盖 320/390/840/841/1440px、明暗主题、鼠标和真实触摸事件序列的聚焦块原生长按选择、未聚焦块长按排序、pending/active 文字选择保护、contextmenu 放行、已有其他块选区及滚动取消，并提供 CDP 触摸起拖/落点重排前后对照、长文本、键盘导航及可见视口变化，确认排序、文字按钮、定位和页面无横向溢出。仓库没有现成 E2E script，不虚构 `test:e2e` 命令；浏览器不支持的震动仅验证降级及调用契约，不将模拟调用声称为硬件证据。
 - [x] 4.4 更新 `DESIGN.md` 中本需求相关断点、popover 和顶层拖动说明，以及 README 的下划线持久化/旧消费者限制；对照三个 delta specs 逐项核验五项需求，记录开发验证为 Web 侧，不要求原生构建、模拟器或发布。

@@ -265,7 +265,7 @@ describe("重排手柄挂载", () => {
     }
   })
 
-  it("手柄按下不交给 ProseMirror，上下文菜单被抑制（移动端长按）", () => {
+  it("手柄按下不交给 ProseMirror，原生上下文菜单放行", () => {
     const session = sessionFor(paragraphsDocument("a"))
     const mousedownProbe = vi.fn()
     session.editor.view.dom.addEventListener("mousedown", mousedownProbe)
@@ -275,7 +275,7 @@ describe("重排手柄挂载", () => {
 
       const contextmenu = new window.Event("contextmenu", { bubbles: true, cancelable: true })
       handles(session)[0]!.dispatchEvent(contextmenu)
-      expect(contextmenu.defaultPrevented).toBe(true)
+      expect(contextmenu.defaultPrevented).toBe(false)
     } finally {
       session.destroy()
     }
@@ -741,7 +741,7 @@ describe("移动端 Pointer Events 手柄长按 500ms", () => {
 
       // 激活后：selectstart / touchmove 被抑制（非 passive preventDefault）
       const selectstart = new window.Event("selectstart", { bubbles: true, cancelable: true })
-      document.dispatchEvent(selectstart)
+      session.editor.view.dom.dispatchEvent(selectstart)
       expect(selectstart.defaultPrevented).toBe(true)
       const touchmove = new window.Event("touchmove", { bubbles: true, cancelable: true })
       session.editor.view.dom.dispatchEvent(touchmove)
@@ -1072,6 +1072,11 @@ describe("mobile body hold and cancellation contract", () => {
     block.dispatchEvent(event)
     return event
   }
+  const selectStart = (block = blockDoms(current)[0]!) => {
+    const event = new window.Event("selectstart", { bubbles: true, cancelable: true })
+    block.dispatchEvent(event)
+    return event
+  }
   it.each(["touch", "pen"])("leaves a focused block's collapsed cursor and native selection alone (%s)", pointerType => {
     const { editor } = current
     editor.view.focus()
@@ -1087,6 +1092,8 @@ describe("mobile body hold and cancellation contract", () => {
     vi.advanceTimersByTime(500)
     expect(active()).toBeNull()
     expect(capture).not.toHaveBeenCalled()
+    expect(selectStart().defaultPrevented).toBe(false)
+    expect(editor.view.dom.style.getPropertyValue("user-select")).toBe("")
     // A DOM range representing native selection must not be cleared by a drag timer.
     const range = document.createRange()
     range.selectNodeContents(blockDoms(current)[0]!)
@@ -1135,38 +1142,114 @@ describe("mobile body hold and cancellation contract", () => {
     nested.dispatchEvent(event)
     expect(event.defaultPrevented).toBe(false)
   })
-  it("suppresses target contextmenu immediately and at 499ms, then throughout active dragging", () => {
-    current.editor.view.focus()
-    current.editor.commands.setTextSelection(4)
+  it("allows native contextmenu before, during pending/active and after the gesture", () => {
     expect(contextMenu().defaultPrevented).toBe(false)
     down()
-    expect(contextMenu().defaultPrevented).toBe(true)
-    expect(contextMenu(blockDoms(current)[1]).defaultPrevented).toBe(false)
-    const click = new window.MouseEvent("click", { bubbles: true, cancelable: true })
-    blockDoms(current)[0]!.dispatchEvent(click)
-    expect(click.defaultPrevented).toBe(false)
+    expect(contextMenu().defaultPrevented).toBe(false)
     vi.advanceTimersByTime(499)
-    expect(contextMenu().defaultPrevented).toBe(true)
+    expect(contextMenu().defaultPrevented).toBe(false)
     vi.advanceTimersByTime(1)
     expect(active()).not.toBeNull()
-    expect(contextMenu().defaultPrevented).toBe(true)
-    document.dispatchEvent(pointerEvent("pointercancel"))
-    current.editor.commands.setTextSelection(1)
-    down() // next gesture on the focused block clears only residual suppression
     expect(contextMenu().defaultPrevented).toBe(false)
-    vi.advanceTimersByTime(500)
-    expect(active()).toBeNull()
+    document.dispatchEvent(pointerEvent("pointerup", { clientY: 260 }))
+    expect(contextMenu().defaultPrevented).toBe(false) // residual click suppression must not eat menus
   })
-  it.each(["up", "cancel", "move", "second"])("releases pending contextmenu suppression after %s", kind => {
+  it("prevents selection from pointerdown through active without changing pending scroll/click behavior", () => {
+    const root = current.editor.view.dom
+    const original = current.editor.state.doc
     down()
-    expect(contextMenu().defaultPrevented).toBe(true)
+    expect(root.style.getPropertyValue("user-select")).toBe("none")
+    expect(root.style.getPropertyPriority("user-select")).toBe("important")
+    expect(selectStart().defaultPrevented).toBe(true)
+    const outside = new window.Event("selectstart", { bubbles: true, cancelable: true })
+    document.body.dispatchEvent(outside)
+    expect(outside.defaultPrevented).toBe(false)
+    for (const type of ["click", "touchmove"]) {
+      const event = new window.Event(type, { bubbles: true, cancelable: true })
+      root.dispatchEvent(event)
+      expect(event.defaultPrevented).toBe(false)
+    }
+    const trySelection = () => {
+      const range = document.createRange()
+      range.selectNodeContents(blockDoms(current)[0]!)
+      window.getSelection()!.removeAllRanges()
+      window.getSelection()!.addRange(range)
+      document.dispatchEvent(new window.Event("selectionchange"))
+      expect(window.getSelection()!.toString()).toBe("")
+    }
+    trySelection()
+    vi.advanceTimersByTime(499)
+    expect(selectStart().defaultPrevented).toBe(true)
+    vi.advanceTimersByTime(1)
+    expect(active()).not.toBeNull()
+    expect(root.style.getPropertyValue("user-select")).toBe("none")
+    expect(selectStart().defaultPrevented).toBe(true)
+    trySelection()
+    expect(current.editor.state.doc).toBe(original)
+    document.dispatchEvent(pointerEvent("pointercancel"))
+    expect(root.style.getPropertyValue("user-select")).toBe("")
+    expect(selectStart().defaultPrevented).toBe(false)
+  })
+  it.each(["up", "cancel", "move", "second", "freeze", "breakpoint", "doc", "unmount"])("restores pending selection behavior after %s", kind => {
+    const root = current.editor.view.dom
+    root.style.setProperty("user-select", "text", "important")
+    root.style.setProperty("color", "red")
+    down()
+    expect(selectStart().defaultPrevented).toBe(true)
     if (kind === "up") document.dispatchEvent(pointerEvent("pointerup"))
     if (kind === "cancel") document.dispatchEvent(pointerEvent("pointercancel"))
     if (kind === "move") document.dispatchEvent(pointerEvent("pointermove", { clientX: 11 }))
     if (kind === "second") document.body.dispatchEvent(pointerEvent("pointerdown", { pointerId: 2 }))
-    expect(contextMenu().defaultPrevented).toBe(false)
+    if (kind === "freeze") current.editor.setEditable(false)
+    if (kind === "breakpoint") { mobile = false; media.dispatchEvent(new Event("change")) }
+    if (kind === "doc") current.editor.commands.insertContentAt(1, "X")
+    if (kind === "unmount") current.destroy()
+    expect(root.style.getPropertyValue("user-select")).toBe("text")
+    expect(root.style.getPropertyPriority("user-select")).toBe("important")
+    expect(root.style.color).toBe("red")
+    const event = new window.Event("selectstart", { bubbles: true, cancelable: true })
+    root.dispatchEvent(event)
+    expect(event.defaultPrevented).toBe(false)
     vi.advanceTimersByTime(500)
-    expect(contextMenu().defaultPrevented).toBe(false)
+    expect(active()).toBeNull()
+  })
+  it.each(["other", "blurred"])("does not let a retained nonempty %s selection kill an unfocused target hold", kind => {
+    const { editor } = current
+    editor.view.focus()
+    editor.commands.setTextSelection(kind === "other" ? { from: 4, to: 5 } : { from: 1, to: 2 })
+    if (kind === "blurred") editor.view.dom.blur()
+    expect(editor.state.selection.empty).toBe(false)
+    down()
+    expect(selectStart().defaultPrevented).toBe(true)
+    expect(window.getSelection()!.toString()).toBe("")
+    vi.advanceTimersByTime(500)
+    expect(active()).not.toBeNull()
+    document.dispatchEvent(pointerEvent("pointerup", { clientY: 260 }))
+    expect(topLevelTexts(current)).toEqual(["b", "c", "a"])
+    expect(editor.view.dom.style.getPropertyValue("user-select")).toBe("")
+  })
+  it("releases selection protection if composition starts before activation", () => {
+    down()
+    Object.defineProperty(current.editor.view, "composing", { configurable: true, value: true })
+    vi.advanceTimersByTime(500)
+    expect(active()).toBeNull()
+    expect(current.editor.view.dom.style.getPropertyValue("user-select")).toBe("")
+    expect(selectStart().defaultPrevented).toBe(false)
+  })
+  it("does not clear a selection outside the view during pending", () => {
+    const outside = document.createElement("p")
+    outside.textContent = "outside"
+    document.body.appendChild(outside)
+    try {
+      down()
+      const range = document.createRange()
+      range.selectNodeContents(outside)
+      window.getSelection()!.removeAllRanges()
+      window.getSelection()!.addRange(range)
+      document.dispatchEvent(new window.Event("selectionchange"))
+      expect(window.getSelection()!.toString()).toBe("outside")
+      document.dispatchEvent(pointerEvent("pointercancel"))
+    } finally { outside.remove() }
   })
   it("activates at 500ms with exactly 10px tolerance and uses final up coordinates", () => {
     const vibrate = vi.fn(() => true)
@@ -1210,6 +1293,7 @@ describe("mobile body hold and cancellation contract", () => {
     Reflect.deleteProperty(navigator, "vibrate")
   })
   it.each(["cancel", "second", "freeze", "breakpoint", "doc", "unmount", "same"])("active %s clears visuals and never reorders", kind => {
+    const root = current.editor.view.dom
     down(); vi.advanceTimersByTime(500)
     expect(active()).not.toBeNull()
     if (kind === "cancel") document.dispatchEvent(pointerEvent("pointercancel"))
@@ -1220,10 +1304,12 @@ describe("mobile body hold and cancellation contract", () => {
     if (kind === "unmount") current.destroy()
     document.dispatchEvent(pointerEvent("pointerup", { clientY: kind === "same" ? 0 : 260 }))
     expect(active()).toBeNull()
+    expect(root.style.getPropertyValue("user-select")).toBe("")
     if (kind !== "unmount") expect(topLevelTexts(current)).toEqual([kind === "doc" ? "Xa" : "a", "b", "c"])
   })
-  it("prioritizes existing ranges, composition and interactive descendants", () => {
+  it("prioritizes focused ranges, composition and interactive descendants", () => {
     const { editor } = current
+    editor.view.focus()
     editor.commands.setTextSelection({ from: 1, to: 2 })
     down(); vi.advanceTimersByTime(500)
     expect(active()).toBeNull()

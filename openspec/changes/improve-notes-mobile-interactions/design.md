@@ -26,9 +26,9 @@
 
 ### 2. 复用重排状态机，入口从 handle 扩展到块正文
 
-从编辑器根代理触摸/笔 pointerdown，解析直接顶层块 nodeId 与实时位置；在 document capture 的 pointerdown 阶段按当前拥有编辑焦点的视图选区 head 判定聚焦顶层块，长按该块保留原生文字选择、不创建 pendingHold。其他块或失焦视图内的块才可产生拖动意图，默认按下随后引起的自然聚焦不回溯取消本次意图；排除嵌套控件、链接、表单、popover、已有非空选区和组合输入。按下可以自然产生焦点变化，但不能预先阻止默认滚动。沿用 pending → active → commit/cancel：500ms、10px；第二指针或取消撤销；从 pending 起抑制目标块 contextmenu，挂起取消即解除且不影响其他块或聚焦块的普通长按；激活后捕获对应指针、清除本次新生成的 DOM 选区、抑制残余 click。
+从编辑器根代理触摸/笔 pointerdown，解析直接顶层块 nodeId 与实时位置；在 document capture 的 pointerdown 阶段按当前拥有编辑焦点的视图选区 head 判定聚焦顶层块，长按该块保留原生文字选择、不创建 pendingHold。其他块或失焦视图内的块才可产生拖动意图，默认按下随后引起的自然聚焦不回溯取消本次意图；排除嵌套控件、链接、表单、popover 和组合输入；移除全局 selection.empty / DOM isCollapsed 守卫，其他块或失焦视图的旧选区不能否决未聚焦目标。按下可以自然产生焦点变化，但不能预先阻止默认滚动。沿用 pending → active → commit/cancel：500ms、10px；第二指针或取消撤销；从 pending 起在稳定的 view.dom 根临时设置 user-select、-webkit-user-select、-webkit-touch-callout 为 none（保存原值与 priority），注册仅作用本视图的 selectstart 和 selectionchange 保护并清理本视图旧 DOM 范围；保护跨 pending → active 保持到手势结束，全部退出路径精确恢复。激活后捕获对应指针、再次清除 DOM 选区、抑制残余 click。删除正文和 handle 的全部 contextmenu 拦截，任何阶段都原生放行。
 
-仅 pending 阶段自然生成、尚未由用户完成的选区可在激活时清除，手势开始前已有的文本选区始终优先。浏览器若在激活前因原生滚动或文本选择取消 pointer，应取消本次排序；不能全局设置 `touch-action:none` 去牺牲正文滚动。移动浏览器接管风险由浏览器验证覆盖。
+聚焦块保留原生文字选择，不进入任何临时选择保护；未聚焦块一旦形成拖动意图，即不允许 pending/active 阶段生成文字选区。不能直接修改源内容 DOM 的 class/style，避免 PM 重绘导致触摸目标丢失。浏览器若在激活前因原生滚动或文本选择取消 pointer，应取消本次排序；不能全局设置 `touch-action:none` 去牺牲正文滚动。移动浏览器接管风险由浏览器验证覆盖。
 
 复用现有 decoration 高亮、3px 落点线及主题 token，不新增动画。激活时防御性调用 `navigator.vibrate?.(10)`，异常吞掉且无重试，不新增 native 震动桥。pointerup 先用最终 clientY 更新 boundary，再复用 `reorderTopLevelBlock`；meta-only 视觉更新不进入 history，有效移动一笔 docChanged，配现有前后历史栅栏。pending/active 期间其他 docChanged、freeze、卸载、跨断点均取消，防止用陈旧索引移动错块。
 
@@ -66,7 +66,7 @@ toolbar 采用可聚焦按钮、左右方向键和 Home/End roving focus、Enter
 
 ## Risks / Trade-offs
 
-- [浏览器长按与原生选择竞争] → 激活前不阻断滚动，已有选区与控件优先；以触摸浏览器真实事件验证，pointercancel 必须无事务退出。
+- [浏览器长按与原生选择竞争] → 激活前不阻断滚动，聚焦块和控件优先，未聚焦目标从 pending 起保护文字选择；以触摸浏览器真实事件验证，pointercancel 必须无事务退出。
 - [长内容块使下方锚点不可见] → 关闭不可见浮层并在锚点恢复可见时按当前焦点刷新，不改成永久底栏，不新增自动滚屏。
 - [下划线新增持久 mark 的旧消费者兼容性] → 文档注明旧版本不能读取含新 mark 的文件，升级消费者后再使用；不转换旧文件或静默去格式。
 - [多视图与 freeze 下陈旧回调] → 以视图/会话身份与即时 editable 校验，统一 cleanup 和现有权威 transaction 分发。
