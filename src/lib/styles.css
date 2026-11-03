@@ -1127,6 +1127,7 @@
 
 .hn-editor-block-dragging {
   cursor: grabbing;
+  background: var(--hn-theme-soft, color-mix(in srgb, #3b82f6 12%, white));
 }
 
 /* 插入边界预览：3px --hn-theme 线 + --hn-theme-soft 描边（DESIGN.md §13） */
@@ -1157,24 +1158,12 @@
     padding: 1.5rem 1.5rem 2rem;
   }
 
-  /* 触屏没有 hover：handle 保持常显半透明，作为 500ms 长按重排的唯一入口（任务 6.5/D10）。
-     缩小到 20px 并收进 1.5rem 的紧凑内边距内；不新增颜色。 */
   .hn-editor-content > .hn-editor-block-handle {
-    left: -1.375rem;
-    width: 20px;
-    height: 20px;
-    opacity: 0.55;
-    pointer-events: auto;
+    display: none;
   }
 
   .hn-editor-content > .hn-editor-block-handle + *::before {
     content: none;
-  }
-
-  /* 菜单打开/拖拽中的 handle 在触屏常显态上提到全不透明，激活态可辨 */
-  .hn-editor-content > .hn-editor-block-handle--menu-open,
-  .hn-editor-content > .hn-editor-block-handle--dragging {
-    opacity: 1;
   }
 
   .hn-editor-content blockquote {
@@ -1600,3 +1589,43 @@
   .hn-editor-content .hn-editor-directory-item[data-level="5"] { padding-left: 2rem; }
   .hn-editor-content .hn-editor-directory-item[data-level="6"] { padding-left: 2.5rem; }
 }
+
+/* Nonmodal per-view toolbars: text labels and a single horizontally scrollable row. */
+.hn-editor-interaction-toolbar {
+  position: fixed;
+  z-index: 60;
+  box-sizing: border-box;
+  width: max-content;
+  padding: 6px;
+  border-radius: 10px;
+  background: #1e293b;
+  color: #e2e8f0;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.hn-editor-interaction-toolbar[hidden] { display: none; }
+.hn-editor-toolbar-row {
+  display: flex;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  gap: 2px;
+}
+.hn-editor-toolbar-row + .hn-editor-toolbar-row { margin-top: 4px; }
+.hn-editor-toolbar-row button {
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.hn-editor-toolbar-row button:hover,
+.hn-editor-toolbar-row button[aria-pressed="true"] { background: rgba(255, 255, 255, 0.14); }
+.hn-editor-toolbar-row button:focus-visible { outline: 2px solid var(--hn-theme, #3b82f6); outline-offset: -2px; }
+.hn-editor-toolbar-row button:disabled { color: rgba(226, 232, 240, 0.38); cursor: default; }

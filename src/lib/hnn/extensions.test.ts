@@ -26,7 +26,7 @@ describe("封闭 HNN extensions", () => {
     expect([...HNN_NODE_TYPES].sort()).toEqual([
       "blockquote", "bulletList", "callout", "card", "codeBlock", "collapsible", "directory", "doc", "drawing", "externalItem", "formula", "hardBreak", "heading", "horizontalRule", "inlineFormula", "listItem", "mention", "orderedList", "paragraph", "picture", "resource", "table", "tableCell", "tableHeader", "tableRow", "taskItem", "taskList", "text"
     ])
-    expect([...HNN_MARK_TYPES].sort()).toEqual(["bold", "code", "italic", "link", "strike"])
+    expect([...HNN_MARK_TYPES].sort()).toEqual(["bold", "code", "italic", "link", "strike", "underline"])
     expect(Object.keys(hnnRuntimeSchema.marks["link"]?.spec.attrs ?? {})).toEqual(["href"])
     expect([...HNN_NODE_ID_TYPES].sort()).toEqual([...HNN_NODE_TYPES].filter((name) => name !== "doc" && name !== "text").sort())
   })
@@ -264,4 +264,17 @@ describe("封闭 HNN extensions", () => {
       editor.destroy()
     }
   })
+})
+
+it("persists bold/italic/underline in HNN and standard HTML clipboard without losing old documents", () => {
+  const editor = new Editor({ extensions: createHnnEditorExtensions() })
+  try {
+    editor.commands.setContent("<p><strong><em><u>combined</u></em></strong></p>")
+    const encoded = encodeHnn(editor.state.doc)
+    const text = decodeHnn(encoded).firstChild!.firstChild!
+    expect(text.marks.map(mark => mark.type.name)).toEqual(expect.arrayContaining(["bold", "italic", "underline"]))
+    editor.commands.setContent(editor.getHTML())
+    expect(editor.state.doc.firstChild!.firstChild!.marks.map(mark => mark.type.name)).toEqual(text.marks.map(mark => mark.type.name))
+    expect(decodeHnn({ schemaVersion: 1, data: { type: "doc", content: [{ type: "paragraph", attrs: { nodeId: ids[0] } }] } }).childCount).toBe(1)
+  } finally { editor.destroy() }
 })

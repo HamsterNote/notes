@@ -265,7 +265,7 @@ describe("重排手柄挂载", () => {
     }
   })
 
-  it("手柄按下不交给 ProseMirror，上下文菜单被抑制（移动端长按）", () => {
+  it("手柄按下不交给 ProseMirror，原生上下文菜单放行", () => {
     const session = sessionFor(paragraphsDocument("a"))
     const mousedownProbe = vi.fn()
     session.editor.view.dom.addEventListener("mousedown", mousedownProbe)
@@ -275,7 +275,7 @@ describe("重排手柄挂载", () => {
 
       const contextmenu = new window.Event("contextmenu", { bubbles: true, cancelable: true })
       handles(session)[0]!.dispatchEvent(contextmenu)
-      expect(contextmenu.defaultPrevented).toBe(true)
+      expect(contextmenu.defaultPrevented).toBe(false)
     } finally {
       session.destroy()
     }
@@ -741,7 +741,7 @@ describe("移动端 Pointer Events 手柄长按 500ms", () => {
 
       // 激活后：selectstart / touchmove 被抑制（非 passive preventDefault）
       const selectstart = new window.Event("selectstart", { bubbles: true, cancelable: true })
-      document.dispatchEvent(selectstart)
+      session.editor.view.dom.dispatchEvent(selectstart)
       expect(selectstart.defaultPrevented).toBe(true)
       const touchmove = new window.Event("touchmove", { bubbles: true, cancelable: true })
       session.editor.view.dom.dispatchEvent(touchmove)
@@ -750,7 +750,7 @@ describe("移动端 Pointer Events 手柄长按 500ms", () => {
       document.dispatchEvent(pointerEvent("pointermove", { clientY: 260 }))
       expect(blocks[2]!.classList.contains("hn-editor-block-drop-after")).toBe(true)
 
-      document.dispatchEvent(pointerEvent("pointerup"))
+      document.dispatchEvent(pointerEvent("pointerup", { clientY: 260 }))
       expect(topLevelTexts(session)).toEqual(["b", "c", "a"])
       expect(handle.classList.contains("hn-editor-block-handle--dragging")).toBe(false)
       expect(blocks[2]!.classList.contains("hn-editor-block-drop-after")).toBe(false)
@@ -982,7 +982,7 @@ describe("拖拽视觉：PM 装饰持续性与事务零扰动（bug-7.5-2 回归
       expect(blocks[2]!.classList.contains("hn-editor-block-drop-after")).toBe(true)
       expect(undoDepth(session.editor.state)).toBe(undoDepthBefore)
 
-      document.dispatchEvent(pointerEvent("pointerup"))
+      document.dispatchEvent(pointerEvent("pointerup", { clientY: 260 }))
       expect(topLevelTexts(session)).toEqual(["b", "c", "a"])
       expect(undoDepth(session.editor.state)).toBe(undoDepthBefore + 1)
       expect(session.undo()).toBe(true)
@@ -1045,5 +1045,283 @@ describe("重排持久化", () => {
     } finally {
       session.destroy()
     }
+  })
+})
+
+describe("mobile body hold and cancellation contract", () => {
+  const active = () => document.querySelector(".hn-editor-block-dragging")
+  let current: EditorSession
+  let media: EventTarget
+  let mobile: boolean
+  beforeEach(() => {
+    vi.useFakeTimers()
+    mobile = true
+    media = new EventTarget()
+    vi.stubGlobal("matchMedia", () => ({ get matches() { return mobile },
+      addEventListener: media.addEventListener.bind(media), removeEventListener: media.removeEventListener.bind(media) }))
+    window.getSelection()?.removeAllRanges()
+    current = sessionFor(paragraphsDocument("a", "b", "c"))
+    blockDoms(current).forEach((block, index) => {
+      vi.spyOn(block, "getBoundingClientRect").mockReturnValue(new DOMRect(0, index * 100, 200, 80))
+    })
+  })
+  afterEach(() => { current.destroy(); vi.unstubAllGlobals() })
+  const down = () => blockDoms(current)[0]!.dispatchEvent(pointerEvent("pointerdown"))
+  const contextMenu = (block = blockDoms(current)[0]!) => {
+    const event = new window.MouseEvent("contextmenu", { bubbles: true, cancelable: true })
+    block.dispatchEvent(event)
+    return event
+  }
+  const selectStart = (block = blockDoms(current)[0]!) => {
+    const event = new window.Event("selectstart", { bubbles: true, cancelable: true })
+    block.dispatchEvent(event)
+    return event
+  }
+  it.each(["touch", "pen"])("leaves a focused block's collapsed cursor and native selection alone (%s)", pointerType => {
+    const { editor } = current
+    editor.view.focus()
+    editor.commands.setTextSelection(1)
+    expect(editor.view.hasFocus()).toBe(true)
+    const original = editor.state.doc
+    const update = vi.fn()
+    editor.on("update", update)
+    const capture = vi.fn()
+    editor.view.dom.setPointerCapture = capture
+    blockDoms(current)[0]!.dispatchEvent(pointerEvent("pointerdown", { pointerType }))
+    expect(contextMenu().defaultPrevented).toBe(false)
+    vi.advanceTimersByTime(500)
+    expect(active()).toBeNull()
+    expect(capture).not.toHaveBeenCalled()
+    expect(selectStart().defaultPrevented).toBe(false)
+    expect(editor.view.dom.style.getPropertyValue("user-select")).toBe("")
+    // A DOM range representing native selection must not be cleared by a drag timer.
+    const range = document.createRange()
+    range.selectNodeContents(blockDoms(current)[0]!)
+    window.getSelection()!.removeAllRanges()
+    window.getSelection()!.addRange(range)
+    vi.advanceTimersByTime(500)
+    expect(window.getSelection()!.toString()).toBe("a")
+    expect(contextMenu().defaultPrevented).toBe(false)
+    document.dispatchEvent(pointerEvent("pointerup", { clientY: 260 }))
+    expect(editor.state.doc).toBe(original)
+    expect(update).not.toHaveBeenCalled()
+    expect(undoDepth(editor.state)).toBe(0)
+  })
+  it("drags an unfocused target even when another block has focus and pointerdown then naturally focuses the target", () => {
+    const { editor } = current
+    editor.view.focus()
+    editor.commands.setTextSelection(4) // second paragraph, different from the hold target
+    down()
+    // Simulate the pointerdown default action after our capture listener decided intent.
+    editor.commands.setTextSelection(1)
+    vi.advanceTimersByTime(500)
+    expect(active()).not.toBeNull()
+    document.dispatchEvent(pointerEvent("pointerup", { clientY: 260 }))
+    expect(topLevelTexts(current)).toEqual(["b", "c", "a"])
+  })
+  it("a blurred view's retained cursor does not prevent dragging that block", () => {
+    current.editor.view.focus()
+    current.editor.commands.setTextSelection(1)
+    current.editor.view.dom.blur()
+    expect(current.editor.view.hasFocus()).toBe(false)
+    down(); vi.advanceTimersByTime(500)
+    expect(active()).not.toBeNull()
+  })
+  it("treats text nested in the focused top-level block as native selection", () => {
+    current.destroy()
+    current = sessionFor(nestedDocument())
+    current.editor.view.focus()
+    let position = 0
+    current.editor.state.doc.descendants((node, pos) => { if (node.isText && node.text === "nested") position = pos })
+    current.editor.commands.setTextSelection(position)
+    const nested = current.editor.view.dom.querySelector("li li p")!
+    nested.dispatchEvent(pointerEvent("pointerdown"))
+    vi.advanceTimersByTime(500)
+    expect(active()).toBeNull()
+    const event = new window.MouseEvent("contextmenu", { bubbles: true, cancelable: true })
+    nested.dispatchEvent(event)
+    expect(event.defaultPrevented).toBe(false)
+  })
+  it("allows native contextmenu before, during pending/active and after the gesture", () => {
+    expect(contextMenu().defaultPrevented).toBe(false)
+    down()
+    expect(contextMenu().defaultPrevented).toBe(false)
+    vi.advanceTimersByTime(499)
+    expect(contextMenu().defaultPrevented).toBe(false)
+    vi.advanceTimersByTime(1)
+    expect(active()).not.toBeNull()
+    expect(contextMenu().defaultPrevented).toBe(false)
+    document.dispatchEvent(pointerEvent("pointerup", { clientY: 260 }))
+    expect(contextMenu().defaultPrevented).toBe(false) // residual click suppression must not eat menus
+  })
+  it("prevents selection from pointerdown through active without changing pending scroll/click behavior", () => {
+    const root = current.editor.view.dom
+    const original = current.editor.state.doc
+    down()
+    expect(root.style.getPropertyValue("user-select")).toBe("none")
+    expect(root.style.getPropertyPriority("user-select")).toBe("important")
+    expect(selectStart().defaultPrevented).toBe(true)
+    const outside = new window.Event("selectstart", { bubbles: true, cancelable: true })
+    document.body.dispatchEvent(outside)
+    expect(outside.defaultPrevented).toBe(false)
+    for (const type of ["click", "touchmove"]) {
+      const event = new window.Event(type, { bubbles: true, cancelable: true })
+      root.dispatchEvent(event)
+      expect(event.defaultPrevented).toBe(false)
+    }
+    const trySelection = () => {
+      const range = document.createRange()
+      range.selectNodeContents(blockDoms(current)[0]!)
+      window.getSelection()!.removeAllRanges()
+      window.getSelection()!.addRange(range)
+      document.dispatchEvent(new window.Event("selectionchange"))
+      expect(window.getSelection()!.toString()).toBe("")
+    }
+    trySelection()
+    vi.advanceTimersByTime(499)
+    expect(selectStart().defaultPrevented).toBe(true)
+    vi.advanceTimersByTime(1)
+    expect(active()).not.toBeNull()
+    expect(root.style.getPropertyValue("user-select")).toBe("none")
+    expect(selectStart().defaultPrevented).toBe(true)
+    trySelection()
+    expect(current.editor.state.doc).toBe(original)
+    document.dispatchEvent(pointerEvent("pointercancel"))
+    expect(root.style.getPropertyValue("user-select")).toBe("")
+    expect(selectStart().defaultPrevented).toBe(false)
+  })
+  it.each(["up", "cancel", "move", "second", "freeze", "breakpoint", "doc", "unmount"])("restores pending selection behavior after %s", kind => {
+    const root = current.editor.view.dom
+    root.style.setProperty("user-select", "text", "important")
+    root.style.setProperty("color", "red")
+    down()
+    expect(selectStart().defaultPrevented).toBe(true)
+    if (kind === "up") document.dispatchEvent(pointerEvent("pointerup"))
+    if (kind === "cancel") document.dispatchEvent(pointerEvent("pointercancel"))
+    if (kind === "move") document.dispatchEvent(pointerEvent("pointermove", { clientX: 11 }))
+    if (kind === "second") document.body.dispatchEvent(pointerEvent("pointerdown", { pointerId: 2 }))
+    if (kind === "freeze") current.editor.setEditable(false)
+    if (kind === "breakpoint") { mobile = false; media.dispatchEvent(new Event("change")) }
+    if (kind === "doc") current.editor.commands.insertContentAt(1, "X")
+    if (kind === "unmount") current.destroy()
+    expect(root.style.getPropertyValue("user-select")).toBe("text")
+    expect(root.style.getPropertyPriority("user-select")).toBe("important")
+    expect(root.style.color).toBe("red")
+    const event = new window.Event("selectstart", { bubbles: true, cancelable: true })
+    root.dispatchEvent(event)
+    expect(event.defaultPrevented).toBe(false)
+    vi.advanceTimersByTime(500)
+    expect(active()).toBeNull()
+  })
+  it.each(["other", "blurred"])("does not let a retained nonempty %s selection kill an unfocused target hold", kind => {
+    const { editor } = current
+    editor.view.focus()
+    editor.commands.setTextSelection(kind === "other" ? { from: 4, to: 5 } : { from: 1, to: 2 })
+    if (kind === "blurred") editor.view.dom.blur()
+    expect(editor.state.selection.empty).toBe(false)
+    down()
+    expect(selectStart().defaultPrevented).toBe(true)
+    expect(window.getSelection()!.toString()).toBe("")
+    vi.advanceTimersByTime(500)
+    expect(active()).not.toBeNull()
+    document.dispatchEvent(pointerEvent("pointerup", { clientY: 260 }))
+    expect(topLevelTexts(current)).toEqual(["b", "c", "a"])
+    expect(editor.view.dom.style.getPropertyValue("user-select")).toBe("")
+  })
+  it("releases selection protection if composition starts before activation", () => {
+    down()
+    Object.defineProperty(current.editor.view, "composing", { configurable: true, value: true })
+    vi.advanceTimersByTime(500)
+    expect(active()).toBeNull()
+    expect(current.editor.view.dom.style.getPropertyValue("user-select")).toBe("")
+    expect(selectStart().defaultPrevented).toBe(false)
+  })
+  it("does not clear a selection outside the view during pending", () => {
+    const outside = document.createElement("p")
+    outside.textContent = "outside"
+    document.body.appendChild(outside)
+    try {
+      down()
+      const range = document.createRange()
+      range.selectNodeContents(outside)
+      window.getSelection()!.removeAllRanges()
+      window.getSelection()!.addRange(range)
+      document.dispatchEvent(new window.Event("selectionchange"))
+      expect(window.getSelection()!.toString()).toBe("outside")
+      document.dispatchEvent(pointerEvent("pointercancel"))
+    } finally { outside.remove() }
+  })
+  it("activates at 500ms with exactly 10px tolerance and uses final up coordinates", () => {
+    const vibrate = vi.fn(() => true)
+    Object.defineProperty(navigator, "vibrate", { configurable: true, value: vibrate })
+    down()
+    vi.advanceTimersByTime(499)
+    expect(active()).toBeNull()
+    document.dispatchEvent(pointerEvent("pointermove", { clientX: 10 }))
+    vi.advanceTimersByTime(1)
+    expect(active()).not.toBeNull()
+    expect(vibrate).toHaveBeenCalledExactlyOnceWith(10)
+    // No pointermove at the destination: the up event is authoritative.
+    document.dispatchEvent(pointerEvent("pointerup", { clientY: 260 }))
+    expect(topLevelTexts(current)).toEqual(["b", "c", "a"])
+    expect(topLevelNodeIds(current)).toEqual([ids[1], ids[2], ids[0]])
+    expect(undoDepth(current.editor.state)).toBe(1)
+    expect(current.undo()).toBe(true)
+    expect(topLevelTexts(current)).toEqual(["a", "b", "c"])
+    expect(active()).toBeNull()
+    Reflect.deleteProperty(navigator, "vibrate")
+  })
+  it.each(["move", "up", "cancel", "second"])("pending %s cancels with zero document changes", kind => {
+    const update = vi.fn()
+    current.editor.on("update", update)
+    down()
+    if (kind === "move") document.dispatchEvent(pointerEvent("pointermove", { clientX: 10.01 }))
+    if (kind === "up") document.dispatchEvent(pointerEvent("pointerup"))
+    if (kind === "cancel") document.dispatchEvent(pointerEvent("pointercancel"))
+    if (kind === "second") document.body.dispatchEvent(pointerEvent("pointerdown", { pointerId: 2 }))
+    vi.advanceTimersByTime(600)
+    expect(active()).toBeNull()
+    expect(update).not.toHaveBeenCalled()
+  })
+  it.each(["missing", "false", "throws"])("vibration %s never blocks dragging", kind => {
+    const value = kind === "missing" ? undefined : vi.fn(() => { if (kind === "throws") throw Error("denied"); return false })
+    Object.defineProperty(navigator, "vibrate", { configurable: true, value })
+    down(); vi.advanceTimersByTime(500)
+    expect(active()).not.toBeNull()
+    document.dispatchEvent(pointerEvent("pointerup", { clientY: 260 }))
+    expect(topLevelTexts(current)).toEqual(["b", "c", "a"])
+    Reflect.deleteProperty(navigator, "vibrate")
+  })
+  it.each(["cancel", "second", "freeze", "breakpoint", "doc", "unmount", "same"])("active %s clears visuals and never reorders", kind => {
+    const root = current.editor.view.dom
+    down(); vi.advanceTimersByTime(500)
+    expect(active()).not.toBeNull()
+    if (kind === "cancel") document.dispatchEvent(pointerEvent("pointercancel"))
+    if (kind === "second") document.body.dispatchEvent(pointerEvent("pointerdown", { pointerId: 2 }))
+    if (kind === "freeze") current.editor.setEditable(false)
+    if (kind === "breakpoint") { mobile = false; media.dispatchEvent(new Event("change")) }
+    if (kind === "doc") current.editor.commands.insertContentAt(1, "X")
+    if (kind === "unmount") current.destroy()
+    document.dispatchEvent(pointerEvent("pointerup", { clientY: kind === "same" ? 0 : 260 }))
+    expect(active()).toBeNull()
+    expect(root.style.getPropertyValue("user-select")).toBe("")
+    if (kind !== "unmount") expect(topLevelTexts(current)).toEqual([kind === "doc" ? "Xa" : "a", "b", "c"])
+  })
+  it("prioritizes focused ranges, composition and interactive descendants", () => {
+    const { editor } = current
+    editor.view.focus()
+    editor.commands.setTextSelection({ from: 1, to: 2 })
+    down(); vi.advanceTimersByTime(500)
+    expect(active()).toBeNull()
+    editor.commands.setTextSelection(1)
+    Object.defineProperty(editor.view, "composing", { configurable: true, value: true })
+    down(); vi.advanceTimersByTime(500)
+    expect(active()).toBeNull()
+    Object.defineProperty(editor.view, "composing", { configurable: true, value: false })
+    const button = document.createElement("button")
+    blockDoms(current)[0]!.appendChild(button)
+    button.dispatchEvent(pointerEvent("pointerdown")); vi.advanceTimersByTime(500)
+    expect(active()).toBeNull()
+    button.remove()
   })
 })

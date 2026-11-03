@@ -1,0 +1,961 @@
+{
+  "browser": "148.0.7778.96",
+  "command": "node scripts/check-mobile-interactions.mjs",
+  "results": [
+    {
+      "width": 320,
+      "theme": "light",
+      "layout": "mobile",
+      "result": "PASS",
+      "trustedTouch": [
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "selectstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchend",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "selectstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "selectstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointercancel",
+          "trusted": true,
+          "cancelable": false
+        },
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "selectstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchmove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        }
+      ],
+      "contextMenus": {
+        "probe": "synthetic cancelable MouseEvent; not an OS menu observation",
+        "focusedPending": false,
+        "focusedHeld": false,
+        "pending": false,
+        "pendingOtherBlock": false,
+        "cancelledPending": false,
+        "active": false,
+        "scrollCancelled": false
+      },
+      "focusedHold": {
+        "drag": false,
+        "vibration": false,
+        "nativeSelectionAfterHold": ""
+      },
+      "scrollDelta": {
+        "editor": 109,
+        "page": 0
+      },
+      "vibration": "stubbed false return, [10]; no hardware claim"
+    },
+    {
+      "width": 320,
+      "theme": "dark",
+      "layout": "mobile",
+      "result": "PASS",
+      "trustedTouch": [
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "selectstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchend",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "selectstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "selectstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointercancel",
+          "trusted": true,
+          "cancelable": false
+        },
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "selectstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchmove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        }
+      ],
+      "contextMenus": {
+        "probe": "synthetic cancelable MouseEvent; not an OS menu observation",
+        "focusedPending": false,
+        "focusedHeld": false,
+        "pending": false,
+        "pendingOtherBlock": false,
+        "cancelledPending": false,
+        "active": false,
+        "scrollCancelled": false
+      },
+      "focusedHold": {
+        "drag": false,
+        "vibration": false,
+        "nativeSelectionAfterHold": ""
+      },
+      "scrollDelta": {
+        "editor": 109,
+        "page": 0
+      },
+      "vibration": "stubbed false return, [10]; no hardware claim"
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "layout": "mobile",
+      "result": "PASS",
+      "trustedTouch": [
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "selectstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchend",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "selectstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "selectstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointercancel",
+          "trusted": true,
+          "cancelable": false
+        },
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "selectstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchmove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        }
+      ],
+      "contextMenus": {
+        "probe": "synthetic cancelable MouseEvent; not an OS menu observation",
+        "focusedPending": false,
+        "focusedHeld": false,
+        "pending": false,
+        "pendingOtherBlock": false,
+        "cancelledPending": false,
+        "active": false,
+        "scrollCancelled": false
+      },
+      "focusedHold": {
+        "drag": false,
+        "vibration": false,
+        "nativeSelectionAfterHold": ""
+      },
+      "scrollDelta": {
+        "editor": 109,
+        "page": 0
+      },
+      "vibration": "stubbed false return, [10]; no hardware claim"
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "layout": "mobile",
+      "result": "PASS",
+      "trustedTouch": [
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "selectstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchend",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "selectstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "selectstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointercancel",
+          "trusted": true,
+          "cancelable": false
+        },
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "selectstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchmove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        }
+      ],
+      "contextMenus": {
+        "probe": "synthetic cancelable MouseEvent; not an OS menu observation",
+        "focusedPending": false,
+        "focusedHeld": false,
+        "pending": false,
+        "pendingOtherBlock": false,
+        "cancelledPending": false,
+        "active": false,
+        "scrollCancelled": false
+      },
+      "focusedHold": {
+        "drag": false,
+        "vibration": false,
+        "nativeSelectionAfterHold": ""
+      },
+      "scrollDelta": {
+        "editor": 109,
+        "page": 0
+      },
+      "vibration": "stubbed false return, [10]; no hardware claim"
+    },
+    {
+      "width": 840,
+      "theme": "light",
+      "layout": "mobile",
+      "result": "PASS",
+      "trustedTouch": [
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "selectstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchend",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "selectstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "selectstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointercancel",
+          "trusted": true,
+          "cancelable": false
+        },
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "selectstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchmove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        }
+      ],
+      "contextMenus": {
+        "probe": "synthetic cancelable MouseEvent; not an OS menu observation",
+        "focusedPending": false,
+        "focusedHeld": false,
+        "pending": false,
+        "pendingOtherBlock": false,
+        "cancelledPending": false,
+        "active": false,
+        "scrollCancelled": false
+      },
+      "focusedHold": {
+        "drag": false,
+        "vibration": false,
+        "nativeSelectionAfterHold": ""
+      },
+      "scrollDelta": {
+        "editor": 109,
+        "page": 0
+      },
+      "vibration": "stubbed false return, [10]; no hardware claim"
+    },
+    {
+      "width": 840,
+      "theme": "dark",
+      "layout": "mobile",
+      "result": "PASS",
+      "trustedTouch": [
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "selectstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchend",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "selectstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "selectstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointercancel",
+          "trusted": true,
+          "cancelable": false
+        },
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "selectstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerdown",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchstart",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointermove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "touchmove",
+          "trusted": true,
+          "cancelable": true
+        },
+        {
+          "type": "pointerup",
+          "trusted": true,
+          "cancelable": true
+        }
+      ],
+      "contextMenus": {
+        "probe": "synthetic cancelable MouseEvent; not an OS menu observation",
+        "focusedPending": false,
+        "focusedHeld": false,
+        "pending": false,
+        "pendingOtherBlock": false,
+        "cancelledPending": false,
+        "active": false,
+        "scrollCancelled": false
+      },
+      "focusedHold": {
+        "drag": false,
+        "vibration": false,
+        "nativeSelectionAfterHold": ""
+      },
+      "scrollDelta": {
+        "editor": 109,
+        "page": 0
+      },
+      "vibration": "stubbed false return, [10]; no hardware claim"
+    },
+    {
+      "width": 841,
+      "theme": "light",
+      "layout": "desktop",
+      "result": "PASS",
+      "mouseSelection": "HAM124 first parag",
+      "keyboardSelection": true,
+      "breakpoint": "840 mobile"
+    },
+    {
+      "width": 841,
+      "theme": "dark",
+      "layout": "desktop",
+      "result": "PASS",
+      "mouseSelection": "HAM124 first parag",
+      "keyboardSelection": true,
+      "breakpoint": "840 mobile"
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "layout": "desktop",
+      "result": "PASS",
+      "mouseSelection": "HAM124 first parag",
+      "keyboardSelection": true,
+      "breakpoint": "840 mobile"
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "layout": "desktop",
+      "result": "PASS",
+      "mouseSelection": "HAM124 first parag",
+      "keyboardSelection": true,
+      "breakpoint": "840 mobile"
+    }
+  ],
+  "limitations": "Web Chromium touch emulation with trusted touch input; viewport resize approximates keyboard occlusion. Contextmenu cancellation uses explicitly synthetic probes, not OS menu observation. Focused hold checks non-interference; native selection text is recorded as observed. No physical device, OS keyboard, or hardware vibration evidence."
+}

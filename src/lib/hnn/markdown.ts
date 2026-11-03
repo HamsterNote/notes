@@ -3356,7 +3356,7 @@ function phrasing(
           const href = (mark["attrs"] as Record<string, unknown>)["href"]
           if (typeof href !== "string" || !isSafeHnnUrl(href)) return undefined
           current = { type: "link", url: href, children: [current] }
-        }
+        } else return undefined // e.g. underline: preserve via the existing JSON fence.
       }
       output.push(current)
     } else {

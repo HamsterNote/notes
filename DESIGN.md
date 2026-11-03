@@ -108,35 +108,23 @@ Editable line content stays visually neutral while the caret or pointer moves be
 
 ## 6. Popover Layer
 
-The selection popover is a fixed-position dark surface on desktop and docks into the viewport bottom bar below `840px` or on mobile devices.
+Each editable view owns a nonmodal, fixed-position toolbar (`z-index: 60`), with the existing dark `#1e293b` surface, `10px` radius and `0 8px 24px rgba(15,23,42,.28)` shadow. Showing it never focuses a button or changes document/history.
 
-- Positioning: `position: fixed`, `z-index: 9999` (`src/lib/styles.css:357-359`).
-- Background: `#1e293b` (`src/lib/styles.css:365`).
-- Shadow: `0 8px 24px rgba(15, 23, 42, 0.28)` (`src/lib/styles.css:366`).
-- Radius: `10px` (`src/lib/styles.css:364`).
-- Padding: `0.3rem`, internal gap `0.15rem` (`src/lib/styles.css:362-363`).
-- Bottom toolbar: one component-library `Popover` uses native `edge="bottom"` positioning and native surface styling. Its default viewport-edge offset is `32px`, matching Reader; consumers may override it through `bottomBarOffset`, and the scrollable content safe area follows that offset while `bottomPadding` remains an independent extra inset. It is the sole `role="toolbar"` surface for both active-block controls and selection formatting; selection state appends actions directly into that toolbar instead of mounting another Popover. Project CSS only constrains the toolbar to the viewport and enables single-line horizontal overflow. Its `z-index: 900` stays above note content but below component-library Popovers (`1000`) and Dialogs (`1100`).
-
-Popover buttons:
-
-- Base: transparent background, `#e2e8f0` text, `7px` radius (`src/lib/styles.css:377-380`).
-- Hover: `rgba(255, 255, 255, 0.14)` background, `#ffffff` text (`src/lib/styles.css:387-390`).
-
-Animation is a pure opacity fade: `@keyframes hn-popover-in` from `opacity: 0` to `opacity: 1` (`src/lib/styles.css:418-425`).
+- At **≤840 CSS px**, focus or node selection anchors a toolbar beneath the owning **top-level block**, including text nested inside lists or tables. Buttons are `转换为 / 插入 / 加粗 / 斜体 / 下划线 / 上移 / 下移` in one horizontally scrollable row. Conversion (`正文 / 标题 1 / 标题 2 / 标题 3 / 代码块`) and insertion (`表格 / 公式 / 图片`) expand horizontally in the same surface.
+- At **>840 CSS px**, a completed nonempty TextSelection anchors exactly `加粗 / 斜体 / 下划线` beneath the selection. Mouse selection waits for pointerup; keyboard selection updates directly. NodeSelection, CellSelection, code-only content, IME and frozen/read-only states do not show a desktop formatting toolbar.
+- Actions retain the current view selection, revalidate document identity and editable state, and use budgeted transactions. A collapsed mobile cursor changes stored marks for subsequent input. Fully formatted ranges toggle off; mixed ranges toggle on. Disabled actions expose a reason.
+- Position against `visualViewport` (window fallback), flip above when necessary, and constrain dimensions to the visible viewport with internal scrolling. Reposition on scroll/resize/zoom; hide when the anchor is invisible. No permanent bottom toolbar or UA-based mobile branch is used.
+- Buttons use visible Chinese text, `aria-pressed`, roving Left/Right/Home/End focus, native Enter/Space activation, and Escape return to the editor. Escape or outside click suppresses reopening until the focused block or selection changes. Drag activation, composition, freeze and disposal close the surface; listeners are view-owned and cleaned up.
 
 ---
 
 ## 7. Responsive Breakpoints
 
-The compact content breakpoint is `max-width: 840px` and is inclusive. The persistent bottom toolbar uses the strict `width < 840px` boundary.
+The sole interaction layout boundary is `matchMedia('(max-width: 840px)')`, aligned with CSS. **840px is mobile; 841px is desktop**, regardless of UA, pointer type or touch support.
 
-At that breakpoint:
-
-- Body horizontal padding is selected from `window.innerWidth`, not the rendered body width.
-- Below `840px`, left-side add and conversion handles, including their hover gutter, are replaced by the persistent bottom controls. At exactly `840px`, the desktop handles remain available.
-- Hero grid collapses to a single column (`src/lib/styles.css:350-352`).
-
-Mobile-device detection is separate from viewport width. Mobile devices also mount the fixed viewport-edge toolbar. Text-selection actions merge into that same surface and remain on one horizontally scrollable row when the available width is narrow.
+- Editor body padding is `1.5rem 1.5rem 2rem` at ≤840px and `1.5rem 4rem 2rem` above it.
+- Mobile hides the handle and hover gutter with `display:none` / `content:none`, removes handle keyboard and accessibility reachability, and uses the block toolbar and body hold instead.
+- Crossing the boundary closes old menus and cancels pending/active dragging, without changing the document, selection or history. Visible-height changes only reposition the toolbar.
 
 ---
 
@@ -214,11 +202,12 @@ Table insertion and operation controls sit on cell boundaries rather than inside
 
 ## 13. Block Move Interaction
 
-- Editable controlled notes allow ordinary top-level blocks, checklist items, and quote lines to be reordered within their respective containers without introducing a separate palette or floating drag preview.
-- Above the `840px` compact breakpoint, dragging starts from each row's existing conversion handle. Checklist items and quote lines use their own existing handles and never add a drag-only handle to the composite parent. A click without pointer travel on a conversion handle continues to open its menu.
-- At and below the compact breakpoint, where handles are hidden, a stationary `500ms` touch hold on a row starts the same move interaction. Moving before the hold threshold preserves native scrolling and cancels the pending drag. Once dragging activates, native text selection is cleared for the remainder of the gesture.
-- The source block remains rendered in place throughout the gesture. Crossing another block's vertical midpoint previews the corresponding insertion boundary with a `3px` `--hn-theme` line and `--hn-theme-soft` edge.
-- Reordering is committed through `onBlocksChange` only on pointer release. Pointer cancellation removes all transient drag and insertion states without changing blocks.
+- Only top-level document blocks reorder. Nested list items, table cells and quote lines remain inside their parent block.
+- Above 840px, the existing handle starts native dragging; click/keyboard activation retains the existing block menu. At ≤840px, a single touch/pen on noninteractive, unfocused block content holds for **500ms** with travel **≤10px** before activation. Mobile mouse users use `上移 / 下移`.
+- The top-level block containing the selection head in the focused view before pointerdown retains native long-press selection. A blurred view's retained cursor does not count as focus; pointerdown naturally focusing an initially unfocused target does not change the gesture intent. Other blocks or blurred views retaining a nonempty selection do not veto an unfocused target. Pending and active pointer gestures temporarily disable selection on the stable editor root using user-select / WebKit selection protection, scoped selectstart prevention and selectionchange cleanup. Every exit restores the previous property values and priorities. Focused blocks, IME, links, controls and noneditable NodeView islands take priority. All contextmenu events, including handle menus, pass through unchanged. Early release, travel >10px, second pointer and pointercancel cancel pending gestures while preserving native scroll/zoom. The nonpassive touchmove listener is registered before touchstart but only prevents scrolling during an active drag. No global `touch-action:none` is applied.
+- Activation clears the native DOM selection again, captures the pointer, highlights the source and attempts one optional `navigator.vibrate(10)`. Missing/denied/throwing vibration never prevents sorting. Native text dragstart and the residual click are suppressed for the active gesture; contextmenu is never intercepted.
+- Crossing vertical block midpoints previews the insertion boundary with the existing 3px theme line. Pointerup recalculates from its final coordinates, then commits one authoritative transaction preserving nodeId/content and other blocks' relative order. History fences isolate sorting from preceding and following input.
+- Cancellation, same-position release, external docChanged, freeze, breakpoint changes and disposal remove transient decorations and never submit stale block indexes. There is no automatic edge scrolling or multi-block drag.
 
 ---
 
