@@ -2,7 +2,7 @@ import { editorLayout } from "./interactionLayout"
 import type { Editor } from "@tiptap/core"
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model"
 import { closeHistory } from "@tiptap/pm/history"
-import { NodeSelection, Plugin, PluginKey } from "@tiptap/pm/state"
+import { NodeSelection, Plugin, PluginKey, TextSelection } from "@tiptap/pm/state"
 import { Decoration, DecorationSet, type EditorView } from "@tiptap/pm/view"
 
 /**
@@ -15,9 +15,10 @@ import { Decoration, DecorationSet, type EditorView } from "@tiptap/pm/view"
  *   阶段 preventDefault + stopImmediatePropagation，PM 原生 drop 不会二次执行；
  *   另有插件 handleDOMEvents.drop/dragover 双保险：仅认领携带重排 MIME 的事件，
  *   外部图片/文件 drop 不携带此 MIME，原样交还 PM，未来图片 drop 不会双写。
- * - 移动布局：正文触摸/笔 Pointer Events 长按 500ms 启动；长按前位移（>10px）、
- *   提前抬起、pointercancel、卸载都会取消挂起手势且不产生任何事务，原生滚动保留。
- *   长按未激活时保留自然点击和聚焦，移动工具栏提供块操作（DESIGN.md §6）。
+ * - 移动布局：未聚焦正文触摸/笔 Pointer Events 长按 500ms 启动；pending 起取消
+ *   pointerdown 默认编辑/聚焦并临时禁用选择与 focusin，不取消 touchstart 或 pending
+ *   touchmove，原生滚动保留。提前抬起恢复目标 caret/焦点；激活及其他取消不自动聚焦。
+ *   长按前位移（>10px）、pointercancel、卸载均取消挂起手势且不产生正文事务。
  * - 手柄同时是块操作菜单入口（D9/任务 7.5）：可聚焦按钮（role/tabindex/aria），
  *   点击、Enter/Space/ArrowDown 打开菜单，菜单内提供键盘可用的上移/下移（与拖拽
  *   共享同一提交入口）；菜单打开期间手柄保持 token 激活态，关闭后 aria-expanded
@@ -149,6 +150,7 @@ type PendingHold = {
   startY: number
   fromIndex: number
   handle: HTMLElement
+  restoreTapFocus: boolean
   timer: number
 }
 
@@ -370,26 +372,38 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
          (selection.focusNode && view.dom.contains(selection.focusNode)))) selection.removeAllRanges()
   }
 
+  const blurPointerFocus = (): void => {
+    const active = document.activeElement
+    if (active instanceof HTMLElement && view.dom.contains(active)) active.blur()
+  }
+
+  const onPointerFocusIn = (event: Event): void => {
+    if (event.target instanceof window.Node && view.dom.contains(event.target)) blurPointerFocus()
+  }
+
   // The editor root is stable across PM decoration updates. Never style the
   // content node directly: DOMObserver can replace it and lose the touch target.
-  let restorePointerSelection: (() => void) | null = null
-  const suppressPointerSelection = (): void => {
-    if (restorePointerSelection) return
+  let restorePointerProtection: (() => void) | null = null
+  const suppressPointerProtection = (): void => {
+    if (restorePointerProtection) return
     const properties = ["user-select", "-webkit-user-select", "-webkit-touch-callout"]
     const previous = properties.map(property => [property, view.dom.style.getPropertyValue(property), view.dom.style.getPropertyPriority(property)] as const)
     for (const property of properties) view.dom.style.setProperty(property, "none", "important")
     document.addEventListener("selectstart", onSelectStart, true)
     document.addEventListener("selectionchange", clearPointerSelection)
-    restorePointerSelection = () => {
+    document.addEventListener("focusin", onPointerFocusIn, true)
+    restorePointerProtection = () => {
       document.removeEventListener("selectstart", onSelectStart, true)
       document.removeEventListener("selectionchange", clearPointerSelection)
+      document.removeEventListener("focusin", onPointerFocusIn, true)
       for (const [property, value, priority] of previous) {
         if (value) view.dom.style.setProperty(property, value, priority)
         else view.dom.style.removeProperty(property)
       }
-      restorePointerSelection = null
+      restorePointerProtection = null
     }
     clearPointerSelection()
+    blurPointerFocus()
   }
 
   const onTouchMove = (event: Event): void => {
@@ -426,7 +440,7 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
     gesture = null
     removeNativeListeners()
     removeActivePointerListeners()
-    if (active.kind === "pointer") restorePointerSelection?.()
+    if (active.kind === "pointer") restorePointerProtection?.()
     // 手柄 --dragging 直写 widget DOM：PM 对 widget 内部 mutation 一律 ignore，
     // 不触发重绘（内容 DOM 已不再有任何手写 class，重绘路径整体消失）。
     if (active.handle.classList.contains(HANDLE_CLASS)) active.handle.classList.remove(HANDLE_DRAGGING_CLASS)
@@ -455,7 +469,7 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
     document.removeEventListener("pointermove", onPendingPointerMove)
     document.removeEventListener("pointerup", onPendingPointerUp)
     document.removeEventListener("pointercancel", onPendingPointerCancel)
-    restorePointerSelection?.()
+    restorePointerProtection?.()
   }
 
   function onPendingPointerMove(event: Event): void {
@@ -469,11 +483,25 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
     if (Math.hypot(dx, dy) > HNN_REORDER_TOUCH_SLOP_PX) cancelPendingHold()
   }
 
+  function restoreBodyTap(pending: PendingHold, pointer: ReorderPointerEvent): void {
+    if (!pending.restoreTapFocus || uninstalled || !view.editable || view.composing) return
+    const child = topLevelChildren(view.state.doc)[pending.fromIndex]
+    if (!child) return
+    const pointedPos = typeof document.elementFromPoint === "function"
+      ? view.posAtCoords({ left: pointer.clientX, top: pointer.clientY })?.pos
+      : undefined
+    const pos = pointedPos ?? child.offset + 1
+    view.dispatch(view.state.tr.setSelection(TextSelection.near(view.state.doc.resolve(pos))))
+    view.focus()
+  }
+
   function onPendingPointerUp(event: Event): void {
     const pending = pendingHold
     if (!pending) return
-    if ((event as ReorderPointerEvent).pointerId !== pending.pointerId) return
+    const pointer = event as ReorderPointerEvent
+    if (pointer.pointerId !== pending.pointerId) return
     cancelPendingHold()
+    restoreBodyTap(pending, pointer)
   }
 
   function onPendingPointerCancel(event: Event): void {
@@ -515,7 +543,7 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
     document.removeEventListener("pointerup", onPendingPointerUp)
     document.removeEventListener("pointercancel", onPendingPointerCancel)
     if (uninstalled || !view.editable || editor.view.composing) {
-      restorePointerSelection?.()
+      restorePointerProtection?.()
       return
     }
     closeHandleMenu(false)
@@ -609,21 +637,23 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
     addNativeListeners()
   }
 
-  const onHandlePointerDown = (event: ReorderPointerEvent, handle: HTMLElement, getPos: () => number | undefined): void => {
+  const onHandlePointerDown = (event: ReorderPointerEvent, handle: HTMLElement, getPos: () => number | undefined, restoreTapFocus = false): void => {
     // 鼠标走原生 draggable；这里只接管触摸/笔。
     if (event.pointerType !== "touch" && event.pointerType !== "pen") return
     if (!view.editable || editor.view.composing || gesture || pendingHold) return
     const fromIndex = resolveFromIndex(getPos)
     if (fromIndex < 0) return
+    if (restoreTapFocus) event.preventDefault()
     pendingHold = {
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
       fromIndex,
       handle,
+      restoreTapFocus,
       timer: window.setTimeout(activatePointerDrag, HNN_REORDER_HOLD_MS)
     }
-    suppressPointerSelection()
+    suppressPointerProtection()
     document.addEventListener("pointermove", onPendingPointerMove)
     document.addEventListener("pointerup", onPendingPointerUp)
     document.addEventListener("pointercancel", onPendingPointerCancel)
@@ -655,7 +685,7 @@ export function installBlockReorder(editor: Editor, options: BlockReorderOptions
     if (view.hasFocus() && focusedPos === child.offset) return
     // Capture on the stable editor root. Never mutate the content node as if it
     // were a widget handle: PM can replace it, losing the browser touch target.
-    onHandlePointerDown(pointer, view.dom, () => child.offset)
+    onHandlePointerDown(pointer, view.dom, () => child.offset, true)
   }
   const suppressResidual = (event: Event): void => {
     if (gesture?.kind === "pointer" || (event.type !== "dragstart" && suppressHandleClick)) {
