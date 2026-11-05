@@ -1,0 +1,261 @@
+diff --git a/src/lib/hnn/extensions.ts b/src/lib/hnn/extensions.ts
+index f588134..69a970a 100644
+--- a/src/lib/hnn/extensions.ts
++++ b/src/lib/hnn/extensions.ts
+@@ -7,6 +7,7 @@ import { closeHistory } from "@tiptap/pm/history"
+ import type { Node as PmNode } from "@tiptap/pm/model"
+ import StarterKit from "@tiptap/starter-kit"
+ import { HNN_CARD_EMPTY_DATA, parseCardPayload } from "./cardPayload"
++import { HnnCompositionInput } from "./compositionInput"
+ import { deriveHnnDirectoryEntries } from "./directoryEntries"
+ import { HNN_DRAWING_EMPTY_DATA, parseDrawingPayload } from "./drawingPayload"
+ import { HNN_LIMITS } from "./limits"
+@@ -1677,6 +1678,7 @@ function buildHnnExtensions(includeUndoRedo: boolean): Extensions {
+     createHnnInlineRef("mention", "hn-editor-mention", (attrs) => `@${attrString(attrs["name"], "")}`),
+     createHnnInlineRef("resource", "hn-editor-resource", (attrs) => attrString(attrs["name"], "")),
+     HnnExternalItem,
++    HnnCompositionInput,
+     HnnNodeIds
+   ]
+ }
+diff --git a/src/lib/hnn/compositionInput.ts b/src/lib/hnn/compositionInput.ts
+new file mode 100644
+index 0000000..273bd53
+--- /dev/null
++++ b/src/lib/hnn/compositionInput.ts
+@@ -0,0 +1,66 @@
++import { Extension } from "@tiptap/core"
++import { Plugin } from "@tiptap/pm/state"
++
++const COMPOSITION_CONFIRMATION_WINDOW_MS = 500
++const NO_COMPOSITION_CONFIRMATION = -Infinity
++
++function isSafari(): boolean {
++  return typeof navigator !== "undefined" && /Apple Computer/.test(navigator.vendor)
++}
++
++export const HnnCompositionInput = Extension.create({
++  name: "hnnCompositionInput",
++  addProseMirrorPlugins() {
++    // Match prosemirror-view's inOrNearComposition boundary. It skips the
++    // confirmation key's keymap, but leaves WebKit's native insertParagraph
++    // default enabled. Cancel that default before it can split the preedit DOM;
++    // composition text and the final replacement still follow PM's normal path.
++    let compositionEndedAt = NO_COMPOSITION_CONFIRMATION
++    let suppressParagraphUntil = NO_COMPOSITION_CONFIRMATION
++    return [new Plugin({
++      props: {
++        handleDOMEvents: {
++          compositionstart: () => {
++            compositionEndedAt = NO_COMPOSITION_CONFIRMATION
++            suppressParagraphUntil = NO_COMPOSITION_CONFIRMATION
++            return false
++          },
++          compositionend: () => {
++            compositionEndedAt = Date.now()
++            // WebKit can end composition between keydown and beforeinput.
++            // Keep a confirmation key already seen during composition armed.
++            return false
++          },
++          keydown: (view, event) => {
++            const now = Date.now()
++            const nearCompositionEnd = isSafari()
++              && Math.abs(now - compositionEndedAt) < COMPOSITION_CONFIRMATION_WINDOW_MS
++            if (nearCompositionEnd) compositionEndedAt = NO_COMPOSITION_CONFIRMATION
++            if (!isSafari() || (event.key !== "Enter" && event.keyCode !== 13)) {
++              suppressParagraphUntil = NO_COMPOSITION_CONFIRMATION
++              return false
++            }
++            suppressParagraphUntil = view.composing || nearCompositionEnd
++              ? now + COMPOSITION_CONFIRMATION_WINDOW_MS
++              : NO_COMPOSITION_CONFIRMATION
++            return false
++          },
++          beforeinput: (_view, event) => {
++            if (event.inputType !== "insertParagraph") return false
++            const suppress = Date.now() <= suppressParagraphUntil
++            suppressParagraphUntil = NO_COMPOSITION_CONFIRMATION
++            if (!suppress) return false
++            compositionEndedAt = NO_COMPOSITION_CONFIRMATION
++            event.preventDefault()
++            return true
++          },
++          blur: () => {
++            compositionEndedAt = NO_COMPOSITION_CONFIRMATION
++            suppressParagraphUntil = NO_COMPOSITION_CONFIRMATION
++            return false
++          }
++        }
++      }
++    })]
++  }
++})
+diff --git a/src/lib/editor/compositionInput.test.ts b/src/lib/editor/compositionInput.test.ts
+new file mode 100644
+index 0000000..2f6b3c4
+--- /dev/null
++++ b/src/lib/editor/compositionInput.test.ts
+@@ -0,0 +1,163 @@
++// @vitest-environment jsdom
++import { afterEach, describe, expect, it, vi } from "vitest"
++import { fireEvent } from "@testing-library/dom"
++import { DocumentSession } from "./documentSession"
++
++const sessions: DocumentSession[] = []
++afterEach(() => {
++  for (const session of sessions.splice(0)) session.dispose()
++  vi.restoreAllMocks()
++  vi.useRealTimers()
++  document.body.replaceChildren()
++})
++
++function make() {
++  const session = new DocumentSession({
++    documentId: "composition-input",
++    loadKey: 1,
++    initialDocument: { schemaVersion: 1, data: { type: "doc", content: [{ type: "paragraph", attrs: {
++      nodeId: "123e4567-e89b-42d3-a456-426614174000"
++    }, content: [{ type: "text", text: "共享正文" }] }] } },
++    initialHostSnapshot: { changeId: 0, value: { title: "", summary: "" } },
++    onSave: async () => {},
++    onChange: () => {}
++  })
++  sessions.push(session)
++  const view = session.attachView("primary")
++  document.body.appendChild(view.editor.view.dom)
++  view.editor.commands.setTextSelection(5)
++  view.editor.view.focus()
++  return view.editor
++}
++
++function nativeParagraph() {
++  return new InputEvent("beforeinput", { bubbles: true, cancelable: true, inputType: "insertParagraph" })
++}
++
++describe("composition confirmation native input", () => {
++  function safari() {
++    vi.useFakeTimers()
++    vi.spyOn(navigator, "vendor", "get").mockReturnValue("Apple Computer")
++  }
++
++  it("cancels the confirmation paragraph without blocking a later intentional Enter", () => {
++    vi.useFakeTimers()
++    vi.spyOn(navigator, "vendor", "get").mockReturnValue("Apple Computer")
++    const editor = make()
++    const dom = editor.view.dom
++
++    fireEvent.compositionStart(dom)
++    fireEvent.compositionEnd(dom, { data: "你好" })
++    fireEvent.keyDown(dom, { key: "Enter", code: "Enter", keyCode: 13 })
++    const confirmation = nativeParagraph()
++    dom.dispatchEvent(confirmation)
++
++    expect(confirmation.defaultPrevented).toBe(true)
++    expect(editor.state.doc.childCount).toBe(1)
++    expect(editor.state.doc.textContent).toBe("共享正文")
++
++    fireEvent.keyDown(dom, { key: "Enter", code: "Enter", keyCode: 13 })
++    const intentional = nativeParagraph()
++    dom.dispatchEvent(intentional)
++    expect(intentional.defaultPrevented).toBe(false)
++    expect(editor.state.doc.childCount).toBe(2)
++  })
++
++  it("cancels native confirmation during an active Safari composition", () => {
++    safari()
++    const editor = make()
++    fireEvent.compositionStart(editor.view.dom)
++    fireEvent.keyDown(editor.view.dom, { key: "Enter", keyCode: 13, isComposing: true })
++    const event = nativeParagraph()
++    editor.view.dom.dispatchEvent(event)
++    expect(event.defaultPrevented).toBe(true)
++    expect(editor.view.composing).toBe(true)
++    expect(editor.state.doc.childCount).toBe(1)
++  })
++
++  it("retains confirmation when composition ends between keydown and beforeinput", () => {
++    safari()
++    const editor = make()
++    const dom = editor.view.dom
++    fireEvent.compositionStart(dom)
++    fireEvent.keyDown(dom, { key: "Enter", keyCode: 13, isComposing: true })
++    fireEvent.compositionEnd(dom, { data: "你好" })
++    const confirmation = nativeParagraph()
++    dom.dispatchEvent(confirmation)
++    expect(confirmation.defaultPrevented).toBe(true)
++    fireEvent.keyDown(dom, { key: "Enter", keyCode: 13 })
++    const intentional = nativeParagraph()
++    dom.dispatchEvent(intentional)
++    expect(intentional.defaultPrevented).toBe(false)
++  })
++
++  it.each(["insertCompositionText", "insertFromComposition", "insertText", "insertLineBreak"])(
++    "leaves %s to the native input pipeline", (inputType) => {
++      safari()
++      const editor = make()
++      const dom = editor.view.dom
++      fireEvent.compositionStart(dom)
++      fireEvent.compositionEnd(dom, { data: "你好" })
++      fireEvent.keyDown(dom, { key: "Enter", keyCode: 13 })
++      const event = new InputEvent("beforeinput", { bubbles: true, cancelable: true, inputType, data: "你好" })
++      dom.dispatchEvent(event)
++      expect(event.defaultPrevented).toBe(false)
++    }
++  )
++
++  it("does not suppress Chromium/Android native paragraph handling while composing", () => {
++    vi.spyOn(navigator, "vendor", "get").mockReturnValue("Google Inc.")
++    const editor = make()
++    fireEvent.compositionStart(editor.view.dom)
++    fireEvent.keyDown(editor.view.dom, { key: "Enter", keyCode: 13, isComposing: true })
++    const event = nativeParagraph()
++    editor.view.dom.dispatchEvent(event)
++    expect(event.defaultPrevented).toBe(false)
++  })
++
++  it.each(["timeout", "other-key", "blur", "new-composition"])("clears stale confirmation after %s", (boundary) => {
++    safari()
++    const editor = make()
++    const dom = editor.view.dom
++    fireEvent.compositionStart(dom)
++    fireEvent.compositionEnd(dom, { data: "你好" })
++    fireEvent.keyDown(dom, { key: "Enter", keyCode: 13 })
++    if (boundary === "timeout") vi.advanceTimersByTime(501)
++    if (boundary === "other-key") fireEvent.keyDown(dom, { key: "a", keyCode: 65 })
++    if (boundary === "blur") fireEvent.blur(dom)
++    if (boundary === "new-composition") fireEvent.compositionStart(dom)
++    const event = nativeParagraph()
++    dom.dispatchEvent(event)
++    expect(event.defaultPrevented).toBe(false)
++  })
++
++  it("does not treat an ordinary Enter as confirmation outside the Safari window", () => {
++    safari()
++    const editor = make()
++    const dom = editor.view.dom
++    fireEvent.compositionStart(dom)
++    fireEvent.compositionEnd(dom, { data: "你" })
++    vi.advanceTimersByTime(501)
++    fireEvent.keyDown(dom, { key: "Enter", keyCode: 13 })
++    const event = nativeParagraph()
++    dom.dispatchEvent(event)
++    expect(event.defaultPrevented).toBe(false)
++    expect(editor.state.doc.childCount).toBe(2)
++  })
++
++  it("keeps the confirmation marker local to the composing view", () => {
++    safari()
++    const editor = make()
++    const peer = sessions.at(-1)!.attachView("secondary").editor
++    document.body.appendChild(peer.view.dom)
++    fireEvent.compositionStart(editor.view.dom)
++    fireEvent.compositionEnd(editor.view.dom, { data: "你好" })
++    fireEvent.keyDown(editor.view.dom, { key: "Enter", keyCode: 13 })
++    const peerEvent = nativeParagraph()
++    peer.view.dom.dispatchEvent(peerEvent)
++    expect(peerEvent.defaultPrevented).toBe(false)
++    const ownerEvent = nativeParagraph()
++    editor.view.dom.dispatchEvent(ownerEvent)
++    expect(ownerEvent.defaultPrevented).toBe(true)
++  })
++})
