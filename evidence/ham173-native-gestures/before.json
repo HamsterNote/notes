@@ -1,0 +1,221 @@
+{
+  "browser": "148.0.7778.96",
+  "command": "node scripts/check-mobile-native-gestures.mjs --before-ref=6c923ec",
+  "source": "blockReorder.ts from 6c923ec; remaining checkout unchanged",
+  "results": [
+    {
+      "scenario": "unfocused-hold",
+      "beforeOrder": [
+        "HAM173 first paragraph",
+        "HAM173 second paragraph",
+        "HAM173 third paragraph"
+      ],
+      "pending": {
+        "dragging": false,
+        "focused": false,
+        "activeElement": "BODY",
+        "selection": "",
+        "anchorBlock": null,
+        "userSelect": "none",
+        "inlineStyle": "user-select: none !important;"
+      },
+      "held": {
+        "dragging": true,
+        "focused": false,
+        "activeElement": "BODY",
+        "selection": "",
+        "anchorBlock": null,
+        "userSelect": "none",
+        "inlineStyle": "user-select: none !important;"
+      },
+      "restored": {
+        "dragging": false,
+        "focused": false,
+        "activeElement": "BODY",
+        "selection": "",
+        "anchorBlock": null,
+        "userSelect": "auto",
+        "inlineStyle": ""
+      },
+      "afterOrder": [
+        "HAM173 second paragraph",
+        "HAM173 third paragraph",
+        "HAM173 first paragraph"
+      ],
+      "events": [
+        {
+          "type": "pointerdown",
+          "ms": 1775.3000001907349,
+          "defaultPrevented": false,
+          "focused": false,
+          "focusedAfterListeners": false
+        },
+        {
+          "type": "touchstart",
+          "ms": 1775.5,
+          "defaultPrevented": false,
+          "focused": false,
+          "focusedAfterListeners": false
+        },
+        {
+          "type": "pointerup",
+          "ms": 2605.5,
+          "defaultPrevented": false,
+          "focused": false,
+          "focusedAfterListeners": false
+        }
+      ]
+    },
+    {
+      "scenario": "quick-tap",
+      "beforeOrder": [
+        "HAM173 first paragraph",
+        "HAM173 second paragraph",
+        "HAM173 third paragraph"
+      ],
+      "tapped": {
+        "dragging": false,
+        "focused": true,
+        "activeElement": "DIV",
+        "selection": "",
+        "anchorBlock": "HAM173 first paragraph",
+        "userSelect": "auto",
+        "inlineStyle": ""
+      },
+      "afterOrder": [
+        "HAM173 first paragraph",
+        "HAM173 second paragraph",
+        "HAM173 third paragraph"
+      ],
+      "events": [
+        {
+          "type": "pointerdown",
+          "ms": 731.1999998092651,
+          "defaultPrevented": false,
+          "focused": false,
+          "focusedAfterListeners": false
+        },
+        {
+          "type": "touchstart",
+          "ms": 731.5,
+          "defaultPrevented": false,
+          "focused": false,
+          "focusedAfterListeners": false
+        },
+        {
+          "type": "pointerup",
+          "ms": 814.8000001907349,
+          "defaultPrevented": false,
+          "focused": false,
+          "focusedAfterListeners": false
+        },
+        {
+          "type": "touchend",
+          "ms": 815.5,
+          "defaultPrevented": false,
+          "focused": false,
+          "focusedAfterListeners": false
+        },
+        {
+          "type": "focusin",
+          "ms": 823.1999998092651,
+          "defaultPrevented": false,
+          "focused": true,
+          "focusedAfterListeners": true
+        },
+        {
+          "type": "selectstart",
+          "ms": 823.8000001907349,
+          "defaultPrevented": false,
+          "focused": true,
+          "focusedAfterListeners": true
+        }
+      ]
+    },
+    {
+      "scenario": "focused-hold",
+      "beforeOrder": [
+        "HAM173 first paragraph",
+        "HAM173 second paragraph",
+        "HAM173 third paragraph"
+      ],
+      "pending": {
+        "dragging": false,
+        "focused": true,
+        "activeElement": "DIV",
+        "selection": "",
+        "anchorBlock": "HAM173 first paragraph",
+        "userSelect": "auto",
+        "inlineStyle": ""
+      },
+      "held": {
+        "dragging": false,
+        "focused": true,
+        "activeElement": "DIV",
+        "selection": "",
+        "anchorBlock": "HAM173 first paragraph",
+        "userSelect": "auto",
+        "inlineStyle": ""
+      },
+      "restored": {
+        "dragging": false,
+        "focused": true,
+        "activeElement": "DIV",
+        "selection": "HAM173",
+        "anchorBlock": "HAM173 first paragraph",
+        "userSelect": "auto",
+        "inlineStyle": ""
+      },
+      "afterOrder": [
+        "HAM173 first paragraph",
+        "HAM173 second paragraph",
+        "HAM173 third paragraph"
+      ],
+      "events": [
+        {
+          "type": "pointerdown",
+          "ms": 958.5,
+          "defaultPrevented": false,
+          "focused": true,
+          "focusedAfterListeners": true
+        },
+        {
+          "type": "touchstart",
+          "ms": 958.5999994277954,
+          "defaultPrevented": false,
+          "focused": true,
+          "focusedAfterListeners": true
+        },
+        {
+          "type": "pointerup",
+          "ms": 1685.7999992370605,
+          "defaultPrevented": false,
+          "focused": true,
+          "focusedAfterListeners": true
+        },
+        {
+          "type": "touchend",
+          "ms": 1686.2999992370605,
+          "defaultPrevented": false,
+          "focused": true,
+          "focusedAfterListeners": true
+        },
+        {
+          "type": "selectstart",
+          "ms": 1688.1999998092651,
+          "defaultPrevented": false,
+          "focused": true,
+          "focusedAfterListeners": true
+        },
+        {
+          "type": "contextmenu",
+          "ms": 1688.6999998092651,
+          "defaultPrevented": false,
+          "focused": true,
+          "focusedAfterListeners": true
+        }
+      ]
+    }
+  ],
+  "limitations": "Trusted Chromium CDP touch, DOM focus/selection observations, screenshots and Playwright video. Headless Chromium does not display a physical soft keyboard, iOS loupe or Android native selection UI; those require device validation."
+}
