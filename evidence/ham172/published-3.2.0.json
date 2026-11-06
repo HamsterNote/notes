@@ -1,0 +1,629 @@
+[
+  {
+    "browser": "WebKit 26.4",
+    "chinese": "你",
+    "paragraphs": [
+      "ni",
+      "你"
+    ],
+    "saved": {
+      "schemaVersion": 1,
+      "data": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "attrs": {
+              "nodeId": "123e4567-e89b-42d3-a456-426614174000"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "ni"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "attrs": {
+              "nodeId": "9a35a50b-2fc2-4cb7-80d1-f6fa1bef9ea0"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "你"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "events": [
+      {
+        "type": "compositionstart",
+        "trusted": false,
+        "data": "",
+        "paragraphs": [
+          ""
+        ],
+        "prevented": false
+      },
+      {
+        "type": "beforeinput",
+        "trusted": false,
+        "data": "ni",
+        "inputType": "insertCompositionText",
+        "isComposing": true,
+        "paragraphs": [
+          ""
+        ],
+        "prevented": false
+      },
+      {
+        "type": "compositionupdate",
+        "trusted": false,
+        "data": "ni",
+        "paragraphs": [
+          "ni"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "input",
+        "trusted": false,
+        "data": "ni",
+        "inputType": "insertCompositionText",
+        "isComposing": true,
+        "paragraphs": [
+          "ni"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "compositionend",
+        "trusted": false,
+        "data": "ni",
+        "paragraphs": [
+          "ni"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "keydown",
+        "trusted": true,
+        "key": "Enter",
+        "keyCode": 13,
+        "isComposing": false,
+        "paragraphs": [
+          "ni"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "data": null,
+        "inputType": "insertParagraph",
+        "isComposing": false,
+        "paragraphs": [
+          "ni"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "data": null,
+        "inputType": "insertParagraph",
+        "isComposing": false,
+        "paragraphs": [
+          "ni",
+          ""
+        ],
+        "prevented": false
+      },
+      {
+        "type": "beforeinput",
+        "trusted": false,
+        "data": "你",
+        "inputType": "insertFromComposition",
+        "isComposing": false,
+        "paragraphs": [
+          "ni",
+          ""
+        ],
+        "prevented": false
+      },
+      {
+        "type": "input",
+        "trusted": false,
+        "data": "你",
+        "inputType": "insertFromComposition",
+        "isComposing": false,
+        "paragraphs": [
+          "ni",
+          "你"
+        ],
+        "prevented": false
+      }
+    ],
+    "driver": "synthetic composition/DOM replacement, trusted Enter; NOT a physical IME",
+    "errors": []
+  },
+  {
+    "browser": "WebKit 26.4",
+    "chinese": "你好",
+    "paragraphs": [
+      "nihao",
+      "你好"
+    ],
+    "saved": {
+      "schemaVersion": 1,
+      "data": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "attrs": {
+              "nodeId": "123e4567-e89b-42d3-a456-426614174000"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "nihao"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "attrs": {
+              "nodeId": "4b41fa3e-d16f-4931-a705-0d8339933e5c"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "你好"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "events": [
+      {
+        "type": "compositionstart",
+        "trusted": false,
+        "data": "",
+        "paragraphs": [
+          ""
+        ],
+        "prevented": false
+      },
+      {
+        "type": "beforeinput",
+        "trusted": false,
+        "data": "nihao",
+        "inputType": "insertCompositionText",
+        "isComposing": true,
+        "paragraphs": [
+          ""
+        ],
+        "prevented": false
+      },
+      {
+        "type": "compositionupdate",
+        "trusted": false,
+        "data": "nihao",
+        "paragraphs": [
+          "nihao"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "input",
+        "trusted": false,
+        "data": "nihao",
+        "inputType": "insertCompositionText",
+        "isComposing": true,
+        "paragraphs": [
+          "nihao"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "compositionend",
+        "trusted": false,
+        "data": "nihao",
+        "paragraphs": [
+          "nihao"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "keydown",
+        "trusted": true,
+        "key": "Enter",
+        "keyCode": 13,
+        "isComposing": false,
+        "paragraphs": [
+          "nihao"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "data": null,
+        "inputType": "insertParagraph",
+        "isComposing": false,
+        "paragraphs": [
+          "nihao"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "data": null,
+        "inputType": "insertParagraph",
+        "isComposing": false,
+        "paragraphs": [
+          "nihao",
+          ""
+        ],
+        "prevented": false
+      },
+      {
+        "type": "beforeinput",
+        "trusted": false,
+        "data": "你好",
+        "inputType": "insertFromComposition",
+        "isComposing": false,
+        "paragraphs": [
+          "nihao",
+          ""
+        ],
+        "prevented": false
+      },
+      {
+        "type": "input",
+        "trusted": false,
+        "data": "你好",
+        "inputType": "insertFromComposition",
+        "isComposing": false,
+        "paragraphs": [
+          "nihao",
+          "你好"
+        ],
+        "prevented": false
+      }
+    ],
+    "driver": "synthetic composition/DOM replacement, trusted Enter; NOT a physical IME",
+    "errors": []
+  },
+  {
+    "browser": "Chromium 148.0.7778.96",
+    "driver": "native CDP composition; NOT a physical IME",
+    "paragraphs": [
+      "你你好"
+    ],
+    "saved": {
+      "schemaVersion": 1,
+      "data": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "attrs": {
+              "nodeId": "123e4567-e89b-42d3-a456-426614174000"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "你你好"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "events": [
+      {
+        "type": "compositionstart",
+        "trusted": true,
+        "data": "",
+        "paragraphs": [
+          ""
+        ],
+        "prevented": false
+      },
+      {
+        "type": "compositionupdate",
+        "trusted": true,
+        "data": "n",
+        "paragraphs": [
+          ""
+        ],
+        "prevented": false
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "data": "n",
+        "inputType": "insertCompositionText",
+        "isComposing": true,
+        "paragraphs": [
+          ""
+        ],
+        "prevented": false
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "data": "n",
+        "inputType": "insertCompositionText",
+        "isComposing": true,
+        "paragraphs": [
+          "n"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "compositionupdate",
+        "trusted": true,
+        "data": "ni",
+        "paragraphs": [
+          "n"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "data": "ni",
+        "inputType": "insertCompositionText",
+        "isComposing": true,
+        "paragraphs": [
+          "n"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "data": "ni",
+        "inputType": "insertCompositionText",
+        "isComposing": true,
+        "paragraphs": [
+          "ni"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "compositionupdate",
+        "trusted": true,
+        "data": "nihao",
+        "paragraphs": [
+          "ni"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "data": "nihao",
+        "inputType": "insertCompositionText",
+        "isComposing": true,
+        "paragraphs": [
+          "ni"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "data": "nihao",
+        "inputType": "insertCompositionText",
+        "isComposing": true,
+        "paragraphs": [
+          "nihao"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "compositionupdate",
+        "trusted": true,
+        "data": "你",
+        "paragraphs": [
+          "nihao"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "data": "你",
+        "inputType": "insertCompositionText",
+        "isComposing": true,
+        "paragraphs": [
+          "nihao"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "data": "你",
+        "inputType": "insertCompositionText",
+        "isComposing": true,
+        "paragraphs": [
+          "你"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "compositionend",
+        "trusted": false,
+        "data": "你",
+        "paragraphs": [
+          "你"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "compositionstart",
+        "trusted": true,
+        "data": "",
+        "paragraphs": [
+          "你"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "compositionupdate",
+        "trusted": true,
+        "data": "n",
+        "paragraphs": [
+          "你"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "data": "n",
+        "inputType": "insertCompositionText",
+        "isComposing": true,
+        "paragraphs": [
+          "你"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "data": "n",
+        "inputType": "insertCompositionText",
+        "isComposing": true,
+        "paragraphs": [
+          "你n"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "compositionupdate",
+        "trusted": true,
+        "data": "ni",
+        "paragraphs": [
+          "你n"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "data": "ni",
+        "inputType": "insertCompositionText",
+        "isComposing": true,
+        "paragraphs": [
+          "你n"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "data": "ni",
+        "inputType": "insertCompositionText",
+        "isComposing": true,
+        "paragraphs": [
+          "你ni"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "compositionupdate",
+        "trusted": true,
+        "data": "nihao",
+        "paragraphs": [
+          "你ni"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "data": "nihao",
+        "inputType": "insertCompositionText",
+        "isComposing": true,
+        "paragraphs": [
+          "你ni"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "data": "nihao",
+        "inputType": "insertCompositionText",
+        "isComposing": true,
+        "paragraphs": [
+          "你nihao"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "compositionupdate",
+        "trusted": true,
+        "data": "你好",
+        "paragraphs": [
+          "你nihao"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "beforeinput",
+        "trusted": true,
+        "data": "你好",
+        "inputType": "insertCompositionText",
+        "isComposing": true,
+        "paragraphs": [
+          "你nihao"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "input",
+        "trusted": true,
+        "data": "你好",
+        "inputType": "insertCompositionText",
+        "isComposing": true,
+        "paragraphs": [
+          "你你好"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "compositionend",
+        "trusted": false,
+        "data": "你好",
+        "paragraphs": [
+          "你你好"
+        ],
+        "prevented": false
+      },
+      {
+        "type": "keydown",
+        "trusted": true,
+        "key": "Enter",
+        "keyCode": 13,
+        "isComposing": false,
+        "paragraphs": [
+          "你你好"
+        ],
+        "prevented": false
+      }
+    ],
+    "errors": []
+  }
+]
