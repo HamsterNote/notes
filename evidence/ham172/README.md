@@ -3,6 +3,20 @@
 This draft contains diagnostic tools and evidence only. It does not enable an
 IME workaround or change the notes runtime. The original report remains open.
 
+## Current evidence (HAM-213, November 10)
+
+Read [HAM213-analysis.md](./HAM213-analysis.md) for the current findings and the
+physical-device capture request. Real iOS simulator logs contain no confirmation
+Enter keydown. A new deleteCompositionText-only reconstruction exposes both a
+ProseMirror synthetic-Enter split and an ordinary two-block DOM parse; the v1
+recording cannot distinguish them. The recorder is now schemaVersion 2 and adds
+full DOM, range paths and passive transaction observation. These diagnostic
+changes do not fix or establish the physical-device cause.
+
+Current WebBase baseline is `90c41a0` with published notes 3.2.0. The diagnostic
+branch includes notes main `2cc136b` (merged PR #22); the historical PR status and
+baseline below describe the earlier experiment, not today's deployment.
+
 ## Findings and limits
 
 - WebBase baseline: `cc8a87b`, installed `@hamster-note/notes@3.2.0`.
