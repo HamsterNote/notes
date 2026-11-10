@@ -156,7 +156,9 @@ try {
         const events = await page.evaluate(() => window.__ham124Events)
         assert(events.some(e => e.type === "touchmove") && events.some(e => e.type === "pointerup"))
         assert(events.every(e => e.trusted))
-        // Independent undo followed by native scrolling before 500ms; no sorting or vibration.
+        // Drag intentionally leaves the mobile editor blurred; explicitly focus before hardware-keyboard undo.
+        assert.equal(await page.locator(".hn-editor-content").evaluate(el => el.contains(document.activeElement)), false)
+        await page.locator(".hn-editor-content").focus()
         await page.keyboard.press("Control+z")
         assert.equal((await order(page))[0], "HAM124 first paragraph")
         await focusOtherBlock()
