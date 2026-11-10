@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>中文输入取证</title>
+<style>
+  * { box-sizing: border-box } body { margin: 0; font: 14px/1.5 system-ui, sans-serif; color: #17202a; background: #f7f6f3 }
+  header { padding: 10px 12px } h1 { font-size: 18px; margin: 0 0 4px } p { margin: 2px 0 }
+  button, a { font: inherit; min-height: 44px; padding: 10px 14px; border: 1px solid #adb4bf; border-radius: 8px; background: white; color: #17202a; display: inline-block }
+  button { cursor: pointer } button:disabled { opacity: .5 } .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px }
+  #export { background: #245c48; color: white } #status { color: #45505d } [hidden] { display: none !important }
+  #output { padding: 8px 12px } textarea { width: 100%; height: 150px; font: 12px/1.4 monospace; user-select: text; -webkit-user-select: text }
+  iframe { width: 100%; height: 72vh; min-height: 480px; border: 0; border-top: 1px solid #ccd0d5; background: white }
+</style>
+<header>
+  <h1>中文输入取证</h1>
+  <p>① 页面已自动准备记录，在下面新建一篇空白笔记。</p>
+  <p>② 用中文键盘输入一次「nihao」，点选「你好」上屏。</p>
+  <p>③ 点「导出」，再复制或下载文件发回来。</p>
+  <p>只用测试笔记；记录包含笔记全文，仅保留在本页。</p>
+  <div class="actions"><button id="start">开始记录</button><button id="export" disabled>导出</button></div>
+  <p id="status" role="status">等待下方笔记编辑器打开…</p>
+</header>
+<section id="output" hidden aria-label="导出结果">
+  <div class="actions"><button id="copy">一键复制</button><button id="select">全选文本</button><a id="download">下载 .json 文件</a></div>
+  <label for="json">原始记录（复制失败时可全选后长按复制）</label>
+  <textarea id="json" readonly spellcheck="false"></textarea>
+  <p id="copy-status" role="status"></p>
+</section>
+<iframe id="app" src="/" title="新建测试笔记"></iframe>
+<script type="module">
+  const $ = id => document.getElementById(id)
+  const editorOrigin = new URL(location.origin)
+  editorOrigin.port = '__EDITOR_PORT__'
+  const session = `${Date.now()}-${Math.random()}`
+  const offered = new Set()
+  let active = null
+  let pending = null
+  let objectUrl = null
+  let stopped = false
+  const send = (target, type, extra = {}) => target.postMessage({ channel: 'hnn-ime-capture', session, type, ...extra }, editorOrigin.origin)
+  function discover(frame) {
+    offered.add(frame)
+    try {
+      if (frame.location.origin === editorOrigin.origin) send(frame, 'hello')
+    } catch { send(frame, 'hello') }
+    try { for (let i = 0; i < frame.length; i++) discover(frame.frames[i]) } catch { /* Frame is navigating. */ }
+  }
+  const timer = setInterval(() => discover($('app').contentWindow), 800)
+  window.addEventListener('pagehide', () => { clearInterval(timer); if (objectUrl) URL.revokeObjectURL(objectUrl) })
+  window.addEventListener('message', event => {
+    const message = event.data
+    if (event.origin !== editorOrigin.origin || !offered.has(event.source)
+      || message?.channel !== 'hnn-ime-capture' || message.session !== session) return
+    if (message.type === 'ready' && message.editors > 0) {
+      active = event.source
+      if (!pending && !stopped) {
+        $('status').textContent = '正在记录，可以输入了。'
+        $('export').disabled = false
+      }
+    } else if (message.type === 'started') {
+      stopped = false
+      $('status').textContent = '已开始一份新记录，可以输入了。'
+      $('export').disabled = false
+    } else if (message.type === 'error') {
+      $('status').textContent = message.message
+    } else if (message.type === 'exported' && event.source === active && message.requestId === pending) {
+      pending = null
+      stopped = true
+      const json = JSON.stringify(message.result, null, 2)
+      $('json').value = json
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+      objectUrl = URL.createObjectURL(new Blob([json], { type: 'application/json' }))
+      $('download').href = objectUrl
+      $('download').download = 'ham172-ime-events.json'
+      $('output').hidden = false
+      $('status').textContent = `已导出 ${message.result.events.length} 条记录。请选择复制或下载。`
+      $('export').disabled = false
+      $('copy-status').textContent = ''
+    }
+  })
+  $('start').onclick = () => {
+    $('output').hidden = true
+    if (!active) { $('status').textContent = '请先在下方新建并打开笔记，打开后会自动记录。'; return }
+    stopped = false
+    send(active, 'start')
+  }
+  $('export').onclick = () => {
+    if (!active || pending) return
+    pending = `${Date.now()}`
+    const requestId = pending
+    $('export').disabled = true
+    $('status').textContent = '正在导出…'
+    send(active, 'export', { requestId })
+    setTimeout(() => {
+      if (pending !== requestId) return
+      pending = null
+      $('export').disabled = false
+      $('status').textContent = '编辑器未响应，请保持笔记打开后重试导出。'
+    }, 10000)
+  }
+  function select() { $('json').focus(); $('json').select(); $('json').setSelectionRange(0, $('json').value.length) }
+  $('select').onclick = select
+  $('copy').onclick = async () => {
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard API unavailable')
+      await navigator.clipboard.writeText($('json').value)
+      $('copy-status').textContent = '已复制完整 JSON。'
+    } catch {
+      select()
+      let copied = false
+      try { copied = document.execCommand('copy') } catch { /* Manual selection below. */ }
+      $('copy-status').textContent = copied ? '已复制完整 JSON。' : '已全选，请长按文本并选择「复制」。'
+    }
+  }
+</script>
+</html>

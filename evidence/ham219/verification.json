@@ -1,0 +1,11 @@
+{
+  "url": "http://192.168.0.145:6218/__ime-capture",
+  "source": "Controlled Chromium CDP composition, not a physical phone or system IME",
+  "events": 35,
+  "bytes": 75554,
+  "download": "ham172-ime-events.json",
+  "httpClipboardExact": true,
+  "manualSelectionExact": true,
+  "stoppedSnapshotStable": true,
+  "errors": []
+}

@@ -1,0 +1,7 @@
+{
+  "devPluginEnabled": true,
+  "productionPluginExcluded": true,
+  "productionGatewayRefused": true,
+  "npmPackageExcludesCapture": true,
+  "productionDistNoCaptureStrings": true
+}
