@@ -14,6 +14,7 @@ import { installTableEdgeControls } from "./tableEdgeControls"
 import { jsonStringBytes, utf8Bytes } from "./stringBytes"
 import { collectHnnNodeIds, createHnnNodeIdPlugin, HNN_NODE_ID_TYPES, normalizeInitialHnnContent } from "./nodeId"
 import { isSafeHnnUrl } from "./urlPolicy"
+import { HnnCompositionDeletion } from "./compositionDeletion"
 
 const nodeIdAttr = { default: null }
 const persistentNodeTypes = [...HNN_NODE_ID_TYPES]
@@ -1648,6 +1649,7 @@ function buildHnnExtensions(includeUndoRedo: boolean): Extensions {
   })
 
   return [
+    HnnCompositionDeletion,
     StarterKit.configure({
       codeBlock: false,
       blockquote: false,

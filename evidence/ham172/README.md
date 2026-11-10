@@ -1,11 +1,14 @@
-# HAM-172: IME investigation — original defect is not yet established
+# HAM-172: composition deletion fix and investigation evidence
 
-This draft contains diagnostic tools and evidence only. It does not enable an
-IME workaround or change the notes runtime. The original report remains open.
+The user's real v2 iPhone trace now confirms the original failure mechanism.
+Read [FIX.md](./FIX.md) for the current root cause, scoped parser fix, observed
+device/simulator differences and validation. The branch now includes a runtime
+fix; physical-device after-fix acceptance is still pending. Historical hypotheses
+below remain archived and must not be used as the current conclusion.
 
-## Current evidence (HAM-213, November 10)
+## Historical HAM-213 investigation (before v2 physical trace)
 
-Read [HAM213-analysis.md](./HAM213-analysis.md) for the current findings and the
+Read [HAM213-analysis.md](./HAM213-analysis.md) for the earlier findings and the
 physical-device capture request. Real iOS simulator logs contain no confirmation
 Enter keydown. A new deleteCompositionText-only reconstruction exposes both a
 ProseMirror synthetic-Enter split and an ordinary two-block DOM parse; the v1
