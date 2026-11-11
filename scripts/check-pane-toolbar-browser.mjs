@@ -57,6 +57,19 @@ try {
   assert.equal(await view.locator(".tiptap").getAttribute("data-keep"), "yes")
 
   await page.screenshot({ path: "evidence/ham229-pane-toolbar.png", fullPage: false })
+  await page.setViewportSize({ width: 320, height: 450 })
+  await view.locator(".tiptap").fill(Array.from({ length: 20 }, (_, i) => `正文 ${i}`).join("\n"))
+  await view.locator('input[type="file"]').setInputFiles({ name: "retry.png", mimeType: "image/png", buffer: Buffer.from("fixture") })
+  const retry = view.getByRole("button", { name: "重试上传 retry.png", exact: true })
+  await retry.waitFor()
+  // The padding must protect upload controls too, not end before their list.
+  assert.equal(await content.locator(".hn-editor-uploads__list").count(), 1)
+  await retry.click()
+  await page.waitForFunction(() => window.sessionLog.filter(entry => entry.kind === "upload").length === 2)
+  await view.getByRole("button", { name: "取消上传 retry.png", exact: true }).click()
+  assert.equal(await view.locator(".hn-editor-uploads__list").count(), 0)
+  await page.screenshot({ path: "evidence/ham229-upload-toolbar-320.png", fullPage: false })
+  console.log("PASS upload retry/cancel remain inside reserved flow content at 320px")
   assert.deepEqual(errors, [])
   console.log("PASS top/bottom safe-area offsets, content reservation, file select/remove and edge switch without document remount")
 } finally {
