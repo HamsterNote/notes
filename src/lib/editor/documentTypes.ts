@@ -93,4 +93,39 @@ export type NoteDocumentProviderProps = {
   onInitialLoadError?: InitialLoadErrorHandler
   children: ReactNode
 }
-export type NoteEditorViewProps = { viewId: string; theme?: "light" | "dark" }
+/** Host-injected file metadata; keys stay canonical storage identities, never display names. */
+export type NoteToolbarFile = Readonly<{
+  key: string
+  storageId: string
+  path: string
+  displayName: string
+  resolvedFormat: string
+}>
+export type NoteFileRequest = Readonly<{ fileKey: string; paneId: string; requestId: string }>
+export type NoteFileRequestResult =
+  | { status: "success" }
+  | { status: "cancelled" }
+  | { status: "failed"; message: string }
+export type NotePaneInsets = Readonly<{ top: number; bottom: number; left: number; right: number }>
+/** Host-resolved pane geometry; every value is a non-negative CSS pixel value. */
+export type NotePaneToolbarLayout = Readonly<{
+  edge: "top" | "bottom"
+  insets: NotePaneInsets
+  /** Effective top obstruction from the pane origin; overlaps safe top, do not add. */
+  headerContentInset: number
+  /** Optional visible pane rectangle in viewport coordinates. */
+  bounds?: Readonly<{ left: number; top: number; width: number; height: number }>
+}>
+export type NoteEditorViewProps = {
+  viewId: string
+  theme?: "light" | "dark"
+  /** Omit to keep the legacy single-pane controls without a file entry. */
+  files?: readonly NoteToolbarFile[]
+  currentFileKey?: string
+  paneId?: string
+  busy?: boolean
+  onSelectFile?: (request: NoteFileRequest) => Promise<NoteFileRequestResult>
+  onRequestRemove?: (request: NoteFileRequest) => Promise<NoteFileRequestResult>
+  /** Omit for legacy inline controls; provided layout switches to the per-pane floating bar. */
+  layout?: NotePaneToolbarLayout
+}

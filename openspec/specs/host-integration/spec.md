@@ -179,3 +179,14 @@
 #### Scenario: 用户尝试拖入文档文件
 - **WHEN** 用户将 Markdown 或 HNN 文档文件拖到编辑器区域
 - **THEN** 库不自行读取、解析或打开该文件，宿主可在编辑器外提供其定义的打开流程
+
+### Requirement: 视图工具栏接收宿主文件导航与按栏布局
+`NoteEditorView` SHALL 接受可选的 `files`、`currentFileKey`、`paneId`、`busy`、`onSelectFile`、`onRequestRemove` 与 `layout`。文件入口 SHALL 位于撤销/重做之后；未提供 `files` 时 MUST 隐藏入口，最后一项 MUST NOT 可移除。选择与移除 SHALL 只发起带 `paneId` 与 `requestId` 的异步请求，当前项 MUST 由宿主快照更新，库 MUST NOT 自行枚举或修改列表、导航或建立第二套历史/保存会话。`layout` 提供时 SHALL 按 `edge` 在所属栏边缘渲染工具栏，`headerContentInset` 与 `insets.top` 取最大值且每条屏幕边只消费一次，并通过占用空间回调为正文预留空间；仅改变 `layout` MUST NOT 重建文档、会话或历史。
+
+#### Scenario: 注入列表与移除
+- **WHEN** 宿主为两个 View 注入 A/B 与各自 `paneId`
+- **THEN** 每个 View 的文件入口列出同序文件并标记当前项，选择只请求发起栏，移除最后一项不可用
+
+#### Scenario: 左右与上下分屏
+- **WHEN** 左右分屏两栏均传 bottom，或上下分屏上栏传 top、下栏传 bottom 并携带安全区
+- **THEN** 工具栏按栏停靠且内容按占用空间预留，切换 edge 后原文档、历史与草稿保持

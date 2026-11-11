@@ -35,6 +35,12 @@ yarn build
 
 ## 公共 API
 
+### 分栏工具栏与文件入口（painting 0.8.4）
+
+`NoteEditorView` 新增可选的分栏工具栏输入：`files`、`currentFileKey`、`paneId`、`busy`、`onSelectFile`、`onRequestRemove` 与 `layout`。文件按钮位于撤销/重做之后；库只发起带 `paneId` 与 `requestId` 的异步请求，当前项与列表始终由宿主快照决定，移除最后一项被禁止。未传 `files` 时保留旧工具且不显示文件入口。
+
+`layout` 为 `{ edge: 'top' | 'bottom', insets: { top, bottom, left, right }, headerContentInset, bounds? }`。提供后使用 painting 0.8.4 的 `ToolbarShell` 在所属栏边缘渲染固定工具栏，`top`/`bottom` 安全区各消费一次（`headerContentInset` 与 `top` 取最大值，不相加），并通过占用空间回调为正文预留高度；仅切换 `edge` 不重建文档或会话。左右分屏两栏均传 `bottom`，上下分屏上栏传 `top`、下栏传 `bottom`。构建时期使用 `vendor/hamster-note-painting-0.8.4-57a82fb.tgz`，发布依赖待 painting 0.8.4 上架后统一。
+
 ### 3.1.2 宿主引用失效与图片上传
 
 `NoteDocumentProvider` 新增可选 `onPictureUpload?: PictureUploadHandler`。提供回调后，各 View 的图片选择、图片粘贴、外部拖入与失败重试/取消均可用；内部拖动不会重复上传。无回调保留原有行为。有到有的回调替换只影响未来 attempt；移除回调会 abort 并清理全部占位，再次提供无需重挂 Provider。

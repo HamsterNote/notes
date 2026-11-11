@@ -17,6 +17,7 @@ export type {
   ActiveIdentity, AcquireFreeze, ReleaseFreeze, DetachViewResult,
   DraftKind, DraftPhase, EncodingState, FreezeOutcome, HostMetadataSnapshot,
   NoteDocumentController, NoteDocumentProviderProps, NoteEditorViewProps,
+  NoteFileRequest, NoteFileRequestResult, NotePaneInsets, NotePaneToolbarLayout, NoteToolbarFile,
   NotePublicState, NoteStateLifecycle, OnSave, PublicDraftState, RequestSaveResult,
   SaveContext, SavePayload, SavePending, SaveReason, SaveState, SaveTerminal,
   UpdateHostSnapshotResult, ReferenceInvalidationScope, ReferenceInvalidationResult
