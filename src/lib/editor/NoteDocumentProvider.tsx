@@ -104,9 +104,11 @@ export function NoteEditorView({
       const href = anchor?.getAttribute("href")
       if (href?.startsWith("hnmagic:") && isSafeHnnUrl(href)) event.preventDefault()
     }}>
-    <div inert={locked} style={layout ? { boxSizing: "border-box", paddingTop: occupied.top, paddingBottom: occupied.bottom } : undefined}>
-      <EditorContent editor={record?.editor ?? null} />
-      {record?.references && <HostReferenceUI editor={record.editor} installer={record.references} />}
+    <div style={layout ? { boxSizing: "border-box", paddingTop: occupied.top, paddingBottom: occupied.bottom } : undefined}>
+      <div inert={locked}>
+        <EditorContent editor={record?.editor ?? null} />
+        {record?.references && <HostReferenceUI editor={record.editor} installer={record.references} />}
+      </div>
       {/* Reserve toolbar space after every flow control, including upload
           retry/cancel actions, so the floating bar cannot cover those actions. */}
       {record?.pictureUpload && <PictureUploadControls installer={record.pictureUpload} theme={theme} disabled={locked} />}
