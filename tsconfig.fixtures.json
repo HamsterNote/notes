@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "noEmit": true,
+    "incremental": false,
+    "paths": {
+      "@hamster-note/notes": ["./src/lib/index.ts"]
+    }
+  },
+  "include": ["scripts/fixtures/pane-toolbar/**/*.tsx"]
+}

@@ -21,7 +21,7 @@ const files: readonly NoteToolbarFile[] = [
 const log: unknown[] = []
 const record = (entry: unknown) => { log.push(entry); (window as Window & { sessionLog?: unknown[] }).sessionLog = log }
 
-function Fixture() {
+export function Fixture() {
   const [edge, setEdge] = useState<"top" | "bottom">(params.get("edge") === "bottom" ? "bottom" : "top")
   const [items, setItems] = useState<readonly NoteToolbarFile[]>(files)
   const layout: NotePaneToolbarLayout = {
@@ -29,20 +29,20 @@ function Fixture() {
     insets: { top: Number(params.get("top") ?? 0), bottom: Number(params.get("bottom") ?? 0), left: 0, right: 0 },
     headerContentInset: Number(params.get("header") ?? 0)
   }
-  const select = async (request: NoteFileRequest): Promise<NoteFileRequestResult> => {
+  const select = (request: NoteFileRequest): Promise<NoteFileRequestResult> => {
     record({ kind: "select", fileKey: request.fileKey, paneId: request.paneId })
-    return { status: "success" }
+    return Promise.resolve({ status: "success" })
   }
-  const remove = async (request: NoteFileRequest): Promise<NoteFileRequestResult> => {
+  const remove = (request: NoteFileRequest): Promise<NoteFileRequestResult> => {
     record({ kind: "remove", fileKey: request.fileKey, paneId: request.paneId })
     setItems(current => current.filter(file => file.key !== request.fileKey))
-    return { status: "success" }
+    return Promise.resolve({ status: "success" })
   }
   return <NoteDocumentProvider documentId="toolbar-fixture" loadKey={1} initialDocument={initial}
     initialHostSnapshot={{ changeId: 0, value: { title: "", summary: "" } }}
-    onSave={async () => {}} onChange={() => {}}>
+    onSave={() => Promise.resolve()} onChange={() => {}}>
     <button id="toggle-edge" type="button" onClick={() => setEdge(current => current === "top" ? "bottom" : "top")}>切换方向</button>
-    <NoteEditorView viewId="a" paneId="pane-a" files={items} currentFileKey={items[0]?.key}
+    <NoteEditorView viewId="a" paneId="pane-a" files={items} {...(items[0] === undefined ? {} : { currentFileKey: items[0].key })}
       onSelectFile={select} onRequestRemove={remove} layout={layout} />
   </NoteDocumentProvider>
 }
