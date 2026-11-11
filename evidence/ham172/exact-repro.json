@@ -1,0 +1,471 @@
+[
+  {
+    "entry": "current-3.2.0",
+    "browser": "26.6",
+    "afterEnter": [
+      "nihao",
+      ""
+    ],
+    "paragraphs": [
+      "nihao",
+      "你好"
+    ],
+    "document": {
+      "schemaVersion": 1,
+      "data": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "attrs": {
+              "nodeId": "11111111-1111-4111-8111-111111111110"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "nihao"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "attrs": {
+              "nodeId": "2ad7e7b6-fd79-4a8a-897c-1c8d426fc3ae"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "你好"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "events": [
+      {
+        "at": 7170,
+        "type": "compositionstart",
+        "trusted": false,
+        "data": "",
+        "paragraphs": [
+          ""
+        ]
+      },
+      {
+        "at": 7171,
+        "type": "beforeinput",
+        "trusted": false,
+        "data": "nihao",
+        "inputType": "insertCompositionText",
+        "isComposing": true,
+        "paragraphs": [
+          ""
+        ]
+      },
+      {
+        "at": 7172,
+        "type": "compositionupdate",
+        "trusted": false,
+        "data": "nihao",
+        "paragraphs": [
+          "nihao"
+        ]
+      },
+      {
+        "at": 7172,
+        "type": "input",
+        "trusted": false,
+        "data": "nihao",
+        "inputType": "insertCompositionText",
+        "isComposing": true,
+        "paragraphs": [
+          "nihao"
+        ]
+      },
+      {
+        "at": 7223,
+        "type": "compositionend",
+        "trusted": false,
+        "data": "nihao",
+        "paragraphs": [
+          "nihao"
+        ]
+      },
+      {
+        "at": 7229,
+        "type": "keydown",
+        "trusted": true,
+        "isComposing": false,
+        "key": "Enter",
+        "keyCode": 13,
+        "paragraphs": [
+          "nihao"
+        ]
+      },
+      {
+        "at": 7232,
+        "type": "beforeinput",
+        "trusted": true,
+        "data": null,
+        "inputType": "insertParagraph",
+        "isComposing": false,
+        "paragraphs": [
+          "nihao"
+        ]
+      },
+      {
+        "at": 7271,
+        "type": "input",
+        "trusted": true,
+        "data": null,
+        "inputType": "insertParagraph",
+        "isComposing": false,
+        "paragraphs": [
+          "nihao",
+          ""
+        ]
+      },
+      {
+        "at": 7277,
+        "type": "keyup",
+        "trusted": true,
+        "isComposing": false,
+        "key": "Enter",
+        "keyCode": 13,
+        "paragraphs": [
+          "nihao",
+          ""
+        ]
+      },
+      {
+        "at": 7373,
+        "type": "beforeinput",
+        "trusted": false,
+        "data": "你好",
+        "inputType": "insertFromComposition",
+        "isComposing": false,
+        "paragraphs": [
+          "nihao",
+          ""
+        ]
+      },
+      {
+        "at": 7374,
+        "type": "input",
+        "trusted": false,
+        "data": "你好",
+        "inputType": "insertFromComposition",
+        "isComposing": false,
+        "paragraphs": [
+          "nihao",
+          "你好"
+        ]
+      }
+    ],
+    "errors": []
+  },
+  {
+    "entry": "fixed-source",
+    "browser": "26.6",
+    "afterEnter": [
+      "nihao"
+    ],
+    "paragraphs": [
+      "你好"
+    ],
+    "document": {
+      "schemaVersion": 1,
+      "data": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "attrs": {
+              "nodeId": "11111111-1111-4111-8111-111111111110"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "你好"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "events": [
+      {
+        "at": 3985,
+        "type": "compositionstart",
+        "trusted": false,
+        "data": "",
+        "paragraphs": [
+          ""
+        ]
+      },
+      {
+        "at": 3986,
+        "type": "beforeinput",
+        "trusted": false,
+        "data": "nihao",
+        "inputType": "insertCompositionText",
+        "isComposing": true,
+        "paragraphs": [
+          ""
+        ]
+      },
+      {
+        "at": 3986,
+        "type": "compositionupdate",
+        "trusted": false,
+        "data": "nihao",
+        "paragraphs": [
+          "nihao"
+        ]
+      },
+      {
+        "at": 3986,
+        "type": "input",
+        "trusted": false,
+        "data": "nihao",
+        "inputType": "insertCompositionText",
+        "isComposing": true,
+        "paragraphs": [
+          "nihao"
+        ]
+      },
+      {
+        "at": 4037,
+        "type": "compositionend",
+        "trusted": false,
+        "data": "nihao",
+        "paragraphs": [
+          "nihao"
+        ]
+      },
+      {
+        "at": 4040,
+        "type": "keydown",
+        "trusted": true,
+        "isComposing": false,
+        "key": "Enter",
+        "keyCode": 13,
+        "paragraphs": [
+          "nihao"
+        ]
+      },
+      {
+        "at": 4042,
+        "type": "beforeinput",
+        "trusted": true,
+        "data": null,
+        "inputType": "insertParagraph",
+        "isComposing": false,
+        "paragraphs": [
+          "nihao"
+        ]
+      },
+      {
+        "at": 4045,
+        "type": "keyup",
+        "trusted": true,
+        "isComposing": false,
+        "key": "Enter",
+        "keyCode": 13,
+        "paragraphs": [
+          "nihao"
+        ]
+      },
+      {
+        "at": 4121,
+        "type": "beforeinput",
+        "trusted": false,
+        "data": "你好",
+        "inputType": "insertFromComposition",
+        "isComposing": false,
+        "paragraphs": [
+          "nihao"
+        ]
+      },
+      {
+        "at": 4122,
+        "type": "input",
+        "trusted": false,
+        "data": "你好",
+        "inputType": "insertFromComposition",
+        "isComposing": false,
+        "paragraphs": [
+          "你好"
+        ]
+      }
+    ],
+    "errors": []
+  },
+  {
+    "entry": "previous-ham133.3",
+    "browser": "26.6",
+    "afterEnter": [
+      "nihao",
+      ""
+    ],
+    "paragraphs": [
+      "nihao",
+      "你好"
+    ],
+    "document": {
+      "schemaVersion": 1,
+      "data": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "attrs": {
+              "nodeId": "11111111-1111-4111-8111-111111111110"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "nihao"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "attrs": {
+              "nodeId": "5dbe9e2f-6b39-444c-8c03-e07d7f16c0d1"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "你好"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "events": [
+      {
+        "at": 3846,
+        "type": "compositionstart",
+        "trusted": false,
+        "data": "",
+        "paragraphs": [
+          ""
+        ]
+      },
+      {
+        "at": 3847,
+        "type": "beforeinput",
+        "trusted": false,
+        "data": "nihao",
+        "inputType": "insertCompositionText",
+        "isComposing": true,
+        "paragraphs": [
+          ""
+        ]
+      },
+      {
+        "at": 3847,
+        "type": "compositionupdate",
+        "trusted": false,
+        "data": "nihao",
+        "paragraphs": [
+          "nihao"
+        ]
+      },
+      {
+        "at": 3847,
+        "type": "input",
+        "trusted": false,
+        "data": "nihao",
+        "inputType": "insertCompositionText",
+        "isComposing": true,
+        "paragraphs": [
+          "nihao"
+        ]
+      },
+      {
+        "at": 3898,
+        "type": "compositionend",
+        "trusted": false,
+        "data": "nihao",
+        "paragraphs": [
+          "nihao"
+        ]
+      },
+      {
+        "at": 3902,
+        "type": "keydown",
+        "trusted": true,
+        "isComposing": false,
+        "key": "Enter",
+        "keyCode": 13,
+        "paragraphs": [
+          "nihao"
+        ]
+      },
+      {
+        "at": 3903,
+        "type": "beforeinput",
+        "trusted": true,
+        "data": null,
+        "inputType": "insertParagraph",
+        "isComposing": false,
+        "paragraphs": [
+          "nihao"
+        ]
+      },
+      {
+        "at": 3923,
+        "type": "input",
+        "trusted": true,
+        "data": null,
+        "inputType": "insertParagraph",
+        "isComposing": false,
+        "paragraphs": [
+          "nihao",
+          ""
+        ]
+      },
+      {
+        "at": 3926,
+        "type": "keyup",
+        "trusted": true,
+        "isComposing": false,
+        "key": "Enter",
+        "keyCode": 13,
+        "paragraphs": [
+          "nihao",
+          ""
+        ]
+      },
+      {
+        "at": 4052,
+        "type": "beforeinput",
+        "trusted": false,
+        "data": "你好",
+        "inputType": "insertFromComposition",
+        "isComposing": false,
+        "paragraphs": [
+          "nihao",
+          ""
+        ]
+      },
+      {
+        "at": 4052,
+        "type": "input",
+        "trusted": false,
+        "data": "你好",
+        "inputType": "insertFromComposition",
+        "isComposing": false,
+        "paragraphs": [
+          "nihao",
+          "你好"
+        ]
+      }
+    ],
+    "errors": []
+  }
+]

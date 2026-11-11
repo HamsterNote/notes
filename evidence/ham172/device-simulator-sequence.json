@@ -1,0 +1,2204 @@
+{
+  "provenance": "Selected fields only. User comment 01a1c608-52c1-747a-ae5e-f27bcc664566 was normalized by removing one Markdown escape layer and HTML entities before JSON decoding. Simulator is original HAM218 zip sim-formal-events.json. These are observed events, not replay output.",
+  "events": [
+    {
+      "id": 51,
+      "type": "transaction",
+      "paragraphs": [
+        "ni hao"
+      ],
+      "selection": {
+        "node": "#text",
+        "offset": 6,
+        "inside": true,
+        "collapsed": true,
+        "anchor": {
+          "node": "#text",
+          "path": [
+            1,
+            0
+          ],
+          "offset": 6
+        },
+        "focus": {
+          "node": "#text",
+          "path": [
+            1,
+            0
+          ],
+          "offset": 6
+        },
+        "ranges": [
+          {
+            "start": {
+              "node": "#text",
+              "path": [
+                1,
+                0
+              ],
+              "offset": 6
+            },
+            "end": {
+              "node": "#text",
+              "path": [
+                1,
+                0
+              ],
+              "offset": 6
+            }
+          }
+        ]
+      },
+      "source": "device-user-comment",
+      "transactions": [
+        {
+          "selection": {
+            "type": "text",
+            "anchor": 7,
+            "head": 7
+          },
+          "steps": [],
+          "before": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "01490bec-b779-4a2b-93d7-5fa2857413d0"
+                },
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "ni hao"
+                  }
+                ]
+              }
+            ]
+          },
+          "after": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "01490bec-b779-4a2b-93d7-5fa2857413d0"
+                },
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "ni hao"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 52,
+      "type": "beforeinput",
+      "inputType": "deleteCompositionText",
+      "data": null,
+      "paragraphs": [
+        "ni hao"
+      ],
+      "selection": {
+        "node": "#text",
+        "offset": 0,
+        "inside": true,
+        "collapsed": false,
+        "anchor": {
+          "node": "#text",
+          "path": [
+            1,
+            0
+          ],
+          "offset": 0
+        },
+        "focus": {
+          "node": "#text",
+          "path": [
+            1,
+            0
+          ],
+          "offset": 6
+        },
+        "ranges": [
+          {
+            "start": {
+              "node": "#text",
+              "path": [
+                1,
+                0
+              ],
+              "offset": 0
+            },
+            "end": {
+              "node": "#text",
+              "path": [
+                1,
+                0
+              ],
+              "offset": 6
+            }
+          }
+        ]
+      },
+      "targetRanges": [
+        {
+          "start": {
+            "node": "#text",
+            "path": [
+              1,
+              0
+            ],
+            "offset": 0
+          },
+          "end": {
+            "node": "#text",
+            "path": [
+              1,
+              0
+            ],
+            "offset": 6
+          }
+        }
+      ],
+      "source": "device-user-comment"
+    },
+    {
+      "id": 54,
+      "type": "input",
+      "inputType": "deleteCompositionText",
+      "data": null,
+      "paragraphs": [],
+      "selection": {
+        "node": "DIV",
+        "offset": 1,
+        "inside": true,
+        "collapsed": true,
+        "anchor": {
+          "node": "DIV",
+          "path": [],
+          "offset": 1
+        },
+        "focus": {
+          "node": "DIV",
+          "path": [],
+          "offset": 1
+        },
+        "ranges": [
+          {
+            "start": {
+              "node": "DIV",
+              "path": [],
+              "offset": 1
+            },
+            "end": {
+              "node": "DIV",
+              "path": [],
+              "offset": 1
+            }
+          }
+        ]
+      },
+      "targetRanges": [],
+      "source": "device-user-comment",
+      "html": "<span class=\"hn-editor-block-handle ProseMirror-widget\" data-drag-handle=\"\" draggable=\"true\" contenteditable=\"false\" role=\"button\" tabindex=\"-1\" aria-label=\"块操作菜单\" aria-haspopup=\"menu\" aria-expanded=\"false\" aria-hidden=\"true\" style=\"top: 14.8px;\"><span class=\"hn-editor-block-handle-glyph\">⋮⋮</span></span><br>"
+    },
+    {
+      "id": 55,
+      "type": "transaction",
+      "paragraphs": [
+        "ni hao"
+      ],
+      "selection": {
+        "node": "#text",
+        "offset": 6,
+        "inside": true,
+        "collapsed": true,
+        "anchor": {
+          "node": "#text",
+          "path": [
+            1,
+            0
+          ],
+          "offset": 6
+        },
+        "focus": {
+          "node": "#text",
+          "path": [
+            1,
+            0
+          ],
+          "offset": 6
+        },
+        "ranges": [
+          {
+            "start": {
+              "node": "#text",
+              "path": [
+                1,
+                0
+              ],
+              "offset": 6
+            },
+            "end": {
+              "node": "#text",
+              "path": [
+                1,
+                0
+              ],
+              "offset": 6
+            }
+          }
+        ]
+      },
+      "source": "device-user-comment",
+      "transactions": [
+        {
+          "selection": {
+            "type": "text",
+            "anchor": 7,
+            "head": 7
+          },
+          "steps": [],
+          "before": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "01490bec-b779-4a2b-93d7-5fa2857413d0"
+                },
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "ni hao"
+                  }
+                ]
+              }
+            ]
+          },
+          "after": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "01490bec-b779-4a2b-93d7-5fa2857413d0"
+                },
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "ni hao"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 56,
+      "type": "transaction",
+      "paragraphs": [
+        "ni hao"
+      ],
+      "selection": {
+        "node": "#text",
+        "offset": 6,
+        "inside": true,
+        "collapsed": true,
+        "anchor": {
+          "node": "#text",
+          "path": [
+            1,
+            0
+          ],
+          "offset": 6
+        },
+        "focus": {
+          "node": "#text",
+          "path": [
+            1,
+            0
+          ],
+          "offset": 6
+        },
+        "ranges": [
+          {
+            "start": {
+              "node": "#text",
+              "path": [
+                1,
+                0
+              ],
+              "offset": 6
+            },
+            "end": {
+              "node": "#text",
+              "path": [
+                1,
+                0
+              ],
+              "offset": 6
+            }
+          }
+        ]
+      },
+      "source": "device-user-comment",
+      "transactions": [
+        {
+          "selection": {
+            "type": "text",
+            "anchor": 7,
+            "head": 7
+          },
+          "steps": [],
+          "before": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "01490bec-b779-4a2b-93d7-5fa2857413d0"
+                },
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "ni hao"
+                  }
+                ]
+              }
+            ]
+          },
+          "after": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "01490bec-b779-4a2b-93d7-5fa2857413d0"
+                },
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "ni hao"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 57,
+      "type": "transaction",
+      "paragraphs": [
+        "ni hao",
+        ""
+      ],
+      "selection": {
+        "node": "P",
+        "offset": 0,
+        "inside": true,
+        "collapsed": true,
+        "anchor": {
+          "node": "P",
+          "path": [
+            3
+          ],
+          "offset": 0
+        },
+        "focus": {
+          "node": "P",
+          "path": [
+            3
+          ],
+          "offset": 0
+        },
+        "ranges": [
+          {
+            "start": {
+              "node": "P",
+              "path": [
+                3
+              ],
+              "offset": 0
+            },
+            "end": {
+              "node": "P",
+              "path": [
+                3
+              ],
+              "offset": 0
+            }
+          }
+        ]
+      },
+      "source": "device-user-comment",
+      "transactions": [
+        {
+          "selection": {
+            "type": "text",
+            "anchor": 9,
+            "head": 9
+          },
+          "steps": [
+            {
+              "stepType": "replace",
+              "from": 7,
+              "to": 7,
+              "slice": {
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "attrs": {
+                      "nodeId": "01490bec-b779-4a2b-93d7-5fa2857413d0"
+                    }
+                  },
+                  {
+                    "type": "paragraph",
+                    "attrs": {
+                      "nodeId": "01490bec-b779-4a2b-93d7-5fa2857413d0"
+                    }
+                  }
+                ],
+                "openStart": 1,
+                "openEnd": 1
+              },
+              "structure": true
+            }
+          ],
+          "before": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "01490bec-b779-4a2b-93d7-5fa2857413d0"
+                },
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "ni hao"
+                  }
+                ]
+              }
+            ]
+          },
+          "after": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "01490bec-b779-4a2b-93d7-5fa2857413d0"
+                },
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "ni hao"
+                  }
+                ]
+              },
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "01490bec-b779-4a2b-93d7-5fa2857413d0"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "selection": {
+            "type": "text",
+            "anchor": 9,
+            "head": 9
+          },
+          "steps": [
+            {
+              "stepType": "replaceAround",
+              "from": 8,
+              "to": 10,
+              "gapFrom": 9,
+              "gapTo": 9,
+              "insert": 1,
+              "slice": {
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "attrs": {
+                      "nodeId": "36645e42-8d0c-44c7-b89a-03a9c71f6f4d"
+                    }
+                  }
+                ]
+              },
+              "structure": true
+            }
+          ],
+          "before": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "01490bec-b779-4a2b-93d7-5fa2857413d0"
+                },
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "ni hao"
+                  }
+                ]
+              },
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "01490bec-b779-4a2b-93d7-5fa2857413d0"
+                }
+              }
+            ]
+          },
+          "after": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "01490bec-b779-4a2b-93d7-5fa2857413d0"
+                },
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "ni hao"
+                  }
+                ]
+              },
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "36645e42-8d0c-44c7-b89a-03a9c71f6f4d"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 58,
+      "type": "mutation",
+      "paragraphs": [
+        "ni hao",
+        ""
+      ],
+      "selection": {
+        "node": "P",
+        "offset": 0,
+        "inside": true,
+        "collapsed": true,
+        "anchor": {
+          "node": "P",
+          "path": [
+            3
+          ],
+          "offset": 0
+        },
+        "focus": {
+          "node": "P",
+          "path": [
+            3
+          ],
+          "offset": 0
+        },
+        "ranges": [
+          {
+            "start": {
+              "node": "P",
+              "path": [
+                3
+              ],
+              "offset": 0
+            },
+            "end": {
+              "node": "P",
+              "path": [
+                3
+              ],
+              "offset": 0
+            }
+          }
+        ]
+      },
+      "source": "device-user-comment"
+    },
+    {
+      "id": 60,
+      "type": "compositionend",
+      "data": "",
+      "paragraphs": [
+        "ni hao",
+        ""
+      ],
+      "selection": {
+        "node": "P",
+        "offset": 0,
+        "inside": true,
+        "collapsed": true,
+        "anchor": {
+          "node": "P",
+          "path": [
+            3
+          ],
+          "offset": 0
+        },
+        "focus": {
+          "node": "P",
+          "path": [
+            3
+          ],
+          "offset": 0
+        },
+        "ranges": [
+          {
+            "start": {
+              "node": "P",
+              "path": [
+                3
+              ],
+              "offset": 0
+            },
+            "end": {
+              "node": "P",
+              "path": [
+                3
+              ],
+              "offset": 0
+            }
+          }
+        ]
+      },
+      "source": "device-user-comment"
+    },
+    {
+      "id": 63,
+      "type": "keydown",
+      "paragraphs": [
+        "ni hao",
+        ""
+      ],
+      "selection": {
+        "node": "P",
+        "offset": 0,
+        "inside": true,
+        "collapsed": true,
+        "anchor": {
+          "node": "P",
+          "path": [
+            3
+          ],
+          "offset": 0
+        },
+        "focus": {
+          "node": "P",
+          "path": [
+            3
+          ],
+          "offset": 0
+        },
+        "ranges": [
+          {
+            "start": {
+              "node": "P",
+              "path": [
+                3
+              ],
+              "offset": 0
+            },
+            "end": {
+              "node": "P",
+              "path": [
+                3
+              ],
+              "offset": 0
+            }
+          }
+        ]
+      },
+      "source": "device-user-comment"
+    },
+    {
+      "id": 64,
+      "type": "beforeinput",
+      "inputType": "insertText",
+      "data": "你好",
+      "paragraphs": [
+        "ni hao",
+        ""
+      ],
+      "selection": {
+        "node": "P",
+        "offset": 0,
+        "inside": true,
+        "collapsed": true,
+        "anchor": {
+          "node": "P",
+          "path": [
+            3
+          ],
+          "offset": 0
+        },
+        "focus": {
+          "node": "P",
+          "path": [
+            3
+          ],
+          "offset": 0
+        },
+        "ranges": [
+          {
+            "start": {
+              "node": "P",
+              "path": [
+                3
+              ],
+              "offset": 0
+            },
+            "end": {
+              "node": "P",
+              "path": [
+                3
+              ],
+              "offset": 0
+            }
+          }
+        ]
+      },
+      "targetRanges": [
+        {
+          "start": {
+            "node": "P",
+            "path": [
+              3
+            ],
+            "offset": 0
+          },
+          "end": {
+            "node": "P",
+            "path": [
+              3
+            ],
+            "offset": 0
+          }
+        }
+      ],
+      "source": "device-user-comment"
+    },
+    {
+      "id": 66,
+      "type": "input",
+      "inputType": "insertText",
+      "data": "你好",
+      "paragraphs": [
+        "ni hao",
+        "你好"
+      ],
+      "selection": {
+        "node": "#text",
+        "offset": 2,
+        "inside": true,
+        "collapsed": true,
+        "anchor": {
+          "node": "#text",
+          "path": [
+            3,
+            0
+          ],
+          "offset": 2
+        },
+        "focus": {
+          "node": "#text",
+          "path": [
+            3,
+            0
+          ],
+          "offset": 2
+        },
+        "ranges": [
+          {
+            "start": {
+              "node": "#text",
+              "path": [
+                3,
+                0
+              ],
+              "offset": 2
+            },
+            "end": {
+              "node": "#text",
+              "path": [
+                3,
+                0
+              ],
+              "offset": 2
+            }
+          }
+        ]
+      },
+      "targetRanges": [],
+      "source": "device-user-comment"
+    },
+    {
+      "id": 67,
+      "type": "transaction",
+      "paragraphs": [
+        "ni hao",
+        "你好"
+      ],
+      "selection": {
+        "node": "P",
+        "offset": 1,
+        "inside": true,
+        "collapsed": true,
+        "anchor": {
+          "node": "P",
+          "path": [
+            3
+          ],
+          "offset": 1
+        },
+        "focus": {
+          "node": "P",
+          "path": [
+            3
+          ],
+          "offset": 1
+        },
+        "ranges": [
+          {
+            "start": {
+              "node": "P",
+              "path": [
+                3
+              ],
+              "offset": 1
+            },
+            "end": {
+              "node": "P",
+              "path": [
+                3
+              ],
+              "offset": 1
+            }
+          }
+        ]
+      },
+      "source": "device-user-comment",
+      "transactions": [
+        {
+          "selection": {
+            "type": "text",
+            "anchor": 11,
+            "head": 11
+          },
+          "steps": [
+            {
+              "stepType": "replace",
+              "from": 9,
+              "to": 9,
+              "slice": {
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "你好"
+                  }
+                ]
+              }
+            }
+          ],
+          "before": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "01490bec-b779-4a2b-93d7-5fa2857413d0"
+                },
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "ni hao"
+                  }
+                ]
+              },
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "36645e42-8d0c-44c7-b89a-03a9c71f6f4d"
+                }
+              }
+            ]
+          },
+          "after": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "01490bec-b779-4a2b-93d7-5fa2857413d0"
+                },
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "ni hao"
+                  }
+                ]
+              },
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "36645e42-8d0c-44c7-b89a-03a9c71f6f4d"
+                },
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "你好"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 56,
+      "type": "transaction",
+      "paragraphs": [
+        "ni hao"
+      ],
+      "selection": {
+        "node": "#text",
+        "offset": 6,
+        "inside": true,
+        "collapsed": true,
+        "anchor": {
+          "node": "#text",
+          "path": [
+            1,
+            0
+          ],
+          "offset": 6
+        },
+        "focus": {
+          "node": "#text",
+          "path": [
+            1,
+            0
+          ],
+          "offset": 6
+        },
+        "ranges": [
+          {
+            "start": {
+              "node": "#text",
+              "path": [
+                1,
+                0
+              ],
+              "offset": 6
+            },
+            "end": {
+              "node": "#text",
+              "path": [
+                1,
+                0
+              ],
+              "offset": 6
+            }
+          }
+        ]
+      },
+      "source": "simulator-HAM218",
+      "transactions": [
+        {
+          "selection": {
+            "type": "text",
+            "anchor": 7,
+            "head": 7
+          },
+          "steps": [],
+          "before": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "5beed6dc-bc96-497e-9254-1d83f2868ab1"
+                },
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "ni hao"
+                  }
+                ]
+              }
+            ]
+          },
+          "after": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "5beed6dc-bc96-497e-9254-1d83f2868ab1"
+                },
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "ni hao"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 58,
+      "type": "beforeinput",
+      "inputType": "insertCompositionText",
+      "data": "你好",
+      "paragraphs": [
+        "ni hao"
+      ],
+      "selection": {
+        "node": "#text",
+        "offset": 0,
+        "inside": true,
+        "collapsed": false,
+        "anchor": {
+          "node": "#text",
+          "path": [
+            1,
+            0
+          ],
+          "offset": 0
+        },
+        "focus": {
+          "node": "#text",
+          "path": [
+            1,
+            0
+          ],
+          "offset": 6
+        },
+        "ranges": [
+          {
+            "start": {
+              "node": "#text",
+              "path": [
+                1,
+                0
+              ],
+              "offset": 0
+            },
+            "end": {
+              "node": "#text",
+              "path": [
+                1,
+                0
+              ],
+              "offset": 6
+            }
+          }
+        ]
+      },
+      "targetRanges": [
+        {
+          "start": {
+            "node": "#text",
+            "path": [
+              1,
+              0
+            ],
+            "offset": 0
+          },
+          "end": {
+            "node": "#text",
+            "path": [
+              1,
+              0
+            ],
+            "offset": 6
+          }
+        }
+      ],
+      "source": "simulator-HAM218"
+    },
+    {
+      "id": 60,
+      "type": "input",
+      "inputType": "insertCompositionText",
+      "data": "你好",
+      "paragraphs": [
+        "你好"
+      ],
+      "selection": {
+        "node": "#text",
+        "offset": 0,
+        "inside": true,
+        "collapsed": false,
+        "anchor": {
+          "node": "#text",
+          "path": [
+            1,
+            0
+          ],
+          "offset": 0
+        },
+        "focus": {
+          "node": "#text",
+          "path": [
+            1,
+            0
+          ],
+          "offset": 2
+        },
+        "ranges": [
+          {
+            "start": {
+              "node": "#text",
+              "path": [
+                1,
+                0
+              ],
+              "offset": 0
+            },
+            "end": {
+              "node": "#text",
+              "path": [
+                1,
+                0
+              ],
+              "offset": 2
+            }
+          }
+        ]
+      },
+      "targetRanges": [],
+      "source": "simulator-HAM218"
+    },
+    {
+      "id": 61,
+      "type": "transaction",
+      "paragraphs": [
+        "你好"
+      ],
+      "selection": {
+        "node": "#text",
+        "offset": 0,
+        "inside": true,
+        "collapsed": false,
+        "anchor": {
+          "node": "#text",
+          "path": [
+            1,
+            0
+          ],
+          "offset": 0
+        },
+        "focus": {
+          "node": "#text",
+          "path": [
+            1,
+            0
+          ],
+          "offset": 2
+        },
+        "ranges": [
+          {
+            "start": {
+              "node": "#text",
+              "path": [
+                1,
+                0
+              ],
+              "offset": 0
+            },
+            "end": {
+              "node": "#text",
+              "path": [
+                1,
+                0
+              ],
+              "offset": 2
+            }
+          }
+        ]
+      },
+      "source": "simulator-HAM218",
+      "transactions": [
+        {
+          "selection": {
+            "type": "text",
+            "anchor": 1,
+            "head": 3
+          },
+          "steps": [
+            {
+              "stepType": "replace",
+              "from": 1,
+              "to": 7,
+              "slice": {
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "你好"
+                  }
+                ]
+              }
+            }
+          ],
+          "before": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "5beed6dc-bc96-497e-9254-1d83f2868ab1"
+                },
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "ni hao"
+                  }
+                ]
+              }
+            ]
+          },
+          "after": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "5beed6dc-bc96-497e-9254-1d83f2868ab1"
+                },
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "你好"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 64,
+      "type": "beforeinput",
+      "inputType": "deleteCompositionText",
+      "data": null,
+      "paragraphs": [
+        "你好"
+      ],
+      "selection": {
+        "node": "#text",
+        "offset": 0,
+        "inside": true,
+        "collapsed": false,
+        "anchor": {
+          "node": "#text",
+          "path": [
+            1,
+            0
+          ],
+          "offset": 0
+        },
+        "focus": {
+          "node": "#text",
+          "path": [
+            1,
+            0
+          ],
+          "offset": 2
+        },
+        "ranges": [
+          {
+            "start": {
+              "node": "#text",
+              "path": [
+                1,
+                0
+              ],
+              "offset": 0
+            },
+            "end": {
+              "node": "#text",
+              "path": [
+                1,
+                0
+              ],
+              "offset": 2
+            }
+          }
+        ]
+      },
+      "targetRanges": [
+        {
+          "start": {
+            "node": "#text",
+            "path": [
+              1,
+              0
+            ],
+            "offset": 0
+          },
+          "end": {
+            "node": "#text",
+            "path": [
+              1,
+              0
+            ],
+            "offset": 2
+          }
+        }
+      ],
+      "source": "simulator-HAM218"
+    },
+    {
+      "id": 66,
+      "type": "input",
+      "inputType": "deleteCompositionText",
+      "data": null,
+      "paragraphs": [],
+      "selection": {
+        "node": "DIV",
+        "offset": 1,
+        "inside": true,
+        "collapsed": true,
+        "anchor": {
+          "node": "DIV",
+          "path": [],
+          "offset": 1
+        },
+        "focus": {
+          "node": "DIV",
+          "path": [],
+          "offset": 1
+        },
+        "ranges": [
+          {
+            "start": {
+              "node": "DIV",
+              "path": [],
+              "offset": 1
+            },
+            "end": {
+              "node": "DIV",
+              "path": [],
+              "offset": 1
+            }
+          }
+        ]
+      },
+      "targetRanges": [],
+      "source": "simulator-HAM218",
+      "html": "<span class=\"hn-editor-block-handle ProseMirror-widget\" data-drag-handle=\"\" draggable=\"true\" contenteditable=\"false\" role=\"button\" tabindex=\"-1\" aria-label=\"块操作菜单\" aria-haspopup=\"menu\" aria-expanded=\"false\" aria-hidden=\"true\" style=\"top: 14.8px;\"><span class=\"hn-editor-block-handle-glyph\">⋮⋮</span></span><br>"
+    },
+    {
+      "id": 67,
+      "type": "transaction",
+      "paragraphs": [
+        "你好"
+      ],
+      "selection": {
+        "node": "#text",
+        "offset": 0,
+        "inside": true,
+        "collapsed": false,
+        "anchor": {
+          "node": "#text",
+          "path": [
+            1,
+            0
+          ],
+          "offset": 0
+        },
+        "focus": {
+          "node": "#text",
+          "path": [
+            1,
+            0
+          ],
+          "offset": 2
+        },
+        "ranges": [
+          {
+            "start": {
+              "node": "#text",
+              "path": [
+                1,
+                0
+              ],
+              "offset": 0
+            },
+            "end": {
+              "node": "#text",
+              "path": [
+                1,
+                0
+              ],
+              "offset": 2
+            }
+          }
+        ]
+      },
+      "source": "simulator-HAM218",
+      "transactions": [
+        {
+          "selection": {
+            "type": "text",
+            "anchor": 1,
+            "head": 3
+          },
+          "steps": [],
+          "before": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "5beed6dc-bc96-497e-9254-1d83f2868ab1"
+                },
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "你好"
+                  }
+                ]
+              }
+            ]
+          },
+          "after": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "5beed6dc-bc96-497e-9254-1d83f2868ab1"
+                },
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "你好"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 68,
+      "type": "transaction",
+      "paragraphs": [
+        "你好"
+      ],
+      "selection": {
+        "node": "#text",
+        "offset": 0,
+        "inside": true,
+        "collapsed": false,
+        "anchor": {
+          "node": "#text",
+          "path": [
+            1,
+            0
+          ],
+          "offset": 0
+        },
+        "focus": {
+          "node": "#text",
+          "path": [
+            1,
+            0
+          ],
+          "offset": 2
+        },
+        "ranges": [
+          {
+            "start": {
+              "node": "#text",
+              "path": [
+                1,
+                0
+              ],
+              "offset": 0
+            },
+            "end": {
+              "node": "#text",
+              "path": [
+                1,
+                0
+              ],
+              "offset": 2
+            }
+          }
+        ]
+      },
+      "source": "simulator-HAM218",
+      "transactions": [
+        {
+          "selection": {
+            "type": "text",
+            "anchor": 1,
+            "head": 3
+          },
+          "steps": [],
+          "before": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "5beed6dc-bc96-497e-9254-1d83f2868ab1"
+                },
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "你好"
+                  }
+                ]
+              }
+            ]
+          },
+          "after": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "5beed6dc-bc96-497e-9254-1d83f2868ab1"
+                },
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "你好"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 69,
+      "type": "transaction",
+      "paragraphs": [
+        "",
+        ""
+      ],
+      "selection": {
+        "node": "P",
+        "offset": 0,
+        "inside": true,
+        "collapsed": true,
+        "anchor": {
+          "node": "P",
+          "path": [
+            3
+          ],
+          "offset": 0
+        },
+        "focus": {
+          "node": "P",
+          "path": [
+            3
+          ],
+          "offset": 0
+        },
+        "ranges": [
+          {
+            "start": {
+              "node": "P",
+              "path": [
+                3
+              ],
+              "offset": 0
+            },
+            "end": {
+              "node": "P",
+              "path": [
+                3
+              ],
+              "offset": 0
+            }
+          }
+        ]
+      },
+      "source": "simulator-HAM218",
+      "transactions": [
+        {
+          "selection": {
+            "type": "text",
+            "anchor": 3,
+            "head": 3
+          },
+          "steps": [
+            {
+              "stepType": "replace",
+              "from": 1,
+              "to": 3
+            },
+            {
+              "stepType": "replace",
+              "from": 1,
+              "to": 1,
+              "slice": {
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "attrs": {
+                      "nodeId": "5beed6dc-bc96-497e-9254-1d83f2868ab1"
+                    }
+                  },
+                  {
+                    "type": "paragraph",
+                    "attrs": {
+                      "nodeId": "5beed6dc-bc96-497e-9254-1d83f2868ab1"
+                    }
+                  }
+                ],
+                "openStart": 1,
+                "openEnd": 1
+              },
+              "structure": true
+            }
+          ],
+          "before": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "5beed6dc-bc96-497e-9254-1d83f2868ab1"
+                },
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "你好"
+                  }
+                ]
+              }
+            ]
+          },
+          "after": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "5beed6dc-bc96-497e-9254-1d83f2868ab1"
+                }
+              },
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "5beed6dc-bc96-497e-9254-1d83f2868ab1"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "selection": {
+            "type": "text",
+            "anchor": 3,
+            "head": 3
+          },
+          "steps": [
+            {
+              "stepType": "replaceAround",
+              "from": 2,
+              "to": 4,
+              "gapFrom": 3,
+              "gapTo": 3,
+              "insert": 1,
+              "slice": {
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "attrs": {
+                      "nodeId": "bc076503-aef2-49b0-9946-b29314600a7a"
+                    }
+                  }
+                ]
+              },
+              "structure": true
+            }
+          ],
+          "before": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "5beed6dc-bc96-497e-9254-1d83f2868ab1"
+                }
+              },
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "5beed6dc-bc96-497e-9254-1d83f2868ab1"
+                }
+              }
+            ]
+          },
+          "after": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "5beed6dc-bc96-497e-9254-1d83f2868ab1"
+                }
+              },
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "bc076503-aef2-49b0-9946-b29314600a7a"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "selection": {
+            "type": "text",
+            "anchor": 3,
+            "head": 3
+          },
+          "steps": [
+            {
+              "stepType": "replaceAround",
+              "from": 2,
+              "to": 4,
+              "gapFrom": 3,
+              "gapTo": 3,
+              "insert": 1,
+              "slice": {
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "attrs": {
+                      "nodeId": null
+                    }
+                  }
+                ]
+              },
+              "structure": true
+            }
+          ],
+          "before": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "5beed6dc-bc96-497e-9254-1d83f2868ab1"
+                }
+              },
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "bc076503-aef2-49b0-9946-b29314600a7a"
+                }
+              }
+            ]
+          },
+          "after": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "5beed6dc-bc96-497e-9254-1d83f2868ab1"
+                }
+              },
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": null
+                }
+              }
+            ]
+          }
+        },
+        {
+          "selection": {
+            "type": "text",
+            "anchor": 3,
+            "head": 3
+          },
+          "steps": [
+            {
+              "stepType": "replaceAround",
+              "from": 2,
+              "to": 4,
+              "gapFrom": 3,
+              "gapTo": 3,
+              "insert": 1,
+              "slice": {
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "attrs": {
+                      "nodeId": "341bddef-ccad-42f8-bf91-33971616f1b4"
+                    }
+                  }
+                ]
+              },
+              "structure": true
+            }
+          ],
+          "before": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "5beed6dc-bc96-497e-9254-1d83f2868ab1"
+                }
+              },
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": null
+                }
+              }
+            ]
+          },
+          "after": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "5beed6dc-bc96-497e-9254-1d83f2868ab1"
+                }
+              },
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "341bddef-ccad-42f8-bf91-33971616f1b4"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 72,
+      "type": "beforeinput",
+      "inputType": "insertFromComposition",
+      "data": "你好",
+      "paragraphs": [
+        "",
+        ""
+      ],
+      "selection": {
+        "node": "P",
+        "offset": 0,
+        "inside": true,
+        "collapsed": true,
+        "anchor": {
+          "node": "P",
+          "path": [
+            3
+          ],
+          "offset": 0
+        },
+        "focus": {
+          "node": "P",
+          "path": [
+            3
+          ],
+          "offset": 0
+        },
+        "ranges": [
+          {
+            "start": {
+              "node": "P",
+              "path": [
+                3
+              ],
+              "offset": 0
+            },
+            "end": {
+              "node": "P",
+              "path": [
+                3
+              ],
+              "offset": 0
+            }
+          }
+        ]
+      },
+      "targetRanges": [
+        {
+          "start": {
+            "node": "P",
+            "path": [
+              3
+            ],
+            "offset": 0
+          },
+          "end": {
+            "node": "P",
+            "path": [
+              3
+            ],
+            "offset": 0
+          }
+        }
+      ],
+      "source": "simulator-HAM218"
+    },
+    {
+      "id": 74,
+      "type": "input",
+      "inputType": "insertFromComposition",
+      "data": "你好",
+      "paragraphs": [
+        "",
+        "你好"
+      ],
+      "selection": {
+        "node": "#text",
+        "offset": 2,
+        "inside": true,
+        "collapsed": true,
+        "anchor": {
+          "node": "#text",
+          "path": [
+            3,
+            0
+          ],
+          "offset": 2
+        },
+        "focus": {
+          "node": "#text",
+          "path": [
+            3,
+            0
+          ],
+          "offset": 2
+        },
+        "ranges": [
+          {
+            "start": {
+              "node": "#text",
+              "path": [
+                3,
+                0
+              ],
+              "offset": 2
+            },
+            "end": {
+              "node": "#text",
+              "path": [
+                3,
+                0
+              ],
+              "offset": 2
+            }
+          }
+        ]
+      },
+      "targetRanges": [],
+      "source": "simulator-HAM218"
+    },
+    {
+      "id": 75,
+      "type": "transaction",
+      "paragraphs": [
+        "",
+        "你好"
+      ],
+      "selection": {
+        "node": "#text",
+        "offset": 2,
+        "inside": true,
+        "collapsed": true,
+        "anchor": {
+          "node": "#text",
+          "path": [
+            3,
+            0
+          ],
+          "offset": 2
+        },
+        "focus": {
+          "node": "#text",
+          "path": [
+            3,
+            0
+          ],
+          "offset": 2
+        },
+        "ranges": [
+          {
+            "start": {
+              "node": "#text",
+              "path": [
+                3,
+                0
+              ],
+              "offset": 2
+            },
+            "end": {
+              "node": "#text",
+              "path": [
+                3,
+                0
+              ],
+              "offset": 2
+            }
+          }
+        ]
+      },
+      "source": "simulator-HAM218",
+      "transactions": [
+        {
+          "selection": {
+            "type": "text",
+            "anchor": 5,
+            "head": 5
+          },
+          "steps": [
+            {
+              "stepType": "replace",
+              "from": 3,
+              "to": 3,
+              "slice": {
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "你好"
+                  }
+                ]
+              }
+            }
+          ],
+          "before": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "5beed6dc-bc96-497e-9254-1d83f2868ab1"
+                }
+              },
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "341bddef-ccad-42f8-bf91-33971616f1b4"
+                }
+              }
+            ]
+          },
+          "after": {
+            "type": "doc",
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "5beed6dc-bc96-497e-9254-1d83f2868ab1"
+                }
+              },
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "341bddef-ccad-42f8-bf91-33971616f1b4"
+                },
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "你好"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 78,
+      "type": "compositionend",
+      "inputType": null,
+      "data": "你好",
+      "paragraphs": [
+        "",
+        "你好"
+      ],
+      "selection": {
+        "node": "#text",
+        "offset": 2,
+        "inside": true,
+        "collapsed": true,
+        "anchor": {
+          "node": "#text",
+          "path": [
+            3,
+            0
+          ],
+          "offset": 2
+        },
+        "focus": {
+          "node": "#text",
+          "path": [
+            3,
+            0
+          ],
+          "offset": 2
+        },
+        "ranges": [
+          {
+            "start": {
+              "node": "#text",
+              "path": [
+                3,
+                0
+              ],
+              "offset": 2
+            },
+            "end": {
+              "node": "#text",
+              "path": [
+                3,
+                0
+              ],
+              "offset": 2
+            }
+          }
+        ]
+      },
+      "source": "simulator-HAM218"
+    }
+  ]
+}

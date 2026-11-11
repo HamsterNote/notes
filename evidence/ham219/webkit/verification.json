@@ -1,0 +1,11 @@
+{
+  "url": "http://192.168.0.145:6218/__ime-capture",
+  "source": "Linux WebKit, synthetic composition events + keyboard.insertText; not a phone IME",
+  "events": 26,
+  "bytes": 55455,
+  "download": "ham172-ime-events.json",
+  "httpClipboardExact": true,
+  "manualSelectionExact": true,
+  "stoppedSnapshotStable": true,
+  "errors": []
+}

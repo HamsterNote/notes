@@ -1,0 +1,474 @@
+{
+  "driver": "Synthetic replay of observed device/simulator model and DOM states; NOT physical IME acceptance",
+  "count": 18,
+  "results": [
+    {
+      "build": "before",
+      "mode": "empty-end-insertText",
+      "browser": "26.4",
+      "before": [
+        "ni hao"
+      ],
+      "modelSelection": {
+        "type": "text",
+        "anchor": 7,
+        "head": 7
+      },
+      "afterDelete": [
+        "ni hao",
+        ""
+      ],
+      "after": [
+        "ni hao",
+        "你好"
+      ],
+      "saved": [
+        "ni hao",
+        "你好"
+      ],
+      "peerAndSaveMatch": true,
+      "undoRedo": null,
+      "ordinaryEnterAfterCommit": true
+    },
+    {
+      "build": "before",
+      "mode": "empty-end-before-flush",
+      "browser": "26.4",
+      "before": [
+        "ni hao"
+      ],
+      "modelSelection": {
+        "type": "text",
+        "anchor": 7,
+        "head": 7
+      },
+      "afterDelete": [
+        "ni hao",
+        ""
+      ],
+      "after": [
+        "ni hao",
+        "你好"
+      ],
+      "saved": [
+        "ni hao",
+        "你好"
+      ],
+      "peerAndSaveMatch": true,
+      "undoRedo": null,
+      "ordinaryEnterAfterCommit": true
+    },
+    {
+      "build": "before",
+      "mode": "insertFromComposition",
+      "browser": "26.4",
+      "before": [
+        "ni hao"
+      ],
+      "modelSelection": {
+        "type": "text",
+        "anchor": 7,
+        "head": 7
+      },
+      "afterDelete": [
+        "ni hao",
+        ""
+      ],
+      "after": [
+        "ni hao",
+        "你好"
+      ],
+      "saved": [
+        "ni hao",
+        "你好"
+      ],
+      "peerAndSaveMatch": true,
+      "undoRedo": null,
+      "ordinaryEnterAfterCommit": true
+    },
+    {
+      "build": "before",
+      "mode": "simulator-selected-candidate",
+      "browser": "26.4",
+      "before": [
+        "你好"
+      ],
+      "modelSelection": {
+        "type": "text",
+        "anchor": 1,
+        "head": 3
+      },
+      "afterDelete": [
+        "",
+        ""
+      ],
+      "after": [
+        "",
+        "你好"
+      ],
+      "saved": [
+        "",
+        "你好"
+      ],
+      "peerAndSaveMatch": true,
+      "undoRedo": null,
+      "ordinaryEnterAfterCommit": true
+    },
+    {
+      "build": "before",
+      "mode": "converted-collapsed",
+      "browser": "26.4",
+      "before": [
+        "你好"
+      ],
+      "modelSelection": {
+        "type": "text",
+        "anchor": 3,
+        "head": 3
+      },
+      "afterDelete": [
+        "你好",
+        ""
+      ],
+      "after": [
+        "你好",
+        "你好"
+      ],
+      "saved": [
+        "你好",
+        "你好"
+      ],
+      "peerAndSaveMatch": true,
+      "undoRedo": null,
+      "ordinaryEnterAfterCommit": true
+    },
+    {
+      "build": "before",
+      "mode": "raw-pinyin",
+      "browser": "26.4",
+      "before": [
+        "ni hao"
+      ],
+      "modelSelection": {
+        "type": "text",
+        "anchor": 7,
+        "head": 7
+      },
+      "afterDelete": [
+        "ni hao",
+        ""
+      ],
+      "after": [
+        "ni hao",
+        "nihao"
+      ],
+      "saved": [
+        "ni hao",
+        "nihao"
+      ],
+      "peerAndSaveMatch": true,
+      "undoRedo": null,
+      "ordinaryEnterAfterCommit": true
+    },
+    {
+      "build": "fixed",
+      "mode": "empty-end-insertText",
+      "browser": "26.4",
+      "before": [
+        "ni hao"
+      ],
+      "modelSelection": {
+        "type": "text",
+        "anchor": 7,
+        "head": 7
+      },
+      "afterDelete": [
+        ""
+      ],
+      "after": [
+        "你好"
+      ],
+      "saved": [
+        "你好"
+      ],
+      "peerAndSaveMatch": true,
+      "undoRedo": true,
+      "ordinaryEnterAfterCommit": true
+    },
+    {
+      "build": "fixed",
+      "mode": "empty-end-before-flush",
+      "browser": "26.4",
+      "before": [
+        "ni hao"
+      ],
+      "modelSelection": {
+        "type": "text",
+        "anchor": 7,
+        "head": 7
+      },
+      "afterDelete": [
+        ""
+      ],
+      "after": [
+        "你好"
+      ],
+      "saved": [
+        "你好"
+      ],
+      "peerAndSaveMatch": true,
+      "undoRedo": true,
+      "ordinaryEnterAfterCommit": true
+    },
+    {
+      "build": "fixed",
+      "mode": "insertFromComposition",
+      "browser": "26.4",
+      "before": [
+        "ni hao"
+      ],
+      "modelSelection": {
+        "type": "text",
+        "anchor": 7,
+        "head": 7
+      },
+      "afterDelete": [
+        ""
+      ],
+      "after": [
+        "你好"
+      ],
+      "saved": [
+        "你好"
+      ],
+      "peerAndSaveMatch": true,
+      "undoRedo": true,
+      "ordinaryEnterAfterCommit": true
+    },
+    {
+      "build": "fixed",
+      "mode": "simulator-selected-candidate",
+      "browser": "26.4",
+      "before": [
+        "你好"
+      ],
+      "modelSelection": {
+        "type": "text",
+        "anchor": 1,
+        "head": 3
+      },
+      "afterDelete": [
+        ""
+      ],
+      "after": [
+        "你好"
+      ],
+      "saved": [
+        "你好"
+      ],
+      "peerAndSaveMatch": true,
+      "undoRedo": true,
+      "ordinaryEnterAfterCommit": true
+    },
+    {
+      "build": "fixed",
+      "mode": "converted-collapsed",
+      "browser": "26.4",
+      "before": [
+        "你好"
+      ],
+      "modelSelection": {
+        "type": "text",
+        "anchor": 3,
+        "head": 3
+      },
+      "afterDelete": [
+        ""
+      ],
+      "after": [
+        "你好"
+      ],
+      "saved": [
+        "你好"
+      ],
+      "peerAndSaveMatch": true,
+      "undoRedo": true,
+      "ordinaryEnterAfterCommit": true
+    },
+    {
+      "build": "fixed",
+      "mode": "raw-pinyin",
+      "browser": "26.4",
+      "before": [
+        "ni hao"
+      ],
+      "modelSelection": {
+        "type": "text",
+        "anchor": 7,
+        "head": 7
+      },
+      "afterDelete": [
+        ""
+      ],
+      "after": [
+        "nihao"
+      ],
+      "saved": [
+        "nihao"
+      ],
+      "peerAndSaveMatch": true,
+      "undoRedo": true,
+      "ordinaryEnterAfterCommit": true
+    },
+    {
+      "build": "built",
+      "mode": "empty-end-insertText",
+      "browser": "26.4",
+      "before": [
+        "ni hao"
+      ],
+      "modelSelection": {
+        "type": "text",
+        "anchor": 7,
+        "head": 7
+      },
+      "afterDelete": [
+        ""
+      ],
+      "after": [
+        "你好"
+      ],
+      "saved": [
+        "你好"
+      ],
+      "peerAndSaveMatch": true,
+      "undoRedo": true,
+      "ordinaryEnterAfterCommit": true
+    },
+    {
+      "build": "built",
+      "mode": "empty-end-before-flush",
+      "browser": "26.4",
+      "before": [
+        "ni hao"
+      ],
+      "modelSelection": {
+        "type": "text",
+        "anchor": 7,
+        "head": 7
+      },
+      "afterDelete": [
+        ""
+      ],
+      "after": [
+        "你好"
+      ],
+      "saved": [
+        "你好"
+      ],
+      "peerAndSaveMatch": true,
+      "undoRedo": true,
+      "ordinaryEnterAfterCommit": true
+    },
+    {
+      "build": "built",
+      "mode": "insertFromComposition",
+      "browser": "26.4",
+      "before": [
+        "ni hao"
+      ],
+      "modelSelection": {
+        "type": "text",
+        "anchor": 7,
+        "head": 7
+      },
+      "afterDelete": [
+        ""
+      ],
+      "after": [
+        "你好"
+      ],
+      "saved": [
+        "你好"
+      ],
+      "peerAndSaveMatch": true,
+      "undoRedo": true,
+      "ordinaryEnterAfterCommit": true
+    },
+    {
+      "build": "built",
+      "mode": "simulator-selected-candidate",
+      "browser": "26.4",
+      "before": [
+        "你好"
+      ],
+      "modelSelection": {
+        "type": "text",
+        "anchor": 1,
+        "head": 3
+      },
+      "afterDelete": [
+        ""
+      ],
+      "after": [
+        "你好"
+      ],
+      "saved": [
+        "你好"
+      ],
+      "peerAndSaveMatch": true,
+      "undoRedo": true,
+      "ordinaryEnterAfterCommit": true
+    },
+    {
+      "build": "built",
+      "mode": "converted-collapsed",
+      "browser": "26.4",
+      "before": [
+        "你好"
+      ],
+      "modelSelection": {
+        "type": "text",
+        "anchor": 3,
+        "head": 3
+      },
+      "afterDelete": [
+        ""
+      ],
+      "after": [
+        "你好"
+      ],
+      "saved": [
+        "你好"
+      ],
+      "peerAndSaveMatch": true,
+      "undoRedo": true,
+      "ordinaryEnterAfterCommit": true
+    },
+    {
+      "build": "built",
+      "mode": "raw-pinyin",
+      "browser": "26.4",
+      "before": [
+        "ni hao"
+      ],
+      "modelSelection": {
+        "type": "text",
+        "anchor": 7,
+        "head": 7
+      },
+      "afterDelete": [
+        ""
+      ],
+      "after": [
+        "nihao"
+      ],
+      "saved": [
+        "nihao"
+      ],
+      "peerAndSaveMatch": true,
+      "undoRedo": true,
+      "ordinaryEnterAfterCommit": true
+    }
+  ]
+}
