@@ -61,7 +61,8 @@
     "test": "vitest run",
     "verify:tiptap-deps": "node ./scripts/verify-tiptap-deps.mjs",
     "verify:legacy-api": "node ./scripts/scan-legacy-public-api.mjs",
-    "verify:phase1-scope": "node ./scripts/verify-phase1-scope.mjs"
+    "verify:phase1-scope": "node ./scripts/verify-phase1-scope.mjs",
+    "check:pane-toolbar": "node scripts/check-pane-toolbar-browser.mjs"
   },
   "peerDependencies": {
     "react": "^19.0.0",
@@ -95,17 +96,18 @@
     "unified": "^11.0.5",
     "vite": "^7.0.4",
     "vite-plugin-dts": "^4.5.4",
-    "vitest": "^4.0.10"
+    "vitest": "^4.0.10",
+    "@hamster-note/painting-toolbar": "file:vendor/hamster-note-painting-0.8.4-57a82fb.tgz"
   },
   "dependencies": {
     "@hamster-note/components": "^0.2.1-beta.2",
-    "@hamster-note/painting": "0.2.0",
     "@tiptap/core": "3.31.3",
     "@tiptap/extension-list": "3.31.3",
     "@tiptap/extension-table": "3.31.3",
     "@tiptap/pm": "3.31.3",
     "@tiptap/react": "3.31.3",
     "@tiptap/starter-kit": "3.31.3",
-    "katex": "^0.17.0"
+    "katex": "^0.17.0",
+    "@hamster-note/painting": "0.2.0"
   }
 }

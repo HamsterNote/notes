@@ -4,6 +4,7 @@ import { DocumentSession, type DocumentView } from "./documentSession"
 import { HnnDataDrawer } from "./HnnDataDrawer"
 import { HostReferenceUI } from "./HostReferenceUI"
 import { PictureUploadControls } from "./NoteEditor"
+import { ViewToolbar } from "./ViewToolbar"
 import type { NoteDocumentProviderProps, NoteEditorViewProps, NotePublicState } from "./documentTypes"
 import { isSafeHnnUrl } from "../hnn/urlPolicy"
 
@@ -63,10 +64,21 @@ function useDocumentState(session: DocumentSession | null): NotePublicState | nu
   return state
 }
 
-export function NoteEditorView({ viewId, theme = "light" }: NoteEditorViewProps): ReactElement {
+export function NoteEditorView({
+  viewId,
+  theme = "light",
+  files,
+  currentFileKey,
+  paneId,
+  busy,
+  onSelectFile,
+  onRequestRemove,
+  layout
+}: NoteEditorViewProps): ReactElement {
   const session = useContext(SessionContext)
   const state = useDocumentState(session)
   const [record, setRecord] = useState<DocumentView | null>(null)
+  const [occupied, setOccupied] = useState({ top: 0, bottom: 0 })
   useLayoutEffect(() => {
     if (!session || session.getState().lifecycle !== "ready") { setRecord(null); return }
     const attached = session.attachView(viewId)
@@ -92,21 +104,32 @@ export function NoteEditorView({ viewId, theme = "light" }: NoteEditorViewProps)
       const href = anchor?.getAttribute("href")
       if (href?.startsWith("hnmagic:") && isSafeHnnUrl(href)) event.preventDefault()
     }}>
-    <div inert={locked}>
+    <div inert={locked} style={layout ? { boxSizing: "border-box", paddingTop: occupied.top, paddingBottom: occupied.bottom } : undefined}>
       <EditorContent editor={record?.editor ?? null} />
       {record?.references && <HostReferenceUI editor={record.editor} installer={record.references} />}
     </div>
     {record && session && <>
       {record.pictureUpload && <PictureUploadControls installer={record.pictureUpload} theme={theme} disabled={locked} />}
       <HnnDataDrawer editor={record.editor} theme={theme} coordinator={bridge} inputFrozen={state?.inputFrozen ?? false} />
-      <div className="hn-editor-controls">
-        <button type="button" aria-label="撤销" title="撤销" disabled={locked} onClick={() => session.history(viewId, false)}>↶</button>
-        <button type="button" aria-label="重做" title="重做" disabled={locked} onClick={() => session.history(viewId, true)}>↷</button>
-        <button type="button" disabled={state?.lifecycle !== "ready"} onClick={() => {
+      <ViewToolbar
+        files={files}
+        currentFileKey={currentFileKey}
+        paneId={paneId}
+        busy={busy}
+        onSelectFile={onSelectFile}
+        onRequestRemove={onRequestRemove}
+        layout={layout}
+        locked={locked}
+        saveDisabled={state?.lifecycle !== "ready"}
+        status={state ? ({ clean: "已保存", dirty: "待保存", pending: "保存中", blocked: "暂不能保存", failure: "保存失败" })[state.save] : ""}
+        onUndo={() => session.history(viewId, false)}
+        onRedo={() => session.history(viewId, true)}
+        onSave={() => {
           session.controller.requestSave({ reason: "editor-button", expectedSessionId: session.identity.sessionId })
-        }}>保存</button>
-        <span role="status">{state && ({ clean: "已保存", dirty: "待保存", pending: "保存中", blocked: "暂不能保存", failure: "保存失败" })[state.save]}</span>
-      </div>
+        }}
+        onOccupiedSpaceChange={(space) => setOccupied((current) =>
+          current.top === space.top && current.bottom === space.bottom ? current : space)}
+      />
     </>}
   </div>
 }

@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `NoteEditorView` 支持宿主注入有序文件列表、当前项、栏身份、忙碌状态与异步选择/移除回调；文件按钮位于撤销/重做之后，未注入列表时保留旧工具且不显示入口。
+- `NoteEditorView` 支持可选分栏布局：复用 painting 0.8.4 `ToolbarShell`/`ToolbarFileMenu`，按栏消费 top/bottom 安全区并为正文预留占用空间；左右分屏两栏在下，上下分屏上栏在上、下栏在下。
+
+### Upgrade Notes
+- 当前构建使用 `vendor/hamster-note-painting-0.8.4-57a82fb.tgz`；painting 0.8.4 尚未发布 npm，发布后改为公开依赖。画板数据仍使用原 painting 0.2.0 运行时，文件入口来自 0.8.4 的轻量 `/toolbar` 子路径，未引入绘图运行时。
+
 ## [3.1.2] - 2026-10-18
 
 ### Added
