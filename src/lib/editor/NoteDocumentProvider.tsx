@@ -107,9 +107,11 @@ export function NoteEditorView({
     <div inert={locked} style={layout ? { boxSizing: "border-box", paddingTop: occupied.top, paddingBottom: occupied.bottom } : undefined}>
       <EditorContent editor={record?.editor ?? null} />
       {record?.references && <HostReferenceUI editor={record.editor} installer={record.references} />}
+      {/* Reserve toolbar space after every flow control, including upload
+          retry/cancel actions, so the floating bar cannot cover those actions. */}
+      {record?.pictureUpload && <PictureUploadControls installer={record.pictureUpload} theme={theme} disabled={locked} />}
     </div>
     {record && session && <>
-      {record.pictureUpload && <PictureUploadControls installer={record.pictureUpload} theme={theme} disabled={locked} />}
       <HnnDataDrawer editor={record.editor} theme={theme} coordinator={bridge} inputFrozen={state?.inputFrozen ?? false} />
       <ViewToolbar
         files={files}

@@ -40,7 +40,11 @@ export function Fixture() {
   }
   return <NoteDocumentProvider documentId="toolbar-fixture" loadKey={1} initialDocument={initial}
     initialHostSnapshot={{ changeId: 0, value: { title: "", summary: "" } }}
-    onSave={() => Promise.resolve()} onChange={() => {}}>
+    onSave={() => Promise.resolve()} onChange={() => {}}
+    onPictureUpload={(_file, request) => {
+      record({ kind: "upload", attempt: request.attempt })
+      return Promise.reject(new Error("fixture upload failure"))
+    }}>
     <button id="toggle-edge" type="button" onClick={() => setEdge(current => current === "top" ? "bottom" : "top")}>切换方向</button>
     <NoteEditorView viewId="a" paneId="pane-a" files={items} {...(items[0] === undefined ? {} : { currentFileKey: items[0].key })}
       onSelectFile={select} onRequestRemove={remove} layout={layout} />
