@@ -4,6 +4,7 @@ import { DocumentSession, type DocumentView } from "./documentSession"
 import { HnnDataDrawer } from "./HnnDataDrawer"
 import { HostReferenceUI } from "./HostReferenceUI"
 import { PictureUploadControls } from "./NoteEditor"
+import { PictureUploadDialog } from "./PictureUploadDialog"
 import { ViewToolbar } from "./ViewToolbar"
 import type { NoteDocumentProviderProps, NoteEditorViewProps, NotePublicState } from "./documentTypes"
 import { isSafeHnnUrl } from "../hnn/urlPolicy"
@@ -97,6 +98,7 @@ export function NoteEditorView({
     close: () => session.endDraft()
   } : undefined, [session, viewId])
   const locked = !state || state.inputFrozen || state.draft.phase !== "none"
+  const pictureDialog = session?.pictureDialogForView(viewId) ?? null
   return <div className={`hn-editor hn-editor--${theme}`} data-view-id={viewId}
     onClickCapture={(event) => {
       if (!(event.target instanceof Element)) return
@@ -111,7 +113,8 @@ export function NoteEditorView({
       </div>
       {/* Reserve toolbar space after every flow control, including upload
           retry/cancel actions, so the floating bar cannot cover those actions. */}
-      {record?.pictureUpload && <PictureUploadControls installer={record.pictureUpload} theme={theme} disabled={locked} />}
+      {record?.pictureUpload && <PictureUploadControls installer={record.pictureUpload} theme={theme} disabled={locked}
+        {...(pictureDialog?.uploadId ? { excludeUploadId: pictureDialog.uploadId } : {})} />}
     </div>
     {record && session && <>
       <HnnDataDrawer editor={record.editor} theme={theme} coordinator={bridge} inputFrozen={state?.inputFrozen ?? false} />
@@ -134,6 +137,13 @@ export function NoteEditorView({
         onOccupiedSpaceChange={(space) => setOccupied((current) =>
           current.top === space.top && current.bottom === space.bottom ? current : space)}
       />
+      {pictureDialog && record.pictureUpload && <PictureUploadDialog
+        installer={record.pictureUpload}
+        anchor={pictureDialog.anchor}
+        {...(pictureDialog.uploadId ? { uploadId: pictureDialog.uploadId } : {})}
+        onConfirm={(file) => session.confirmPictureDialog(viewId, file)}
+        onClose={() => session.closePictureDialog(viewId)}
+      />}
     </>}
   </div>
 }

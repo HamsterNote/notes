@@ -3,7 +3,7 @@ import { TableMap } from "@tiptap/pm/tables"
 import { HNN_LIMITS, HNN_SCHEMA_VERSION, HNN_TABLE_LIMITS, UUID_V4_PATTERN } from "./limits"
 import { HNN_MARK_TYPES, HNN_NODE_TYPES, hnnSchema } from "./schema"
 import { jsonCharBytes, jsonStringBytes, utf8Bytes, utf8CharBytes } from "./stringBytes"
-import { isSafeHnnUrl } from "./urlPolicy"
+import { isSafeHnnPictureUrl, isSafeHnnUrl } from "./urlPolicy"
 
 export interface HnnDiagnostic {
   path: string
@@ -653,7 +653,10 @@ class Validator {
     }
     if (type === "formula" || type === "inlineFormula") this.requiredString(attrs["latex"], `${path}/latex`, HNN_LIMITS.maxAttrBytes, "latex")
     if (type === "picture") {
-      this.validateUrl(attrs["src"], `${path}/src`)
+      const srcPath = `${path}/src`
+      if (this.requiredString(attrs["src"], srcPath, HNN_LIMITS.maxAttrBytes, "picture src") && !isSafeHnnPictureUrl(attrs["src"])) {
+        this.error(srcPath, "unsafe-url", "图片地址仅允许安全 HTTP(S) 或 hamster_note_data/images 下的 MD5 托管路径")
+      }
       this.requiredString(attrs["alt"], `${path}/alt`, HNN_LIMITS.maxLabelBytes, "picture alt")
     }
     if (type === "card" || type === "drawing") this.requiredString(attrs["data"], `${path}/data`, HNN_LIMITS.maxAttrBytes, `${type} data`)

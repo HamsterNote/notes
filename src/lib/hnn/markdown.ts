@@ -16,7 +16,7 @@ import { decodeHnn, encodeHnn, HnnCodecError, type HnnDocument } from "./codec"
 import { HNN_LIMITS, HNN_TABLE_LIMITS, UUID_V4_PATTERN } from "./limits"
 import { createHnnNodeId } from "./nodeId"
 import { HNN_MARK_TYPES, HNN_NODE_TYPES, hnnSchema } from "./schema"
-import { isSafeHnnUrl } from "./urlPolicy"
+import { isSafeHnnPictureUrl, isSafeHnnUrl } from "./urlPolicy"
 
 /** Markdown codec 的诊断只描述转换结果，不执行写文件或任何宿主 I/O。 */
 export interface MarkdownDiagnostic {
@@ -757,7 +757,7 @@ function paragraphNode(
     }
     const validPicture =
       (image.title === null || image.title === undefined) &&
-      isSafeHnnUrl(image.url) &&
+      isSafeHnnPictureUrl(image.url) &&
       typeof image.alt === "string" &&
       image.alt.trim().length > 0
     if (validPicture)
@@ -2112,7 +2112,7 @@ function jsonFenceAttrs(type: string, raw: unknown): void {
     jsonFenceString(attrs["latex"], HNN_LIMITS.maxAttrBytes, "latex")
   if (type === "picture") {
     jsonFenceString(attrs["src"], HNN_LIMITS.maxAttrBytes, "picture src")
-    if (!isSafeHnnUrl(String(attrs["src"])))
+    if (!isSafeHnnPictureUrl(String(attrs["src"])))
       jsonFenceFailure("picture src 不安全")
     jsonFenceString(attrs["alt"], HNN_LIMITS.maxLabelBytes, "picture alt")
   }
@@ -2851,7 +2851,7 @@ function customFence(
       !hasOnlyKeys(metadata, ["src", "alt"]) ||
       body.length > 0 ||
       typeof metadata["src"] !== "string" ||
-      !isSafeHnnUrl(metadata["src"]) ||
+      !isSafeHnnPictureUrl(metadata["src"]) ||
       typeof metadata["alt"] !== "string" ||
       metadata["alt"].trim().length === 0
     )
@@ -3501,7 +3501,7 @@ function standardBlock(
     const alt = nodeAttrs["alt"]
     if (
       typeof src === "string" &&
-      isSafeHnnUrl(src) &&
+      isSafeHnnPictureUrl(src) &&
       typeof alt === "string" &&
       alt.trim().length > 0
     )

@@ -43,6 +43,9 @@ export interface OpenAnchoredMenuOptions {
   readonly ariaLabel: string
   /** 内部级联菜单：贴父项右侧，空间不足时向左翻转。 */
   readonly placement?: "submenu"
+  readonly focusOnOpen?: boolean
+  readonly onHoverEnter?: () => void
+  readonly onHoverLeave?: () => void
   readonly onTab?: () => void
   /** 菜单因任何原因关闭后恰好调用一次（含 Esc/外部点击/滚动/执行完成）。 */
   readonly onClose?: () => void
@@ -80,11 +83,33 @@ export function openAnchoredMenu(options: OpenAnchoredMenuOptions): AnchoredMenu
   let confirmingIndex: number | null = null
   let child: AnchoredMenuHandle | null = null
   let childIndex: number | null = null
+  let hoverOpenTimer: ReturnType<typeof setTimeout> | null = null
+  let hoverCloseTimer: ReturnType<typeof setTimeout> | null = null
 
-  const openChild = (index: number): void => {
+  const clearHoverTimers = (): void => {
+    if (hoverOpenTimer !== null) clearTimeout(hoverOpenTimer)
+    if (hoverCloseTimer !== null) clearTimeout(hoverCloseTimer)
+    hoverOpenTimer = null
+    hoverCloseTimer = null
+  }
+
+  const scheduleChildClose = (index: number): void => {
+    if (childIndex !== index || !child) return
+    if (hoverCloseTimer !== null) clearTimeout(hoverCloseTimer)
+    hoverCloseTimer = setTimeout(() => {
+      hoverCloseTimer = null
+      child?.close(false)
+    }, 180)
+  }
+
+  const openChild = (index: number, toggle = false, focus = true): void => {
     const item = buttonItems[index]
     if (!item?.children || item.disabled) return
-    if (childIndex === index && child) { child.close(true); return }
+    clearHoverTimers()
+    if (childIndex === index && child) {
+      if (toggle) child.close(true)
+      return
+    }
     child?.close(false)
     clearConfirm()
     childIndex = index
@@ -96,11 +121,39 @@ export function openAnchoredMenu(options: OpenAnchoredMenuOptions): AnchoredMenu
     }
     child = openAnchoredMenu({
       anchor: button, items: item.children.map(wrapAction), ariaLabel: `${item.label}选项`, placement: "submenu",
+      focusOnOpen: focus,
+      onHoverEnter: () => {
+        if (hoverCloseTimer !== null) clearTimeout(hoverCloseTimer)
+        hoverCloseTimer = null
+      },
+      onHoverLeave: () => scheduleChildClose(index),
       onTab: () => { close(false); options.onTab?.() },
-      onClose: () => { child = null; childIndex = null; button.setAttribute("aria-expanded", "false"); button.removeAttribute("aria-controls") }
+      onClose: () => {
+        clearHoverTimers()
+        child = null
+        childIndex = null
+        button.setAttribute("aria-expanded", "false")
+        button.removeAttribute("aria-controls")
+      }
     })
     button.setAttribute("aria-expanded", "true")
     button.setAttribute("aria-controls", child.element.id)
+  }
+
+  const scheduleChildOpen = (index: number): void => {
+    const item = buttonItems[index]
+    if (!item?.children || item.disabled) return
+    if (childIndex === index && child) {
+      if (hoverCloseTimer !== null) clearTimeout(hoverCloseTimer)
+      hoverCloseTimer = null
+      return
+    }
+    if (child) child.close(false)
+    if (hoverOpenTimer !== null) clearTimeout(hoverOpenTimer)
+    hoverOpenTimer = setTimeout(() => {
+      hoverOpenTimer = null
+      openChild(index, false, false)
+    }, 120)
   }
 
   const clearConfirm = (): void => {
@@ -131,7 +184,7 @@ export function openAnchoredMenu(options: OpenAnchoredMenuOptions): AnchoredMenu
   const activate = (index: number): void => {
     const item = buttonItems[index]
     if (!item || item.disabled) return
-    if (item.children) { openChild(index); return }
+    if (item.children) { openChild(index, true); return }
     // 两步确认：首次只进入确认态，焦点留在原条目上等待第二次激活。
     if (item.confirmLabel !== undefined && confirmingIndex !== index) {
       clearConfirm()
@@ -178,6 +231,21 @@ export function openAnchoredMenu(options: OpenAnchoredMenuOptions): AnchoredMenu
     // mousedown 不夺走编辑器焦点；click 才激活，键盘 Enter/Space 走原生 click。
     button.addEventListener("mousedown", (event) => event.preventDefault())
     button.addEventListener("click", () => activate(index))
+    button.addEventListener("pointerenter", (event) => {
+      if (event.pointerType !== "mouse") return
+      if (entry.children) scheduleChildOpen(index)
+      else {
+        if (hoverOpenTimer !== null) clearTimeout(hoverOpenTimer)
+        hoverOpenTimer = null
+        if (child && childIndex !== index) child.close(false)
+      }
+    })
+    button.addEventListener("pointerleave", (event) => {
+      if (event.pointerType !== "mouse") return
+      if (hoverOpenTimer !== null) clearTimeout(hoverOpenTimer)
+      hoverOpenTimer = null
+      if (entry.children) scheduleChildClose(index)
+    })
     button.addEventListener("focus", () => {
       if (child && childIndex !== index) child.close(false)
       if (confirmingIndex !== null && confirmingIndex !== index) clearConfirm()
@@ -185,6 +253,12 @@ export function openAnchoredMenu(options: OpenAnchoredMenuOptions): AnchoredMenu
     buttons.push(button)
     buttonItems.push(entry)
     element.appendChild(button)
+  })
+  element.addEventListener("pointerenter", (event) => {
+    if (event.pointerType === "mouse") options.onHoverEnter?.()
+  })
+  element.addEventListener("pointerleave", (event) => {
+    if (event.pointerType === "mouse") options.onHoverLeave?.()
   })
 
   // 挂到锚点最近的 .hn-editor 根内：菜单样式与 light/dark 主题类随宿主联动。
@@ -242,6 +316,7 @@ export function openAnchoredMenu(options: OpenAnchoredMenuOptions): AnchoredMenu
   const close = (restoreFocus = false): void => {
     if (closed) return
     closed = true
+    clearHoverTimers()
     child?.close(false)
     element.removeEventListener("keydown", onMenuKeyDown)
     document.removeEventListener("pointerdown", onDocumentPointerDown, true)
@@ -311,8 +386,8 @@ export function openAnchoredMenu(options: OpenAnchoredMenuOptions): AnchoredMenu
   window.addEventListener("scroll", onWindowScroll, true)
   window.addEventListener("resize", onWindowChange)
 
-  // 打开即聚焦首个可用条目：键盘用户无需额外按键即可操作。
-  moveFocus(-1, 1)
+  // 悬停展开不抢焦点；键盘/触屏打开仍聚焦首个可用条目。
+  if (options.focusOnOpen !== false) moveFocus(-1, 1)
 
   return { close, element }
 }

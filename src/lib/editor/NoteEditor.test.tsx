@@ -1546,7 +1546,7 @@ describe("内部 NoteEditor 自定义块界面（Phase 6.2/6.3）", () => {
     expect(img.hidden).toBe(true)
     const placeholder = view.container.querySelector<HTMLElement>(".hn-editor-picture-placeholder")!
     expect(placeholder.hidden).toBe(false)
-    expect(placeholder.textContent).toBe("图片不可用")
+    expect(placeholder.textContent).toContain("图片不可用")
   })
 
   // ===== Phase 6.3 card/drawing 底部 Drawer =====

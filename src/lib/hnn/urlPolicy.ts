@@ -35,3 +35,13 @@ export function isSafeHnnUrl(value: string): boolean {
     return false
   }
 }
+
+const MANAGED_PICTURE_PATH = /^hamster_note_data\/images\/[a-f0-9]{32}\.(png|jpg|webp)$/
+
+export function isManagedHnnPicturePath(value: string): boolean {
+  return MANAGED_PICTURE_PATH.test(value)
+}
+
+export function isSafeHnnPictureUrl(value: string): boolean {
+  return isManagedHnnPicturePath(value) || (/^https?:/.test(value) && isSafeHnnUrl(value))
+}

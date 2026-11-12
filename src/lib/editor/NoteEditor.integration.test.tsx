@@ -78,7 +78,7 @@ function degradedDocument(text: string): HnnDocument {
 }
 
 function imageFile(name = "photo.png", type = "image/png"): File {
-  return new File([new Uint8Array(4)], name, { type })
+  return new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])], name, { type })
 }
 
 function deferred<T>() {
@@ -169,6 +169,21 @@ function renderEditor(overrides: RenderProps = {}) {
     ...overrides
   }
   return { ...render(<NoteEditor {...props} />), props }
+}
+
+function openPictureDialog(container: HTMLElement): HTMLElement {
+  fireEvent.click(container.querySelector("[data-drag-handle]")!)
+  fireEvent.click(within(container).getByText("下一行"))
+  fireEvent.click(within(container).getByText("图像"))
+  return within(document.body).getByRole("dialog", { name: "插入图像" })
+}
+
+async function confirmPicture(container: HTMLElement, file: File): Promise<void> {
+  const dialog = openPictureDialog(container)
+  fireEvent.change(dialog.querySelector("input[type='file']")!, { target: { files: [file] } })
+  const confirm = within(dialog).getByRole<HTMLButtonElement>("button", { name: "确认插入" })
+  await waitFor(() => expect(confirm.disabled).toBe(false))
+  fireEvent.click(confirm)
 }
 
 beforeEach(() => {
@@ -339,24 +354,26 @@ describe("6.7 图片上传接线", () => {
     }
   })
 
-  it("显式 picker：accept=image/* multiple；选择文件后以上传契约调用宿主并成功写入 picture", async () => {
+  it("图像模态框：单文件选择与显式确认后调用宿主并成功写入 picture", async () => {
     const pending = deferred<PictureUploadResult>()
     const upload = vi.fn<PictureUploadHandler>(() => pending.promise)
     const view = renderEditor({ onPictureUpload: upload })
     try {
-      const input = view.container.querySelector("input[type='file']") as HTMLInputElement
-      expect(input).not.toBeNull()
-      expect(input.getAttribute("accept")).toBe("image/*")
-      expect(input.multiple).toBe(true)
+      const dialog = openPictureDialog(view.container)
+      const input = dialog.querySelector("input[type='file']") as HTMLInputElement
+      expect(input.getAttribute("accept")).toContain("image/png")
+      expect(input.multiple).toBe(false)
 
-      fireEvent.click(within(view.container).getByText("插入图片"))
       fireEvent.change(input, { target: { files: [imageFile()] } })
+      const confirm = within(dialog).getByRole<HTMLButtonElement>("button", { name: "确认插入" })
+      await waitFor(() => expect(confirm.disabled).toBe(false))
+      fireEvent.click(confirm)
       await waitFor(() => expect(upload).toHaveBeenCalledTimes(1))
       const [file, request] = upload.mock.calls[0] as unknown as [File, PictureUploadRequest]
       expect(file.name).toBe("photo.png")
       expect(request.attempt).toBe(1)
       expect(request.signal).toBeInstanceOf(AbortSignal)
-      await waitFor(() => expect(within(uploadList(view.container)).getByText(/第 1 次尝试/)).toBeDefined())
+      await waitFor(() => expect(within(dialog).getByText(/第 1 次尝试/)).toBeDefined())
 
       // 上传中快照不含任何占位痕迹（uploadId/文件名只存在于内存桥）。
       const during = JSON.stringify(encodeHnn(latestSession().editor.state.doc))
@@ -388,28 +405,25 @@ describe("6.7 图片上传接线", () => {
     })
     const view = renderEditor({ onPictureUpload: upload })
     try {
-      const input = view.container.querySelector("input[type='file']") as HTMLInputElement
-      fireEvent.change(input, { target: { files: [imageFile()] } })
+      await confirmPicture(view.container, imageFile())
+      const dialog = within(document.body).getByRole("dialog", { name: "插入图像" })
       await waitFor(() => expect(upload).toHaveBeenCalledTimes(1))
       const firstRequest = (upload.mock.calls[0] as unknown as [File, PictureUploadRequest])[1]
 
-      // 宿主 resolve(undefined)：不呈成功，落为失败。
       attempts[0]!.resolve(undefined as unknown as PictureUploadResult)
-      await waitFor(() => expect(within(uploadList(view.container)).getByText(/上传失败/)).toBeDefined())
+      await waitFor(() => expect(within(dialog).getByText(/上传失败|图片地址/)).toBeDefined())
       expect(JSON.stringify(encodeHnn(latestSession().editor.state.doc))).not.toContain("picture")
 
-      fireEvent.click(within(uploadList(view.container)).getByLabelText("重试上传 photo.png"))
+      fireEvent.click(within(dialog).getByRole("button", { name: "重试上传" }))
       await waitFor(() => expect(upload).toHaveBeenCalledTimes(2))
       const secondRequest = (upload.mock.calls[1] as unknown as [File, PictureUploadRequest])[1]
       expect(secondRequest.uploadId).toBe(firstRequest.uploadId)
       expect(secondRequest.attempt).toBe(2)
 
       attempts[1]!.reject(new Error("网络错误"))
-      await waitFor(() => expect(within(uploadList(view.container)).getByText(/上传失败/)).toBeDefined())
-      expect(within(uploadList(view.container)).getByText(/网络错误/)).toBeDefined()
-      fireEvent.click(within(uploadList(view.container)).getByLabelText("取消上传 photo.png"))
-      // 取消后列表与占位整体清空，picture 始终未写入。
-      await waitFor(() => expect(view.container.querySelector(".hn-editor-uploads__list")).toBeNull())
+      await waitFor(() => expect(within(dialog).getByText(/网络错误/)).toBeDefined())
+      fireEvent.click(within(dialog).getByRole("button", { name: "取消" }))
+      await waitFor(() => expect(within(document.body).queryByRole("dialog", { name: "插入图像" })).toBeNull())
       expect(placeholderCount(view.container)).toBe(0)
       expect(latestSession().pictureUpload?.getState().items).toEqual([])
     } finally {
@@ -523,8 +537,7 @@ describe("6.7 图片上传接线", () => {
     )
     try {
       const sessionA = latestSession()
-      const input = view.container.querySelector("input[type='file']") as HTMLInputElement
-      fireEvent.change(input, { target: { files: [imageFile()] } })
+      await confirmPicture(view.container, imageFile())
       await waitFor(() => expect(uploadA).toHaveBeenCalledTimes(1))
       const request = (uploadA.mock.calls[0] as unknown as [File, PictureUploadRequest])[1]
 
@@ -552,8 +565,7 @@ describe("6.7 图片上传接线", () => {
       // 同 key 换 callback：会话不重建，运行期调用读取最新已提交 callback。
       view.rerender(<NoteEditor {...props} onPictureUpload={uploadSecond} />)
       expect(createdSessions).toHaveLength(1)
-      const input = view.container.querySelector("input[type='file']") as HTMLInputElement
-      fireEvent.change(input, { target: { files: [imageFile()] } })
+      await confirmPicture(view.container, imageFile())
       await waitFor(() => expect(uploadSecond).toHaveBeenCalledTimes(1))
       expect(uploadFirst).not.toHaveBeenCalled()
     } finally {
@@ -571,9 +583,9 @@ describe("6.7 图片上传接线", () => {
       replaceText(session, "draft")
       await waitFor(() => expect(within(view.container).getByText("有未保存的修改")).toBeDefined())
 
-      // 新增 callback：picker 即刻可用，且会话/editor/文档/历史/baseline 全部保留。
+      // 新增 callback：图像模态入口即刻可用，会话与文档状态保持。
       view.rerender(<NoteEditor {...props} onPictureUpload={upload} />)
-      await waitFor(() => expect(within(view.container).getByText("插入图片")).toBeDefined())
+      await waitFor(() => expect(latestSession().pictureUpload).toBeDefined())
       expect(createdSessions).toHaveLength(1)
       expect(latestSession()).toBe(session)
       expect(session.editor.getText()).toBe("draft")
@@ -582,13 +594,12 @@ describe("6.7 图片上传接线", () => {
       // 入队一个 pending 上传后移除 callback：入口与列表消失、在途 abort、stale 不写。
       const pendingUpload = deferred<PictureUploadResult>()
       upload.mockImplementation(() => pendingUpload.promise)
-      const input = view.container.querySelector("input[type='file']") as HTMLInputElement
-      fireEvent.change(input, { target: { files: [imageFile()] } })
+      await confirmPicture(view.container, imageFile())
       await waitFor(() => expect(upload).toHaveBeenCalledTimes(1))
       const request = (upload.mock.calls[0] as unknown as [File, PictureUploadRequest])[1]
 
       view.rerender(<NoteEditor {...props} />)
-      await waitFor(() => expect(within(view.container).queryByText("插入图片")).toBeNull())
+      await waitFor(() => expect(within(document.body).queryByRole("dialog", { name: "插入图像" })).toBeNull())
       expect(view.container.querySelector(".hn-editor-uploads__list")).toBeNull()
       expect(placeholderCount(view.container)).toBe(0)
       expect(request.signal.aborted).toBe(true)
@@ -597,7 +608,6 @@ describe("6.7 图片上传接线", () => {
       await new Promise((resolve) => setTimeout(resolve, 0))
       expect(JSON.stringify(encodeHnn(session.editor.state.doc))).not.toContain("stale.png")
 
-      // doc/历史/baseline 全程未动：一步 undo 回到初始文本并回到非脏。
       expect(session.editor.getText()).toBe("draft")
       expect(session.undo()).toBe(true)
       expect(session.editor.getText()).toBe("y")
@@ -605,10 +615,9 @@ describe("6.7 图片上传接线", () => {
 
       // 再添加：同一 session 重启上传能力。
       view.rerender(<NoteEditor {...props} onPictureUpload={upload} />)
-      await waitFor(() => expect(within(view.container).getByText("插入图片")).toBeDefined())
+      await waitFor(() => expect(latestSession().pictureUpload).toBeDefined())
       expect(createdSessions).toHaveLength(1)
-      const input2 = view.container.querySelector("input[type='file']") as HTMLInputElement
-      fireEvent.change(input2, { target: { files: [imageFile("again.png")] } })
+      await confirmPicture(view.container, imageFile("again.png"))
       await waitFor(() => expect(upload).toHaveBeenCalledTimes(2))
     } finally {
       view.unmount()
@@ -621,16 +630,14 @@ describe("6.7 图片上传接线", () => {
     const props = { documentId: "C", loadKey: "v1", initialDocument: paragraphsDocument("z") }
     const view = render(<NoteEditor {...props} onPictureUpload={upload} />)
     try {
-      const input = view.container.querySelector("input[type='file']") as HTMLInputElement
-      fireEvent.change(input, { target: { files: [imageFile()] } })
+      await confirmPicture(view.container, imageFile())
       await waitFor(() => expect(upload).toHaveBeenCalledTimes(1))
       pending.reject(new Error("网络错误"))
-      await waitFor(() => expect(within(uploadList(view.container)).getByText(/上传失败/)).toBeDefined())
+      await waitFor(() => expect(within(document.body).getByText("网络错误")).toBeDefined())
 
       view.rerender(<NoteEditor {...props} />)
-      await waitFor(() => expect(view.container.querySelector(".hn-editor-uploads__list")).toBeNull())
-      expect(within(view.container).queryByText("插入图片")).toBeNull()
-      expect(within(view.container).queryByLabelText(/重试上传/)).toBeNull()
+      await waitFor(() => expect(within(document.body).queryByRole("dialog", { name: "插入图像" })).toBeNull())
+      expect(within(document.body).queryByRole("button", { name: "重试上传" })).toBeNull()
       expect(upload).toHaveBeenCalledTimes(1)
     } finally {
       view.unmount()
@@ -658,8 +665,7 @@ describe("6.7 图片上传接线", () => {
       expect(errors).toEqual(["B"])
       expect(latestSession()).toBe(sessionA)
 
-      const input = view.container.querySelector("input[type='file']") as HTMLInputElement
-      fireEvent.change(input, { target: { files: [imageFile()] } })
+      await confirmPicture(view.container, imageFile())
       await waitFor(() => expect(uploadA).toHaveBeenCalledTimes(1))
       expect(uploadB).not.toHaveBeenCalled()
     } finally {

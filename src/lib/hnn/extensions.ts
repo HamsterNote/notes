@@ -16,8 +16,10 @@ import { HNN_LIMITS } from "./limits"
 import { installTableEdgeControls } from "./tableEdgeControls"
 import { jsonStringBytes, utf8Bytes } from "./stringBytes"
 import { collectHnnNodeIds, createHnnNodeIdPlugin, HNN_NODE_ID_TYPES, normalizeInitialHnnContent } from "./nodeId"
-import { isSafeHnnUrl } from "./urlPolicy"
+import { isSafeHnnPictureUrl, isSafeHnnUrl } from "./urlPolicy"
 import { HnnCompositionDeletion } from "./compositionDeletion"
+import { createPictureResolution } from "../editor/pictureResolution"
+import type { PictureResolveHandler } from "../editor/types"
 
 const nodeIdAttr = { default: null }
 const persistentNodeTypes = [...HNN_NODE_ID_TYPES]
@@ -340,9 +342,8 @@ function renderLatexInto(target: HTMLElement, latex: string, displayMode: boolea
   }
 }
 
-/** 图片 src 渲染策略：在 codec URL 白名单之上再限定 http/https，mailto:/hnmagic: 不进入 <img>。 */
 function isSafePictureUrl(value: string): boolean {
-  return /^https?:/i.test(value) && isSafeHnnUrl(value)
+  return isSafeHnnPictureUrl(value)
 }
 
 /** 原子节点最小弹出编辑器的配置。 */
@@ -490,7 +491,13 @@ function renderCodeHighlight(target: HTMLElement, code: string): void {
   target.replaceChildren(fragment)
 }
 
-function buildHnnExtensions(includeUndoRedo: boolean): Extensions {
+export interface HnnPictureResolutionOptions {
+  readonly documentId: string
+  readonly loadKey: string | number
+  readonly getResolver: () => PictureResolveHandler | undefined
+}
+
+function buildHnnExtensions(includeUndoRedo: boolean, pictureResolution?: HnnPictureResolutionOptions): Extensions {
   // HNN 只持久化 href，不能让 Link 的 HTML 展示 attrs 进入 PM JSON。
   const HnnLink = Link.extend({
     addAttributes() {
@@ -1034,7 +1041,6 @@ function buildHnnExtensions(includeUndoRedo: boolean): Extensions {
       return node.attrs["alt"] as string
     },
     addNodeView() {
-      // 图片块：安全 src 才进入 <img>，否则只显占位；alt 由 textbox 持久化。
       return ({ node, HTMLAttributes, getPos, editor }) => {
         const dom = document.createElement("figure")
         applyDomAttrs(dom, HTMLAttributes)
@@ -1048,49 +1054,51 @@ function buildHnnExtensions(includeUndoRedo: boolean): Extensions {
         image.className = "hn-editor-picture-img"
         const placeholder = document.createElement("div")
         placeholder.className = "hn-editor-picture-placeholder"
-        placeholder.textContent = "图片不可用"
+        placeholder.setAttribute("role", "status")
+        const message = document.createElement("span")
+        const retry = document.createElement("button")
+        retry.type = "button"
+        retry.className = "hn-editor-picture-retry"
+        retry.textContent = "重试加载图片"
+        retry.hidden = true
+        placeholder.append(message, retry)
         frame.append(image, placeholder)
         const altInput = document.createElement("input")
         altInput.type = "text"
         altInput.className = "hn-editor-picture-alt"
         altInput.setAttribute("aria-label", "图片描述")
         altInput.placeholder = "描述这张图片"
-        // 可访问校验错误（role=alert 即 aria-live=assertive），空时由 CSS 隐藏。
         const error = document.createElement("span")
         error.className = "hn-editor-field-error"
         error.setAttribute("role", "alert")
         dom.append(frame, altInput, error)
 
-        // update 时同步刷新；所有恢复路径都以最近持久节点为准，绝不退回初始 node。
+        const resolution = createPictureResolution({
+          editor,
+          image,
+          placeholder,
+          message,
+          retryButton: retry,
+          documentId: pictureResolution?.documentId ?? "",
+          loadKey: pictureResolution?.loadKey ?? "",
+          getResolver: () => pictureResolution?.getResolver()
+        })
         let currentNode = node
         const syncFromNode = (current: typeof node): void => {
-          const src = attrString(current.attrs["src"], "")
           const alt = attrString(current.attrs["alt"], "")
-          if (isSafePictureUrl(src)) {
-            if (image.getAttribute("src") !== src) image.setAttribute("src", src)
-            image.alt = alt
-            image.hidden = false
-            placeholder.hidden = true
-          } else {
-            // 危险或不可渲染的 src 绝不落进 <img>。
-            image.removeAttribute("src")
-            image.hidden = true
-            placeholder.hidden = false
-          }
+          resolution.update(attrString(current.attrs["src"], ""), alt)
           if (altInput.value !== alt) altInput.value = alt
         }
         syncFromNode(currentNode)
 
         altInput.addEventListener("input", () => { error.textContent = "" })
         altInput.addEventListener("change", () => {
-          // codec 要求 alt 为非空字符串：清空是失败提交——零事务、恢复最近持久值、写可访问错误。
           const alt = altInput.value.trim()
           if (alt === "") {
             error.textContent = "图片描述不得为空"
             syncFromNode(currentNode)
             return
           }
-          // 超限零事务：恢复最近持久值并给出可访问错误。
           const overLimit = attrStringError(alt, HNN_LIMITS.maxLabelBytes, "图片描述")
           if (overLimit !== null) {
             error.textContent = overLimit
@@ -1109,9 +1117,9 @@ function buildHnnExtensions(includeUndoRedo: boolean): Extensions {
             syncFromNode(updatedNode)
             return true
           },
-          // alt 输入框事件自管；img 点击交给 PM 产生 NodeSelection。
-          stopEvent: (event) => eventInside(altInput, event),
-          ignoreMutation: () => true
+          stopEvent: (event) => eventInside(altInput, event) || eventInside(placeholder, event),
+          ignoreMutation: () => true,
+          destroy: () => resolution.destroy()
         }
       }
     }
@@ -1701,6 +1709,10 @@ export function createHnnExtensions(): Extensions {
 /** 编辑会话专用的闭合装配；宿主没有扩展、schema 或 history 注入入口。 */
 export function createHnnEditorExtensions(): Extensions {
   return buildHnnExtensions(true)
+}
+
+export function createHnnSessionExtensions(includeUndoRedo: boolean, pictureResolution: HnnPictureResolutionOptions): Extensions {
+  return buildHnnExtensions(includeUndoRedo, pictureResolution)
 }
 
 /** schema 只可从同一封闭 runtime extension 集合取得。 */

@@ -294,13 +294,19 @@ const exported = exportMarkdown(hnnDocument)
   onPictureUpload={async (file, { uploadId, attempt, signal }) => {
     // 宿主必须按 uploadId 幂等；retry 时 uploadId 不变、attempt 递增
     const uploaded = await host.uploadImage(file, { uploadId, attempt, signal })
-    return { src: uploaded.httpsUrl, alt: uploaded.alt } // src 必须是 http/https
+    return { src: uploaded.httpsUrl, alt: uploaded.alt }
+  }}
+  onPictureResolve={async (src, { signal, documentId, loadKey }) => {
+    const resolved = await host.resolveImage(src, { signal, documentId, loadKey })
+    return { url: resolved.objectUrl, dispose: resolved.dispose }
   }}
 />
 ```
 
 - 每个文件一个稳定 `uploadId`，首次 `attempt` 为 1，retry 只递增 `attempt`；宿主应据此去重。
-- 成功时宿主返回可持久化的 `http`/`https` `src` 与可选 `alt`；库仅以一个 transaction 写入图片。
+- 上传结果允许安全 HTTP(S) 或 `hamster_note_data/images/<32位小写md5>.<png|jpg|webp>` 托管路径；库仅以一个 transaction 写入图片。
+- 托管路径必须由 `onPictureResolve` 解析；回调结果只接受 HTTP(S)/blob 运行时地址，替换、取消和销毁会释放对应资源，解析 URL 不写回正文。
+- 单文件上限为 100 MiB，且校验真实 PNG/JPEG/WebP 文件头；picker、粘贴、拖放和重试使用同一规则。
 - 上传临时态、文件、`uploadId`、`attempt` 均为内存/DOM 桥状态，**绝不进入 HNN**；失败可重试或取消。
 
 ### 宿主引用（mention / resource / externalItem）

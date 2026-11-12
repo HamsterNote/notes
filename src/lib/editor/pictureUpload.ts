@@ -7,7 +7,7 @@ import { encodeHnn } from "../hnn/codec"
 import { HNN_LIMITS } from "../hnn/limits"
 import { createHnnNodeId } from "../hnn/nodeId"
 import { jsonStringBytes, utf8Bytes } from "../hnn/stringBytes"
-import { isSafeHnnUrl } from "../hnn/urlPolicy"
+import { isSafeHnnPictureUrl } from "../hnn/urlPolicy"
 import type { PictureUploadHandler, PictureUploadItem, PictureUploadResult, PictureUploadState } from "./types"
 
 /**
@@ -77,9 +77,8 @@ export interface PictureUploadInstaller {
   destroy(): void
 }
 
-/** 图片 src 渲染策略：http/https 且在 codec URL 白名单内。 */
 function isSafePictureSrc(value: unknown): value is string {
-  return typeof value === "string" && /^https?:/i.test(value) && isSafeHnnUrl(value)
+  return typeof value === "string" && isSafeHnnPictureUrl(value)
 }
 
 function srcWithinBudget(src: string): boolean {
@@ -90,9 +89,38 @@ function altWithinBudget(alt: string): boolean {
   return alt.trim().length > 0 && utf8Bytes(alt) <= HNN_LIMITS.maxLabelBytes && jsonStringBytes(alt) <= HNN_LIMITS.maxAttrBytes
 }
 
+export const PICTURE_MAX_FILE_BYTES = 104_857_600
+export type PictureFileFormat = "png" | "jpg" | "webp"
+
+export function isPictureFileCandidate(file: File): boolean {
+  return file.type.startsWith("image/") || /\.(?:png|jpe?g|webp)$/i.test(file.name)
+}
+
+function readPictureHeader(file: File): Promise<Uint8Array> {
+  const slice = file.slice(0, 12)
+  if (typeof slice.arrayBuffer === "function") {
+    return slice.arrayBuffer().then((buffer) => new Uint8Array(buffer))
+  }
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onerror = () => reject(reader.error ?? new Error("无法读取图片文件"))
+    reader.onload = () => resolve(new Uint8Array(reader.result as ArrayBuffer))
+    reader.readAsArrayBuffer(slice)
+  })
+}
+
+export async function validatePictureFile(file: File, maxFileBytes = PICTURE_MAX_FILE_BYTES): Promise<PictureFileFormat> {
+  if (file.size > maxFileBytes) throw new Error("图片文件不能超过 100 MiB")
+  const header = await readPictureHeader(file)
+  if (header.length >= 8 && [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a].every((byte, index) => header[index] === byte)) return "png"
+  if (header.length >= 3 && header[0] === 0xff && header[1] === 0xd8 && header[2] === 0xff) return "jpg"
+  if (header.length >= 12 && header[0] === 0x52 && header[1] === 0x49 && header[2] === 0x46 && header[3] === 0x46 && header[8] === 0x57 && header[9] === 0x45 && header[10] === 0x42 && header[11] === 0x50) return "webp"
+  throw new Error("仅支持真实 PNG、JPEG 或 WebP 图片")
+}
+
 function imageFiles(list: FileList | null | undefined): File[] {
   if (!list) return []
-  return Array.from(list).filter((file) => file.type.startsWith("image/"))
+  return Array.from(list).filter(isPictureFileCandidate)
 }
 
 /**
@@ -251,31 +279,34 @@ export function installPictureUpload(editor: Editor, options: PictureUploadOptio
     record.error = undefined
     renderPlaceholder(record.dom, record)
     notify()
-    if (destroyed || editor.isDestroyed || !record.active || record.token !== token) return
-    let promise: Promise<PictureUploadResult>
-    try {
-      promise = options.upload(record.file, { uploadId: record.uploadId, attempt: record.attempt, signal: controller.signal })
-    } catch (error) {
-      handleFailure(record, token, error)
-      return
-    }
-    Promise.resolve(promise).then(
-      (result) => handleSuccess(record, token, result),
-      (error) => handleFailure(record, token, error)
-    )
+    void validatePictureFile(record.file, options.maxFileBytes ?? PICTURE_MAX_FILE_BYTES).then(() => {
+      if (destroyed || editor.isDestroyed || !record.active || record.token !== token || controller.signal.aborted) return
+      let promise: Promise<PictureUploadResult>
+      try {
+        promise = options.upload(record.file, { uploadId: record.uploadId, attempt: record.attempt, signal: controller.signal })
+      } catch (error) {
+        handleFailure(record, token, error)
+        return
+      }
+      Promise.resolve(promise).then(
+        (result) => handleSuccess(record, token, result),
+        (error) => handleFailure(record, token, error)
+      )
+    }, (error) => handleFailure(record, token, error))
   }
 
   const enqueueAt = (files: File[], position: number | null): string[] => {
     if (destroyed || editor.isDestroyed || (options.canStart && !options.canStart())) return []
     const target = position === null ? null : blockInsertPosition(editor.state.doc, position)
     if (target === null) return []
+    const maxFileBytes = options.maxFileBytes ?? PICTURE_MAX_FILE_BYTES
     const uploadIds: string[] = []
     for (const file of files) {
       if (destroyed || editor.isDestroyed || (options.canStart && !options.canStart())) break
-      if (options.maxFileBytes !== undefined && file.size > options.maxFileBytes) {
+      if (file.size > maxFileBytes) {
         const uploadId = createHnnNodeId()
         const dom = document.createElement("div")
-        const record: UploadRecord = { uploadId, order: ++nextOrder, file, attempt: 1, status: "failed", error: new Error("图片文件超出大小上限"), controller: new AbortController(), token: Symbol(uploadId), dom, active: true }
+        const record: UploadRecord = { uploadId, order: ++nextOrder, file, attempt: 1, status: "failed", error: new Error("图片文件不能超过 100 MiB"), controller: new AbortController(), token: Symbol(uploadId), dom, active: true }
         renderPlaceholder(dom, record)
         records.set(uploadId, record)
         if (!dispatchDecorationMeta({ kind: "add", uploadId, order: record.order, pos: target, dom })) { dropRecord(record); continue }
@@ -296,7 +327,7 @@ export function installPictureUpload(editor: Editor, options: PictureUploadOptio
   }
 
   const enqueue = (files: Iterable<File>, position?: number): readonly string[] => {
-    const list = Array.from(files).filter((file) => file.type.startsWith("image/"))
+    const list = Array.from(files).filter(isPictureFileCandidate)
     if (list.length === 0) return []
     const raw = position ?? editor.state.selection.from
     return enqueueAt(list, raw)
@@ -415,7 +446,7 @@ export function installPictureUpload(editor: Editor, options: PictureUploadOptio
     const record = records.get(uploadId)
     if (!record || !record.active || record.status === "uploading") return false
     // 超限文件不可重试：retry 必须重新校验限制，绝不因此绕过 maxFileBytes 调用宿主。
-    if (options.maxFileBytes !== undefined && record.file.size > options.maxFileBytes) return false
+    if (record.file.size > (options.maxFileBytes ?? PICTURE_MAX_FILE_BYTES)) return false
     record.attempt += 1
     startUpload(record)
     return true

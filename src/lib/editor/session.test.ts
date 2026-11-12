@@ -50,7 +50,7 @@ function deferred<T>() {
 
 describe("EditorSession 图片上传接线（6.7）", () => {
   function imageFile(name = "photo.png"): File {
-    return new File([new Uint8Array(4)], name, { type: "image/png" })
+    return new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])], name, { type: "image/png" })
   }
 
   it("仅提供 onPictureUpload 的会话才安装上传 installer", () => {
@@ -89,6 +89,7 @@ describe("EditorSession 图片上传接线（6.7）", () => {
     if (!installer) throw new Error("上传 installer 未安装")
     const [uploadId] = installer.enqueue([imageFile()])
     expect(uploadId).toBeDefined()
+    await new Promise((resolve) => setTimeout(resolve, 0))
     const request = (upload.mock.calls[0] as unknown as [File, { uploadId: string; attempt: number; signal: AbortSignal }])[1]
     expect(request.attempt).toBe(1)
 
@@ -139,7 +140,7 @@ describe("EditorSession 图片上传接线（6.7）", () => {
 
 describe("EditorSession configurePictureUpload（6.7 同 key 动态能力）", () => {
   function imageFile(name = "photo.png"): File {
-    return new File([new Uint8Array(4)], name, { type: "image/png" })
+    return new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])], name, { type: "image/png" })
   }
 
   it("新增 callback 只增安装：editor/doc/selection/history/baseline 全部保留", () => {
@@ -175,6 +176,7 @@ describe("EditorSession configurePictureUpload（6.7 同 key 动态能力）", (
       const installer = session.pictureUpload
       if (!installer) throw new Error("上传 installer 未安装")
       installer.enqueue([imageFile()])
+      await new Promise((resolve) => setTimeout(resolve, 0))
       const request = (upload.mock.calls[0] as unknown as [File, { uploadId: string; attempt: number; signal: AbortSignal }])[1]
 
       session.configurePictureUpload(undefined)
@@ -193,6 +195,7 @@ describe("EditorSession configurePictureUpload（6.7 同 key 动态能力）", (
       expect(session.editor.getText()).toBe("x")
       expect(session.state.dirty).toBe(false)
       session.pictureUpload?.enqueue([imageFile("again.png")])
+      await new Promise((resolve) => setTimeout(resolve, 0))
       expect(restarted).toHaveBeenCalledTimes(1)
     } finally {
       session.destroy()
@@ -207,12 +210,14 @@ describe("EditorSession configurePictureUpload（6.7 同 key 动态能力）", (
     try {
       session.configurePictureUpload(uploadOld)
       session.pictureUpload?.enqueue([imageFile("old.png")])
+      await new Promise((resolve) => setTimeout(resolve, 0))
       const oldRequest = (uploadOld.mock.calls[0] as unknown as [File, { uploadId: string; attempt: number; signal: AbortSignal }])[1]
 
       session.configurePictureUpload(uploadNew)
       // 在途不被 abort、uploadId 稳定；新入队走新 handler。
       expect(oldRequest.signal.aborted).toBe(false)
       session.pictureUpload?.enqueue([imageFile("new.png")])
+      await new Promise((resolve) => setTimeout(resolve, 0))
       expect(uploadNew).toHaveBeenCalledTimes(1)
 
       first.resolve({ src: "https://example.com/old.png" })
