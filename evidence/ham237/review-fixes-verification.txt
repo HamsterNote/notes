@@ -1,0 +1,1627 @@
+HAM-237 PR #26 review fixes / 2026-11-12T09:34:20.024599+00:00
+
+$ uname -srm
+Linux 7.0.0-31-generic x86_64
+
+[exit 0]
+
+$ node --version
+v24.15.0
+
+[exit 0]
+
+$ yarn --version
+1.22.22
+
+[exit 0]
+
+$ git --version
+git version 2.53.0
+
+[exit 0]
+
+$ openspec --version
+1.13.1
+
+[exit 0]
+
+$ git rev-parse HEAD
+adb7ffa91db09abca1ed5e2d946b0b89e4b9fa92
+
+[exit 0]
+
+$ git diff HEAD -- src scripts
+
+[exit 0]
+
+$ yarn lint
+yarn run v1.22.22
+(node:1412275) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+$ eslint .
+Done in 14.29s.
+
+[exit 0]
+
+$ yarn typecheck
+yarn run v1.22.22
+(node:1412609) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+$ tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.fixtures.json
+Done in 4.84s.
+
+[exit 0]
+
+$ yarn test --maxWorkers=2 --reporter=verbose
+yarn run v1.22.22
+(node:1412655) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+$ vitest run --maxWorkers=2 --reporter=verbose
+
+ RUN  v4.1.10 /home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes
+
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/index.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/index.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/drag.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/base.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/index.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/controller.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/geometry.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/types.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/inertia.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/dom/normalize-pointer-event.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/dom/pose.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/finger.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/rotate.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/scale.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/mixin.js" points to missing source files
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 不支持的脚注保留原 label、引用与多段正文，不退化为 AST 类型名 32ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 带文件名 codeBlock 的纯空白正文 " " 经 JSON-b64 往返逐字保留 10ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 带文件名 codeBlock 的纯空白正文 "\n" 经 JSON-b64 往返逐字保留 5ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 带文件名 codeBlock 的纯空白正文 "\n\n" 经 JSON-b64 往返逐字保留 4ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 带文件名 codeBlock 的纯空白正文 " \t\n " 经 JSON-b64 往返逐字保留 4ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > text 按原始 UTF-8 而非 JSON attr 预算接受合法边界（case 0） 43ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > text 按原始 UTF-8 而非 JSON attr 预算接受合法边界（case 1） 21ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > text 按原始 UTF-8 而非 JSON attr 预算接受合法边界（case 2） 14ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 普通 Markdown 的恰好 8192 字节 text 可导入，超过一字节仍受控拒绝 13ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > tab-heavy 普通 text 按原始字节导入并逐字保留，不以展开后的视觉列数拒绝 11ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > tab-heavy text 恰好 8192 原始字节合法，多一字节在 UUID 前受控拒绝 28ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > tab-heavy 多行 text 在 root、quote 与 list 容器中保留正文及软换行 57ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > tab-heavy 普通 fence 与缩进 code 保持原始正文，不把扫描展开文本交给转换器 13ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > tab-heavy code 正文超过 text 上限仍分片，命名 math 围栏则局部完整降级 28ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > tab-heavy 多行缩进 code 累计正文超限仍分片，单行原始超限仍硬拒绝 12ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > tab-heavy 成功正文不放宽 link 候选预算，超多原始候选仍在 UUID 前拒绝 1ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > JSON-b64 的空 text 或超过 8192 原始 UTF-8 字节仅降级该围栏 18ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > text 放宽原始字节计数后，JSON 转义膨胀仍计入累计 shell 并在 UUID 前拒绝 485ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > GFM 缺格补空、多余格截断，补空格保持列对齐且导出回读等价 17ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 表格预算按补齐后的矩形计算，而被截断的额外列不进入 HNN 几何预算 116ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > JSON-b64 link 包装额外字段与显式 marks 空数组仅局部保留，不整体 conversion-failed 9ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > math/card/drawing 的空白正文局部保留完整围栏与前后合法正文 18ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 混合 ordered/task 拆组后按原始索引续接 start，第三项仍从 5 开始 32ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 在无 metadata header 的单一文档中导入 GFM、嵌套列表、task list 与表格 9ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 安全 link 变为 mark，危险 URL 仅保留文字并带位置诊断 2ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 双向处理独占 GFM image，混合 image 可读降级且不丢失 3ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 解析既有 fence，并关闭 picture/mention/resource/external-item metadata schema 3ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 默认 HNN 编解码保持直接路径，Markdown 仅由显式函数准备 4ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 用 remark-stringify 安全保留文本、HTML、code delimiter 与链接语法 10ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 对复杂表格按完整节点分块降级，合法大节点 export 后仍可 import 19ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 在 remark parse 前拒绝超预算输入，并对 8193 字符输入不抛 30ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 空输入返回诊断而不是静默生成空文档 0ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > mention/resource/external-item 围栏拒绝正文与额外 metadata 2ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > base64url JSON fallback 不受反引号 payload 影响，30 个大节点可导出再导入 416ms
+ ✓ src/demo/App.test.tsx > 演示宿主 — 装载与 fixture 合法性 > 默认装载功能巡览 fixture：全节点类型经严格 codec 校验成功渲染 514ms
+ ✓ src/demo/App.test.tsx > 演示宿主 — 装载与 fixture 合法性 > 引用 fixture：可解析引用与失效占位同时呈现 186ms
+ ✓ src/demo/App.test.tsx > 演示宿主 — 保存与真实 CAS > 编辑 → 脏 → 保存：CAS 写出 r1，事件与侧边栏可观察 400ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 接近 512 KiB 的合法 HNN JSON fallback 可 export/import，不回退到旧 256 KiB 预算 976ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 在 Remark/UUID 创建前拒绝五万短段落 8ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 所有命名 HN fence 拒绝 meta，未知围栏完整保留 lang/meta/body 1ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 保留 HN dialect 名称的普通 codeBlock 走 JSON fallback 2ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 不同容器的 closing 不会闭合 HN fence 1ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 空 paragraph 与不忠实 table 形态逐节点 JSON fallback 6ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > link/image title 与 definition title 均诊断并保留可读原意 2ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 导出结果复用 import preflight：3000 行 code 与 8000 下划线段落均可再导入 162ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 2049 行软换行仍是一个段落，不按行数伪造内容块限制 43ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 高碎片 GFM 在 AST/UUID 创建前受控失败 35ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > fence 状态机支持 list continuation，忽略普通 fence 内伪 HN opening 1ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 超长普通 code language 以安全 language 保留完整 fence，前后内容仍导入 1ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > unsafe title link、title image 与 reference nodes 都保留可读 URL/label 并诊断 5ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 复杂 mark text runs 的标准输出经完整 import 验证后仍可 roundtrip 53ms
+ ✓ src/demo/App.test.tsx > 演示宿主 — 保存与真实 CAS > 外部修改后保存判冲突（不自动合并/覆盖），重新载入采用对方版本 726ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > fenced code 正文不计词法工作：具 filename 的 10 块高 marker 数据可 export/import 128ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 分行显式 link 与 autolink 在 Remark 前共享 HNN 预算失败 13ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > callout/collapsible 的超预算 nested body 回滚并局部保留完整围栏 264ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 29 层 quote 在 callout/collapsible 包装后超深时回滚为同源完整围栏 5ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 外层 quote/list 将合法 callout/collapsible 推至超深时，仅围栏局部降级 8ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > nested body 成功诊断映射到外层 opening，失败回滚不移除合法 sibling 诊断 2ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 同一 nested body 的 sibling 在局部回滚后仍提交成功 sibling 的预算与诊断 3ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 29 层 quote/list 中链式 nested rollback 不泄漏已失效的内层诊断 21ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 连续 callout 的危险链接共享嵌套候选/AST 预算，超限围栏逐个局部回滚 112ms
+ ✓ src/demo/App.test.tsx > 演示宿主 — 保存与真实 CAS > 保存成功后切走再切回：以刚保存的快照与 revision 重建会话，不回落旧 fixture、不误冲突 589ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 超预算 hamster-note-json-b64 payload 在重建 ID 前局部保留 112ms
+ ✓ src/demo/App.test.tsx > 演示宿主 — 保存与真实 CAS > 新建空文档（手写 HNN 空文档）可编辑并完成首次保存 273ms
+ ✓ src/demo/App.test.tsx > 演示宿主 — Markdown 导出与文件打开 > 导出含降级诊断：先弹确认界面，确认前宿主绝不落盘，确认后才下载 197ms
+ ✓ src/demo/App.test.tsx > 演示宿主 — Markdown 导出与文件打开 > 打开 .md 文件：经根入口 importMarkdown 导入为新文档并显示诊断面板 123ms
+ ✓ src/demo/App.test.tsx > 演示宿主 — Markdown 导出与文件打开 > 打开非法 JSON 的 .hnn 文件：报告解析失败且不切换文档 136ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > fence scanner 保留多位 ordered、blockquote ordered 与嵌套 list 中的 literal marker 2ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 复合容器 fence 自然结束后重新处理 root 行的未闭合 HN fence 2ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 普通 escaped reference 外观文本原样保留且没有 fallback 诊断 1ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 复杂 list item 不逃离列表：以整节点围栏可读降级并可再导入 3ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 含不可表达子内容的引用整体降级，不把围栏逃逸到引用外 2ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 不可表达 attrs 按节点降级：author、ordered type、filename 4ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 保留既定 math/directory/card/drawing fences，并逐节点返回降级诊断 2ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 覆盖 list/blockquote 内未闭合 fence，且 callout/collapsible nested 诊断映射回外层位置 2ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 导出 PM Node 也走 encodeHnn，非法 URL 不会绕过严格 codec 0ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 标准 Markdown 候选均须回读为忽略 nodeId 后等价的 HNN 6ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 图片与 HN 围栏 attr 超限仅局部降级，保留前后可识别内容与位置 15ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 独占 GFM 图片的超长 src 绕过单行预检后按 attr 分片局部降级 9ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 未被分组消费的 hamster-note-json-b64 fence 作为无效围栏局部保留 1ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 超长 hamster-note-json-b64 单段局部保留整组，不消费后续内容 40ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 先验证 JSON-b64 完整组结构：插入普通内容或错误成员不会被消费，也不会产生 undefined 3ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 首、中、尾超限 JSON-b64 分片均整组保留，包含前后内容且严格可编码 611ms
+ ✓ src/demo/App.test.tsx > 演示宿主 — Markdown 导出与文件打开 > 打开合法 JSON 但非法 HNN：预校验拒绝，不加入/不切换文档，旧会话与标题不受影响 123ms
+ ✓ src/demo/App.test.tsx > 演示宿主 — 图片上传 > 上传成功：演示回调返回持久 https 示例地址并插入图片，事件说明未发送文件 750ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 大尺寸坏 base64 与严格 payload 失败在容量内完整局部保留 879ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 以归一化后的普通内容计算 fallback 预算，避免相邻 text nodes 误判容量外 14ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 归一化危险链接文本时不变异 entries，普通段落精确且坏完整 JSON-b64 围栏完整保留 13ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 无法在 512 KiB HNN 完整保留的无效 JSON-b64 分片受控失败，不构建 fallback 文档 168ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 超大 ASCII Markdown 在 TextEncoder 分配前由长度下界拒绝，同时仍精确计算 Unicode 5ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 按有序 list/quote 前缀匹配混合容器中的 HN fence closing 4ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 无 info 的 fenced code 在预检中跳过正文词法扫描，并按普通代码转换 6ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 超长普通 fenced code 分片时保留全部内容并报告 code-block-split 5ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 非 JSON-b64 HN fence 的容量外局部 fallback 保留原因与同位置容量诊断 564ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 在生成 table nodeId 前拒绝超行、超列、超网格与超节点表格 13ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 多层 list continuation 中的 quote HN fence 未闭合时诊断，合法 closing 不误报 2ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > GFM table 的全局 HNN 输出节点预算在 UUID 前以首个超限 link 位置拒绝 18ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 普通 code 与未知 HN fence 的累计 fallback 超出 512 KiB 时保留原因并定位第二个围栏 142ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 多层 list continuation 退出内层后仍以最长外层前缀追踪未闭合 quote fence 2ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 转换计划以首个超限表格 inline 位置拒绝降级膨胀，且不生成 UUID 19ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 全局计划将成功卡片、普通代码与未知 HN fallback 一并计入 shell 预算 138ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 容量失败保留 math 的 attr-too-large 原因与同源位置 141ms
+ ✓ src/demo/App.test.tsx > 演示宿主 — 图片上传 > “下次上传失败一次”：失败后经列表重试成功（同 uploadId 幂等） 1506ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > active fence 在内层 list 退出后只保留最长外层前缀，并重新诊断外层 HN fence 2ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 嵌套 math fallback 容量失败同时保留 attr 原因、实际 source 位置且不生成 UUID 172ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > JSON-b64 在全局账本拒绝前不调用 ProseMirror codec 240ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 嵌套 strong/link marks 使用独立计划 attrs，并可严格编码 2ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 按 CommonMark visual columns 追踪 tab/list/quote 内的 HN fence 1ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > tab 的 fence closing 始终使用原始行绝对 visual column 1ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 所有嵌套 block 序列均可重组 JSON-b64，并为重复旧 ID 分配不同的新 ID 2ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 无效 JSON-b64 listItem 根只局部降级，不把计划错误延迟为 conversion failure 1ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > mark accumulator 去重、按 rank 编码，code/link 排斥时保留可读 URL 1ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 5000 行软换行和 15 层 list 都在 UUID 前被统一计划拒绝 85ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 65 个 card 的首次累计外壳越界指向第 261 行的实际节点 157ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > blockquote 中容量失败优先定位首次跨限 card，保留后续 unknown fence 诊断且不创建 UUID 231ms
+ ✓ src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 表格中首次跨限的 link 定位内容行而不是表格根 17ms
+ ✓ src/lib/hnn/markdown.test.ts > preserves underline and combined marks in the existing JSON fence without inventing Markdown syntax 3ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 最低呈现 > 呈现标准可编辑内容，并且不产生 custom node 的交互界面 115ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 最低呈现 > custom node 渲染为封闭 NodeView 界面，未激活时不产生 dialog 或危险交互入口 48ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 最低呈现 > 组件 props 没有 schema、extensions 或 history 注入入口 0ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 最低呈现 > 仅 documentId 或 loadKey 变化才重建会话，同 key 忽略新的初始文档 46ms
+stderr | src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 最低呈现 > 无效 B 只通知一次候选回调，A 的会话和 callbacks 保持到合法 C 切换
+HnnCodecError: /data/content/0: unknown 不允许作为 doc 的子节点; /data/content/0/type: 不支持的节点 unknown
+    at validateShell (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/src/lib/hnn/codec.ts:800:47)
+    at decodeHnn (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/src/lib/hnn/codec.ts:832:21)
+    at InitialValidator (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/src/lib/editor/NoteEditor.tsx:142:52)
+    at Object.react_stack_bottom_frame (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+    at renderWithHooks (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+    at updateFunctionComponent (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+    at beginWork (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:11778:18)
+    at runWithFiberInDEV (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+    at performUnitOfWork (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+    at workLoopSync (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41) {
+  [stack]: [Getter/Setter],
+  [message]: '/data/content/0: unknown 不允许作为 doc 的子节点; /data/content/0/type: 不支持的节点 unknown',
+  diagnostics: [
+    {
+      path: '/data/content/0',
+      code: 'invalid-nesting',
+      message: 'unknown 不允许作为 doc 的子节点'
+    },
+    {
+      path: '/data/content/0/type',
+      code: 'unknown-node',
+      message: '不支持的节点 unknown'
+    },
+    [length]: 2
+  ],
+  name: 'HnnCodecError'
+}
+
+The above error occurred in the <InitialValidator> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, InitialValidationBoundary.
+
+
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 最低呈现 > StrictMode setup-cleanup-setup 后销毁弃用会话且当前会话可编辑 33ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 最低呈现 > loadKey encoder 区分字符串、-0 与 0，并拒绝非有限数字 1ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 最低呈现 > -0 到 0 的 loadKey 变化会重建会话 37ms
+stderr | src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 最低呈现 > A→合法 C 的 layout 提交紧邻无效 D 时，活跃 session 完整归属 accepted C
+HnnCodecError: /data/content/0: unknown 不允许作为 doc 的子节点; /data/content/0/type: 不支持的节点 unknown
+    at validateShell (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/src/lib/hnn/codec.ts:800:47)
+    at decodeHnn (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/src/lib/hnn/codec.ts:832:21)
+    at InitialValidator (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/src/lib/editor/NoteEditor.tsx:142:52)
+    at Object.react_stack_bottom_frame (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+    at renderWithHooks (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+    at updateFunctionComponent (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+    at beginWork (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:11778:18)
+    at runWithFiberInDEV (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+    at performUnitOfWork (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+    at workLoopSync (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41) {
+  [stack]: [Getter/Setter],
+  [message]: '/data/content/0: unknown 不允许作为 doc 的子节点; /data/content/0/type: 不支持的节点 unknown',
+  diagnostics: [
+    {
+      path: '/data/content/0',
+      code: 'invalid-nesting',
+      message: 'unknown 不允许作为 doc 的子节点'
+    },
+    {
+      path: '/data/content/0/type',
+      code: 'unknown-node',
+      message: '不支持的节点 unknown'
+    },
+    [length]: 2
+  ],
+  name: 'HnnCodecError'
+}
+
+The above error occurred in the <InitialValidator> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, InitialValidationBoundary.
+
+
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 最低呈现 > 无效 B 只通知一次候选回调，A 的会话和 callbacks 保持到合法 C 切换 73ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 最低呈现 > A→合法 C 的 layout 提交紧邻无效 D 时，活跃 session 完整归属 accepted C 49ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 标准块呈现（Phase 6.1） > 段落、标题、列表、任务列表、引用、代码、表格全部以可编辑 DOM 呈现 53ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 标准块呈现（Phase 6.1） > theme 始终输出显式 light/dark 修饰类且只切换类名，不重建会话 35ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 标准块呈现（Phase 6.1） > 每种标准块的编辑都经会话编码为合法 HNN，保存快照可无损回读 81ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 标准块控件（Phase 6.1 Gate） > blockquote NodeView：正文 contentDOM 可编辑，署名输入一次事务持久化并可一步撤销，保存重载保留 40ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 标准块控件（Phase 6.1 Gate） > blockquote NodeView：紧邻正文输入后的署名提交是独立 undo step，一步 undo 只撤署名 21ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 标准块控件（Phase 6.1 Gate） > blockquote NodeView：连续署名提交各自成为独立 undo step 21ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 标准块控件（Phase 6.1 Gate） > codeBlock NodeView：语言 combobox、文件名 textbox 与安全高亮层，控件单事务持久化，保存重载保留 54ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 标准块控件（Phase 6.1 Gate） > codeBlock NodeView 回显 schema 外的持久化语言值 17ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 标准块控件（Phase 6.1 Gate） > table NodeView：边缘 + 在逻辑末边界添加行/列，单事务可撤销，保存重载保留 56ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 标准块控件（Phase 6.1 Gate） > table NodeView：行/列操作菜单 in-menu 两步删除，作用于当前选区所在逻辑行/列 44ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 标准块控件（Phase 6.1 Gate） > table NodeView：确认态随焦点离开条目、菜单关闭或其它菜单操作复位（无超时设计） 37ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 标准块控件（Phase 6.1 Gate） > table NodeView：确认期间选区移动关闭菜单，重开后首次点击只重新 arm、绝不删除新目标（行/列对称） 30ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 标准块控件（Phase 6.1 Gate） > table NodeView：Escape、外部 pointerdown、scroll、resize 均关闭菜单并取消删除确认 26ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 标准块控件（Phase 6.1 Gate） > table NodeView：destroy 关闭菜单并移除全部取消监听器与控件 DOM（无确认定时器） 22ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 标准块控件（Phase 6.1 Gate） > table NodeView：选区不在本表格时行列操作控件隐藏，进入本表后常驻 21ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 标准块控件（Phase 6.1 Gate） > table NodeView：colspan 单元格按 TableMap 逻辑宽度计算菜单禁用态 24ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 标准块控件（Phase 6.1 Gate） > table NodeView：删除选区所在逻辑列会正确收缩跨列单元格 24ms
+stderr | src/lib/editor/NoteDocumentProvider.test.tsx > mounts without randomUUID and preserves shared history, drafts, leases and the save barrier
+linkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+
+stderr | src/lib/editor/NoteDocumentProvider.test.tsx > mounts without randomUUID and preserves shared history, drafts, leases and the save barrier
+linkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 标准块控件（Phase 6.1 Gate） > table NodeView：达到 HNN_TABLE_LIMITS 边界时 + 不显现、菜单插入项禁用并注明原因 95ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 标准块控件（Phase 6.1 Gate） > table NodeView：紧邻单元格输入后的表格操作是独立 undo step，一步 undo 只撤结构 28ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 标准块控件（Phase 6.1 Gate） > table NodeView：单行单列时菜单删除行/列入口禁用并注明原因 20ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > callout NodeView：色调 combobox 与标题 textbox 单事务持久化、独立 undo，正文可编辑，保存重载保留 39ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > collapsible NodeView：折叠开关 aria-expanded 与标题独立持久化，折叠隐藏正文，保存重载保留 40ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > formula NodeView：预览按钮打开弹出编辑器，草稿即时预览，Escape 提交并还原焦点，保存重载保留 51ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > formula NodeView：恶意 latex 只以文本呈现，不产生任何注入元素 27ms
+ ✓ src/lib/editor/NoteDocumentProvider.test.tsx > mounts without randomUUID and preserves shared history, drafts, leases and the save barrier 430ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > inlineFormula NodeView：行内原子随文呈现，点击打开编辑器提交 latex，undo 单步 33ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > picture NodeView：安全 src 渲染 img，alt textbox 持久化并同步 img alt，undo 单步 19ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > picture NodeView：运行时被写入不安全 src 时不落 img src，只显占位 20ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > card Drawer：打开即为临时草稿，编辑与取消/Escape/backdrop 全程零事务，关闭还原焦点 109ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > card Drawer：合法完成恰好单事务并 canonical 持久化，undo/redo 独立步，保存重载保留 45ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > card Drawer：增删卡片与预算展示，删除时清理引用保持可提交 35ms
+ ✓ src/lib/editor/NoteDocumentProvider.test.tsx > formal root Provider/View lifecycle > routes real NodeView control .hn-editor-callout-title through peer history 269ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > card Drawer：原始/转义超 attr 预算与整文档 shell 预检失败都不提交，Drawer 保持开启且草稿保留 35ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > card Drawer：非法既有 payload 只读保护，取消原样保留、绝不自动重置 20ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > drawing Drawer：DrawingSurface 草稿零事务，完成单事务 canonical 持久化，undo/redo/保存重载 66ms
+ ✓ src/lib/editor/NoteDocumentProvider.test.tsx > formal root Provider/View lifecycle > routes real NodeView control .hn-editor-collapsible-title through peer history 179ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > drawing Drawer：超限草稿不提交保持开启，非法旧 data 只读保护 54ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > Drawer 随会话卸载清理 portal 与 bridge 注册，新会话可重新打开 45ms
+ ✓ src/lib/editor/NoteDocumentProvider.test.tsx > formal root Provider/View lifecycle > routes real NodeView control .hn-editor-picture-alt through peer history 170ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > 会话切换 A→B：A 已开 Drawer 的 portal/草稿/request/anchor 整体丢弃，不提交 A、不触发旧保存、焦点不回旧 anchor，B 可开新 Drawer 97ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > canonical 默认 payload 的新 card/drawing 节点可直接打开编辑（非只读） 51ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > directory NodeView：只读展示 config 与派生条目，无编辑控件，可整体 NodeSelection 16ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > directory 条目实时派生：heading 增/改/删立即更新，无 heading 时显示空态 24ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > directory 条目绝不持久化：attrs 仅 nodeId/config，保存后重载由 heading 重新派生 32ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > directory 条目点击：纯 DOM 定位/高亮 heading，零 PM 事务、零 history、不置脏 43ms
+ ✓ src/lib/editor/NoteDocumentProvider.test.tsx > formal root Provider/View lifecycle > routes real NodeView control .hn-editor-code-filename through peer history 162ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > directory 高亮生命周期：任意 editor update 先清高亮与 timer 再重派生（fake timer） 57ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > directory 高亮 timer 不越界：删除 directory 或切换 session 后运行 timer 不触旧 DOM 60ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > mention/resource NodeView：宿主引用 pill 如实呈现并携带资源标识，可 NodeSelection 15ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > externalItem NodeView：虚线下划线呈现宿主引用，无内嵌编辑控件，NodeSelection 整块删除 21ms
+ ✓ src/lib/editor/NoteDocumentProvider.test.tsx > formal root Provider/View lifecycle > flushes valid formula portal input before acquiring a lease and preserves undo 194ms
+ ✓ src/lib/editor/NoteDocumentProvider.test.tsx > formal root Provider/View lifecycle > blurs focused NodeView inputs before freezing and retains their change commit 150ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > callout 标题按 UTF-8 字节精确限长：边界值提交，超限零事务、恢复最近持久值并给出可访问错误 16ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > picture 描述超限零事务、恢复最近持久值、给出可访问错误 14ms
+ ✓ src/lib/editor/NoteDocumentProvider.test.tsx > formal root Provider/View lifecycle > retains composing portal .hn-editor-formula-preview and retries the same freeze request after compositionend 203ms
+ ✓ src/lib/editor/NoteDocumentProvider.test.tsx > formal root Provider/View lifecycle > retains composing portal .hn-editor-inline-formula and retries the same freeze request after compositionend 197ms
+stderr | src/lib/editor/NoteDocumentProvider.test.tsx > formal root Provider/View lifecycle > edits through native DOM in both views and reopens without losing the shared stack
+linkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+
+stderr | src/lib/editor/NoteDocumentProvider.test.tsx > formal root Provider/View lifecycle > edits through native DOM in both views and reopens without losing the shared stack
+linkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+
+ ✓ src/lib/editor/NoteDocumentProvider.test.tsx > formal root Provider/View lifecycle > cleans up a composing formula portal on teardown without committing incomplete input 114ms
+ ✓ src/lib/editor/NoteDocumentProvider.test.tsx > formal root Provider/View lifecycle > edits through native DOM in both views and reopens without losing the shared stack 72ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > formula 编辑器：latex 超限时关闭不提交，预览恢复持久值，文档保持可保存 227ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > 有效修改后清空 title/alt 恢复最近持久值而非初始值 44ms
+ ✓ src/lib/editor/NoteDocumentProvider.test.tsx > formal root Provider/View lifecycle > ignores same-key initial props, refuses dirty replacement, and replaces only after save 59ms
+ ✓ src/lib/editor/NoteDocumentProvider.test.tsx > formal root Provider/View lifecycle > reports strict load error without creating an editor or saveable fallback 3ms
+ ✓ src/lib/editor/NoteDocumentProvider.test.tsx > formal root Provider/View lifecycle > synchronous React unmount during acquire notification returns abort/null 41ms
+ ✓ src/lib/editor/NoteDocumentProvider.test.tsx > formal root Provider/View lifecycle > synchronous React unmount during release notification returns abort/null 38ms
+stderr | src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > card 取消 resumes autosave of accepted body without saving discarded draft edits
+linkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+
+stderr | src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > card 取消 resumes autosave of accepted body without saving discarded draft edits
+linkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > formula 编辑器：latex 双重限制与 strict codec 精确等价——转义后 JSON 字节恰好 8192 提交并可保存，多一字符零事务 597ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > callout 标题多字节类别精确计数：emoji 边界、控制字符、连续未配对低代理项 19ms
+ ✓ src/lib/editor/NoteEditor.test.tsx > 内部 NoteEditor 自定义块界面（Phase 6.2/6.3） > 清空 title/alt/latex 是失败提交：写可访问错误、恢复最近持久值、零事务、会话仍可保存 67ms
+ ✓ src/lib/editor/NoteDocumentProvider.test.tsx > formal root Provider/View lifecycle > survives React StrictMode effect replay and disposes the live controller on unmount 68ms
+ ✓ src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > card 取消 resumes autosave of accepted body without saving discarded draft edits 85ms
+stderr | src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > drawing 取消 resumes autosave of accepted body without saving discarded draft edits
+linkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+
+stderr | src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > drawing 取消 resumes autosave of accepted body without saving discarded draft edits
+linkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+
+stderr | src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > card 完成 resumes autosave of accepted body without saving discarded draft edits
+linkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+
+stderr | src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > card 完成 resumes autosave of accepted body without saving discarded draft edits
+linkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+
+ ✓ src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > drawing 取消 resumes autosave of accepted body without saving discarded draft edits 84ms
+stderr | src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > drawing 完成 resumes autosave of accepted body without saving discarded draft edits
+linkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+
+stderr | src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > drawing 完成 resumes autosave of accepted body without saving discarded draft edits
+linkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+
+ ✓ src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > card 完成 resumes autosave of accepted body without saving discarded draft edits 72ms
+ ✓ src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > drawing 完成 resumes autosave of accepted body without saving discarded draft edits 75ms
+ ✓ src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > retains invalid card payload and restores owner focus after cancellation 61ms
+ ✓ src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > card locks both body views, blocks save/detach and survives freeze 59ms
+ ✓ src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > drawing locks both body views, blocks save/detach and survives freeze 58ms
+ ✓ src/lib/editor/NoteDocumentProvider.test.tsx > formal card/drawing drafts > commits a card once; either pane can undo its completed payload 62ms
+ ✓ src/lib/editor/blockReorder.test.ts > computeInsertionBoundary（垂直中点规则，两端共用） > 按越过中点的块数返回 0..N 的插入边界 3ms
+ ✓ src/lib/editor/blockReorder.test.ts > computeInsertionBoundary（垂直中点规则，两端共用） > 空文档只有边界 0 0ms
+ ✓ src/lib/editor/blockReorder.test.ts > 重排手柄挂载 > 每个顶层块恰好一个 data-drag-handle 手柄，位于所属块之前且不可编辑 78ms
+ ✓ src/lib/editor/blockReorder.test.ts > 重排手柄挂载 > 嵌套列表项与表格内部节点没有手柄，结构上不可独立重排 35ms
+ ✓ src/lib/editor/blockReorder.test.ts > 重排手柄挂载 > 文档变化后手柄仍与顶层块一一对应 19ms
+ ✓ src/lib/editor/blockReorder.test.ts > 重排手柄挂载 > 手柄按下不交给 ProseMirror，原生上下文菜单放行 15ms
+ ✓ src/lib/editor/blockReorder.test.ts > reorderTopLevelBlock 提交 > 移动首块到末尾：顺序改变、nodeId 保留、恰好一个 transaction 由一次撤销还原 24ms
+ ✓ src/lib/editor/blockReorder.test.ts > reorderTopLevelBlock 提交 > 移动末块到最前与中间块换位 25ms
+ ✓ src/lib/editor/blockReorder.test.ts > reorderTopLevelBlock 提交 > 移动后整块处于 NodeSelection，标出落点 17ms
+ ✓ src/lib/editor/blockReorder.test.ts > reorderTopLevelBlock 提交 > 非法或原地重排是 no-op：fromIndex 越界 16ms
+ ✓ src/lib/editor/blockReorder.test.ts > reorderTopLevelBlock 提交 > 非法或原地重排是 no-op：fromIndex 超出块数 18ms
+ ✓ src/lib/editor/blockReorder.test.ts > reorderTopLevelBlock 提交 > 非法或原地重排是 no-op：boundary 为负 11ms
+ ✓ src/lib/editor/blockReorder.test.ts > reorderTopLevelBlock 提交 > 非法或原地重排是 no-op：boundary 超出块数 10ms
+ ✓ src/lib/editor/blockReorder.test.ts > reorderTopLevelBlock 提交 > 非法或原地重排是 no-op：原地放置（boundary === fromIndex） 10ms
+ ✓ src/lib/editor/blockReorder.test.ts > reorderTopLevelBlock 提交 > 非法或原地重排是 no-op：原地放置（boundary === fromIndex + 1） 11ms
+ ✓ src/lib/editor/blockReorder.test.ts > reorderTopLevelBlock 提交 > 非法或原地重排是 no-op：fromIndex 为 NaN 13ms
+ ✓ src/lib/editor/blockReorder.test.ts > reorderTopLevelBlock 提交 > 非法或原地重排是 no-op：fromIndex 为小数 13ms
+ ✓ src/lib/editor/blockReorder.test.ts > reorderTopLevelBlock 提交 > 非法或原地重排是 no-op：fromIndex 为 -Infinity 12ms
+ ✓ src/lib/editor/blockReorder.test.ts > reorderTopLevelBlock 提交 > 非法或原地重排是 no-op：boundary 为 NaN 13ms
+ ✓ src/lib/editor/blockReorder.test.ts > reorderTopLevelBlock 提交 > 非法或原地重排是 no-op：boundary 为小数 13ms
+ ✓ src/lib/editor/blockReorder.test.ts > reorderTopLevelBlock 提交 > 非法或原地重排是 no-op：boundary 为 Infinity 11ms
+ ✓ src/lib/editor/blockReorder.test.ts > reorderTopLevelBlock 提交 > closeHistory 令重排与紧邻正文输入切分为独立 undo step 22ms
+ ✓ src/lib/editor/blockReorder.test.ts > reorderTopLevelBlock 提交 > 重排后紧随的相邻输入另起 undo 组：第一步撤销只回退输入，顺序保持重排态 13ms
+ ✓ src/lib/editor/blockReorder.test.ts > reorderTopLevelBlock 提交 > 表格等 atom 顶层块同样可整体移动，文档保持合法 20ms
+ ✓ src/lib/editor/blockReorder.test.ts > 只读模式（view.editable = false） > 程序化重排被拒绝：不 throw、零事务；恢复可编辑后可用 14ms
+ ✓ src/lib/editor/blockReorder.test.ts > 只读模式（view.editable = false） > 手柄不启动手势、不劫持指针事件，selection 不受影响 12ms
+ ✓ src/lib/editor/blockReorder.test.ts > 只读模式（view.editable = false） > 触摸长按不挂起：500ms 后无激活、无事务 71ms
+ ✓ src/lib/editor/blockReorder.test.ts > 桌面原生拖拽（draggable + data-drag-handle） > 代码块预览保留当前语言、文件名与代码文本 29ms
+ ✓ src/lib/editor/blockReorder.test.ts > 桌面原生拖拽（draggable + data-drag-handle） > 拖拽图是无手柄的独立块副本，保留内容和抓取偏移，下一任务移除且不污染文档 26ms
+ ✓ src/lib/editor/blockReorder.test.ts > 桌面原生拖拽（draggable + data-drag-handle） > 预览在 dragend 路径同步清理 22ms
+ ✓ src/lib/editor/blockReorder.test.ts > 桌面原生拖拽（draggable + data-drag-handle） > 预览在 destroy 路径同步清理 21ms
+ ✓ src/lib/editor/blockReorder.test.ts > 桌面原生拖拽（draggable + data-drag-handle） > 预览在 throw 路径同步清理 13ms
+ ✓ src/lib/editor/blockReorder.test.ts > 桌面原生拖拽（draggable + data-drag-handle） > dragstart → dragover 预览 → drop 提交，恰好一个 transaction，PM 原生 drop 被抑制 28ms
+ ✓ src/lib/editor/blockReorder.test.ts > 桌面原生拖拽（draggable + data-drag-handle） > dragend 取消（未 drop）不产生事务并清理瞬态 16ms
+ ✓ src/lib/editor/blockReorder.test.ts > 桌面原生拖拽（draggable + data-drag-handle） > 拖出编辑区时清除预览，外部 drop 不提交 14ms
+ ✓ src/lib/editor/blockReorder.test.ts > 桌面原生拖拽（draggable + data-drag-handle） > 无激活手势的滞留重排 MIME drop 被吞掉：文档、选区、历史均不动 11ms
+ ✓ src/lib/editor/blockReorder.test.ts > 桌面原生拖拽（draggable + data-drag-handle） > 不携带重排 MIME 的外部 drop（如未来图片拖入）不归重排认领，完整交还 PM 12ms
+ ✓ src/lib/editor/blockReorder.test.ts > 桌面原生拖拽（draggable + data-drag-handle） > dragover 越过中点切换到相邻边界 17ms
+ ✓ src/lib/editor/blockReorder.test.ts > 桌面原生拖拽（draggable + data-drag-handle） > 末块 before/after 指示在同一 DOM 上正确切换（same-dom 早退回归） 16ms
+ ✓ src/lib/editor/blockReorder.test.ts > 桌面原生拖拽（draggable + data-drag-handle） > drop 以自身 clientY 刷新落点，不沿用最后一次 dragover 的边界 20ms
+ ✓ src/lib/editor/blockReorder.test.ts > 桌面原生拖拽（draggable + data-drag-handle） > active 拖拽期间前序块被外部删除：手势取消，drop 不提交错块 16ms
+ ✓ src/lib/editor/blockReorder.test.ts > 移动端 Pointer Events 手柄长按 500ms > 长按激活后拖动提交；激活后禁止原生滚动与文本选择 20ms
+ ✓ src/lib/editor/blockReorder.test.ts > 移动端 Pointer Events 手柄长按 500ms > 500ms 前抬起取消挂起，文档与历史不受影响 15ms
+ ✓ src/lib/editor/blockReorder.test.ts > 移动端 Pointer Events 手柄长按 500ms > 激活前位移超过 slop 即取消，保留原生滚动手势 12ms
+ ✓ src/lib/editor/blockReorder.test.ts > 移动端 Pointer Events 手柄长按 500ms > pointercancel（浏览器接管滚动）取消挂起；其他 pointerId 不干扰 12ms
+ ✓ src/lib/editor/blockReorder.test.ts > 移动端 Pointer Events 手柄长按 500ms > 激活后 pointercancel 只清理瞬态，绝不提交 14ms
+ ✓ src/lib/editor/providerUploads.test.tsx > hot enables/removes/re-enables upload and uses replacement handlers only for future attempts 190ms
+ ✓ src/lib/editor/providerUploads.test.tsx > commits once through authority, maps anchors and supports independent adjacent edits and cross-view undo/redo 42ms
+ ✓ src/lib/editor/providerUploads.test.tsx > preserves batch order when same-anchor files finish out of order 53ms
+ ✓ src/lib/editor/providerUploads.test.tsx > keeps a rejected authoritative commit retryable instead of reporting a false completion 46ms
+ ✓ src/lib/editor/providerUploads.test.tsx > aborts on cancel and ignores a host that resolves late 39ms
+ ✓ src/lib/editor/providerUploads.test.tsx > aborts on detach and ignores a host that resolves late 54ms
+ ✓ src/lib/editor/providerUploads.test.tsx > aborts on remove and ignores a host that resolves late 37ms
+ ✓ src/lib/editor/providerUploads.test.tsx > aborts on dispose and ignores a host that resolves late 34ms
+ ✓ src/lib/editor/blockReorder.test.ts > 移动端 Pointer Events 手柄长按 500ms > 鼠标 pointerdown 不进入长按路径（桌面走原生拖拽） 12ms
+ ✓ src/lib/editor/blockReorder.test.ts > 移动端 Pointer Events 手柄长按 500ms > 挂起中销毁会话：计时器与 document 监听全部清理 14ms
+ ✓ src/lib/editor/blockReorder.test.ts > 移动端 Pointer Events 手柄长按 500ms > pending 长按期间前序块被外部插入：不再激活，释放不提交 18ms
+ ✓ src/lib/editor/blockReorder.test.ts > 移动端 Pointer Events 手柄长按 500ms > active 指针拖拽期间源块被外部删除：释放不提交且瞬态清理 26ms
+ ✓ src/lib/editor/blockReorder.test.ts > 移动端 Pointer Events 手柄长按 500ms > 拖拽中销毁会话：不提交、不抛错 12ms
+ ✓ src/lib/editor/providerUploads.test.tsx > aborts on anchor and ignores a host that resolves late 53ms
+ ✓ src/lib/editor/blockReorder.test.ts > 拖拽视觉：PM 装饰持续性与事务零扰动（bug-7.5-2 回归） > 桌面拖拽：真实停留 250ms 后预览与源高亮仍在；无关 transaction 不再抹除；doc/selection/history 零扰动 274ms
+ ✓ src/lib/editor/blockReorder.test.ts > 拖拽视觉：PM 装饰持续性与事务零扰动（bug-7.5-2 回归） > 移动端指针拖拽：激活后停留 250ms 预览仍在，pointerup 提交单历史步 35ms
+ ✓ src/lib/editor/blockReorder.test.ts > 重排持久化 > 重排后的顺序与 nodeId 写入 HNN，重载后顺序保留 20ms
+ ✓ src/lib/editor/blockReorder.test.ts > 重排持久化 > 重排触发 onChange 快照，宿主可据此保存 10ms
+ ✓ src/lib/editor/blockReorder.test.ts > 重排持久化 > 重排产生的 NodeSelection 不属于持久内容 10ms
+ ✓ src/lib/editor/providerUploads.test.tsx > save excludes all upload state; freeze rejects pending/failed without consuming requestId, and queue entry blocks new work 148ms
+ ✓ src/lib/editor/providerUploads.test.tsx > defers successful upload during card draft and commits once after close with separate history 37ms
+ ✓ src/lib/editor/providerUploads.test.tsx > defers successful upload during drawing draft and commits once after close with separate history 27ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > leaves a focused block's collapsed cursor and native selection alone (touch) 40ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > leaves a focused block's collapsed cursor and native selection alone (pen) 39ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > drags an unfocused target even when another block has focus and pointerdown then naturally focuses the target 35ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > a blurred view's retained cursor does not prevent dragging that block 21ms
+ ✓ src/lib/editor/providerUploads.test.tsx > cleans deferred result on cancel and a never-settling upload releases replacement gate 30ms
+ ✓ src/lib/editor/providerUploads.test.tsx > cleans deferred result on detach and a never-settling upload releases replacement gate 24ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > treats text nested in the focused top-level block as native selection 30ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > allows native contextmenu before, during pending/active and after the gesture 15ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > prevents selection from pointerdown through active without changing pending scroll/click behavior 14ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > keeps native editing focus suppressed through an unfocused hold and drop 37ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > restores the tapped caret and editing focus when a body touch ends before 500ms 20ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > allows editing focus again immediately after a pending hold moves into native scrolling 18ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > restores pending selection behavior after up 20ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > restores pending selection behavior after cancel 12ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > restores pending selection behavior after move 11ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > restores pending selection behavior after second 11ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > restores pending selection behavior after freeze 12ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > restores pending selection behavior after breakpoint 12ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > restores pending selection behavior after doc 17ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > restores pending selection behavior after unmount 16ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > does not let a retained nonempty other selection kill an unfocused target hold 23ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > does not let a retained nonempty blurred selection kill an unfocused target hold 22ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > releases selection protection if composition starts before activation 12ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > does not clear a selection outside the view during pending 10ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > activates at 500ms with exactly 10px tolerance and uses final up coordinates 16ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > pending move cancels with zero document changes 14ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > pending up cancels with zero document changes 17ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > pending cancel cancels with zero document changes 12ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > pending second cancels with zero document changes 19ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > vibration missing never blocks dragging 15ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > vibration false never blocks dragging 14ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > vibration throws never blocks dragging 19ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > active cancel clears visuals and never reorders 15ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > active second clears visuals and never reorders 12ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > active freeze clears visuals and never reorders 14ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > active breakpoint clears visuals and never reorders 14ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > active doc clears visuals and never reorders 14ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > active unmount clears visuals and never reorders 12ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > active same clears visuals and never reorders 22ms
+ ✓ src/lib/editor/blockReorder.test.ts > mobile body hold and cancellation contract > prioritizes focused ranges, composition and interactive descendants 33ms
+ ✓ src/lib/editor/providerUploads.test.tsx > public UI supports throw failure, accessible retry, stable identity and cancel/late isolation 350ms
+ ✓ src/lib/editor/providerUploads.test.tsx > public UI supports reject failure, accessible retry, stable identity and cancel/late isolation 266ms
+ ✓ src/lib/editor/providerUploads.test.tsx > public UI supports unsafe failure, accessible retry, stable identity and cancel/late isolation 239ms
+ ✓ src/lib/editor/providerUploads.test.tsx > real card portal cancellation commits the deferred upload once 187ms
+ ✓ src/lib/editor/providerUploads.test.tsx > real drawing portal cancellation commits the deferred upload once 191ms
+ ✓ src/lib/editor/providerUploads.test.tsx > public no-upload behavior, image paste, internal drag guard and legal session replacement isolate old results 265ms
+ ✓ src/lib/editor/pictureUpload.test.ts > 6.7 picture upload installer（headless 核心） > 占位为 Decoration.widget：状态/文件/uploadId/attempt 只进内存桥，不进入 HNN 90ms
+ ✓ src/lib/editor/pictureUpload.test.ts > 6.7 picture upload installer（headless 核心） > 成功后仅一个 doc transaction 写入 picture，且 undo 隔离前后输入 40ms
+ ✓ src/lib/editor/pictureUpload.test.ts > 6.7 picture upload installer（headless 核心） > 锚点随编辑映射：前序输入插入后，picture 落在映射后的位置 24ms
+ ✓ src/lib/editor/pictureUpload.test.ts > 6.7 picture upload installer（headless 核心） > retry 保持 uploadId 不变、attempt 递增，且每次尝试使用独立 AbortSignal 21ms
+ ✓ src/lib/editor/pictureUpload.test.ts > 6.7 picture upload installer（headless 核心） > cancel 中止上传、移除占位且宿主随后返回也不写入文档 21ms
+ ✓ src/lib/editor/pictureUpload.test.ts > 6.7 picture upload installer：失败/取消/陈旧与坐标边界 > destroy 后即使宿主忽略 abort，陈旧结果也被丢弃且不写文档 20ms
+ ✓ src/lib/editor/pictureUpload.test.ts > 6.7 picture upload installer：失败/取消/陈旧与坐标边界 > 不安全协议或超预算的宿主返回不写坏文档，占位保持可重试的失败态 17ms
+ ✓ src/lib/editor/pictureUpload.test.ts > 6.7 picture upload installer：失败/取消/陈旧与坐标边界 > 超预算的宿主 src 不写坏文档且保持失败态 13ms
+ ✓ src/lib/editor/pictureUpload.test.ts > 6.7 picture upload installer：失败/取消/陈旧与坐标边界 > maxFileBytes 超限立即失败且不调用宿主 12ms
+ ✓ src/lib/editor/pictureUpload.test.ts > 6.7 picture upload installer：失败/取消/陈旧与坐标边界 > 用户编辑删除占位锚点时中止上传并清理 16ms
+ ✓ src/lib/editor/pictureUpload.test.ts > 6.7 picture upload installer：失败/取消/陈旧与坐标边界 > 非图片文件（Markdown/HNN）一律不读取、不入队 13ms
+ ✓ src/lib/editor/pictureUpload.test.ts > 6.7 picture upload installer：paste / drop 拦截 > 粘贴图片文件被消费并入队，不插入文档且与原生 clipboard 兼容 14ms
+ ✓ src/lib/editor/pictureUpload.test.ts > 6.7 picture upload installer：paste / drop 拦截 > 拖入图片文件按 posAtCoords 入队；坐标失败或内部拖拽均不入队、不 fallback 0 35ms
+ ✓ src/lib/editor/pictureUpload.test.ts > 6.7 picture upload installer：paste / drop 拦截 > 内部原子拖拽不产生上传占位（NodeSelection 路径保持原生） 13ms
+ ✓ src/lib/editor/pictureUpload.test.ts > 6.7 picture upload installer：审查修复回归 > 内部 copy 拖拽（moved=false 但 view.dragging 存在）不上传；坐标失败也不吞掉重排 25ms
+ ✓ src/lib/editor/blockMenu.test.ts > 打开/关闭与手柄激活态（DESIGN.md §9） > 点击手柄打开 role=menu 菜单：可访问名称、手柄 aria-expanded 与 menu-open 激活态 97ms
+ ✓ src/lib/editor/blockMenu.test.ts > 打开/关闭与手柄激活态（DESIGN.md §9） > 再次点击同一手柄 toggle 关闭：焦点归还手柄、激活态与 aria-expanded 复位 21ms
+ ✓ src/lib/editor/blockMenu.test.ts > 打开/关闭与手柄激活态（DESIGN.md §9） > 键盘 Enter 打开菜单 17ms
+ ✓ src/lib/editor/blockMenu.test.ts > 打开/关闭与手柄激活态（DESIGN.md §9） > 键盘   打开菜单 18ms
+ ✓ src/lib/editor/blockMenu.test.ts > 打开/关闭与手柄激活态（DESIGN.md §9） > 键盘 ArrowDown 打开菜单 18ms
+ ✓ src/lib/editor/blockMenu.test.ts > 打开/关闭与手柄激活态（DESIGN.md §9） > Escape 关闭菜单并把焦点归还手柄，激活态复位 18ms
+ ✓ src/lib/editor/blockMenu.test.ts > 打开/关闭与手柄激活态（DESIGN.md §9） > 激活另一手柄：旧菜单关闭、新菜单打开（同一时间至多一个菜单） 22ms
+ ✓ src/lib/editor/blockMenu.test.ts > 打开/关闭与手柄激活态（DESIGN.md §9） > 只读会话：点击与键盘激活都不打开菜单 16ms
+ ✓ src/lib/editor/blockMenu.test.ts > 打开/关闭与手柄激活态（DESIGN.md §9） > 拖拽手势结束后的残余 click 被抑制，不误开菜单；下一次真实点击正常打开 90ms
+ ✓ src/lib/editor/blockMenu.test.ts > 上移/下移：键盘可用的重排通道（D9） > 首块禁用上移、末块禁用下移，均注明原因 18ms
+ ✓ src/lib/editor/blockMenu.test.ts > 上移/下移：键盘可用的重排通道（D9） > 下移与拖拽共享同一提交入口：顺序变化、nodeId 保留、一次撤销还原 20ms
+ ✓ src/lib/editor/blockMenu.test.ts > 上移/下移：键盘可用的重排通道（D9） > 上移末块到中间：一次撤销还原 20ms
+ ✓ src/lib/editor/blockMenu.test.ts > 上移/下移：键盘可用的重排通道（D9） > 菜单打开期间文档被外部修改：条目激活瞬间重新解析，仍作用于原块 23ms
+ ✓ src/lib/editor/blockMenu.test.ts > 安全转换（不可丢复合内容，不适用禁用） > 段落转换为标题 2：类型与 level 变化、nodeId 保留、一次撤销还原 22ms
+ ✓ src/lib/editor/pictureUpload.test.ts > 6.7 picture upload installer：审查修复回归 > 预算预检（节点上限）拒绝时不 dispatch、不影响其它 pending upload 526ms
+ ✓ src/lib/editor/pictureUpload.test.ts > 6.7 picture upload installer：审查修复回归 > failed 占位的锚点被删除时同样清理记录，retry 不再可用 15ms
+ ✓ src/lib/editor/pictureUpload.test.ts > 6.7 picture upload installer：审查修复回归 > 超限文件 retry 重新校验限额，绝不调用宿主 10ms
+ ✓ src/lib/editor/pictureUpload.test.ts > 6.7 picture upload installer：审查修复回归 > 同位置多个 pending 相邻插入：位置合法、ID 唯一、各自一次 undo 16ms
+ ✓ src/lib/editor/pictureUpload.test.ts > 6.7 picture upload installer：审查修复回归 > 占位删除通知延后到 plugin apply 之外，subscriber 重入 dispatch 安全 12ms
+ ✓ src/lib/editor/blockMenu.test.ts > 安全转换（不可丢复合内容，不适用禁用） > 当前类型项禁用并注明“当前已是该类型” 17ms
+ ✓ src/lib/editor/blockMenu.test.ts > 安全转换（不可丢复合内容，不适用禁用） > 表格复合块可展平转文本并提示损失，也可无损包裹引用 24ms
+ ✓ src/lib/editor/blockMenu.test.ts > 引用转换（HAM-133） > paragraph 整体包裹，保留子节点身份和光标，一步撤销/重做并可重载 41ms
+ ✓ src/lib/editor/blockMenu.test.ts > 引用转换（HAM-133） > heading 整体包裹，保留子节点身份和光标，一步撤销/重做并可重载 27ms
+ ✓ src/lib/editor/pictureUpload.test.ts > PR11 #5：图片批量选择顺序不受网络完成顺序影响 > 后项先完成但超预算时不重排/移除前项锚点、不触发 abort 429ms
+ ✓ src/lib/editor/pictureUpload.test.ts > PR11 #5：图片批量选择顺序不受网络完成顺序影响 > a,b,c 逆序完成时即刻插入成功项，最终按选择顺序排列且各自单步 undo 31ms
+ ✓ src/lib/editor/pictureUpload.test.ts > PR11 #5：图片批量选择顺序不受网络完成顺序影响 > 前项失败后后项成功，用户编辑后 retry 仍插到后项前并保持 attempt 14ms
+ ✓ src/lib/editor/pictureUpload.test.ts > PR11 #5：图片批量选择顺序不受网络完成顺序影响 > 取消中间项不阻塞其余项，迟到结果不能插入或扰乱顺序 13ms
+ ✓ src/lib/editor/pictureUpload.test.ts > PR11 #5：图片批量选择顺序不受网络完成顺序影响 > 不同批次同位置逆序完成，仍按批次入队顺序排列 19ms
+ ✓ src/lib/editor/pictureUpload.test.ts > PR11 #5：图片批量选择顺序不受网络完成顺序影响 > 撤销先完成的后项后，前项锚点仍可定位，不恢复上传临时态 12ms
+ ✓ src/lib/editor/blockMenu.test.ts > 引用转换（HAM-133） > codeBlock 整体包裹，保留子节点身份和光标，一步撤销/重做并可重载 40ms
+ ✓ src/lib/editor/blockMenu.test.ts > 引用转换（HAM-133） > 包裹保留 marks、引用和公式等内联 atom，菜单期间新增的内容也完整保留 31ms
+ ✓ src/lib/editor/blockMenu.test.ts > 引用转换（HAM-133） > 增加引用外层超出512节点预算时零文档/选区/历史/dirty变更 364ms
+ ✓ src/lib/editor/blockMenu.test.ts > 引用转换（HAM-133） > 激活时变成只读则拒绝转换，引用不重复包裹 20ms
+ ✓ src/lib/editor/blockMenu.test.ts > 转换无损与预算（oracle 7.5 回归） > 代码块目标拒收 marks/内联 atom：link/bold/inlineFormula/mention/resource/hardBreak 均禁用并注明；纯文本可用 94ms
+ ✓ src/lib/editor/blockMenu.test.ts > 转换无损与预算（oracle 7.5 回归） > 菜单打开后外部把段落改为含内联 atom：转换为代码块激活实时复核拒绝，零 doc/selection/history/dirty 16ms
+ ✓ src/lib/editor/blockMenu.test.ts > 转换无损与预算（oracle 7.5 回归） > codeBlock 257 行转正文：最终候选展开超 512 节点，激活预算拒绝且零变更 47ms
+ ✓ src/lib/editor/blockMenu.test.ts > 转换无损与预算（oracle 7.5 回归） > 接近节点预算（512）时插入表格/公式预检拒绝：零变更、无历史 335ms
+ ✓ src/lib/editor/blockMenu.test.ts > 转换无损与预算（oracle 7.5 回归） > 转换后同 tick 立即输入独立 undo：一次撤销只撤输入，再撤销才还原转换 16ms
+ ✓ src/lib/editor/blockMenu.test.ts > 适用插入 > 插入表格：落在当前块之后，一次撤销还原 22ms
+ ✓ src/lib/editor/blockMenu.test.ts > 适用插入 > 插入公式：落在当前块之后，一次撤销还原 16ms
+ ✓ src/lib/editor/blockMenu.test.ts > 适用插入 > 宿主未提供上传能力：插入图片禁用并注明原因 10ms
+ ✓ src/lib/editor/blockMenu.test.ts > 适用插入 > 宿主提供上传能力：激活走与 picker 相同的 hidden input → enqueue 通道 67ms
+ ✓ src/lib/editor/blockMenu.test.ts > 只读守卫（double-guard） > 只读会话直接调用 openBlockMenu 返回 null，不产生任何菜单 10ms
+ ✓ src/lib/editor/blockMenu.test.ts > 只读守卫（double-guard） > 块已失效（getPos 无解析）时返回 null，不打开菜单 9ms
+ ✓ src/lib/editor/blockMenu.test.ts > 复合块显式展平（HAM-133） > 'blockquote' 展平保留外层ID，去标记/属性且单步撤销重做、可编码 19ms
+ ✓ src/lib/editor/blockMenu.test.ts > 复合块显式展平（HAM-133） > 'callout' 展平保留外层ID，去标记/属性且单步撤销重做、可编码 19ms
+ ✓ src/lib/editor/blockMenu.test.ts > 复合块显式展平（HAM-133） > 'collapsible' 展平保留外层ID，去标记/属性且单步撤销重做、可编码 19ms
+ ✓ src/lib/editor/blockMenu.test.ts > 复合块显式展平（HAM-133） > 转换为标题 1：标题取第一行，代码保留全部行 10ms
+ ✓ src/lib/editor/blockMenu.test.ts > 复合块显式展平（HAM-133） > 转换为代码块：标题取第一行，代码保留全部行 11ms
+ ✓ src/lib/editor/blockMenu.test.ts > 复合块显式展平（HAM-133） > hardBreak和内联名称/公式保留可读文本，嵌套列表项按换行合并 14ms
+ ✓ src/lib/editor/blockMenu.test.ts > 复合块显式展平（HAM-133） > 合并后单个文本超8KiB时预算拒绝，文档/选区/历史/dirty零变化 15ms
+ ✓ src/lib/editor/blockMenu.test.ts > 复合块显式展平（HAM-133） > 空复合内容可展平，外部替换同位置但不同身份时旧命令拒绝 10ms
+ ✓ src/lib/editor/documentSession.test.ts > session UUID generation > uses native randomUUID when available 7ms
+ ✓ src/lib/editor/documentSession.test.ts > session UUID generation > sets UUIDv4 version and variant bits on cryptographically random bytes 3ms
+ ✓ src/lib/editor/documentSession.test.ts > session UUID generation > fails with a diagnostic when secure random APIs are unavailable (undefined) 1ms
+ ✓ src/lib/editor/documentSession.test.ts > session UUID generation > fails with a diagnostic when secure random APIs are unavailable ({}) 0ms
+ ✓ src/lib/editor/documentSession.test.ts > formal authority and shared history > synchronizes an equal Select All after undo before pending native selectionchange 191ms
+ ✓ src/lib/editor/documentSession.test.ts > formal authority and shared history > does not take focus from another view for an equal selection command 25ms
+ ✓ src/lib/editor/documentSession.test.ts > formal authority and shared history > routes ABA → AA → original and redo across full editors without remount 34ms
+ ✓ src/lib/editor/documentSession.test.ts > formal authority and shared history > keeps peer selection and stored marks local and clears redo after fresh edits 31ms
+ ✓ src/lib/editor/documentSession.test.ts > formal authority and shared history > retains history after all views detach, using new instance tokens 39ms
+ ✓ src/lib/editor/documentSession.test.ts > formal authority and shared history > rejects stale body transactions atomically and emits once per accepted change 24ms
+ ✓ src/lib/editor/documentSession.test.ts > formal authority and shared history > groups same-view input; focus and metadata do not enter body history 21ms
+ ✓ src/lib/editor/documentSession.test.ts > metadata and save barrier > never reports saved A as success for a subsequently unencodable B 25ms
+ ✓ src/lib/editor/documentSession.test.ts > metadata and save barrier > copies metadata and rejects invalid and non-monotonic snapshots 23ms
+ ✓ src/lib/editor/documentSession.test.ts > metadata and save barrier > joins one barrier, awaits real writes, drains A/M1 then B/M2 serially 125ms
+ ✓ src/lib/editor/documentSession.test.ts > metadata and save barrier > failure retains dirty without automatic retry; explicit retry recovers 17ms
+ ✓ src/lib/editor/documentSession.test.ts > metadata and save barrier > dispose settles inflight writes immediately even when adapter ignores abort 17ms
+ ✓ src/lib/editor/documentSession.test.ts > metadata and save barrier > only the 600ms requestSave timer persists accepted host changes 20ms
+ ✓ src/lib/editor/documentSession.test.ts > metadata and save barrier > stale save leaves the current body autosave deadline intact 19ms
+ ✓ src/lib/editor/documentSession.test.ts > metadata and save barrier > stale save leaves the current metadata autosave deadline intact 23ms
+ ✓ src/lib/editor/documentSession.test.ts > metadata and save barrier > ending card draft does not retry a failed write 22ms
+ ✓ src/lib/editor/documentSession.test.ts > metadata and save barrier > ending drawing draft does not retry a failed write 21ms
+ ✓ src/lib/editor/documentSession.test.ts > metadata and save barrier > ending a draft lets the existing save barrier drain without a second producer 22ms
+ ✓ src/lib/editor/documentSession.test.ts > request-owned freeze and lifecycle > reentrant acquire and failing requests retain independent replacement gates 22ms
+ ✓ src/lib/editor/documentSession.test.ts > request-owned freeze and lifecycle > composition failure can retry the same request after compositionend 24ms
+ ✓ src/lib/editor/documentSession.test.ts > request-owned freeze and lifecycle > pending candidates block acquire; cancelled or completed requests can retry and frozen insertion is rejected 20ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > computeTableDragTarget：中点推进规则 > 指针未过中点→插入目标之前；越过中点→推进到目标之后 4ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > computeTableDragTarget：中点推进规则 > 源在边界之前时落点下标减一；源之后则保持 1ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > computeTableDragTarget：中点推进规则 > 非法输入（越界/非整数/零尺寸）返回 null 1ms
+ ✓ src/lib/editor/documentSession.test.ts > request-owned freeze and lifecycle > validates session first, request bounds, idempotency, ownership and tombstones 21ms
+ ✓ src/lib/editor/documentSession.test.ts > request-owned freeze and lifecycle > returns abort/null when acquire notification synchronously disposes 17ms
+ ✓ src/lib/editor/documentSession.test.ts > request-owned freeze and lifecycle > returns abort/null when release notification synchronously disposes 17ms
+ ✓ src/lib/editor/documentSession.test.ts > request-owned freeze and lifecycle > queued acquire parameters are copied and replacement remains blocked at release boundary 19ms
+ ✓ src/lib/editor/documentSession.test.ts > request-owned freeze and lifecycle > freezes metadata/body/undo, preserves accepted content and aborts queued work 32ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：边界 + 控件 > hover 单元格显现四边 +；首行无上边界 +、首列无左边界 +（§10 边界归属规则） 98ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：边界 + 控件 > 点击下边界 + 在该行之后插入行；点击右边界 + 在该列之后插入列；各为单历史步 46ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：边界 + 控件 > colspan 单元格的边界插入按逻辑网格计算，结构保持合法（span 感知） 30ms
+stdout | src/lib/editor/documentSession.test.ts > full node assembly and asynchronous origin > budgets long history without expiring request-ended tombstones
+resource-budget {"operations":{"edits":300,"acquisitions":200,"releases":200},"afterEdits":{"views":2,"requests":0,"activeLeases":0,"undoEvents":111,"redoEvents":0,"sessionMappingEntries":0},"final":{"views":1,"requests":200,"activeLeases":0,"undoEvents":110,"redoEvents":1,"sessionMappingEntries":0}}
+
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：边界 + 控件 > 达到 HNN_TABLE_LIMITS 上限的行方向 + 不显现，列方向不受影响 61ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：边界 + 控件 > 紧邻单元格输入后的边界插入是独立 undo step 34ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：焦点行/列操作控件与菜单 > 选区在本表期间操作控件常驻；离开本表即隐藏 15ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：焦点行/列操作控件与菜单 > 行操作菜单：在上方/下方插入行 + in-menu 两步删除（删除行 → 确认删除行） 29ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：焦点行/列操作控件与菜单 > 单行表格的删除行禁用并注明原因；单列对称 17ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：焦点行/列操作控件与菜单 > 选区漂移到别的单元格即关闭菜单（确认目标绝不漂移） 20ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：焦点行/列操作控件与菜单 > Esc 关闭菜单并把焦点归还操作按钮；菜单外 pointerdown/scroll/resize 关闭 21ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：焦点行/列操作控件与菜单 > 菜单项“在上方插入行”作用于焦点行之上，单历史步 24ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：行/列拖动重排 > 拖动行操作控件：穿越中点推进边界、渲染预览线、释放精确落线，单历史步 35ms
+ ✓ src/lib/editor/documentSession.test.ts > full node assembly and asynchronous origin > budgets long history without expiring request-ended tombstones 442ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：行/列拖动重排 > 拖拽结束后的残余 click 被抑制（不弹菜单）；pointercancel 只清理不提交 26ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：行/列拖动重排 > 拖动列操作控件：列按中点落线移动 22ms
+ ✓ src/lib/editor/documentSession.test.ts > full node assembly and asynchronous origin > mounts 'demo-tour' twice, roundtrips commands through shared history 155ms
+ ✓ src/lib/editor/documentSession.test.ts > full node assembly and asynchronous origin > mounts 'demo-references' twice, roundtrips commands through shared history 27ms
+ ✓ src/lib/editor/documentSession.test.ts > full node assembly and asynchronous origin > mounts 'demo-export' twice, roundtrips commands through shared history 36ms
+ ✓ src/lib/editor/documentSession.test.ts > full node assembly and asynchronous origin > drops late candidates and resolution after the source view is detached/rebuilt 22ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：行/列拖动重排 > 预览线经 PM 装饰持有（bug-7.5-2 回归）：真实停留 150ms 与无关 transaction 后仍在，doc/selection/history 零扰动 173ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：预算、历史栅栏与 ID（oracle 7.5 回归） > 16×15 空表（498 节点）增行/增列越过 512 节点：预检拒绝、零 dispatch、零变更 106ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：预算、历史栅栏与 ID（oracle 7.5 回归） > 512 KiB 外壳预算：合法临界文档增行越过外壳上限，激活拒绝、零变更 189ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：预算、历史栅栏与 ID（oracle 7.5 回归） > 增行保留原节点 ID、为新增节点补合法唯一 ID，最终文档可 encodeHnn 15ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：预算、历史栅栏与 ID（oracle 7.5 回归） > 结构操作后同 tick 表内输入独立 undo：undo1 只撤输入，undo2 撤操作 20ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：预算、历史栅栏与 ID（oracle 7.5 回归） > 删除行后同 tick 输入独立 undo：undo1 只撤输入，undo2 撤删除 19ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：预算、历史栅栏与 ID（oracle 7.5 回归） > 行移动后同 tick 输入独立 undo：undo1 只撤输入，undo2 还原移动 28ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：预算、历史栅栏与 ID（oracle 7.5 回归） > merged rowspan/colspan 删除行：布局合法、span 保留、原 nodeID 稳定 15ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：预算、历史栅栏与 ID（oracle 7.5 回归） > merged 表格行移动：布局合法、原 nodeID 全部保留、一次撤销还原 20ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：拖拽手势最终坐标与中途失效（PR#11 #16/#17/#18 回归） > #17 pointerup 以释放坐标重算落点：lastmove 停在 A 前、释放在 D 下方按最终坐标落线 23ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：拖拽手势最终坐标与中途失效（PR#11 #16/#17/#18 回归） > #17 释放在表外：命中为 null → 清空目标不提交（等效取消），预览清理 14ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：拖拽手势最终坐标与中途失效（PR#11 #16/#17/#18 回归） > #16 手势中途 docChanged（undo 插入）取消拖拽：释放不按旧下标误移动 D 23ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：拖拽手势最终坐标与中途失效（PR#11 #16/#17/#18 回归） > #16 手势中途转只读（setEditable 无事务）立即取消：不提交、状态清理 19ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：拖拽手势最终坐标与中途失效（PR#11 #16/#17/#18 回归） > #16 destroy 兜底：NodeView 失活清理手势，后续指针事件安全无提交 14ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：拖拽手势最终坐标与中途失效（PR#11 #16/#17/#18 回归） > #18 触屏拖动独占手势：.hn-editor-table-op 规则含 touch-action: none 1ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：只读与生命周期 > 只读会话不渲染、不响应任何控件（CSS 隐藏 + isEditable 守卫双层） 14ms
+ ✓ src/lib/hnn/tableEdgeControls.test.ts > tableEdgeControls：只读与生命周期 > destroy 移除全部控件与监听：NodeView 失活后不留悬挂资源 12ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > 390px list controls target the selected item and preserve its range 267ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > 1000px list controls target the selected item and preserve its range 80ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > crosses separate containers with conversion buttons disabled 64ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > shows seven Chinese buttons without stealing focus; expands commands in the same surface 51ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > supports stored marks at a cursor, mixed ranges, full-range removal and codec/clipboard round trips 126ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > adds marks over mixed whitespace without stripping an existing inline code mark 53ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > a replaced session cannot execute an old toolbar callback 38ms
+Not implemented: Window's scrollBy() method
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > keeps old HNN readable; budget failure makes no transaction or selection/history change 24ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > uses 840/841 inclusive layout, closes invalid selection kinds and code/IME contexts 62ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > delays desktop mouse selection until pointerup; keyboard selection displays immediately 34ms
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 7.3 保存状态接线 > 初始已保存；编辑后显脏；点击保存以真实 CAS context 调用 onSave，成功后回到已保存 205ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > preserves selection on click, suppresses Escape reopen, supports keyboard focus and external dismissal 59ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > clamps 320px geometry, flips above, closes invisible anchors and cleans up on dispose 24ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > atom and cell selections disable mobile formatting 33ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > shares formatting and reorder history across views, freezes and rejects detached callbacks without focus theft 99ms
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 7.3 保存状态接线 > 保存期间持续编辑：成功后仍按真实 baseline 显示未保存修改 47ms
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 7.3 保存状态接线 > 保存单飞：saving 中按钮禁用，onSave 只收到一次调用 42ms
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 7.3 保存状态接线 > reject（含 reject(undefined)）呈现保存失败而非已保存，可显式重试 37ms
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 7.3 保存状态接线 > conflict 结果呈现冲突而非已保存，文档保持本地修改 43ms
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 7.3 保存状态接线 > 切换会话隔离：A 的在途保存陈旧 settle 不回写 B，B 呈现自己的已保存 53ms
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 6.7 图片上传接线 > 未提供 onPictureUpload：不呈现 picker 与 file input（保持无上传入口语义） 21ms
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 6.7 图片上传接线 > 显式 picker：accept=image/* multiple；选择文件后以上传契约调用宿主并成功写入 picture 51ms
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 6.7 图片上传接线 > 失败可重试（同 uploadId、attempt 递增）并可取消；resolve(undefined) 也按失败处理 38ms
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 6.7 图片上传接线 > 粘贴图片文件入队上传；Markdown/HNN 等非图片文件一律不入队 27ms
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 6.7 图片上传接线 > 图片文件 drop 只入队一次且不改动文档；Markdown/HNN drop 不入队 24ms
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 6.7 图片上传接线 > 6.5 重排手势 drop 不触发上传，上传 drop 不触发重排：drop 所有权互斥 34ms
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 6.7 图片上传接线 > 切换会话中止在途上传：signal aborted，陈旧结果绝不写入新会话 38ms
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 6.7 图片上传接线 > 同 key 更新上传 callback：不重建会话，未来请求用新 handler 20ms
+stderr | src/lib/editor/NoteEditor.integration.test.tsx > 6.7 图片上传接线 > 无效新 key 保留旧 session 与旧上传 callback：候选 callback 不被调用
+HnnCodecError: /data/content/0: unknown 不允许作为 doc 的子节点; /data/content/0/type: 不支持的节点 unknown
+    at validateShell (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/src/lib/hnn/codec.ts:901:47)
+    at decodeHnn (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/src/lib/hnn/codec.ts:937:21)
+    at InitialValidator (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/src/lib/editor/NoteEditor.tsx:142:52)
+    at Object.react_stack_bottom_frame (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+    at renderWithHooks (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+    at updateFunctionComponent (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+    at beginWork (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:11778:18)
+    at runWithFiberInDEV (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+    at performUnitOfWork (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+    at workLoopSync (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41) {
+  [stack]: [Getter/Setter],
+  [message]: '/data/content/0: unknown 不允许作为 doc 的子节点; /data/content/0/type: 不支持的节点 unknown',
+  diagnostics: [
+    {
+      path: '/data/content/0',
+      code: 'invalid-nesting',
+      message: 'unknown 不允许作为 doc 的子节点'
+    },
+    {
+      path: '/data/content/0/type',
+      code: 'unknown-node',
+      message: '不支持的节点 unknown'
+    },
+    [length]: 2
+  ],
+  name: 'HnnCodecError'
+}
+
+The above error occurred in the <InitialValidator> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, InitialValidationBoundary.
+
+
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 6.7 图片上传接线 > 同 key 新增上传 callback 立即启用：editor/doc/历史/baseline 不动；移除即 abort 清理，同 session 可重启 53ms
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 6.7 图片上传接线 > 失败项在 callback 移除时受控清理：retry 入口消失，不再触达宿主 26ms
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 6.7 图片上传接线 > 无效新 key 保留旧 session 与旧上传 callback：候选 callback 不被调用 31ms
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 7.6 Markdown 导出接线 > 未提供 onExportMarkdown 不呈现导出入口；默认保存仍只有 HNN 14ms
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 7.6 Markdown 导出接线 > 无诊断文档：显式点击直接写出当次快照，文档/baseline 不受影响 41ms
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 7.6 Markdown 导出接线 > 有诊断时等待确认：取消零回调且既有内容/baseline/history 不变 46ms
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 7.6 Markdown 导出接线 > 确认写出的始终是点击时诊断的那份结果：等待期间的编辑不混入 40ms
+stderr | src/lib/editor/NoteEditor.integration.test.tsx > 7.6 Markdown 导出接线 > invalid 新 key 且移除 export callback：旧待确认诊断与 dialog 保留，旧 callback 仍可确认
+HnnCodecError: /data/content/0: unknown 不允许作为 doc 的子节点; /data/content/0/type: 不支持的节点 unknown
+    at validateShell (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/src/lib/hnn/codec.ts:901:47)
+    at decodeHnn (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/src/lib/hnn/codec.ts:937:21)
+    at InitialValidator (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/src/lib/editor/NoteEditor.tsx:142:52)
+    at Object.react_stack_bottom_frame (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+    at renderWithHooks (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+    at updateFunctionComponent (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+    at beginWork (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:11778:18)
+    at runWithFiberInDEV (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+    at performUnitOfWork (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+    at workLoopSync (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41) {
+  [stack]: [Getter/Setter],
+  [message]: '/data/content/0: unknown 不允许作为 doc 的子节点; /data/content/0/type: 不支持的节点 unknown',
+  diagnostics: [
+    {
+      path: '/data/content/0',
+      code: 'invalid-nesting',
+      message: 'unknown 不允许作为 doc 的子节点'
+    },
+    {
+      path: '/data/content/0/type',
+      code: 'unknown-node',
+      message: '不支持的节点 unknown'
+    },
+    [length]: 2
+  ],
+  name: 'HnnCodecError'
+}
+
+The above error occurred in the <InitialValidator> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, InitialValidationBoundary.
+
+
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 7.6 Markdown 导出接线 > reject（含 reject(undefined)）呈现导出失败而非完成 21ms
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 7.6 Markdown 导出接线 > 会话切换：A 的待确认诊断随 remount 丢弃，B 使用自己的快照 65ms
+stderr | src/lib/editor/NoteEditor.integration.test.tsx > 7.6 Markdown 导出接线 > invalid 新 key 携带 export callback：旧无导出的会话不出现伪造入口
+HnnCodecError: /data/content/0: unknown 不允许作为 doc 的子节点; /data/content/0/type: 不支持的节点 unknown
+    at validateShell (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/src/lib/hnn/codec.ts:901:47)
+    at decodeHnn (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/src/lib/hnn/codec.ts:937:21)
+    at InitialValidator (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/src/lib/editor/NoteEditor.tsx:142:52)
+    at Object.react_stack_bottom_frame (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+    at renderWithHooks (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+    at updateFunctionComponent (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+    at beginWork (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:11778:18)
+    at runWithFiberInDEV (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+    at performUnitOfWork (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+    at workLoopSync (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41) {
+  [stack]: [Getter/Setter],
+  [message]: '/data/content/0: unknown 不允许作为 doc 的子节点; /data/content/0/type: 不支持的节点 unknown',
+  diagnostics: [
+    {
+      path: '/data/content/0',
+      code: 'invalid-nesting',
+      message: 'unknown 不允许作为 doc 的子节点'
+    },
+    {
+      path: '/data/content/0/type',
+      code: 'unknown-node',
+      message: '不支持的节点 unknown'
+    },
+    [length]: 2
+  ],
+  name: 'HnnCodecError'
+}
+
+The above error occurred in the <InitialValidator> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, InitialValidationBoundary.
+
+
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 7.6 Markdown 导出接线 > invalid 新 key 且移除 export callback：旧待确认诊断与 dialog 保留，旧 callback 仍可确认 37ms
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 7.6 Markdown 导出接线 > invalid 新 key 携带 export callback：旧无导出的会话不出现伪造入口 17ms
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 7.6 Markdown 导出接线 > 同 key 移除 export callback：入口安全消失，在途导出 abort，迟到 settle 不显示成功 24ms
+ ✓ src/lib/editor/NoteEditor.integration.test.tsx > 7.6 Markdown 导出接线 > 同 key 更新 export callback 安全应用：新点击使用新 callback 21ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.1 list targets > resolves one cursor item, partial contiguous range and a half-open endpoint, leaving other items unchanged 104ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.1 list targets > rejects cross-level/cross-container/mixed/atom selections; block target ignores residual cursor 32ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > creates bulletList from consecutive paragraphs without changing inline content/selection 24ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > bulletList -> bulletList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 18ms
+ ✓ src/lib/hnn/codec.test.ts > HNN v1 codec > registers only the closed v1 node and mark registry 2ms
+ ✓ src/lib/hnn/codec.test.ts > HNN v1 codec > roundtrips canonical documents with the exact v1 shell and leaves input unchanged 4ms
+ ✓ src/lib/hnn/codec.test.ts > HNN v1 codec > roundtrips PM-canonical omitted content for empty inline and text blocks 2ms
+ ✓ src/lib/hnn/codec.test.ts > HNN v1 codec > roundtrips every closed standard and custom node with only documented attrs 7ms
+ ✓ src/lib/hnn/codec.test.ts > HNN v1 codec > rejects invalid shells and data metadata with JSON-pointer diagnostics 1ms
+ ✓ src/lib/hnn/codec.test.ts > HNN v1 codec > rejects unknown nodes, marks, attrs, required attrs and invalid nesting 1ms
+ ✓ src/lib/hnn/codec.test.ts > HNN v1 codec > enforces attrs, URL policy, UUID v4 and duplicate node IDs 3ms
+ ✓ src/lib/hnn/codec.test.ts > HNN v1 codec > rejects malformed JSON, duplicate/excluded marks and malformed content 1ms
+ ✓ src/lib/hnn/codec.test.ts > HNN v1 codec > 严格限制表格几何、colwidth 形状和空行，并接受有效表格 2ms
+ ✓ src/lib/hnn/codec.test.ts > HNN v1 codec > 在 TableMap 分配前拒绝大跨度表格 15ms
+ ✓ src/lib/hnn/codec.test.ts > HNN v1 codec > 显式保留 v1 Phase2 省略的官方默认 attrs，并在输出时规范化 1ms
+ ✓ src/lib/hnn/codec.test.ts > HNN v1 codec > 按原始 v1 外壳计算字节上限，并对规范输出超限的两个编码入口统一失败 89ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > bulletList -> orderedList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 21ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > bulletList -> taskList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 23ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > creates orderedList from consecutive paragraphs without changing inline content/selection 21ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > orderedList -> bulletList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 16ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > orderedList -> orderedList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 14ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > orderedList -> taskList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 21ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > creates taskList from consecutive paragraphs without changing inline content/selection 20ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > taskList -> bulletList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 20ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > taskList -> orderedList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 19ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > taskList -> taskList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 19ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.3 numbering and history > splits 5/6/7 into 5/bullet/7, converts back to separate 5/1/7 without joining 16ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.3 numbering and history > clears checked on exit, reinitializes false and undo/redo restores true and child state 19ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.4 explicit block menu and lossless unwrapping > rejects unwrap when the parent cannot accept paragraphs, without changing state 1ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.4 explicit block menu and lossless unwrapping > block menu targets all direct items; unwrap preserves children and marks 15ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.4 explicit block menu and lossless unwrapping > unwraps a nested list while preserving the legal parent item 11ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter replaces selected text in one 'bulletList' item with two empty items 13ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter replaces selected text in one 'orderedList' item with two empty items 12ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter replaces selected text in one 'taskList' item with two empty items 14ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'forward' selection from an empty 'bulletList' item through character 3 before splitting, with one undo 13ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'backward' selection from an empty 'bulletList' item through character 3 before splitting, with one undo 17ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'forward' selection from an empty 'bulletList' item through character 6 before splitting, with one undo 13ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'backward' selection from an empty 'bulletList' item through character 6 before splitting, with one undo 13ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'forward' selection from an empty 'orderedList' item through character 3 before splitting, with one undo 13ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'backward' selection from an empty 'orderedList' item through character 3 before splitting, with one undo 13ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'forward' selection from an empty 'orderedList' item through character 6 before splitting, with one undo 12ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'backward' selection from an empty 'orderedList' item through character 6 before splitting, with one undo 12ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'forward' selection from an empty 'taskList' item through character 3 before splitting, with one undo 14ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'backward' selection from an empty 'taskList' item through character 3 before splitting, with one undo 14ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'forward' selection from an empty 'taskList' item through character 6 before splitting, with one undo 20ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'backward' selection from an empty 'taskList' item through character 6 before splitting, with one undo 15ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > splits a completed task in the middle without inheriting checked=true 13ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter on completed task creates unchecked sibling; empty Enter exits, each action undoes once 16ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > indent/lift moves the entire mixed subtree; no previous item is a no-op 17ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > empty nested Enter lifts one level 10ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > lifting taskList out of a different list preserves type, state, trailing content and numbering 16ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > lifting orderedList out of a different list preserves type, state, trailing content and numbering 14ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > lifts a list inside a quote as a local unwrap, preserving ordered suffix numbering 12ms
+ ✓ src/lib/hnn/codec.test.ts > HNN v1 codec > takes one safe descriptor snapshot before validation and never re-reads a caller Proxy 2ms
+ ✓ src/lib/hnn/codec.test.ts > HNN v1 codec > 为跨文本重复的 immutable mark attrs 创建独立快照，同时仍拒绝实际循环 1ms
+ ✓ src/lib/hnn/codec.test.ts > HNN v1 codec > rejects unsafe descriptors, custom properties, cycles and pathological depth as codec errors 6ms
+ ✓ src/lib/hnn/codec.test.ts > HNN v1 codec > rejects a non-doc root, unsafe Unicode URL characters and marked codeBlock text locally 4ms
+ ✓ src/lib/hnn/codec.test.ts > HNN v1 codec > accepts exact resource limits and rejects one over 19ms
+ ✓ src/lib/hnn/codec.test.ts > HNN v1 codec > attr 双重限制：原始 UTF-8 与转义后 JSON 字节均需不超上限 2ms
+ ✓ src/lib/hnn/codec.test.ts > HNN v1 codec > rejects noncanonical JSON, oversized shells, and preserves failed JSON input bytes 421ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.6/1.7 guarded checkbox and commands > native checkbox changes only itself and undo is isolated 19ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.6/1.7 guarded checkbox and commands > readonly blocks checkbox/menu/Enter/indent with zero history 12ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.6/1.7 guarded checkbox and commands > composition blocks checkbox/menu/Enter/indent with zero history 11ms
+ ✓ src/lib/hnn/codec.test.ts > HNN v1 codec > rejects a huge single string before raw JSON serialization or UTF-8 buffer allocation 8ms
+ ✓ src/lib/hnn/codec.test.ts > HNN v1 codec > 在枚举 ownKeys 前以数组 length 下界拒绝超大 dense array 1ms
+ ✓ src/lib/hnn/codec.test.ts > HNN v1 codec > 在调用 PM Node.toJSON 前有界拒绝远超节点上限的文档 2ms
+ ✓ src/lib/hnn/codec.test.ts > HNN v1 codec > PM 入口精确接受 512 KiB canonical 外壳，并在超出一字节前拒绝 472ms
+ ✓ src/lib/hnn/codec.test.ts > HNN v1 codec > PM 入口在超长 link href 与极宽树前拒绝，不调用根节点 toJSON 2ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.6/1.7 guarded checkbox and commands > 512-node boundary rejects wrapping without selection/history/dirty changes 379ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.6/1.7 guarded checkbox and commands > 32-layer boundary rejects wrapping at the deepest paragraph 14ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.6/1.7 guarded checkbox and commands > 512 KiB boundary rejects both list wrapping and a checkbox that adds one byte 166ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：触发识别与候选请求 > @query 在当前 textblock 内触发 mention 候选并记录精确 range 97ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：触发识别与候选请求 > [[query 触发 resource 候选 20ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：触发识别与候选请求 > @ 前非空白（邮箱样文本）不触发；空白后的 @ 触发 32ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：触发识别与候选请求 > 继续输入改变 query 重新请求；selection 移出触发词即取消 23ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：触发识别与候选请求 > NodeSelection（点击引用）不触发候选 17ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：触发识别与候选请求 > composition 期间不识别触发，compositionend 后恢复识别 25ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：触发识别与候选请求 > compositionstart 取消旧 ready 候选：菜单关闭、旧候选不可接受、按键不拦截，compositionend 重新识别 31ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：触发识别与候选请求 > compositionstart abort 在途 pending 请求：迟到的旧 promise 不覆盖 idle 24ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：键盘导航与精确替换 > ArrowUp/ArrowDown 环形移动高亮，Enter 以存储 range 精确替换且单步 undo 42ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：键盘导航与精确替换 > Escape 关闭菜单且不改变触发文本 17ms
+ ✓ src/lib/editor/NoteEditor.references.test.tsx > 7.2 宿主引用接线：候选录入与插入 > @query 触发候选并以单事务精确替换触发串：仅持久最小信息、新 nodeId、解析不进 HNN、单步 undo 255ms
+ ✓ src/lib/editor/NoteEditor.references.test.tsx > 7.2 宿主引用接线：候选录入与插入 > [[query 触发资源候选并插入 resource 引用 57ms
+ ✓ src/lib/editor/NoteEditor.references.test.tsx > 7.2 宿主引用接线：运行时解析占位 > 初始引用按 resolve 结果呈现 missing/error/resolved 占位；解析结果不进 HNN；无 activate 无 tab stop 28ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：键盘导航与精确替换 > 无候选时 Enter/方向键不拦截，交由编辑器正常处理 24ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：键盘导航与精确替换 > 取消/selection 改变后旧 range 不能插到新光标：selectCandidate 拒绝且文档不变 15ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：键盘导航与精确替换 > 桥 selectCandidate 使用存储 range：不重新读取宿主、不重新捕获快照 15ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：点击激活交接宿主 > hnmagic mark 点击交宿主，保留 href、不虚构 resourceId，销毁中止激活 18ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：点击激活交接宿主 > hnmagic 无回调也禁止原生跳转，Enter/Space 不产生编辑事务 16ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：点击激活交接宿主 > hnmagic Enter/Space 键盘激活一次，重复 keydown 不重复调用宿主 15ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：点击激活交接宿主 > 普通 http://example.test/path 链接不被交互桥接管 19ms
+ ✓ src/lib/editor/NoteEditor.references.test.tsx > 7.2 宿主引用接线：运行时解析占位 > 不提供 resolve：既有引用一律受控 missing 占位，不产生解析请求 28ms
+ ✓ src/lib/editor/NoteEditor.references.test.tsx > 7.2 宿主引用接线：激活与无回调语义 > 真实 NoteEditor 零引用回调：editable=true 时 hnmagic click/key/中键始终禁止默认导航 33ms
+ ✓ src/lib/editor/NoteEditor.references.test.tsx > 7.2 宿主引用接线：激活与无回调语义 > 真实 NoteEditor 零引用回调：editable=false 时 hnmagic click/key/中键始终禁止默认导航 26ms
+ ✓ src/lib/editor/NoteEditor.references.test.tsx > 7.2 宿主引用接线：激活与无回调语义 > 真实 NoteEditor 有 activate：editable=true 时 hnmagic 原 href 交宿主一次并随卸载 abort 27ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：点击激活交接宿主 > 普通 https://example.test/path 链接不被交互桥接管 18ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：点击激活交接宿主 > 普通 mailto:ada@example.test 链接不被交互桥接管 18ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：点击激活交接宿主 > 点击 mention/resource/externalItem 的 NodeView 激活宿主回调，库不自行导航 21ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：点击激活交接宿主 > 嵌套 DOM 目标：点击/键盘命中 externalItem 内部 label 也正确解析 14ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：引用键盘可达与激活（hasActivate） > 宿主提供 activate 时三类引用运行时获得 tabindex/role；doc/selection/history/HNN 零变 14ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：引用键盘可达与激活（hasActivate） > 无 activate 回调（hasActivate=false）：无任何 tab stop/链接语义，按键一律放行 15ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：引用键盘可达与激活（hasActivate） > Enter/Space 激活聚焦的引用：三类回调、preventDefault，doc/selection/history 零变 14ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：引用键盘可达与激活（hasActivate） > 非引用按键一律放行：不 preventDefault、不激活 21ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：引用键盘可达与激活（hasActivate） > 菜单打开时 Enter 属于候选而非引用激活 16ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：引用键盘可达与激活（hasActivate） > composition 期间引用激活不抢键，compositionend 后恢复 12ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：引用键盘可达与激活（hasActivate） > NodeView 重建后链接语义自动补齐且激活可用 22ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：引用键盘可达与激活（hasActivate） > destroy 精确还原桥添加的 tabindex/role 13ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：editor.destroy 级联 > 编辑器销毁级联桥销毁：旧按键不再被拦截，读 view 路径不抛错，重复 destroy 幂等 13ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：解析状态占位呈现 > resolved：DOM attribute 呈现 label/description，文档与 DOM 文本不变 13ms
+ ✓ src/lib/editor/NoteEditor.references.test.tsx > 7.2 宿主引用接线：激活与无回调语义 > 真实 NoteEditor 有 activate：editable=false 时 hnmagic 原 href 交宿主一次并随卸载 abort 37ms
+ ✓ src/lib/editor/NoteEditor.references.test.tsx > 7.2 宿主引用接线：激活与无回调语义 > 同 key 移除全部引用回调后永久 guard 保留，重新添加不重建 session 或重复激活 36ms
+ ✓ src/lib/editor/NoteEditor.references.test.tsx > 7.2 宿主引用接线：激活与无回调语义 > 真实 NoteEditor 普通 http/mailto 不被 guard 接管（editable=true，activate=false） 57ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：解析状态占位呈现 > loading/missing/error 分别呈现为可观察占位 37ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：解析状态占位呈现 > 引用从文档删除后解析状态 attribute 一并消失 15ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：destroy 清理 > destroy 摘除监听、取消候选、还原 aria 与占位 attribute，之后输入不再触发 17ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：range 迁移重新请求 > 同 kind/query 但 range 移到另一处：取消旧请求并重新请求，旧结果不覆盖 19ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：初始同步 > 桥创建前已 resolved/missing/loading 的引用立即呈现：无 doc 变更、HNN 不变 12ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：focus gate > 未聚焦编辑器不因后台 doc 变化打开候选；真实 focus 后只读识别既有触发 12ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：focus gate > blur 后后台 doc/history 变化不重开候选，重新 focus 再按当前光标识别 19ms
+ ✓ src/lib/editor/hostReferenceInteractions.test.ts > 7.2 交互桥：focus gate > 初始 focus 尊重编辑器既有聚焦状态：桥创建前已聚焦则立即可识别 13ms
+ ✓ src/lib/editor/NoteEditor.references.test.tsx > 7.2 宿主引用接线：激活与无回调语义 > 真实 NoteEditor 普通 http/mailto 不被 guard 接管（editable=false，activate=false） 55ms
+ ✓ src/lib/editor/NoteEditor.references.test.tsx > 7.2 宿主引用接线：激活与无回调语义 > 真实 NoteEditor 普通 http/mailto 不被 guard 接管（editable=true，activate=true） 69ms
+stderr | src/lib/editor/NoteEditor.references.test.tsx > 7.2 宿主引用接线：激活与无回调语义 > 三回调全无：无候选入口、无解析占位、无激活语义，文档纯文本行为
+TextSelection endpoint not pointing into a node with inline content (doc)
+
+ ✓ src/lib/editor/NoteEditor.references.test.tsx > 7.2 宿主引用接线：激活与无回调语义 > 真实 NoteEditor 普通 http/mailto 不被 guard 接管（editable=false，activate=true） 51ms
+ ✓ src/lib/editor/NoteEditor.references.test.tsx > 7.2 宿主引用接线：激活与无回调语义 > click/key 三类引用交接宿主：kind/resourceId/name 与 {documentId, signal}；tab stop 真实能力位 26ms
+ ✓ src/lib/editor/NoteEditor.references.test.tsx > 7.2 宿主引用接线：激活与无回调语义 > 三回调全无：无候选入口、无解析占位、无激活语义，文档纯文本行为 27ms
+ ✓ src/lib/editor/NoteEditor.references.test.tsx > 7.2 宿主引用接线：会话切换与同 key 能力变化 > 切换会话：旧解析 abort 且 stale 丢弃，新会话以自身 documentId 独立解析 44ms
+ ✓ src/lib/editor/NoteEditor.references.test.tsx > 7.2 宿主引用接线：会话切换与同 key 能力变化 > 同 key 新增 candidates 立即启用：菜单按当前光标即刻可开，会话/文档/历史不重建 31ms
+ ✓ src/lib/editor/NoteEditor.references.test.tsx > 7.2 宿主引用接线：会话切换与同 key 能力变化 > 同 key 新增 candidates（保留 activate）：既有 @ 触发串由受控空菜单转为真实候选 35ms
+ ✓ src/lib/editor/NoteEditor.references.test.tsx > 7.2 宿主引用接线：会话切换与同 key 能力变化 > 同 key fn→fn 更新：installer 不重建、selection 不动，未来请求用新 handler 37ms
+stderr | src/lib/editor/NoteEditor.references.test.tsx > 7.2 宿主引用接线：会话切换与同 key 能力变化 > invalid 新 key：旧 callbacks/候选/激活界面与 doc/selection/history 全部保留
+HnnCodecError: /data/content/0: unknown 不允许作为 doc 的子节点; /data/content/0/type: 不支持的节点 unknown
+    at validateShell (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/src/lib/hnn/codec.ts:901:47)
+    at decodeHnn (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/src/lib/hnn/codec.ts:937:21)
+    at InitialValidator (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/src/lib/editor/NoteEditor.tsx:142:52)
+    at Object.react_stack_bottom_frame (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+    at renderWithHooks (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+    at updateFunctionComponent (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+    at beginWork (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:11778:18)
+    at runWithFiberInDEV (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+    at performUnitOfWork (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+    at workLoopSync (/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41) {
+  [stack]: [Getter/Setter],
+  [message]: '/data/content/0: unknown 不允许作为 doc 的子节点; /data/content/0/type: 不支持的节点 unknown',
+  diagnostics: [
+    {
+      path: '/data/content/0',
+      code: 'invalid-nesting',
+      message: 'unknown 不允许作为 doc 的子节点'
+    },
+    {
+      path: '/data/content/0/type',
+      code: 'unknown-node',
+      message: '不支持的节点 unknown'
+    },
+    [length]: 2
+  ],
+  name: 'HnnCodecError'
+}
+
+The above error occurred in the <InitialValidator> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, InitialValidationBoundary.
+
+
+ ✓ src/lib/editor/NoteEditor.references.test.tsx > 7.2 宿主引用接线：会话切换与同 key 能力变化 > 同 key 移除 activate：installer 保守重建，tab 语义消失，候选能力保留 32ms
+ ✓ src/lib/editor/NoteEditor.references.test.tsx > 7.2 宿主引用接线：会话切换与同 key 能力变化 > 同 key 移除全部回调：菜单卸载、在途候选 abort，会话与文档不动 28ms
+ ✓ src/lib/editor/NoteEditor.references.test.tsx > 7.2 宿主引用接线：会话切换与同 key 能力变化 > invalid 新 key：旧 callbacks/候选/激活界面与 doc/selection/history 全部保留 39ms
+ ✓ src/lib/editor/compositionDeletion.test.ts > confirmed WebKit composition deletion > preserves a middle P and native selection (observer-first) 198ms
+ ✓ src/lib/editor/compositionDeletion.test.ts > confirmed WebKit composition deletion > preserves a middle P and native selection (end-first) 75ms
+ ✓ src/lib/editor/compositionDeletion.test.ts > confirmed WebKit composition deletion > preserves a middle P and native selection (end-between) 71ms
+ ✓ src/lib/editor/compositionDeletion.test.ts > confirmed WebKit composition deletion > preserves a middle P and native selection (same-task-text) 42ms
+ ✓ src/lib/editor/compositionDeletion.test.ts > confirmed WebKit composition deletion > preserves a middle P and native selection (same-task-block) 44ms
+ ✓ src/lib/editor/compositionDeletion.test.ts > confirmed WebKit composition deletion > preserves a middle P and native selection (no-commit) 73ms
+ ✓ src/lib/editor/listDrafts.test.tsx > 'card' draft alongside 'bulletList' commits once while body stays locked, synchronizes peers, undoes/redoes and survives save/reopen 235ms
+ ✓ src/lib/editor/listDrafts.test.tsx > 'drawing' draft alongside 'bulletList' commits once while body stays locked, synchronizes peers, undoes/redoes and survives save/reopen 83ms
+ ✓ src/lib/editor/compositionDeletion.test.ts > confirmed WebKit composition deletion > preserves a middle H2 and native selection (observer-first) 104ms
+ ✓ src/lib/editor/compositionDeletion.test.ts > confirmed WebKit composition deletion > preserves a middle H2 and native selection (end-first) 73ms
+ ✓ src/lib/editor/listDrafts.test.tsx > 'card' draft alongside 'orderedList' commits once while body stays locked, synchronizes peers, undoes/redoes and survives save/reopen 61ms
+ ✓ src/lib/editor/listDrafts.test.tsx > 'drawing' draft alongside 'orderedList' commits once while body stays locked, synchronizes peers, undoes/redoes and survives save/reopen 64ms
+ ✓ src/lib/editor/compositionDeletion.test.ts > confirmed WebKit composition deletion > preserves a middle H2 and native selection (end-between) 75ms
+ ✓ src/lib/editor/compositionDeletion.test.ts > confirmed WebKit composition deletion > preserves a middle H2 and native selection (same-task-text) 40ms
+ ✓ src/lib/editor/listDrafts.test.tsx > 'card' draft alongside 'taskList' commits once while body stays locked, synchronizes peers, undoes/redoes and survives save/reopen 54ms
+ ✓ src/lib/editor/listDrafts.test.tsx > 'drawing' draft alongside 'taskList' commits once while body stays locked, synchronizes peers, undoes/redoes and survives save/reopen 50ms
+ ✓ src/lib/editor/compositionDeletion.test.ts > confirmed WebKit composition deletion > preserves a middle H2 and native selection (same-task-block) 42ms
+ ✓ src/lib/editor/compositionDeletion.test.ts > confirmed WebKit composition deletion > preserves a middle H2 and native selection (no-commit) 68ms
+ ✓ src/lib/editor/listDrafts.test.tsx > card rejected transaction reports failure and retains the drawer draft for retry 67ms
+ ✓ src/lib/editor/listDrafts.test.tsx > drawing rejected transaction reports failure and retains the drawer draft for retry 45ms
+ ✓ src/lib/editor/listDrafts.test.tsx > card draft authorization retains strict list budget and freeze rejection 40ms
+ ✓ src/lib/editor/compositionDeletion.test.ts > confirmed WebKit composition deletion > removes the preedit without splitting or changing paragraph identity (preceding=false) 51ms
+ ✓ src/lib/editor/compositionDeletion.test.ts > confirmed WebKit composition deletion > removes the preedit without splitting or changing paragraph identity (preceding=true) 43ms
+ ✓ src/lib/editor/compositionDeletion.test.ts > confirmed WebKit composition deletion > leaves normal in-paragraph native deletion to the DOM observer 42ms
+ ✓ src/lib/editor/compositionDeletion.test.ts > confirmed WebKit composition deletion > retains code block whitespace and attributes when the commit replaces BR 53ms
+ ✓ src/lib/editor/compositionDeletion.test.ts > confirmed WebKit composition deletion > does not apply a saved range to a newer document 11ms
+ ✓ src/lib/editor/listDrafts.test.tsx > drawing draft authorization retains strict list budget and freeze rejection 42ms
+ ✓ src/lib/editor/listDrafts.test.tsx > Enter replacing a forward selection of all list text preserves both views through shared undo/redo 29ms
+ ✓ src/lib/editor/listDrafts.test.tsx > Enter replacing a backward selection of all list text preserves both views through shared undo/redo 25ms
+ ✓ src/lib/editor/hostReferences.test.ts > 7.2 宿主引用：候选查询 > requestCandidates 以 kind/query/{documentId,signal} 调用宿主并发布状态；无回调受控 empty 106ms
+ ✓ src/lib/editor/hostReferences.test.ts > 7.2 宿主引用：候选查询 > 候选空与宿主失败分别映射 empty/error，且不影响文档 16ms
+ ✓ src/lib/editor/hostReferences.test.ts > 7.2 宿主引用：候选查询 > 快速改 query：旧请求被 abort，旧结果不覆盖新状态 14ms
+ ✓ src/lib/editor/hostReferences.test.ts > 7.2 宿主引用：候选查询 > cancelCandidates abort 并回到 idle 11ms
+ ✓ src/lib/editor/hostReferences.test.ts > 7.2 宿主引用：选择候选插入 > 在当前 TextSelection 插入合法 inline ref，仅持久 resourceId/name，单步 undo 24ms
+ ✓ src/lib/editor/hostReferences.test.ts > 7.2 宿主引用：选择候选插入 > 给定范围内以引用替换文本；非法范围返回 false 且文档不变 17ms
+ ✓ src/lib/editor/HostReferenceUI.test.tsx > 7.2 HostReferenceUI：候选浮层 > 输入 @query 打开 listbox：pending 状态行 → 候选选项，aria combobox 属性齐全 198ms
+ ✓ src/lib/editor/HostReferenceUI.test.tsx > 7.2 HostReferenceUI：候选浮层 > [[query 打开资源候选 listbox 46ms
+ ✓ src/lib/editor/hostReferences.test.ts > 7.2 宿主引用：选择候选插入 > 预算/kind/资源标识非法一律拒绝且不改变文档 14ms
+ ✓ src/lib/editor/HostReferenceUI.test.tsx > 7.2 HostReferenceUI：候选浮层 > 候选 empty 与 error 分别以状态行可观察呈现 46ms
+ ✓ src/lib/editor/HostReferenceUI.test.tsx > 7.2 HostReferenceUI：候选浮层 > 点击候选：pointerdown 阻止默认（编辑器不失焦），精确替换触发串，单步 undo 35ms
+ ✓ src/lib/editor/HostReferenceUI.test.tsx > 7.2 HostReferenceUI：候选浮层 > 键盘 ArrowDown + Enter 选择第二项 34ms
+ ✓ src/lib/editor/HostReferenceUI.test.tsx > 7.2 HostReferenceUI：候选浮层 > Escape 关闭浮层且不改变触发文本 25ms
+ ✓ src/lib/editor/hostReferences.test.ts > 7.2 宿主引用：选择候选插入 > 整文档预算前置验证：接近节点上限时拒绝且不 dispatch 292ms
+ ✓ src/lib/editor/hostReferences.test.ts > 7.2 宿主引用：运行时解析状态 > 按 kind+id 去重解析，成功/空/失败映射 resolved/missing/error，文档不变 21ms
+ ✓ src/lib/editor/HostReferenceUI.test.tsx > 7.2 HostReferenceUI：候选浮层 > 编辑器失焦取消候选（点击候选路径因 preventDefault 不走 blur） 26ms
+ ✓ src/lib/editor/HostReferenceUI.test.tsx > 7.2 HostReferenceUI：候选浮层 > 卸载组件清理桥：aria 移除，后续输入不再触发候选 31ms
+ ✓ src/lib/editor/HostReferenceUI.test.tsx > 7.2 HostReferenceUI：候选浮层 > session 切换：旧桥在 commit 即销毁，旧编辑器按键不再被拦截，新桥立即可用 46ms
+ ✓ src/lib/editor/hostReferences.test.ts > 7.2 宿主引用：运行时解析状态 > 无 resolve 回调时受控 missing，不破坏文档 15ms
+ ✓ src/lib/editor/hostReferences.test.ts > 7.2 宿主引用：运行时解析状态 > 解析结果缺少有效 label 视为 error（受控占位） 12ms
+ ✓ src/lib/editor/hostReferences.test.ts > 7.2 宿主引用：运行时解析状态 > 文档新增引用触发解析；删除引用 abort 请求并清理状态 23ms
+ ✓ src/lib/editor/hostReferences.test.ts > 7.2 宿主引用：激活与 destroy > hnmagic 激活只透传安全 href，沿用会话 AbortSignal，不接受普通 URL 9ms
+ ✓ src/lib/editor/hostReferences.test.ts > 7.2 宿主引用：激活与 destroy > activate 调用宿主一次且不修改文档；无回调为 no-op 16ms
+ ✓ src/lib/editor/hostReferences.test.ts > 7.2 宿主引用：激活与 destroy > destroy abort 在途解析；宿主忽略 abort 的迟到结果被丢弃 12ms
+ ✓ src/lib/editor/hostReferences.test.ts > 7.2 宿主引用：激活与 destroy > destroy abort 在途候选与激活；迟到结果不更新状态 10ms
+ ✓ src/lib/editor/hostReferences.test.ts > 7.2 宿主引用：边界质量修复 > 候选插入只有一个 doc transaction，且 undo 隔离前序编辑与紧随输入 13ms
+ ✓ src/lib/editor/hostReferences.test.ts > 7.2 宿主引用：边界质量修复 > loading 通知期间 subscriber 取消/销毁/换 query，不会向过期 provider 发请求 21ms
+ ✓ src/lib/editor/hostReferences.test.ts > 7.2 宿主引用：边界质量修复 > 非 TextSelection 且无 range 受控 false；顶层/跨块 range 拒绝且 doc/history 不变；合法文本 range 可用 37ms
+ ✓ src/lib/editor/HostReferenceUI.test.tsx > 7.2 HostReferenceUI：候选浮层 > #19 光标近视口底：菜单翻转到光标上方，整体不出视口（垂直钳制 + 限高） 22ms
+ ✓ src/lib/editor/HostReferenceUI.test.tsx > 7.2 HostReferenceUI：候选浮层 > #19 下方空间充足：保持光标下方定位，交互与视觉语言不变 21ms
+ ✓ src/lib/editor/HostReferenceUI.test.tsx > 7.2 HostReferenceUI：候选浮层 > #19 两侧都放不下的矮视口：限高 + 内部滚动，整体钳在视口内 25ms
+ ✓ src/lib/editor/HostReferenceUI.test.tsx > 7.2 HostReferenceUI：候选浮层 > #20 键盘高亮超出可视区：只滚菜单自身到最近可见，焦点留在编辑器、页面不滚 89ms
+ ✓ src/lib/editor/HostReferenceUI.test.tsx > 7.2 HostReferenceUI：候选浮层 > #20 pending → ready 切换：无选项期间不触碰 scrollTop，候选到位不跳动 28ms
+ ✓ src/lib/editor/selectionClipboard.test.ts > 6.6 文本选择遵循原生 TextSelection > 拖选字符范围与复制出的 text/plain 一一对应，且 copy 不产生事务 80ms
+ ✓ src/lib/editor/selectionClipboard.test.ts > 6.6 文本选择遵循原生 TextSelection > 键盘 Shift 扩展得到的范围与复制一致，选择保持 TextSelection（浏览器原生路径未被自研逻辑接管） 19ms
+ ✓ src/lib/editor/selectionClipboard.test.ts > 6.6 原子内容节点整体选择（NodeSelection） > picture 整体进入 NodeSelection，不包含相邻内容块字符 17ms
+ ✓ src/lib/editor/session.test.ts > EditorSession 图片上传接线（6.7） > 仅提供 onPictureUpload 的会话才安装上传 installer 91ms
+stderr | src/lib/editor/selectionClipboard.test.ts > 6.6 原子内容节点整体选择（NodeSelection） > 选中原子节点复制后粘贴，结构可表达且 nodeId 重建为文档内唯一
+TextSelection endpoint not pointing into a node with inline content (doc)
+
+ ✓ src/lib/editor/selectionClipboard.test.ts > 6.6 原子内容节点整体选择（NodeSelection） > card 整体进入 NodeSelection，不包含相邻内容块字符 15ms
+ ✓ src/lib/editor/selectionClipboard.test.ts > 6.6 原子内容节点整体选择（NodeSelection） > drawing 整体进入 NodeSelection，不包含相邻内容块字符 16ms
+ ✓ src/lib/editor/selectionClipboard.test.ts > 6.6 原子内容节点整体选择（NodeSelection） > directory 整体进入 NodeSelection，不包含相邻内容块字符 16ms
+ ✓ src/lib/editor/selectionClipboard.test.ts > 6.6 原子内容节点整体选择（NodeSelection） > formula 整体进入 NodeSelection，不包含相邻内容块字符 27ms
+ ✓ src/lib/editor/selectionClipboard.test.ts > 6.6 原子内容节点整体选择（NodeSelection） > 选中原子节点复制后粘贴，结构可表达且 nodeId 重建为文档内唯一 43ms
+ ✓ src/lib/editor/session.test.ts > EditorSession 图片上传接线（6.7） > destroy 中止在途上传：signal aborted，陈旧成功结果绝不写入文档 22ms
+ ✓ src/lib/editor/session.test.ts > EditorSession 图片上传接线（6.7） > 上传成功只写入一个 picture 节点：快照含 src、placeholder 痕迹不进 HNN 43ms
+ ✓ src/lib/editor/session.test.ts > EditorSession configurePictureUpload（6.7 同 key 动态能力） > 新增 callback 只增安装：editor/doc/selection/history/baseline 全部保留 15ms
+ ✓ src/lib/editor/session.test.ts > EditorSession configurePictureUpload（6.7 同 key 动态能力） > 移除 callback：abort 在途、清空状态、stale 绝不写入；同 session 可重启 16ms
+ ✓ src/lib/editor/session.test.ts > EditorSession configurePictureUpload（6.7 同 key 动态能力） > 更新 callback：在途请求 signal/ID 稳定且结果仍写入，未来请求用新 handler 17ms
+ ✓ src/lib/editor/session.test.ts > EditorSession configurePictureUpload（6.7 同 key 动态能力） > destroy 后 configure 是安全 no-op 11ms
+ ✓ src/lib/editor/selectionClipboard.test.ts > 6.6 原子内容节点整体选择（NodeSelection） > picture/card/drawing/directory 复制粘贴保持可表达结构并重建标识 116ms
+ ✓ src/lib/editor/session.test.ts > EditorSession configureHostReferences（7.2 同 key 动态能力） > 构造即按真实能力安装：hasActivate 仅在有 activate 时为 true，documentId 来自会话 35ms
+ ✓ src/lib/editor/session.test.ts > EditorSession configureHostReferences（7.2 同 key 动态能力） > 全无 → 任一：只增安装，editor/doc/selection/history/baseline 全部保留 14ms
+ ✓ src/lib/editor/session.test.ts > EditorSession configureHostReferences（7.2 同 key 动态能力） > 纯 fn→fn（三 presence 全不变）：installer 不重建，在途请求稳定，未来请求用新 handler 18ms
+ ✓ src/lib/editor/session.test.ts > EditorSession configureHostReferences（7.2 同 key 动态能力） > 三 fn→fn 同 presence：installer/in-flight 保留，doc/selection/history/baseline 不动 14ms
+ ✓ src/lib/editor/session.test.ts > EditorSession configureHostReferences（7.2 同 key 动态能力） > resolve none→fn（保留 activate）：presence 变化重建，既有引用立刻 loading→resolved 重解析 17ms
+ ✓ src/lib/editor/selectionClipboard.test.ts > 6.6 表格单元格选择（CellSelection） > 跨单元格矩形选择覆盖矩形内全部单元格，复制粘贴为表格结构 56ms
+ ✓ src/lib/editor/selectionClipboard.test.ts > 6.6 表格单元格选择（CellSelection） > 单元格内选择部分文字只含该文本，其余单元格不进入选区与剪贴板 15ms
+ ✓ src/lib/editor/selectionClipboard.test.ts > 6.6 表格单元格选择（CellSelection） > 官方 table 扩展实际启用原生 CellSelection（setCellSelection 命令 + selectingCells 插件） 16ms
+ ✓ src/lib/editor/selectionClipboard.test.ts > 6.6 表格单元格选择（CellSelection） > 整行选择以原生 CellSelection 呈现，复制出表格而非裸行原子 24ms
+ ✓ src/lib/editor/session.test.ts > EditorSession configureHostReferences（7.2 同 key 动态能力） > resolve fn→none（保留 activate）：abort 在途 pending，late 不 resolved、转 missing 且 HNN 相等 12ms
+ ✓ src/lib/editor/session.test.ts > EditorSession configureHostReferences（7.2 同 key 动态能力） > candidates fn→none（保留 resolve）：abort 在途候选，late 不 ready，既有引用解析能力保留 14ms
+ ✓ src/lib/editor/session.test.ts > EditorSession configureHostReferences（7.2 同 key 动态能力） > activate 有无翻转：保守重建 installer，在途候选 abort，hasActivate 与文档内容正确 12ms
+ ✓ src/lib/editor/session.test.ts > EditorSession configureHostReferences（7.2 同 key 动态能力） > 移除全部 callback：abort 在途候选/解析，stale 绝不写入，入口消失 11ms
+ ✓ src/lib/editor/session.test.ts > EditorSession configureHostReferences（7.2 同 key 动态能力） > destroy 后 configure 是安全 no-op 12ms
+ ✓ src/lib/editor/session.test.ts > EditorSession > 先严格解码初始 HNN；失败时不构造可保存的降级会话 1ms
+ ✓ src/lib/editor/session.test.ts > EditorSession > 将严格 codec document 以 JSON 跨 schema 重新物化，并以会话 state.doc 建立 baseline 14ms
+ ✓ src/lib/editor/session.test.ts > EditorSession > 以当次 editor.state.doc 建立 baseline，并按新会话重置 selection 和 history 26ms
+ ✓ src/lib/editor/session.test.ts > EditorSession > 封闭 StarterKit UndoRedo 支持 command 与 Ctrl+Z/Ctrl+Shift+Z 17ms
+ ✓ src/lib/editor/selectionClipboard.test.ts > 6.6 标准 HTML / text/plain 剪贴板保持可表达结构 > 从外部粘贴标题/列表/加粗的 HTML，按对应结构导入 27ms
+ ✓ src/lib/editor/selectionClipboard.test.ts > 6.6 标准 HTML / text/plain 剪贴板保持可表达结构 > 行内 marks（bold/italic/link）复制粘贴保留 23ms
+ ✓ src/lib/editor/selectionClipboard.test.ts > 6.6 标准 HTML / text/plain 剪贴板保持可表达结构 > 嵌套列表复制粘贴保留层级 32ms
+ ✓ src/lib/editor/selectionClipboard.test.ts > 6.6 标准 HTML / text/plain 剪贴板保持可表达结构 > 仅纯文本粘贴按纯文本插入，不产生富文本标记 14ms
+ ✓ src/lib/editor/selectionClipboard.test.ts > 6.6 废弃旧语义与安全边界 > 仅旧自研 MIME 的剪贴板内容不还原专有结构；有纯文本时只按纯文本处理 21ms
+ ✓ src/lib/editor/session.test.ts > EditorSession > 相同 documentId/loadKey 的外部初始值变化不会替换既有会话 11ms
+ ✓ src/lib/editor/session.test.ts > EditorSession > 保存捕获触发时的快照和 CAS revision，保存期间编辑仍为脏 13ms
+ ✓ src/lib/editor/session.test.ts > EditorSession > 每个会话保存单飞，成功将快照作为 baseline，未返回 revision 时清除 revision 11ms
+ ✓ src/lib/editor/session.test.ts > EditorSession > 失败与 conflict 保留 baseline、文档、selection 和 history 16ms
+ ✓ src/lib/editor/session.test.ts > EditorSession > 保存失败保持脏和原 baseline 9ms
+ ✓ src/lib/editor/session.test.ts > EditorSession > 不可编码 transaction 不会从 dispatch 逃逸，undo 后可重新保存 11ms
+ ✓ src/lib/editor/session.test.ts > EditorSession > 编码错误覆盖 saving；保存成功时保留编码错误，undo 恢复后回到成功 phase 10ms
+ ✓ src/lib/editor/session.test.ts > EditorSession > 编码错误覆盖 conflict，undo 恢复后仍为 conflict 11ms
+ ✓ src/lib/editor/session.test.ts > EditorSession > 宿主 reject 即使是 HnnCodecError 也不会被普通编辑清除 9ms
+ ✓ src/lib/editor/selectionClipboard.test.ts > 6.6 废弃旧语义与安全边界 > 不暴露/不消费旧 selectMode；跨标题到正文是普通 TextSelection 文本流 9ms
+ ✓ src/lib/editor/selectionClipboard.test.ts > 6.6 废弃旧语义与安全边界 > 粘贴含重复伪造 id 的多个节点后标识互不相同且不与既有冲突 18ms
+ ✓ src/lib/editor/selectionClipboard.test.ts > 6.6 废弃旧语义与安全边界 > 既有安全拒绝仍生效：危险协议 custom marker 与超限表格在 dispatch 前拒绝 16ms
+ ✓ src/lib/editor/session.test.ts > EditorSession > 隔离宿主 onChange 异常，不影响 ProseMirror dispatch 或会话状态 9ms
+ ✓ src/lib/editor/session.test.ts > EditorSession > 宿主同步抛错也清除 in-flight 并进入 error，不会遗留 saving 8ms
+ ✓ src/lib/editor/session.test.ts > EditorSession > 旧会话保存 A1 后切换 A2 再新建 A1 时，中止旧请求并忽略陈旧结果 23ms
+ ✓ src/lib/editor/session.test.ts > EditorSession > destroy 会中止每次保存独有的 AbortSignal 10ms
+ ✓ src/lib/editor/session.test.ts > EditorSession > 以同一 EditorState 内的 doc.eq 判定 baseline，初始 JSON 键序不影响非脏状态 10ms
+ ✓ src/lib/editor/session.test.ts > EditorSession > 封闭会话没有 schema/extensions/history props，未知持久结构不能保存 13ms
+ ✓ src/lib/editor/session.test.ts > EditorSession > 构造时复制 documentId、revision 与 callback，外部 options 突变不改变会话语义 9ms
+ ✓ src/lib/editor/session.test.ts > EditorSession > 拒绝非有限数字 loadKey NaN 0ms
+ ✓ src/lib/editor/session.test.ts > EditorSession > 拒绝非有限数字 loadKey Infinity 0ms
+ ✓ src/lib/editor/session.test.ts > EditorSession > 拒绝非有限数字 loadKey -Infinity 0ms
+ ✓ src/lib/editor/nativeClipboard.test.ts > 原生 PM clipboard > copy 只写 text/html 与 text/plain，且零 transaction 82ms
+ ✓ src/lib/editor/nativeClipboard.test.ts > 原生 PM clipboard > custom atom copy→paste 保留结构并重建 nodeId 59ms
+stderr | src/lib/editor/nativeClipboard.test.ts > 原生 PM clipboard > 标准 HTML 与 plain text 按 PM 原生语义粘贴
+TextSelection endpoint not pointing into a node with inline content (doc)
+
+ ✓ src/lib/editor/nativeClipboard.test.ts > 原生 PM clipboard > 标准 HTML 与 plain text 按 PM 原生语义粘贴 44ms
+ ✓ src/lib/editor/nativeClipboard.test.ts > 原生 PM clipboard > 旧 MIME 不会恢复内容，危险 HTML 在 dispatch 前被严格拒绝 16ms
+ ✓ src/lib/editor/nativeClipboard.test.ts > 原生 PM clipboard > 闭合 custom marker 拒绝未知类型、tag/attrs/payload 越权，且不改变 selection/history 22ms
+ ✓ src/lib/editor/nativeClipboard.test.ts > 原生 PM clipboard > HNN blockquote 往返 author/nodeId，普通外部 blockquote 安全导入 author=null 51ms
+ ✓ src/lib/editor/nativeClipboard.test.ts > 原生 PM clipboard > 外部标准 pre/code 以安全默认 attrs 导入，内部 HNN codeBlock 往返保留 attrs 57ms
+ ✓ src/lib/editor/nativeClipboard.test.ts > 原生 PM clipboard > composition 中 paste 被 capture 拒绝，不让浏览器 DOM mutation 或 PM transaction 污染状态 14ms
+ ✓ src/lib/editor/nativeClipboard.test.ts > 原生 PM clipboard > CellSelection 与 ordered-list 分支的非法 custom paste 在 dispatch 前拒绝 34ms
+ ✓ src/lib/editor/nativeClipboard.test.ts > 原生 PM clipboard > ragged 标准 table 在最终 appendTransaction repair 后通过，oversized table 在真实 dispatch 前拒绝 42ms
+ ✓ src/lib/editor/nativeClipboard.test.ts > 原生 PM clipboard > 标准 table span 在 capture 前有界拒绝，TextSelection 与 CellSelection 均不污染状态 38ms
+ ✓ src/lib/editor/nativeClipboard.test.ts > 原生 PM clipboard > 缺失 clipboardData 的 paste 在 capture 拒绝，copy/cut 正常保持 PM 原生路径 11ms
+ ✓ src/lib/editor/nativeClipboard.test.ts > 原生 PM clipboard > history wrapper cleanup 只恢复自己安装的 dispatch，不覆盖后安装 wrapper 8ms
+ ✓ src/lib/editor/nativeClipboard.test.ts > 原生 PM clipboard > cut 仅删除一次并可一次 undo，table 使用原生 CellSelection 18ms
+ ✓ src/lib/editor/nativeClipboard.test.ts > 原生 PM clipboard > paste/cut 与相邻输入、连续 clipboard 操作各自形成独立 undo step 26ms
+ ✓ src/lib/editor/nativeClipboard.test.ts > 原生 PM clipboard > 粘贴紧邻的前后快速输入各自独立成 undo 步：closeHistory 隔离前序，后序相邻输入合并为一段 17ms
+ ✓ src/lib/editor/nativeClipboard.test.ts > 原生 PM clipboard > cut 与紧邻前后快速输入各自独立成 undo 步 13ms
+ ✓ src/lib/editor/ViewToolbar.test.tsx > notes per-view toolbar > places the file entry after redo and routes selection to the initiating pane 330ms
+ ✓ src/lib/editor/ViewToolbar.test.tsx > notes per-view toolbar > hides without injected files, disables while busy and never removes the last item 161ms
+ ✓ src/lib/editor/ViewToolbar.test.tsx > notes per-view toolbar > gives the top toolbar the effective safe area once and reserves content space 31ms
+ ✓ src/lib/editor/ViewToolbar.test.tsx > notes per-view toolbar > anchors bottom and top panes independently and keeps the document mounted across direction changes 64ms
+ ✓ src/lib/editor/referenceInvalidation.test.tsx > invalidates by kind/id in both views, deduplicates nodes, preserves body/history/selection and supports no views 141ms
+ ✓ src/lib/editor/referenceInvalidation.test.tsx > aborts loading attempts, ignores late results, recovers missing/error and uses the latest resolver 19ms
+ ✓ src/lib/editor/referenceInvalidation.test.tsx > validates lifecycle, identity, scope and aborts a synchronous dispose during refresh 17ms
+ ✓ src/lib/editor/referenceInvalidation.test.tsx > public Provider refreshes DOM with a false stable resolver while preserving focus, save and undo 224ms
+ ✓ src/lib/editor/referenceInvalidation.test.tsx > public Provider refreshes DOM with a true stable resolver while preserving focus, save and undo 87ms
+ ✓ src/lib/editor/referenceInvalidation.test.tsx > does not resurrect a request when abort listeners or reference subscribers invalidate again 13ms
+ ✓ src/lib/editor/listProvider.test.tsx > M1.9 Provider synchronizes checkbox/conversion/history, freeze, failed save/retry and reopening 425ms
+ ✓ src/lib/publicApi.test.tsx > 7.1 公共入口 smoke > 公开 HNN 编解码可无损装载（无效输入抛 HnnCodecError） 6ms
+ ✓ src/lib/publicApi.test.tsx > 7.1 公共入口 smoke > 公开 Markdown 编解码可导入并导出 18ms
+stderr | src/lib/publicApi.test.tsx > 7.1 公共入口 smoke > DOM 原生交互（paste）触发 onChange，快照是 HNN
+linkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+
+ ✓ src/lib/editor/MarkdownExport.test.tsx > MarkdownExport 导出流程 > 无诊断：点击显式导出直接调用 onExport，不打开确认界面 142ms
+ ✓ src/lib/editor/MarkdownExport.test.tsx > MarkdownExport 导出流程 > 有诊断：展示逐条诊断与预览，确认前绝不写出 23ms
+ ✓ src/lib/editor/MarkdownExport.test.tsx > MarkdownExport 导出流程 > 用户显式确认后才写出，且写出的就是当次已诊断结果 24ms
+ ✓ src/lib/editor/MarkdownExport.test.tsx > MarkdownExport 导出流程 > 快照只在点击时捕获一次：待确认期间文档变化不会混入写出内容 20ms
+ ✓ src/lib/editor/MarkdownExport.test.tsx > MarkdownExport 导出流程 > 取消按钮：不写出、关闭 Drawer、焦点还原到触发按钮 22ms
+stderr | src/lib/publicApi.test.tsx > 7.1 公共入口 smoke > 保存按钮以 CAS 契约调用 onSave（HNN 快照 + revision），成功后回到已保存
+linkifyjs: already initialized - will not register custom scheme "hnmagic" until manual call of linkify.init(). Register all schemes and plugins before invoking linkify the first time.
+
+ ✓ src/lib/editor/MarkdownExport.test.tsx > MarkdownExport 导出流程 > Escape：等同于取消，不写出且还原焦点 15ms
+ ✓ src/lib/editor/MarkdownExport.test.tsx > MarkdownExport 错误与竞态 > 宿主 onExport rejected：行内 alert 可观察且不产生 unhandled rejection 21ms
+ ✓ src/lib/editor/MarkdownExport.test.tsx > MarkdownExport 错误与竞态 > 宿主 reject(undefined)：仍按失败判别，绝不误报导出完成 10ms
+ ✓ src/lib/editor/MarkdownExport.test.tsx > MarkdownExport 错误与竞态 > 宿主 throw undefined：同步抛出任意值同样落入失败分支 9ms
+ ✓ src/lib/editor/MarkdownExport.test.tsx > MarkdownExport 错误与竞态 > Drawer 内确认后宿主失败：诊断保留、可取消，不静默吞错 27ms
+ ✓ src/lib/editor/MarkdownExport.test.tsx > MarkdownExport 错误与竞态 > 在途写出单飞：触发按钮禁用，重复点击不产生第二次 onExport 14ms
+ ✓ src/lib/publicApi.test.tsx > 7.1 公共入口 smoke > DOM 原生交互（paste）触发 onChange，快照是 HNN 130ms
+ ✓ src/lib/editor/MarkdownExport.test.tsx > MarkdownExport 错误与竞态 > 会话切换：abort 在途写出、丢弃待确认 UI，陈旧结果不回写 22ms
+ ✓ src/lib/editor/MarkdownExport.test.tsx > MarkdownExport 错误与竞态 > 导出完成后切换会话：旧的完成通知不污染新会话 15ms
+ ✓ src/lib/editor/MarkdownExport.test.tsx > MarkdownExport 错误与竞态 > 会话切换提交即刻失效：切换后 settle 的旧 promise 不回写（含 effect 前边界） 12ms
+ ✓ src/lib/editor/MarkdownExport.test.tsx > MarkdownExport 错误与竞态 > 卸载：abort 在途写出，之后 settle 不发生任何状态回写 6ms
+ ✓ src/lib/editor/MarkdownExport.test.tsx > MarkdownExport 键盘与可访问性 > 诊断定位：column 独立存在时也照常展示 7ms
+ ✓ src/lib/editor/MarkdownExport.test.tsx > MarkdownExport 键盘与可访问性 > 键盘聚焦触发按钮按 Enter 打开确认 Drawer 10ms
+ ✓ src/lib/editor/MarkdownExport.test.tsx > MarkdownExport 键盘与可访问性 > 键盘聚焦确认按钮按 Enter 写出 15ms
+ ✓ src/lib/editor/MarkdownExport.test.tsx > MarkdownExport 键盘与可访问性 > 诊断确认期间触发按钮禁用且 aria-expanded 为 true 16ms
+ ✓ src/lib/publicApi.test.tsx > 7.1 公共入口 smoke > 保存按钮以 CAS 契约调用 onSave（HNN 快照 + revision），成功后回到已保存 115ms
+ ✓ src/lib/publicApi.test.tsx > 7.1 公共入口 smoke > 显式导出无诊断时直接写出，且不改动文档/baseline 36ms
+ ✓ src/lib/publicApi.test.tsx > 7.1 公共入口 smoke > 显式导出有诊断时等待确认，未确认不写出 52ms
+ ✓ src/lib/publicApi.test.tsx > 7.1 公共入口 smoke > 公开组件可独立从根入口装配（NoteSaveStatus / MarkdownExport 可构造） 2ms
+ ✓ src/lib/publicApi.types.test.tsx > 8.2 公共 API：AST 明确清单与来源 > 根入口导出与 allowlist 完全一致（含 source，未知语法失败） 2ms
+ ✓ src/lib/publicApi.types.test.tsx > 8.2 公共 API：AST 明确清单与来源 > 每项来源均为允许的公开模块，禁止内部实现 2ms
+ ✓ src/lib/editor/reviewPortalComposition.test.tsx > does not commit and close a formula portal with an active composition 316ms
+ ✓ src/lib/publicApi.types.test.tsx > 8.2 公共 API：AST 明确清单与来源 > runtime 精确 8 项，旧导出与内部实现均不在 294ms
+ ✓ src/lib/publicApi.types.test.tsx > 8.2 公共 API：封闭模型的编译期拒绝 > 宿主激活 payload 用 kind 区分资源引用与 hnmagic href 0ms
+ ✓ src/lib/publicApi.types.test.tsx > 8.2 公共 API：封闭模型的编译期拒绝 > 旧 props / 旧 types / 内部实现无法从根入口注入 0ms
+ ✓ src/lib/editor/nodeViewReviewRegressions.test.ts > PR11 NodeView 回归 > #6 容器 renderText 复制纯文本 > EditorSession clipboard text/plain 输出 callout/collapsible 标题 + 正文，且保留 atom 子序列化 109ms
+ ✓ src/lib/hnn/extensions.test.ts > 封闭 HNN extensions > 只从无宿主输入的 extension 集合构造唯一 runtime schema 3ms
+ ✓ src/lib/hnn/extensions.test.ts > 封闭 HNN extensions > 编辑会话仅通过封闭 StarterKit 启用 UndoRedo，codec schema 不携带 history 74ms
+ ✓ src/lib/hnn/extensions.test.ts > 封闭 HNN extensions > custom clipboard 声明拒绝未知 marker、tag/attrs 越权与非法 payload 9ms
+ ✓ src/lib/hnn/extensions.test.ts > 封闭 HNN extensions > marker-aware addAttributes 保留严格 validator 的字符串 attrs，外部 pre 忽略伪造 attrs 65ms
+ ✓ src/lib/editor/nodeViewReviewRegressions.test.ts > PR11 NodeView 回归 > #6 容器 renderText 复制纯文本 > 部分选区从容器内部开始时，未选中的标题不并入纯文本 25ms
+ ✓ src/lib/editor/nodeViewReviewRegressions.test.ts > PR11 NodeView 回归 > #7 filename/author label 512 UTF-8 预检 > codeBlock filename 512 字节可提交，513 字节零事务并恢复输入与合法 PM 状态 24ms
+ ✓ src/lib/editor/nodeViewReviewRegressions.test.ts > PR11 NodeView 回归 > #7 filename/author label 512 UTF-8 预检 > codeBlock filename 多字节边界：510+2 字节可提交，171 个中文字（513 字节）被拒 19ms
+ ✓ src/lib/editor/nodeViewReviewRegressions.test.ts > PR11 NodeView 回归 > #7 filename/author label 512 UTF-8 预检 > blockquote author 512 字节可提交，513 字节零事务并恢复输入；空输入仍归一为 null 19ms
+ ✓ src/lib/editor/nodeViewReviewRegressions.test.ts > PR11 NodeView 回归 > #8 commitNodeAttrs 后序历史栅栏 > filename a.ts→b.ts 后紧邻输入 X：一次 undo 只撤 X，再一次 undo 撤 filename 22ms
+ ✓ src/lib/editor/nodeViewReviewRegressions.test.ts > PR11 NodeView 回归 > #8 commitNodeAttrs 后序历史栅栏 > 其他 NodeView attrs 同样隔离：callout 标题提交后紧邻输入，一次 undo 只撤正文 18ms
+ ✓ src/lib/hnn/extensions.test.ts > 封闭 HNN extensions > 将标准复杂 attrs 与 custom attrs 以 runtime schema 的规范 JSON 往返 5ms
+ ✓ src/lib/hnn/extensions.test.ts > 封闭 HNN extensions > 保持表格单元格的 colspan、rowspan、colwidth 和 align 0ms
+ ✓ src/lib/hnn/extensions.test.ts > 封闭 HNN extensions > 将 URL 安全策略同时用于 codec 与 Link extension 10ms
+ ✓ src/lib/hnn/extensions.test.ts > 封闭 HNN extensions > 初始 Editor 文档立即获得 nodeId，且标记 inline atom 会被清理后可编码 14ms
+ ✓ src/lib/hnn/extensions.test.ts > 封闭 HNN extensions > 新建 card/drawing attrs 使用 payload canonical 空 data，且可严格编码 2ms
+ ✓ src/lib/hnn/extensions.test.ts > 封闭 HNN extensions > 容器 renderText 递归子内容：纯文本含 callout/collapsible 标题与正文，并保留 atom 子序列化 22ms
+ ✓ src/lib/hnn/extensions.test.ts > 封闭 HNN extensions > 接收 decodeHnn 返回的同实例 PM Node，保留内容且不产生初始化历史 13ms
+ ✓ src/lib/hnn/extensions.test.ts > persists bold/italic/underline in HNN and standard HTML clipboard without losing old documents 19ms
+ ✓ src/lib/hnn/budgetedTransaction.test.ts > 未注入 encoder：fail-closed > normalizeBudgetedCandidate 对正常合法候选也返回 null 3ms
+ ✓ src/lib/hnn/budgetedTransaction.test.ts > 未注入 encoder：fail-closed > commitBudgetedTransaction 对正常合法候选返回 false 且零 dispatch、doc 不变 65ms
+ ✓ src/lib/hnn/budgetedTransaction.test.ts > 注入严格 encodeHnn 后 > 为缺失 nodeId 的新节点补齐合法唯一 ID，原合法 ID 原样保留，合法候选通过 6ms
+ ✓ src/lib/hnn/budgetedTransaction.test.ts > 注入严格 encodeHnn 后 > 非法 attrs（card data 超 maxAttrBytes）被 encodeHnn 拒绝 1ms
+ ✓ src/lib/hnn/budgetedTransaction.test.ts > 注入严格 encodeHnn 后 > 深度超限且位于非首子分支的文档被 encodeHnn 拒绝 4ms
+ ✓ src/lib/hnn/budgetedTransaction.test.ts > 注入严格 encodeHnn 后 > 表格布局超列（65 列 > maxColumns）被 encodeHnn 拒绝 9ms
+ ✓ src/lib/editor/NoteSaveStatus.test.tsx > NoteSaveStatus 状态呈现 > clean idle：呈现已保存且不需要保存按钮 105ms
+ ✓ src/lib/editor/NoteSaveStatus.test.tsx > NoteSaveStatus 状态呈现 > dirty idle：呈现未保存修改并提供保存按钮 19ms
+ ✓ src/lib/editor/NoteSaveStatus.test.tsx > NoteSaveStatus 状态呈现 > saving：呈现保存中且按钮禁用 17ms
+ ✓ src/lib/editor/NoteSaveStatus.test.tsx > NoteSaveStatus 状态呈现 > error：呈现保存失败且绝不呈现为已保存，并提供显式重试 7ms
+ ✓ src/lib/editor/NoteSaveStatus.test.tsx > NoteSaveStatus 状态呈现 > error 即使 dirty 为 false 也不呈现为已保存 5ms
+ ✓ src/lib/editor/NoteSaveStatus.test.tsx > NoteSaveStatus 状态呈现 > conflict：呈现冲突并说明不自动合并或覆盖，等待显式决策 5ms
+ ✓ src/lib/editor/NoteSaveStatus.test.tsx > NoteSaveStatus 交互 > 点击保存按钮触发一次 onSave 7ms
+ ✓ src/lib/editor/NoteSaveStatus.test.tsx > NoteSaveStatus 交互 > 保存中按钮禁用，无法重复触发保存 4ms
+ ✓ src/lib/editor/NoteSaveStatus.test.tsx > NoteSaveStatus 交互 > 键盘聚焦后按 Enter 可触发保存 6ms
+ ✓ src/lib/editor/NoteSaveStatus.test.tsx > NoteSaveStatus 交互 > disabled 时按钮禁用且不触发 onSave，状态文案仍如实呈现 5ms
+ ✓ src/lib/editor/NoteSaveStatus.test.tsx > NoteSaveStatus 交互 > onSave 返回 rejected Promise 时被吞掉，不产生 unhandled rejection 也不伪造状态 7ms
+ ✓ src/lib/editor/NoteSaveStatus.test.tsx > NoteSaveStatus 交互 > onSave 同步抛错时不向外传播 4ms
+ ✓ src/lib/hnn/budgetedTransaction.test.ts > 注入严格 encodeHnn 后 > 最终候选超过节点总数上限时返回 null 53ms
+ ✓ src/lib/hnn/budgetedTransaction.test.ts > 注入严格 encodeHnn 后 > 最终候选超过 512 KiB 外壳上限时返回 null 39ms
+ ✓ src/lib/hnn/budgetedTransaction.test.ts > 注入严格 encodeHnn 后 > captureChainTransaction：run() 返回 false 时即使 tr 已被部分写入也返回 null、零 dispatch 16ms
+ ✓ src/lib/hnn/budgetedTransaction.test.ts > 注入严格 encodeHnn 后 > commitBudgetedTransaction：no-op 候选零 dispatch，doc/历史不变 12ms
+ ✓ src/lib/hnn/budgetedTransaction.test.ts > 注入严格 encodeHnn 后 > commitBudgetedTransaction：超预算候选零 dispatch、回 false、doc 不变 11ms
+ ✓ src/lib/hnn/listPersistence.test.ts > M1.8 strict v1 list persistence and Markdown > roundtrips a mixed list tree including IDs, numbering, marks and both task states 40ms
+ ✓ src/lib/hnn/listPersistence.test.ts > M1.8 strict v1 list persistence and Markdown > rejects checked=undefined with its attribute path and leaves input untouched 1ms
+ ✓ src/lib/hnn/listPersistence.test.ts > M1.8 strict v1 list persistence and Markdown > rejects checked=false with its attribute path and leaves input untouched 0ms
+ ✓ src/lib/hnn/listPersistence.test.ts > M1.8 strict v1 list persistence and Markdown > rejects checked=0 with its attribute path and leaves input untouched 0ms
+ ✓ src/lib/hnn/listPersistence.test.ts > M1.8 strict v1 list persistence and Markdown > rejects checked=null with its attribute path and leaves input untouched 0ms
+ ✓ src/lib/hnn/listPersistence.test.ts > M1.8 strict v1 list persistence and Markdown > rejects checked on ordinary items; old valid v1 without tasks is readable 1ms
+ ✓ src/lib/hnn/listPersistence.test.ts > M1.8 strict v1 list persistence and Markdown > imports uppercase X and exports canonical GFM task/number markers 21ms
+ ✓ src/lib/hnn/listPersistence.test.ts > M1.8 strict v1 list persistence and Markdown > special numbering and complex content use the existing lossless fence 8ms
+ ✓ src/lib/hnn/menuPopover.test.ts > menuPopover：结构与语义 > 渲染 role=menu + 可访问名称，条目为 role=menuitem，分隔线 role=separator 27ms
+ ✓ src/lib/hnn/menuPopover.test.ts > menuPopover：结构与语义 > 打开即聚焦首个可用条目，roving tabindex：其余条目 tabindex=-1 5ms
+ ✓ src/lib/hnn/menuPopover.test.ts > menuPopover：结构与语义 > ArrowDown/Up 循环移动并跳过禁用项；Home/End 跳首尾 6ms
+ ✓ src/lib/hnn/menuPopover.test.ts > menuPopover：激活与两步确认 > 点击条目执行并关闭，onClose 恰好一次 4ms
+ ✓ src/lib/hnn/menuPopover.test.ts > menuPopover：激活与两步确认 > confirmLabel 条目：首次激活只切确认文案不执行，再次激活才执行并关闭 3ms
+ ✓ src/lib/hnn/menuPopover.test.ts > menuPopover：激活与两步确认 > 焦点离开确认条目即复位确认态（关闭即取消的延伸） 3ms
+ ✓ src/lib/hnn/menuPopover.test.ts > menuPopover：关闭路径全集 > Escape 关闭并把焦点归还锚点 2ms
+ ✓ src/lib/hnn/menuPopover.test.ts > menuPopover：关闭路径全集 > 菜单外 pointerdown 关闭；菜单内/锚点上不关闭 4ms
+ ✓ src/lib/hnn/menuPopover.test.ts > menuPopover：关闭路径全集 > window scroll（capture，嵌套滚动也覆盖）与 resize 关闭 3ms
+ ✓ src/lib/hnn/menuPopover.test.ts > menuPopover：关闭路径全集 > Tab 关闭但不拦默认行为（焦点按自然顺序离开） 2ms
+ ✓ src/lib/hnn/menuPopover.test.ts > menuPopover：关闭路径全集 > handle.close 幂等：重复调用只关闭一次 2ms
+ ✓ src/lib/hnn/menuPopover.test.ts > menuPopover：底部溢出定位（bug-7.5-3 回归） > 下方放不下且上方更宽：翻转到锚点上方，不出现限高，菜单完整落在视口内 3ms
+ ✓ src/lib/hnn/menuPopover.test.ts > menuPopover：底部溢出定位（bug-7.5-3 回归） > 两侧都放不下（菜单比任何一侧都高）：贴更宽一侧限高 + 内部滚动，顶缘钳进视口 3ms
+ ✓ src/lib/hnn/menuPopover.test.ts > menuPopover：底部溢出定位（bug-7.5-3 回归） > 下方充足：保持贴锚点下缘的默认路径（不翻转、不限高） 2ms
+ ✓ src/lib/hnn/menuPopover.test.ts > menuPopover：底部溢出定位（bug-7.5-3 回归） > 子菜单在右侧空间不足时向左翻转，短视口限高可滚动 2ms
+ ✓ src/lib/hnn/menuPopover.test.ts > menuPopover：底部溢出定位（bug-7.5-3 回归） > 菜单内部滚动不触发关闭；菜单外滚动与 resize 仍关闭 4ms
+ ✓ src/lib/hnn/menuPopover.test.ts > menuPopover：转换二级菜单 > 父项只展开；Right进入、上下跳禁用、Left/Esc逐层返回，最终回锚点 10ms
+ ✓ src/lib/hnn/menuPopover.test.ts > menuPopover：转换二级菜单 > 鼠标在子菜单内不被父菜单外部监听提前关闭，执行恰好一次并清理整棵菜单 3ms
+ ✓ src/lib/hnn/menuPopover.test.ts > menuPopover：转换二级菜单 > tab关闭整棵菜单；内部滚动保留层级 3ms
+ ✓ src/lib/hnn/menuPopover.test.ts > menuPopover：转换二级菜单 > outside关闭整棵菜单；内部滚动保留层级 3ms
+ ✓ src/lib/hnn/menuPopover.test.ts > menuPopover：转换二级菜单 > scroll关闭整棵菜单；内部滚动保留层级 3ms
+ ✓ src/lib/hnn/menuPopover.test.ts > menuPopover：转换二级菜单 > destroy关闭整棵菜单；内部滚动保留层级 3ms
+ ✓ src/demo/hostHandlers.test.ts > demo 图片上传宿主回调 > 返回持久 https 示例地址与文件名 alt，并记录“未发送文件”事件 4ms
+ ✓ src/demo/hostHandlers.test.ts > demo 图片上传宿主回调 > 同一 uploadId 的并发调用共享同一在途请求（幂等单飞） 22ms
+ ✓ src/demo/hostHandlers.test.ts > demo 图片上传宿主回调 > 一次性失败开关消费后，同 uploadId 重试（attempt+1）成功 4ms
+ ✓ src/demo/hostHandlers.test.ts > demo 图片上传宿主回调 > signal 中止时以 AbortError 拒绝，且之后同 uploadId 可重新上传 51ms
+ ✓ src/demo/hostHandlers.test.ts > demo 图片上传宿主回调 > abortableDelay 在已中止的 signal 上立即拒绝 0ms
+ ✓ src/demo/hostHandlers.test.ts > demo 宿主引用回调 > mention 候选按 query 大小写不敏感过滤 4ms
+ ✓ src/demo/hostHandlers.test.ts > demo 宿主引用回调 > resource 候选使用独立的文档目录 3ms
+ ✓ src/demo/hostHandlers.test.ts > demo 宿主引用回调 > resolve 命中返回 label/description，未命中返回 null（占位呈现）并记录事件 3ms
+ ✓ src/demo/hostHandlers.test.ts > demo 宿主引用回调 > activate 记录宿主事件（库不导航，动作归宿主） 1ms
+ ✓ src/demo/hostHandlers.test.ts > demo 宿主引用回调 > hnmagic 激活记录原始 href，不读取不存在的资源字段且不导航 0ms
+ ✓ src/demo/hostHandlers.test.ts > demo Markdown 导出写出 > 仅在回调被调用时写出（确认语义由 MarkdownExport 保证），文件名与内容正确 1ms
+ ✓ src/demo/hostHandlers.test.ts > demo Markdown 导出写出 > signal 已中止时丢弃写出（不下载、不记录） 0ms
+ ✓ src/demo/hostHandlers.test.ts > formatDiagnostics > 按 path / line / 无位置三种形态格式化 0ms
+ ✓ src/lib/legacyPublicApiInventory.test.ts > legacy public API inventory：冻结证据 (Phase 1 task 1.3) > 冻结清单面向本变更且标记了移除任务 2ms
+ ✓ src/lib/legacyPublicApiInventory.test.ts > legacy public API inventory：冻结证据 (Phase 1 task 1.3) > 冻结的旧导出与内部模块清单作为历史证据保留且无重复 5ms
+ ✓ src/lib/legacyPublicApiInventory.test.ts > 根入口切换后的公共 API (task 7.1 / 8.1 / 8.2) > phase 是显式已知阶段，当前为 deleted（旧实现已清理） 0ms
+ ✓ src/lib/legacyPublicApiInventory.test.ts > 根入口切换后的公共 API (task 7.1 / 8.1 / 8.2) > 根入口导出精确等于当前 allowlist（含 source），未知语法失败 1ms
+ ✓ src/lib/legacyPublicApiInventory.test.ts > 根入口切换后的公共 API (task 7.1 / 8.1 / 8.2) > 旧导出不再从根入口出现（禁止回归） 1ms
+ ✓ src/lib/legacyPublicApiInventory.test.ts > 根入口切换后的公共 API (task 7.1 / 8.1 / 8.2) > 当前 allowlist 无重复且 value 恰为 additive runtime 十项 1ms
+ ✓ src/lib/legacyPublicApiInventory.test.ts > 根入口切换后的公共 API (task 7.1 / 8.1 / 8.2) > 历史 13 个旧实现模块在 deleted 阶段全部不存在 0ms
+ ✓ src/lib/hnn/nodeId.test.ts > HNN nodeId > 生成小写 UUID v4，且 appendTransaction 一次性修复缺失、非法和重复值，不进入历史 8ms
+ ✓ src/lib/hnn/nodeId.test.ts > HNN nodeId > 为粘贴 slice 的每个持久节点重建不同的 UUID，且不会与目标文档冲突 3ms
+ ✓ src/lib/hnn/nodeId.test.ts > HNN nodeId > 粘贴时清理 inline atom marks，但保留 text marks 1ms
+ ✓ src/lib/hnn/nodeId.test.ts > HNN nodeId > 显式 existingIds 避开目标文档 UUID 碰撞，且不会改写旧 document identity 1ms
+ ✓ src/lib/hnn/nodeId.test.ts > HNN nodeId > 带 marks 的 text 不被 repair 误判为 inline atom（本 PM 版本 text 亦为叶子/isAtom） 0ms
+ ✓ src/lib/hnn/nodeId.test.ts > HNN nodeId > 非 text 的 inline atom marks 仍被 repair 清理且不进历史 1ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：旧实现清除与根 token 保留 > 旧 .hn-note-* 选择器全部移除，注释中的 lineage 提及除外 2ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：旧实现清除与根 token 保留 > :root 保留宿主可依赖的主题 token 缺省（--hn-theme 由宿主注入，仅给缺省色） 1ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：显式 light/dark 完整 token 集 > 两个修饰类都声明完整 token 集（light 可覆盖暗色祖先） 1ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：显式 light/dark 完整 token 集 > 主题只走显式修饰类，不响应系统媒体查询 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：显式 light/dark 完整 token 集 > 透明编辑壳：.hn-editor 不拥有背景/圆角/阴影/最大宽度 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：popover 表面与 hn-popover-in 动效语言 > hn-popover-in 是纯 opacity 淡入（不与定位 transform 冲突） 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：popover 表面与 hn-popover-in 动效语言 > mini popover（公式/card/drawing 共用）沿用深色表面 + 阴影 + 10px 半径 + 淡入 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：popover 表面与 hn-popover-in 动效语言 > reduced-motion 下关闭 mini popover 淡入；三个独立 CSS 组件各有 reduced-motion 处理 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：桌面 handle 与重排预览（D10 优先于 DESIGN.md §13 旧描述） > 桌面 handle 随块 hover/块内聚焦/自身 hover/focus/拖拽/菜单打开显现 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：桌面 handle 与重排预览（D10 优先于 DESIGN.md §13 旧描述） > 只读模式直接隐藏 handle，不留假手柄 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：桌面 handle 与重排预览（D10 优先于 DESIGN.md §13 旧描述） > 插入边界预览：3px --hn-theme 线 + --hn-theme-soft 描边 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：桌面 handle 与重排预览（D10 优先于 DESIGN.md §13 旧描述） > 840px 紧凑断点（含边界）隐藏 handle 和命中区域 1ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：桌面 handle 与重排预览（D10 优先于 DESIGN.md §13 旧描述） > 重排实现是桌面原生 draggable + 移动端正文 500ms 长按 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：桌面 handle 与重排预览（D10 优先于 DESIGN.md §13 旧描述） > 手柄独占触摸手势：touch-action: none 只挂在手柄上（bug-7.5-1），正文滚动不受影响 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：桌面 handle 与重排预览（D10 优先于 DESIGN.md §13 旧描述） > 拖拽预览与源高亮由 PM 持有的 decorations 渲染，不再直写内容 DOM（bug-7.5-2） 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：桌面 handle 与重排预览（D10 优先于 DESIGN.md §13 旧描述） > 手柄同时是键盘可达的块操作菜单入口（DESIGN.md §9/D9），不再是 aria-hidden 纯指针控件 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：锚定菜单表面（块操作/表格行列操作共用，DESIGN.md §9） > 深色 surface + 10px 半径 + popover 阴影 + 纯 opacity 淡入，不引入新色 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：锚定菜单表面（块操作/表格行列操作共用，DESIGN.md §9） > 条目状态复用 popover 按钮语言；禁用项降透明度且无 hover 背景 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：锚定菜单表面（块操作/表格行列操作共用，DESIGN.md §9） > in-menu 两步确认态是实心危险色反转；reduced-motion 同样取消菜单淡入 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：锚定菜单表面（块操作/表格行列操作共用，DESIGN.md §9） > 菜单语义与关闭路径由共用 menuPopover 承担（role/键盘/Escape 回焦） 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：锚定菜单表面（块操作/表格行列操作共用，DESIGN.md §9） > 底部锚点垂直翻转/钳制；视口过短限高 + 内部滚动可达全部条目（bug-7.5-3） 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：表格控件语言（DESIGN.md §10 边界 + 与焦点行/列操作方案） > 边界 + 与行/列操作控件默认隐藏，is-visible 显现，只用既有 token 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：表格控件语言（DESIGN.md §10 边界 + 与焦点行/列操作方案） > 拖动/菜单打开保持 token 激活态；插入预览是 --hn-theme 实线；只读整体隐藏 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：表格控件语言（DESIGN.md §10 边界 + 与焦点行/列操作方案） > 删除是 in-menu 两步确认（删除行/列 → 确认删除行/列）且控件有可访问名称 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：Drawer 60vh 与组件库 token 映射 > card/drawing 与 Markdown 导出 Drawer 都是 bottom 60vh 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：Drawer 60vh 与组件库 token 映射 > portal 里的 Drawer 面板把组件库 --hn-color-* 映射回编辑壳调色板 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：行内容呈现（公式/图片/提及） > 公式预览整行是可激活按钮，带标准 hover 与 2px 主题色 focus 环 1ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：行内容呈现（公式/图片/提及） > 图片表面只用 --hn-border + 8px 半径，不引入卡片底/阴影 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：行内容呈现（公式/图片/提及） > 提及是 theme-soft 底 + theme-text 字 + 999px inline pill 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：辅助技术契约（role/label/live） > 引用候选菜单：listbox/option/aria-selected，焦点保留在编辑器 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：辅助技术契约（role/label/live） > 可访问校验错误用 role=alert 播报（公式/提示块/图片/折叠块等 NodeView） 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：辅助技术契约（role/label/live） > 弹出编辑器与 textarea 有可访问名称 0ms
+ ✓ src/lib/editor/editorVisualBaseline.test.ts > 7.5 基线：辅助技术契约（role/label/live） > 状态与错误走 live region：NoteSaveStatus/MarkdownExport role=status，抽屉错误 role=alert 0ms
+ ✓ src/lib/hnn/drawingPayload.test.ts > HNN drawing payload > 提供可直接写入新节点的 canonical 空 data 3ms
+ ✓ src/lib/hnn/drawingPayload.test.ts > HNN drawing payload > 验证后交由 painting normalize，并输出 minified v2 JSON 1ms
+ ✓ src/lib/hnn/drawingPayload.test.ts > HNN drawing payload > 拒绝 normalize 会静默忽略的非法 JSON/形状、未知字段、重复 id 和非有限点 1ms
+ ✓ src/lib/hnn/drawingPayload.test.ts > HNN drawing payload > 不把非法旧 payload 替换为空画板 0ms
+ ✓ src/lib/hnn/drawingPayload.test.ts > HNN drawing payload > 仅接受固定 SVG paint，拒绝 url()/var()/控制字符而保留 DrawingSurface 默认 black 2ms
+ ✓ src/lib/hnn/persistedStringBudget.test.ts > HNN 持久化字符串预算 > 精确区分 raw 8KiB 与 JSON attr 8KiB 的边界 4ms
+ ✓ src/lib/hnn/persistedStringBudget.test.ts > HNN 持久化字符串预算 > 区分原始 UTF-8、JSON 转义、多字节与未配对代理项的超限原因 1ms
+ ✓ src/lib/hnn/cardPayload.test.ts > HNN card payload > 提供可直接写入新节点的 canonical 空 data 2ms
+ ✓ src/lib/hnn/cardPayload.test.ts > HNN card payload > 验证有效业务数据并输出固定顺序的 minified canonical JSON 1ms
+ ✓ src/lib/hnn/cardPayload.test.ts > HNN card payload > 拒绝字段白名单之外的值、非有限数、非正尺寸、重复 id、悬空引用和 parent 环 1ms
+ ✓ src/lib/hnn/cardPayload.test.ts > HNN card payload > 不修改输入，并对 legacy 非法字符串返回错误而非替代 payload 1ms
+ ✓ src/lib/hnn/cardPayload.test.ts > HNN card payload > 候选提交同时检查 8KiB raw 与 JSON attr 预算 3ms
+ ✓ src/demo/hostStore.test.ts > demo hostStore — localStorage 真实 CAS > 首次保存（无 baseRevision）写出 r1 并可读回 3ms
+ ✓ src/demo/hostStore.test.ts > demo hostStore — localStorage 真实 CAS > baseRevision 匹配已存 revision 时保存成功并递增 revision 1ms
+ ✓ src/demo/hostStore.test.ts > demo hostStore — localStorage 真实 CAS > baseRevision 过期时判冲突且绝不覆盖已存内容（真实 CAS，非无条件 saved） 1ms
+ ✓ src/demo/hostStore.test.ts > demo hostStore — localStorage 真实 CAS > 从未保存过却携带 baseRevision 时判冲突（基线版本已不存在） 0ms
+ ✓ src/demo/hostStore.test.ts > demo hostStore — localStorage 真实 CAS > 已存内容损坏：load 返回 null、保存判冲突、原始字节不被覆盖 1ms
+ ✓ src/demo/hostStore.test.ts > demo hostStore — localStorage 真实 CAS > overwriteExternal 模拟另一客户端写入：revision 递增，随后旧基线保存判冲突 1ms
+ ✓ src/demo/hostStore.test.ts > demo hostStore — localStorage 真实 CAS > overwriteExternal 对从未保存或已损坏的文档返回 null（无副作用） 0ms
+ ✓ src/demo/hostStore.test.ts > demo hostStore — localStorage 真实 CAS > 不同 documentId 的存储互不影响 1ms
+ ✓ src/demo/hostStore.test.ts > demo hostStore — Web Locks 原子性与 fail closed > 跨 store 实例共享同一把排他锁：基于同一 r1 并发保存，恰好一个 saved、一个 conflict，获胜快照未被覆盖 2ms
+ ✓ src/demo/hostStore.test.ts > demo hostStore — Web Locks 原子性与 fail closed > overwriteExternal 与 saveWithCas 共用同一把 key 锁，外部写入不会绕开并发互斥 1ms
+ ✓ src/demo/hostStore.test.ts > demo hostStore — Web Locks 原子性与 fail closed > Web Locks 不可用时 fail closed：saveWithCas/overwriteExternal 显式报错且绝不写入 1ms
+ ✓ src/demo/hostStore.test.ts > demo hostStore — Web Locks 原子性与 fail closed > 注入锁抛错时保存拒绝且不落盘（显式失败优于静默覆盖） 0ms
+ ✓ src/demo/hostStore.test.ts > demo hostStore — revision 规范与精度 > revision 达到/超过 MAX_SAFE_INTEGER：双 client 同锁基于同一 baseline 并发，恰好一个 saved、一个 conflict，且严格 +1 不丢精度 1ms
+ ✓ src/demo/hostStore.test.ts > demo hostStore — revision 规范与精度 > overwriteExternal 在超大 revision 下同样产生严格递增的新 revision，不覆盖为旧值 0ms
+ ✓ src/demo/hostStore.test.ts > demo hostStore — revision 规范与精度 > 规范 revision 的边界：r0 可递增为 r1，且大数保持十进制无指数形式 0ms
+ ✓ src/demo/hostStore.test.ts > demo hostStore — revision 规范与精度 > 非规范 revision "r01" 视为 corrupt：load null、保存冲突、overwrite null、原始字节绝不被覆盖 0ms
+ ✓ src/demo/hostStore.test.ts > demo hostStore — revision 规范与精度 > 非规范 revision "r00" 视为 corrupt：load null、保存冲突、overwrite null、原始字节绝不被覆盖 0ms
+ ✓ src/demo/hostStore.test.ts > demo hostStore — revision 规范与精度 > 非规范 revision "r1junk" 视为 corrupt：load null、保存冲突、overwrite null、原始字节绝不被覆盖 0ms
+ ✓ src/demo/hostStore.test.ts > demo hostStore — revision 规范与精度 > 非规范 revision "r-1" 视为 corrupt：load null、保存冲突、overwrite null、原始字节绝不被覆盖 0ms
+ ✓ src/demo/hostStore.test.ts > demo hostStore — revision 规范与精度 > 非规范 revision "r" 视为 corrupt：load null、保存冲突、overwrite null、原始字节绝不被覆盖 0ms
+ ✓ src/demo/hostStore.test.ts > demo hostStore — revision 规范与精度 > 非规范 revision "r1.5" 视为 corrupt：load null、保存冲突、overwrite null、原始字节绝不被覆盖 0ms
+ ✓ src/demo/hostStore.test.ts > demo hostStore — revision 规范与精度 > 非规范 revision "1" 视为 corrupt：load null、保存冲突、overwrite null、原始字节绝不被覆盖 0ms
+ ✓ src/demo/hostStore.test.ts > demo hostStore — revision 规范与精度 > 非规范 revision "R1" 视为 corrupt：load null、保存冲突、overwrite null、原始字节绝不被覆盖 0ms
+ ✓ src/demo/hostStore.test.ts > demo hostStore — revision 规范与精度 > 非规范 revision "" 视为 corrupt：load null、保存冲突、overwrite null、原始字节绝不被覆盖 0ms
+ ✓ src/lib/hnn/stringBytes.test.ts > hnn stringBytes 共享计数工具 > utf8Bytes 与 TextEncoder 编码长度全字符类别一致 2ms
+ ✓ src/lib/hnn/stringBytes.test.ts > hnn stringBytes 共享计数工具 > jsonStringBytes 与 JSON.stringify 编码长度全字符类别一致 1ms
+ ✓ src/lib/hnn/stringBytes.test.ts > hnn stringBytes 共享计数工具 > 修正 low-surrogate pair 检测：连续低代理项各计 3/6 字节而非代理对 1ms
+ ✓ src/lib/hnn/stringBytes.test.ts > hnn stringBytes 共享计数工具 > 精确边界值（供 UI/codec 上限测试引用） 1ms
+ ✓ src/lib/hnn/directoryEntries.test.ts > directory 派生条目 > 按 PM 文档顺序从 heading 派生 nodeId、level、text 和 position，空标题使用回退文本 2ms
+ ✓ src/lib/hnn/directoryEntries.test.ts > directory 派生条目 > 只持久化 directory 的 nodeId 与 config，拒绝条目快照 4ms
+ ✓ src/lib/documentApi.types.test.tsx > 3.1 root type contract > keeps legacy NoteSave and defines all new host-only properties 2ms
+
+ Test Files  47 passed (47)
+      Tests  982 passed (982)
+   Start at  17:34:40
+   Duration  42.30s (transform 2.30s, setup 217ms, import 12.54s, tests 44.80s, environment 20.47s)
+
+Done in 42.67s.
+
+[exit 0]
+
+$ yarn verify:tiptap-deps
+yarn run v1.22.22
+(node:1413757) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+$ node ./scripts/verify-tiptap-deps.mjs
+TipTap 依赖校验:
+  直接 @tiptap/*: 6 个，版本 = 3.31.3
+  yarn.lock 中 @tiptap/* + prosemirror-* 条目: 42 个
+    @tiptap/core -> 3.31.3
+    @tiptap/extension-blockquote -> 3.31.3
+    @tiptap/extension-bold -> 3.31.3
+    @tiptap/extension-bubble-menu -> 3.31.3
+    @tiptap/extension-bullet-list -> 3.31.3
+    @tiptap/extension-code -> 3.31.3
+    @tiptap/extension-code-block -> 3.31.3
+    @tiptap/extension-document -> 3.31.3
+    @tiptap/extension-dropcursor -> 3.31.3
+    @tiptap/extension-floating-menu -> 3.31.3
+    @tiptap/extension-gapcursor -> 3.31.3
+    @tiptap/extension-hard-break -> 3.31.3
+    @tiptap/extension-heading -> 3.31.3
+    @tiptap/extension-horizontal-rule -> 3.31.3
+    @tiptap/extension-italic -> 3.31.3
+    @tiptap/extension-link -> 3.31.3
+    @tiptap/extension-list -> 3.31.3
+    @tiptap/extension-list-item -> 3.31.3
+    @tiptap/extension-list-keymap -> 3.31.3
+    @tiptap/extension-ordered-list -> 3.31.3
+    @tiptap/extension-paragraph -> 3.31.3
+    @tiptap/extension-strike -> 3.31.3
+    @tiptap/extension-table -> 3.31.3
+    @tiptap/extension-text -> 3.31.3
+    @tiptap/extension-underline -> 3.31.3
+    @tiptap/extensions -> 3.31.3
+    @tiptap/pm -> 3.31.3
+    @tiptap/react -> 3.31.3
+    @tiptap/starter-kit -> 3.31.3
+    prosemirror-changeset -> 2.4.3
+    prosemirror-commands -> 1.7.2
+    prosemirror-dropcursor -> 1.8.3
+    prosemirror-gapcursor -> 1.4.1
+    prosemirror-history -> 1.5.0
+    prosemirror-inputrules -> 1.5.1
+    prosemirror-keymap -> 1.2.3
+    prosemirror-model -> 1.25.12
+    prosemirror-schema-list -> 1.5.1
+    prosemirror-state -> 1.4.4
+    prosemirror-tables -> 1.8.5
+    prosemirror-transform -> 1.12.1
+    prosemirror-view -> 1.42.5
+
+TipTap 依赖校验通过。
+Done in 0.11s.
+
+[exit 0]
+
+$ yarn verify:legacy-api
+yarn run v1.22.22
+(node:1413776) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+$ node ./scripts/scan-legacy-public-api.mjs
+旧公共 API 移除清单扫描
+  冻结导入变化: migrate-to-tiptap-prosemirror
+  移除任务: 8.1 / 8.2
+  阶段: deleted（allowlist=currentPublicExports）
+
+公共 API 待移除导出引用点:
+  [value] NoteContent (旧内容组件) — 0 处引用
+  [value] useNoteContentUndoRedo (自研撤销重做) — 0 处引用
+  [value] createNoteId (旧块标识) — 0 处引用
+  [value] noteBlockKinds (旧块模型) — 0 处引用
+  [type] ExternalNoteDragCancellationReason (自研外部拖拽) — 0 处引用
+  [type] ExternalNoteDragCompletion (自研外部拖拽) — 0 处引用
+  [type] ExternalNoteDragInput (自研外部拖拽) — 0 处引用
+  [type] ExternalNoteDragSession (自研外部拖拽) — 0 处引用
+  [type] ExternalNoteDragStartFailureReason (自研外部拖拽) — 0 处引用
+  [type] ExternalNoteDragStartResult (自研外部拖拽) — 0 处引用
+  [type] NoteExternalItem (自研外部拖拽) — 0 处引用
+  [type] NoteBlock (旧块模型) — 2 处引用
+      src/demo/fixtures.ts x2
+  [type] NoteCalloutBlock (旧块模型) — 0 处引用
+  [type] NoteCalloutTone (旧块模型) — 0 处引用
+  [type] NoteCardBlock (旧块模型) — 0 处引用
+  [type] NoteCardData (旧块模型) — 1 处引用
+      src/lib/hnn/cardPayload.ts x1
+  [type] NoteCodeBlock (旧块模型) — 0 处引用
+  [type] NoteCollapsibleBlock (旧块模型) — 0 处引用
+  [type] NoteContentHandle (自研 DOM 选区/手柄接口) — 0 处引用
+  [type] NoteContentProps (旧内容组件) — 0 处引用
+  [type] NoteContentTransaction (旧内容组件) — 0 处引用
+  [type] NoteContentTransactionOperation (旧内容组件) — 0 处引用
+  [type] NoteContentUndoRedoController (自研撤销重做) — 0 处引用
+  [type] NoteContentUndoRedoHandle (自研撤销重做) — 0 处引用
+  [type] NoteContentUndoRedoSnapshot (自研撤销重做) — 0 处引用
+  [type] NoteDirectoryBlock (旧块模型) — 0 处引用
+  [type] NoteDrawingBlock (旧块模型) — 0 处引用
+  [type] NoteFormulaBlock (旧块模型) — 0 处引用
+  [type] NoteHeadingBlock (旧块模型) — 0 处引用
+  [type] NoteLink (旧块模型) — 0 处引用
+  [type] NoteParagraphBlock (旧块模型) — 0 处引用
+  [type] NotePictureBlock (旧块模型) — 0 处引用
+  [type] NoteQuoteBlock (旧块模型) — 0 处引用
+  [type] NoteTheme (旧内容组件) — 0 处引用
+  [type] NoteTodoBlock (旧块模型) — 0 处引用
+  [type] NoteTodoItem (旧块模型) — 0 处引用
+  [type] UseNoteContentUndoRedoResult (自研撤销重做) — 0 处引用
+
+待移除内部模块引用点:
+  [缺失] src/lib/NoteContent.tsx (旧内容组件) — 已不存在，可能在任务 8 已移除
+  [缺失] src/lib/types.ts (旧块模型) — 已不存在，可能在任务 8 已移除
+  [缺失] src/lib/restrictedHtml.ts (受限 HTML) — 已不存在，可能在任务 8 已移除
+  [缺失] src/lib/noteTextFlow.ts (自研 DOM 选区) — 已不存在，可能在任务 8 已移除
+  [缺失] src/lib/notePointerSelection.ts (自研 DOM 选区) — 已不存在，可能在任务 8 已移除
+  [缺失] src/lib/editableSelection.ts (自研 DOM 选区) — 已不存在，可能在任务 8 已移除
+  [缺失] src/lib/noteTextOffset.ts (自研 DOM 选区) — 已不存在，可能在任务 8 已移除
+  [缺失] src/lib/noteSelectionRestore.ts (自研 DOM 选区) — 已不存在，可能在任务 8 已移除
+  [缺失] src/lib/noteSelectAll.ts (自研 DOM 选区) — 已不存在，可能在任务 8 已移除
+  [缺失] src/lib/noteStructuredClipboard.ts (自研剪贴板) — 已不存在，可能在任务 8 已移除
+  [缺失] src/lib/noteStructuredPaste.ts (自研剪贴板) — 已不存在，可能在任务 8 已移除
+  [缺失] src/lib/noteRegionCodec.ts (自研剪贴板) — 已不存在，可能在任务 8 已移除
+  [缺失] src/lib/noteClipboardBlockCodec.ts (自研剪贴板) — 已不存在，可能在任务 8 已移除
+
+说明: 本扫描仅列出与检查，不修改代码；移除动作在任务 8 执行。
+
+阶段 deleted：13 个旧实现模块已按计划移除（历史清单保留为证据）。
+
+旧公共 API 扫描通过。
+Done in 1.21s.
+
+[exit 0]
+
+$ yarn verify:phase1-scope
+yarn run v1.22.22
+(node:1413804) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+$ node ./scripts/verify-phase1-scope.mjs
+Phase 1 范围守卫 (Phase 1 task 1.4)
+  已检查依赖 40 项、源码文件 102 个、公共导出 79 个
+  范围: 禁止协作/Yjs、文件处理扩展、裸 ProseMirror 引用及公开 schema/extensions 注入契约
+
+Phase 1 范围守卫通过。
+Done in 1.48s.
+
+[exit 0]
+
+$ node --test scripts/phase1-ast-guards.test.mjs
+✔ rejects bare ProseMirror ImportTypeNode and ImportEqualsDeclaration (7.2168ms)
+✔ resolves local aliases in public function parameter types (462.97939ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 755.977784
+
+[exit 0]
+
+$ yarn build
+yarn run v1.22.22
+(node:1413847) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+$ yarn build:lib && yarn build:demo
+(node:1413859) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+$ vite build --config vite.config.ts && node ./scripts/sync-library-css.mjs
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 365 modules transformed.
+rendering chunks...
+
+[vite:dts] Start generate declaration files...
+computing gzip size...
+[vite:dts] Declaration files built in 2561ms.
+
+dist/assets/styles-B5H78a53.css     57.38 kB │ gzip:   9.11 kB
+dist/index.js                    1,742.44 kB │ gzip: 457.32 kB │ map: 5,427.40 kB
+dist/assets/styles-B5H78a53.css     57.38 kB │ gzip:   9.11 kB
+dist/index.cjs                   1,186.61 kB │ gzip: 366.50 kB │ map: 5,272.93 kB
+✓ built in 6.56s
+(node:1413924) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+$ vite build --config vite.demo.config.ts
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 382 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/demo/shared.html                                          0.53 kB │ gzip:   0.33 kB
+dist/demo/index.html                                           0.61 kB │ gzip:   0.33 kB
+dist/demo/assets/KaTeX_Size3-Regular-CTq5MqoE.woff             4.42 kB
+dist/demo/assets/KaTeX_Size4-Regular-Dl5lxZxV.woff2            4.93 kB
+dist/demo/assets/KaTeX_Size2-Regular-Dy4dx90m.woff2            5.21 kB
+dist/demo/assets/KaTeX_Size1-Regular-mCD8mA8B.woff2            5.47 kB
+dist/demo/assets/KaTeX_Size4-Regular-BF-4gkZK.woff             5.98 kB
+dist/demo/assets/KaTeX_Size2-Regular-oD1tc_U0.woff             6.19 kB
+dist/demo/assets/KaTeX_Size1-Regular-C195tn64.woff             6.50 kB
+dist/demo/assets/KaTeX_Caligraphic-Regular-Di6jR-x-.woff2      6.91 kB
+dist/demo/assets/KaTeX_Caligraphic-Bold-Dq_IR9rO.woff2         6.91 kB
+dist/demo/assets/KaTeX_Size3-Regular-DgpXs0kz.ttf              7.59 kB
+dist/demo/assets/KaTeX_Caligraphic-Regular-CTRA-rTL.woff       7.66 kB
+dist/demo/assets/KaTeX_Caligraphic-Bold-BEiXGLvX.woff          7.72 kB
+dist/demo/assets/KaTeX_Script-Regular-D3wIWfF6.woff2           9.64 kB
+dist/demo/assets/KaTeX_SansSerif-Regular-DDBCnlJ7.woff2       10.34 kB
+dist/demo/assets/KaTeX_Size4-Regular-DWFBv043.ttf             10.36 kB
+dist/demo/assets/KaTeX_Script-Regular-D5yQViql.woff           10.59 kB
+dist/demo/assets/KaTeX_Fraktur-Regular-CTYiF6lA.woff2         11.32 kB
+dist/demo/assets/KaTeX_Fraktur-Bold-CL6g_b3V.woff2            11.35 kB
+dist/demo/assets/KaTeX_Size2-Regular-B7gKUWhC.ttf             11.51 kB
+dist/demo/assets/KaTeX_SansSerif-Italic-C3H0VqGB.woff2        12.03 kB
+dist/demo/assets/KaTeX_SansSerif-Bold-D1sUS0GD.woff2          12.22 kB
+dist/demo/assets/KaTeX_Size1-Regular-Dbsnue_I.ttf             12.23 kB
+dist/demo/assets/KaTeX_SansSerif-Regular-CS6fqUqJ.woff        12.32 kB
+dist/demo/assets/KaTeX_Caligraphic-Regular-wX97UBjC.ttf       12.34 kB
+dist/demo/assets/KaTeX_Caligraphic-Bold-ATXxdsX0.ttf          12.37 kB
+dist/demo/assets/KaTeX_Fraktur-Regular-Dxdc4cR9.woff          13.21 kB
+dist/demo/assets/KaTeX_Fraktur-Bold-BsDP51OF.woff             13.30 kB
+dist/demo/assets/KaTeX_Typewriter-Regular-CO6r4hn1.woff2      13.57 kB
+dist/demo/assets/KaTeX_SansSerif-Italic-DN2j7dab.woff         14.11 kB
+dist/demo/assets/KaTeX_SansSerif-Bold-DbIhKOiC.woff           14.41 kB
+dist/demo/assets/KaTeX_Typewriter-Regular-C0xS9mPB.woff       16.03 kB
+dist/demo/assets/KaTeX_Math-BoldItalic-CZnvNsCZ.woff2         16.40 kB
+dist/demo/assets/KaTeX_Math-Italic-t53AETM-.woff2             16.44 kB
+dist/demo/assets/KaTeX_Script-Regular-C5JkGWo-.ttf            16.65 kB
+dist/demo/assets/KaTeX_Main-BoldItalic-DxDJ3AOS.woff2         16.78 kB
+dist/demo/assets/KaTeX_Main-Italic-NWA7e6Wa.woff2             16.99 kB
+dist/demo/assets/KaTeX_Math-BoldItalic-iY-2wyZ7.woff          18.67 kB
+dist/demo/assets/KaTeX_Math-Italic-DA0__PXp.woff              18.75 kB
+dist/demo/assets/KaTeX_Main-BoldItalic-SpSLRI95.woff          19.41 kB
+dist/demo/assets/KaTeX_SansSerif-Regular-BNo7hRIc.ttf         19.44 kB
+dist/demo/assets/KaTeX_Fraktur-Regular-CB_wures.ttf           19.57 kB
+dist/demo/assets/KaTeX_Fraktur-Bold-BdnERNNW.ttf              19.58 kB
+dist/demo/assets/KaTeX_Main-Italic-BMLOBm91.woff              19.68 kB
+dist/demo/assets/KaTeX_SansSerif-Italic-YYjJ1zSn.ttf          22.36 kB
+dist/demo/assets/KaTeX_SansSerif-Bold-CFMepnvq.ttf            24.50 kB
+dist/demo/assets/KaTeX_Main-Bold-Cx986IdX.woff2               25.32 kB
+dist/demo/assets/KaTeX_Main-Regular-B22Nviop.woff2            26.27 kB
+dist/demo/assets/KaTeX_Typewriter-Regular-D3Ib7_Hf.ttf        27.56 kB
+dist/demo/assets/KaTeX_AMS-Regular-BQhdFMY1.woff2             28.08 kB
+dist/demo/assets/KaTeX_Main-Bold-Jm3AIy58.woff                29.91 kB
+dist/demo/assets/KaTeX_Main-Regular-Dr94JaBh.woff             30.77 kB
+dist/demo/assets/KaTeX_Math-BoldItalic-B3XSjfu4.ttf           31.20 kB
+dist/demo/assets/KaTeX_Math-Italic-flOr_0UB.ttf               31.31 kB
+dist/demo/assets/KaTeX_Main-BoldItalic-DzxPMmG6.ttf           32.97 kB
+dist/demo/assets/KaTeX_AMS-Regular-DMm9YOAa.woff              33.52 kB
+dist/demo/assets/KaTeX_Main-Italic-3WenGoN9.ttf               33.58 kB
+dist/demo/assets/KaTeX_Main-Bold-waoOVXN0.ttf                 51.34 kB
+dist/demo/assets/KaTeX_Main-Regular-ypZvNtVU.ttf              53.58 kB
+dist/demo/assets/KaTeX_AMS-Regular-DRggAlZN.ttf               63.63 kB
+dist/demo/assets/shared-KriR6rJu.css                           1.32 kB │ gzip:   0.57 kB
+dist/demo/assets/fixtures-btnDsV_T.css                        25.39 kB │ gzip:   4.75 kB
+dist/demo/assets/main-D0bOB71Z.css                            35.32 kB │ gzip:   9.73 kB
+dist/demo/assets/main-CbJqMjkm.js                             17.22 kB │ gzip:   6.51 kB
+dist/demo/assets/shared-2s3-sVjc.js                           35.78 kB │ gzip:  11.81 kB
+dist/demo/assets/fixtures-CWfGcQA7.js                      1,353.66 kB │ gzip: 420.65 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 3.20s
+Done in 11.48s.
+
+[exit 0]
+
+$ node scripts/check-lists-browser.mjs
+Chromium 148.0.7778.96; Linux; public Provider/View fixture; source alias
+PASS 1440px: three creation entries and six directed conversions via toolbar
+PASS 1440px: partial numbering 5/1/7, child preserved, checkbox Space/click, no reorder
+PASS 1440px: Enter/exit, indent/lift, freeze, failed save/retry/reopen, shared undo/redo; screenshot saved
+PASS 1440px: real card drawer + lists, locked body, shared commit/undo/redo, save/reopen
+PASS 1440px: real drawing (line) drawer + lists, locked body, shared commit/undo/redo, save/reopen
+PASS 390px: three creation entries and six directed conversions via toolbar
+PASS 390px: partial numbering 5/1/7, child preserved, checkbox Space/click, no reorder
+PASS 390px: Enter/exit, indent/lift, freeze, failed save/retry/reopen, shared undo/redo; screenshot saved
+PASS 390px: real card drawer + lists, locked body, shared commit/undo/redo, save/reopen
+PASS 390px: real drawing (line) drawer + lists, locked body, shared commit/undo/redo, save/reopen
+
+[exit 0]
+
+$ openspec validate add-list-conversion-and-webbase-delivery --strict
+Change 'add-list-conversion-and-webbase-delivery' is valid
+
+[exit 0]
+
+$ git diff --check
+
+[exit 0]
+
+$ git diff f0c1d438093496d777c791cd2dce6b12f7531a56 HEAD -- src/lib/editor/HnnDataDrawer.tsx src/lib/hnn/drawingPayload.ts package.json yarn.lock
+
+[exit 0]

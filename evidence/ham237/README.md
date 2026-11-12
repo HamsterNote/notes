@@ -1,5 +1,7 @@
 HAM-237 M1 验证证据
 
+PR #26 的 P1/P2 复审修复见 `review-fixes.md`，受测源码 `adb7ffa91db09abca1ed5e2d946b0b89e4b9fa92`。最新完整结果为 47 文件 / 982 项通过，命令、环境与原始输出见 `review-fixes-verification.txt`；下文保留首次 M1 交付记录。
+
 本次仅交付 notes 的列表编辑闭环。M2 npm 正式发布、独立正式包消费和 M3 WebBase 集成保持待办。
 
 规划来源：`1fbe2fc6901ac93720f0c3bfdc924eb49f5b9d01`，在工作分支 cherry-pick 为 `914ef50`。原代码基线：`53f82c8e947fa1c9d603b6f628aa4996cae97dd5`。
