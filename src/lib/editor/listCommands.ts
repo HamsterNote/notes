@@ -228,6 +228,15 @@ export function enterList(editor: Editor): boolean {
   const item = target.node.child(target.first)
   if (item.childCount === 1 && item.firstChild!.content.size === 0) return indentList(editor, true)
   const tr = captureCommand(editor, splitListItem(item.type, item.type.name === "taskItem" ? { checked: false } : undefined))
+  // PM's itemAttrs parameter only applies at the end of a textblock. A split
+  // in the middle otherwise inherits checked=true from the original item.
+  if (tr && item.type.name === "taskItem") {
+    const created = itemContext(tr.selection.$from)
+    if (created) {
+      const next = tr.doc.nodeAt(created.itemPos)!
+      tr.setNodeMarkup(created.itemPos, undefined, { ...next.attrs, checked: false })
+    }
+  }
   return !!tr && commitBudgetedTransaction(editor, tr)
 }
 

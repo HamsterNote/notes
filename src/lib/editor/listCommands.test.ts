@@ -167,6 +167,20 @@ describe("M1.4 explicit block menu and lossless unwrapping", () => {
 })
 
 describe("M1.5 keyboard structure", () => {
+  it("splits a completed task in the middle without inheriting checked=true", () => {
+    const session = make([list("taskList", [item("done", "taskList")])])
+    const { editor } = session
+    editor.commands.setTextSelection(pos(editor, "done") + 2)
+    expect(enterList(editor)).toBe(true)
+    const result = editor.state.doc.firstChild!
+    expect(result.firstChild!.textContent).toBe("do")
+    expect(result.firstChild!.attrs["checked"]).toBe(true)
+    expect(result.lastChild!.textContent).toBe("ne")
+    expect(result.lastChild!.attrs["checked"]).toBe(false)
+    expect(session.undo()).toBe(true)
+    expect(editor.state.doc.firstChild!.childCount).toBe(1)
+    expect(editor.state.doc.firstChild!.firstChild!.attrs["checked"]).toBe(true)
+  })
   it("Enter on completed task creates unchecked sibling; empty Enter exits, each action undoes once", () => {
     const session = make([list("taskList", [item("done", "taskList")])])
     const { editor } = session
