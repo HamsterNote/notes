@@ -2,6 +2,7 @@ import type { Editor } from "@tiptap/core"
 import { Fragment, type Node as PmNode, type ResolvedPos } from "@tiptap/pm/model"
 import { liftListItem, sinkListItem, splitListItem } from "@tiptap/pm/schema-list"
 import { EditorState, TextSelection, type Command, type Transaction } from "@tiptap/pm/state"
+import { canSplit } from "@tiptap/pm/transform"
 import { commitBudgetedTransaction, normalizeBudgetedCandidate } from "../hnn/budgetedTransaction"
 
 export const LIST_TYPES = [
@@ -226,8 +227,29 @@ export function enterList(editor: Editor): boolean {
   const target = resolveListTarget(editor)
   if (!target || target.paragraphs) return false
   const item = target.node.child(target.first)
-  if (item.childCount === 1 && item.firstChild!.content.size === 0) return indentList(editor, true)
-  const tr = captureCommand(editor, splitListItem(item.type, item.type.name === "taskItem" ? { checked: false } : undefined))
+  const selection = editor.state.selection
+  if (selection.empty && item.childCount === 1 && item.firstChild!.content.size === 0) return indentList(editor, true)
+  const split = splitListItem(item.type, item.type.name === "taskItem" ? { checked: false } : undefined)
+  let tr = captureCommand(editor, split)
+  if (!tr && !selection.empty && !selection.$from.sameParent(selection.$to)) {
+    // splitListItem refuses cross-parent selections. Delete on an isolated
+    // candidate first, then split at the resulting cursor in the same undo step.
+    // Use the exact range, as splitListItem does: deleteSelection may expand a
+    // fully selected list to its wrappers and replace the list with a paragraph.
+    const deleted = editor.state.tr.delete(selection.from, selection.to)
+    const state = EditorState.create({ doc: deleted.doc, selection: deleted.selection })
+    if (state.selection.$from.parent.content.size === 0) {
+      // A nonempty selection that deletes all text still splits; only an
+      // originally collapsed cursor on an empty item should lift/exit the list.
+      if (canSplit(deleted.doc, deleted.selection.from, 2)) tr = deleted.split(deleted.selection.from, 2).scrollIntoView()
+    } else {
+      const result = captureCommand(editor, split, state)
+      if (result) {
+        for (const step of result.steps) deleted.step(step)
+        tr = deleted.setSelection(result.selection.getBookmark().resolve(deleted.doc)).scrollIntoView()
+      }
+    }
+  }
   // PM's itemAttrs parameter only applies at the end of a textblock. A split
   // in the middle otherwise inherits checked=true from the original item.
   if (tr && item.type.name === "taskItem") {
@@ -237,6 +259,9 @@ export function enterList(editor: Editor): boolean {
       tr.setNodeMarkup(created.itemPos, undefined, { ...next.attrs, checked: false })
     }
   }
+  // Enter explicitly creates list items. Tiptap's generic select-all deletion
+  // cleanup must not clear these wrappers when the selected text was all text.
+  tr?.setMeta("preventClearDocument", true)
   return !!tr && commitBudgetedTransaction(editor, tr)
 }
 

@@ -10,6 +10,11 @@ function parse(value: string): HnnDocument {
 }
 const plain = parse("alpha beta\n\nbeta gamma\n\ngamma delta")
 const mixed = parse("5. parent\n   - [x] child\n6. second\n7. third\n\n- [x] done\n- [ ] open")
+const withDrafts: HnnDocument = { schemaVersion: 1, data: { type: "doc", content: [
+  ...mixed.data["content"] as unknown[],
+  { type: "card", attrs: { nodeId: "123e4567-e89b-42d3-a456-426614174000", data: '{"schemaVersion":1,"cards":[]}' } },
+  { type: "drawing", attrs: { nodeId: "123e4567-e89b-42d3-a456-426614174001", data: '{"strokes":[],"schemaVersion":2}' } }
+] } }
 type EvidenceWindow = Window & { listSnapshot?: HnnDocument; dragStarts?: number }
 const evidence = window as EvidenceWindow
 document.addEventListener("hnn-reorder-start", () => { evidence.dragStarts = (evidence.dragStarts ?? 0) + 1 }, true)
@@ -46,6 +51,7 @@ export function Fixture() {
   return <>
     <nav style={{ display: "flex", flexWrap: "wrap", gap: 8, padding: 8 }}>
       <button onClick={() => load(plain)}>重置段落</button><button onClick={() => load(mixed)}>混合列表</button>
+      <button onClick={() => load(withDrafts)}>列表与抽屉</button>
       <button onClick={() => { void save() }}>保存</button>
       <button onClick={() => { failSave.current = !failSave.current; setStatus(failSave.current ? "will fail" : "will save") }}>切换保存失败</button>
       <button onClick={() => load(JSON.parse(localStorage.getItem("ham237")!) as HnnDocument)}>重开</button>

@@ -1219,7 +1219,11 @@ function buildHnnExtensions(includeUndoRedo: boolean): Extensions {
                 const failure = bridge.validateCandidate(tr.doc)
                 if (failure !== null) return { ok: false, message: failure }
                 editor.view.dispatch(tr)
-                return { ok: true }
+                // dispatch returns void even when a session or plugin rejects
+                // the transaction. Only close the drawer after it took effect.
+                return editor.state.doc.eq(tr.doc)
+                  ? { ok: true }
+                  : { ok: false, message: "提交被拒绝，未保存更改，请重试" }
               },
               onClosed: () => preview.setAttribute("aria-expanded", "false")
             })

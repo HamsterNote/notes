@@ -112,6 +112,50 @@ try {
     await page.screenshot({ path: `evidence/ham237/lists-${width}.png`, fullPage: true })
     assert.deepEqual(errors, [])
     console.log(`PASS ${width}px: Enter/exit, indent/lift, freeze, failed save/retry/reopen, shared undo/redo; screenshot saved`)
+    for (const kind of ["card", "drawing"]) {
+      await reset("列表与抽屉")
+      await page.getByText("共享视图", { exact: true }).click()
+      await pane.getByLabel(kind === "card" ? "编辑卡片" : "编辑画板", { exact: true }).click()
+      const dialog = page.getByRole("dialog")
+      assert.equal(await area.getAttribute("contenteditable"), "false")
+      assert.equal(await peer.locator(".tiptap").getAttribute("contenteditable"), "false")
+      if (kind === "card") {
+        await dialog.getByRole("button", { name: "添加卡片", exact: true }).click()
+        await dialog.getByLabel("卡片 card-1 标题", { exact: true }).fill("列表旁的卡片回归")
+      } else {
+        // Use a real line stroke. Existing pen strokes include timestamp fields
+        // rejected by drawingPayload's point whitelist (tracked in evidence).
+        await dialog.getByRole("button", { name: "直线", exact: true }).click()
+        const surface = dialog.locator(".hn-editor-drawing-canvas svg").first()
+        const box = await surface.boundingBox()
+        assert.ok(box && box.width > 100 && box.height > 100)
+        await page.mouse.click(box.x + 30, box.y + 30)
+        await page.mouse.dblclick(box.x + 90, box.y + 80)
+      }
+      await dialog.getByRole("button", { name: "完成", exact: true }).click()
+      if (await dialog.getByRole("alert").isVisible()) throw new Error(await dialog.getByRole("alert").textContent())
+      await dialog.waitFor({ state: "hidden" })
+      const committed = await page.evaluate(() => window.listSnapshot)
+      const data = JSON.parse(committed.data.content.find(node => node.type === kind).attrs.data)
+      assert.equal(kind === "card" ? data.cards.length : data.strokes.length, 1)
+      const peerDoc = () => page.evaluate(() => ["a", "b"].map(id =>
+        document.querySelector(`[data-view-id="${id}"] .tiptap`).editor.state.doc.toJSON()))
+      let documents = await peerDoc()
+      assert.deepEqual(documents[0], documents[1])
+      await peer.getByLabel("撤销", { exact: true }).click()
+      const undone = await page.evaluate(() => window.listSnapshot)
+      assert.equal(JSON.parse(undone.data.content.find(node => node.type === kind).attrs.data)[kind === "card" ? "cards" : "strokes"].length, 0)
+      await pane.getByLabel("重做", { exact: true }).click()
+      assert.deepEqual(await page.evaluate(() => window.listSnapshot), committed)
+      documents = await peerDoc()
+      assert.deepEqual(documents[0], documents[1])
+      await page.getByRole("navigation").getByRole("button", { name: "保存", exact: true }).click()
+      await page.waitForFunction(() => /^(saved|clean):clean$/.test(document.querySelector("#status").textContent))
+      await page.getByRole("button", { name: "重开", exact: true }).click()
+      assert.deepEqual(await page.evaluate(() => window.listSnapshot), committed)
+      console.log(`PASS ${width}px: real ${kind === "drawing" ? "drawing (line)" : kind} drawer + lists, locked body, shared commit/undo/redo, save/reopen`)
+    }
+    assert.deepEqual(errors, [])
     await context.close()
   }
 } finally { await browser?.close(); await server.close() }

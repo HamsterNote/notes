@@ -1,7 +1,9 @@
 import { Extension } from "@tiptap/core"
 import { TaskItem } from "@tiptap/extension-list"
+import { isHistoryTransaction } from "@tiptap/pm/history"
 import { EditorState, Plugin } from "@tiptap/pm/state"
 import { normalizeBudgetedCandidate } from "./budgetedTransaction"
+import { canApplyHnnTransaction } from "./transactionPermission"
 import { convertList, enterList, indentList, isList, resolveListTarget, toggleTask } from "../editor/listCommands"
 
 /** Native checkbox focus/Space, without Tiptap's focus() or unbudgeted attr command. */
@@ -73,7 +75,10 @@ export const HnnListInteractions = Extension.create({
         let hasList = false
         for (const doc of [state.doc, tr.doc]) doc.descendants(node => { if (isList(node)) hasList = true })
         if (!hasList) return true
-        if (!editor.view.editable) return false
+        if (!canApplyHnnTransaction(editor)) return false
+        // History restores explicit list structure, including empty items after
+        // Enter replaced all selected text. Generic delete cleanup would lift it.
+        if (isHistoryTransaction(tr)) tr.setMeta("preventClearDocument", true)
         // Validate native typing, list input rules and delete keymaps too. Work on a copy:
         // the normal node-ID append plugin repairs the accepted live transaction.
         return !!normalizeBudgetedCandidate(state.schema, EditorState.create({ doc: tr.doc }).tr)

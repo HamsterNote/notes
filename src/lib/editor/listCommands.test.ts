@@ -167,6 +167,43 @@ describe("M1.4 explicit block menu and lossless unwrapping", () => {
 })
 
 describe("M1.5 keyboard structure", () => {
+  it.each(LIST_TYPES)("Enter replaces selected text in one $type item with two empty items", ({ type }) => {
+    const session = make([list(type, [item("selected", type)])])
+    const { editor } = session
+    editor.commands.setTextSelection({ from: pos(editor, "selected"), to: pos(editor, "selected") + 8 })
+    const before = editor.state.doc
+    expect(enterList(editor)).toBe(true)
+    expect(types(editor)).toEqual([type])
+    expect(editor.state.doc.firstChild!.childCount).toBe(2)
+    expect(editor.state.doc.textContent).toBe("")
+    if (type === "taskList") expect(editor.state.doc.firstChild!.lastChild!.attrs["checked"]).toBe(false)
+    expect(session.undo()).toBe(true)
+    expect(editor.state.doc.eq(before)).toBe(true)
+  })
+  it.each(LIST_TYPES.flatMap(({ type }) => [3, 6].flatMap(end => [
+    { type, direction: "forward", end }, { type, direction: "backward", end }
+  ])))("Enter deletes a $direction selection from an empty $type item through character $end before splitting, with one undo", ({ type, direction, end }) => {
+    const session = make([list(type, [item("", type), item("abcdef", type)])])
+    const { editor } = session
+    const from = pos(editor, ""), to = pos(editor, "abcdef") + end
+    editor.view.dispatch(editor.state.tr.setSelection(TextSelection.create(editor.state.doc,
+      direction === "forward" ? from : to, direction === "forward" ? to : from)))
+    const before = editor.state.doc, selection = editor.state.selection
+    expect(enterList(editor)).toBe(true)
+    expect(types(editor)).toEqual([type])
+    const result = editor.state.doc.firstChild!
+    expect(result.childCount).toBe(2)
+    expect(result.firstChild!.textContent).toBe("")
+    expect(result.lastChild!.textContent).toBe("abcdef".slice(end))
+    if (type === "taskList") expect(result.lastChild!.attrs["checked"]).toBe(false)
+    expect(() => encodeHnn(editor.state.doc)).not.toThrow()
+    const after = editor.state.doc
+    expect(session.undo()).toBe(true)
+    expect(editor.state.doc.eq(before)).toBe(true)
+    expect(editor.state.selection.eq(selection)).toBe(true)
+    expect(session.redo()).toBe(true)
+    expect(editor.state.doc.eq(after)).toBe(true)
+  })
   it("splits a completed task in the middle without inheriting checked=true", () => {
     const session = make([list("taskList", [item("done", "taskList")])])
     const { editor } = session
