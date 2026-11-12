@@ -1,0 +1,127 @@
+M1 refinements tasks 1.11-1.16
+Source SHA: f805d859f0a7fac285e70ab3ae78bab71774aea2
+UTC: 2026-11-12T13:03:39.928368+00:00
+Branch: agent/ham-237-editor-refinements
+Environment: Linux-7.0.0-31-generic-x86_64-with-glibc2.43
+Node: v24.15.0
+Yarn: 1.22.22
+Git: git version 2.53.0
+OpenSpec: 1.13.1
+Browser: Playwright 1.60.0, Chromium version logged in browser checks
+Viewports: 1440x1000 and 390x1000 (touch context)
+Scope: notes source alias; no npm publishing, WebBase integration, native build or pen timestamp changes
+
+$ yarn test src/lib/editor/listNumbering.test.ts src/lib/editor/quoteInteractions.test.ts src/lib/editor/linkEditing.test.ts src/lib/editor/interactionToolbar.test.ts --maxWorkers=2 --reporter=verbose
+yarn run v1.22.22
+(node:1619359) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+$ vitest run src/lib/editor/listNumbering.test.ts src/lib/editor/quoteInteractions.test.ts src/lib/editor/linkEditing.test.ts src/lib/editor/interactionToolbar.test.ts --maxWorkers=2 --reporter=verbose
+
+ RUN  v4.1.10 /home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes
+
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/index.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/index.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/drag.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/base.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/index.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/controller.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/geometry.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/types.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/inertia.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/dom/normalize-pointer-event.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/dom/pose.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/finger.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/rotate.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/scale.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/mixin.js" points to missing source files
+ ✓ src/lib/editor/quoteInteractions.test.ts > 1.13 bare > stays literal; > space consumes only prefix, retaining tail, marks, paragraph ID and undo text 242ms
+ ✓ src/lib/editor/quoteInteractions.test.ts > 1.13 supports nesting, continuing Enter, soft breaks and exiting only the nearest quote 146ms
+ ✓ src/lib/editor/quoteInteractions.test.ts > 1.13 undoing exit from an empty quote restores its exact wrapper and author 28ms
+ ✓ src/lib/editor/quoteInteractions.test.ts > 1.13 excludes 'paragraph' context containing 'x >' 27ms
+ ✓ src/lib/editor/quoteInteractions.test.ts > 1.13 excludes 'paragraph' context containing '\>' 25ms
+ ✓ src/lib/editor/quoteInteractions.test.ts > 1.13 excludes 'codeBlock' context containing '>' 46ms
+ ✓ src/lib/editor/quoteInteractions.test.ts > 1.13 excludes 'heading' context containing '>' 22ms
+ ✓ src/lib/editor/quoteInteractions.test.ts > 1.13 excludes 'bulletList' context containing '>' 20ms
+ ✓ src/lib/editor/quoteInteractions.test.ts > 1.13 excludes 'taskList' context containing '>' 45ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > 390px link button opens a labeled configuration layer and supports cursor editing/removal 545ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > 1000px link button opens a labeled configuration layer and supports cursor editing/removal 101ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > 390px list controls target the selected item and preserve its range 214ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > 1000px list controls target the selected item and preserve its range 162ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > crosses separate containers with conversion buttons disabled 171ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > shows eight Chinese buttons without stealing focus; expands commands in the same surface 130ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > supports stored marks at a cursor, mixed ranges, full-range removal and codec/clipboard round trips 267ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > adds marks over mixed whitespace without stripping an existing inline code mark 92ms
+Not implemented: Window's scrollBy() method
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > a replaced session cannot execute an old toolbar callback 47ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > keeps old HNN readable; budget failure makes no transaction or selection/history change 26ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > uses 840/841 inclusive layout, closes invalid selection kinds and code/IME contexts 66ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > delays desktop mouse selection until pointerup; keyboard selection displays immediately 38ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > preserves selection on click, suppresses Escape reopen, supports keyboard focus and external dismissal 120ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > clamps 320px geometry, flips above, closes invisible anchors and cleans up on dispose 41ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > atom and cell selections disable mobile formatting 48ms
+ ✓ src/lib/editor/interactionToolbar.test.ts > per-view text toolbars > shares formatting and reorder history across views, freezes and rejects detached callbacks without focus theft 242ms
+ ✓ src/lib/editor/quoteInteractions.test.ts > 1.13 ignores nonempty selection and composition, rejects readonly without history 35ms
+ ✓ src/lib/editor/quoteInteractions.test.ts > 1.13 depth budget failure retains literal prefix, tail and original wrapping 40ms
+ ✓ src/lib/editor/quoteInteractions.test.ts > 1.13 list Enter inside a quote splits the item and resets checked instead of splitting its paragraph 27ms
+ ✓ src/lib/editor/quoteInteractions.test.ts > 1.13 full node budget retains literal > space without adding a quote 2983ms
+ ✓ src/lib/editor/quoteInteractions.test.ts > 1.13 shell budget rejects wrapping atomically while literal input fits 198ms
+ ✓ src/lib/editor/quoteInteractions.test.ts > 1.13 freeze blocks the shortcut and Enter; shared quote history and author survive save/reopen 162ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.15 permits http://example.com, shares one history event and saves/reopens text+href 173ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.15 permits https://example.com, shares one history event and saves/reopens text+href 118ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.15 permits mailto:hi@example.com, shares one history event and saves/reopens text+href 48ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.15 permits hnmagic://resource/123, shares one history event and saves/reopens text+href 59ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.15 permits   https://example.com  , shares one history event and saves/reopens text+href 39ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.15 rejects URL "" atomically 25ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.15 rejects URL "  " atomically 25ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.15 rejects URL "javascript:alert(1)" atomically 29ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.15 rejects URL "data:text/html,x" atomically 28ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.15 rejects URL "file:///etc/passwd" atomically 17ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.15 rejects URL "tel:123" atomically 18ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.15 rejects URL "/relative" atomically 18ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.15 rejects URL "example.com" atomically 18ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.15 rejects URL "https://example.com/\n" atomically 17ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.15 rejects URL "https://example.com/​" atomically 23ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.15 rejects URL "https://example.com/\ud800" atomically 17ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.15 rejects URL "\thttps://example.com" atomically 17ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.15 rejects URL "https://example.com " atomically 16ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.15 rejects empty title "" 18ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.15 rejects empty title " \t " 16ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.14 preserves separate marks unchanged, keeps only shared marks on replacement, and removes just link 28ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.14 rejects mixed, code and atom targets 0 27ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.14 rejects mixed, code and atom targets 1 18ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.14 rejects mixed, code and atom targets 2 19ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.14 rejects mixed, code and atom targets 3 27ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.14 rejects mixed, code and atom targets 4 21ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.14 rejects mixed, code and atom targets 5 29ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.14 rejects cross-block targets and accepts collapsed cursor within one link 29ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.14 取消 cancels, labels/default title/Tab are accessible and no history changes 155ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.14 Escape cancels, labels/default title/Tab are accessible and no history changes 57ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.14 outside cancels, labels/default title/Tab are accessible and no history changes 28ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.15 rejects any document transaction even after undo, but permits pure selection/focus changes 77ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.15 filter rejection, budget, freeze, composition and disposal preserve data and never report false success 48ms
+ ✓ src/lib/editor/linkEditing.test.ts > 1.16 link text with brackets and parentheses inside a quote survives GFM/HNN, dangerous URLs diagnose 68ms
+ ✓ src/lib/editor/listNumbering.test.ts > 1.11 derives five levels 1/a/i/1/a without changing serialized data, dirty or history 165ms
+ ✓ src/lib/editor/listNumbering.test.ts > 1.11 counts bulletList ancestors but ignores blockquote and respects explicit types 24ms
+ ✓ src/lib/editor/listNumbering.test.ts > 1.11 counts taskList ancestors but ignores blockquote and respects explicit types 23ms
+ ✓ src/lib/editor/listNumbering.test.ts > 1.11 formats integer 26 with style a as z 0ms
+ ✓ src/lib/editor/listNumbering.test.ts > 1.11 formats integer 27 with style a as aa 0ms
+ ✓ src/lib/editor/listNumbering.test.ts > 1.11 formats integer 28 with style a as ab 0ms
+ ✓ src/lib/editor/listNumbering.test.ts > 1.11 formats integer 52 with style a as az 0ms
+ ✓ src/lib/editor/listNumbering.test.ts > 1.11 formats integer 53 with style a as ba 0ms
+ ✓ src/lib/editor/listNumbering.test.ts > 1.11 formats integer 4 with style i as iv 0ms
+ ✓ src/lib/editor/listNumbering.test.ts > 1.11 formats integer 9 with style i as ix 0ms
+ ✓ src/lib/editor/listNumbering.test.ts > 1.11 formats integer 3999 with style i as mmmcmxcix 0ms
+ ✓ src/lib/editor/listNumbering.test.ts > 1.11 formats integer 4000 with style i as 4000 0ms
+ ✓ src/lib/editor/listNumbering.test.ts > 1.11 formats integer 27 with style A as AA 0ms
+ ✓ src/lib/editor/listNumbering.test.ts > 1.12 preserves 5/1/7 integers and e/a/g in second-level split conversions with exact undo/redo 42ms
+ ✓ src/lib/editor/listNumbering.test.ts > 1.12 indent uses new start=1 or existing start+index; existing=false and source tail stays 7 36ms
+ ✓ src/lib/editor/listNumbering.test.ts > 1.12 indent uses new start=1 or existing start+index; existing=true and source tail stays 7 23ms
+ ✓ src/lib/editor/listNumbering.test.ts > 1.12 lift preserves unmoved tail 7 and subtree IDs while descendant styles follow the new depth 25ms
+ ✓ src/lib/editor/listNumbering.test.ts > 1.16 exports integer Markdown and reloads the same starts/types rather than alphabetic body text 61ms
+
+ Test Files  4 passed (4)
+      Tests  83 passed (83)
+   Start at  21:04:12
+   Duration  8.04s (transform 1.66s, setup 65ms, import 3.45s, tests 8.14s, environment 3.15s)
+
+Done in 8.49s.

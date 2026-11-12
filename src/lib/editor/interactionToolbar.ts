@@ -5,6 +5,7 @@ import { getBlockCommands, type BlockMenuCapabilities } from "./blockMenu"
 import { editorLayout } from "./interactionLayout"
 import { TEXT_FORMATS, textFormatState, toggleTextFormat } from "./textFormatting"
 import { indentList, isList, listConversionItems, listIndentCandidate, resolveListTarget } from "./listCommands"
+import { openLinkEditor, resolveLinkTarget } from "./linkEditing"
 
 /** Per-view ephemeral UI. Never restores an old range or writes the document on show. */
 export function installInteractionToolbar(editor: Editor, capabilities: BlockMenuCapabilities): () => void {
@@ -29,6 +30,7 @@ export function installInteractionToolbar(editor: Editor, capabilities: BlockMen
   let renderedState: typeof view.state | null = null
   let renderedMobile: boolean | null = null
   let frame: number | null = null
+  let closeLinkEditor: (() => void) | null = null
 
   const ownsFocus = () => view.hasFocus() || element.contains(document.activeElement)
   const hide = () => { element.hidden = true }
@@ -158,6 +160,12 @@ export function installInteractionToolbar(editor: Editor, capabilities: BlockMen
       add(row, { label: format.label, disabled: state.disabled, disabledReason: "当前选择不支持文字格式",
         onActivate: () => { toggleTextFormat(editor, format.name) } }, state.pressed)
     }
+    add(row, { label: "链接", disabled: !resolveLinkTarget(editor), disabledReason: "请选择同一文本块的纯文字或单个链接",
+      onActivate: () => {
+        closeLinkEditor?.()
+        const anchor = Array.from(row.querySelectorAll("button")).find(button => button.textContent === "链接")!
+        closeLinkEditor = openLinkEditor(editor, anchor, () => { closeLinkEditor = null })
+      } }, undefined, false)
     if (mobile && commands) for (const item of commands.moveItems) if (item !== "divider") add(row, item)
     if (listTarget && !listTarget.paragraphs) {
       for (const [lift, label] of [[false, "缩进"], [true, "反缩进"]] as const) {
@@ -213,7 +221,7 @@ export function installInteractionToolbar(editor: Editor, capabilities: BlockMen
       return
     }
     if (!view.editable || view.composing || composing || suppressed || selecting || dragging ||
-        !block || (!mobile && !text && (!listTarget || listTarget.paragraphs))) { hide(); return }
+        !block || (!mobile && !text && !resolveLinkTarget(editor)?.href && (!listTarget || listTarget.paragraphs))) { hide(); return }
     const parent = view.dom.closest(".hn-editor") ?? view.dom.parentElement
     if (parent && element.parentElement !== parent) parent.appendChild(element)
     if (force || renderedState !== view.state || renderedMobile !== mobile || element.childElementCount === 0) {
@@ -281,6 +289,7 @@ export function installInteractionToolbar(editor: Editor, capabilities: BlockMen
   editor.registerPlugin(new Plugin({ key, view: () => ({ update: () => refresh() }) }))
   return () => {
     disposed = true
+    closeLinkEditor?.()
     if (frame !== null) window.cancelAnimationFrame(frame)
     removeLayout()
     observer?.disconnect()
