@@ -796,7 +796,8 @@ describe("复合块显式展平（HAM-133）", () => {
     })) })),
     ...["callout", "collapsible"].map(type => ({ type, attrs: { nodeId: id(0), title: "容器标题", ...(type === "callout" ? { tone: "info" } : { collapsed: true }) }, content: [paragraph(1, "first"), paragraph(2, "second")] }))
   ]
-  it.each(composites)("$type 展平保留外层ID，去标记/属性且单步撤销重做、可编码", node => {
+  // Lists now have a lossless, explicit unwrap command (HAM-237).
+  it.each(composites.filter(node => !["bulletList", "orderedList", "taskList"].includes(node.type)))("$type 展平保留外层ID，去标记/属性且单步撤销重做、可编码", node => {
     const session = sessionFor({ schemaVersion: 1, data: { type: "doc", content: [node] } })
     try {
       const before: unknown = session.editor.state.doc.toJSON()

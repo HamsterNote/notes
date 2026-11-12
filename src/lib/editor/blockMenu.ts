@@ -29,6 +29,7 @@ import {
 } from "../hnn/budgetedTransaction"
 import { openAnchoredMenu, type AnchoredMenuEntry, type AnchoredMenuHandle } from "../hnn/menuPopover"
 import { reorderTopLevelBlock } from "./blockReorder"
+import { isList, listConversionItems } from "./listCommands"
 
 // 注入严格 HNN 编码器：见 budgetedTransaction 文件头“模块加载环”。blockMenu 不在
 // extensions 的静态加载链上（extensions → tableEdgeControls），因此可安全 import codec，
@@ -172,7 +173,9 @@ export function getBlockCommands(editor: Editor, getPos: () => number | undefine
     }
   ]
 
+  const listItems = listConversionItems(editor, () => resolveBlock()?.pos)
   const conversionItems: AnchoredMenuEntry[] = CONVERSION_TARGETS.map((target) => {
+    if (target.type === "paragraph" && isList(initial.node)) return listItems.find(item => item.label === "转换为正文")!
     const isTextBlock = TEXT_BLOCK_TYPES.has(initial.node.type.name)
     const targetType = editor.schema.nodes[target.type]
     const flatten = targetType !== undefined && canFlatten(initial.node, targetType)
@@ -236,6 +239,13 @@ export function getBlockCommands(editor: Editor, getPos: () => number | undefine
       }
     }
   })
+  conversionItems.push(...listItems.filter(item => item.label !== "转换为正文"))
+  // A handle anchors every direct item: there is no preceding item for sinking.
+  // Lifting the whole top-level container is the same lossless unwrap operation.
+  const indentItems: AnchoredMenuEntry[] = isList(initial.node) ? [
+    { label: "缩进", disabled: true, disabledReason: "整个列表没有前置同层项" },
+    { ...listItems.find(item => item.label === "转换为正文")!, label: "反缩进" }
+  ] : []
 
   /** 当前块之后的插入点（实时解析）。 */
   const insertPosAfterBlock = (): number | null => {
@@ -304,7 +314,7 @@ export function getBlockCommands(editor: Editor, getPos: () => number | undefine
     }
   ]
 
-  return { moveItems, conversionItems, insertItems }
+  return { moveItems, conversionItems, insertItems, indentItems }
 }
 
 export function openBlockMenu(options: OpenBlockMenuOptions): AnchoredMenuHandle | null {
@@ -313,7 +323,7 @@ export function openBlockMenu(options: OpenBlockMenuOptions): AnchoredMenuHandle
   if (!commands) return null
   return openAnchoredMenu({
     anchor,
-    items: [...commands.moveItems, "divider", {
+    items: [...commands.moveItems, ...commands.indentItems, "divider", {
       label: "转换为",
       children: commands.conversionItems
     }, "divider", ...commands.insertItems],

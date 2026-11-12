@@ -206,7 +206,11 @@
   /* 与 1.85 行高的首行文字垂直居中对齐 */
   margin-top: 0.45rem;
   cursor: pointer;
+  flex: 0 0 auto;
+  touch-action: manipulation;
 }
+
+.hn-editor-content li[data-checked] > div { min-width: 0; flex: 1; }
 
 .hn-editor-content li[data-checked] input[type="checkbox"] {
   width: 1rem;

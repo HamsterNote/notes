@@ -4,6 +4,7 @@ import type { AnchoredMenuItem } from "../hnn/menuPopover"
 import { getBlockCommands, type BlockMenuCapabilities } from "./blockMenu"
 import { editorLayout } from "./interactionLayout"
 import { TEXT_FORMATS, textFormatState, toggleTextFormat } from "./textFormatting"
+import { indentList, isList, listConversionItems, listIndentCandidate, resolveListTarget } from "./listCommands"
 
 /** Per-view ephemeral UI. Never restores an old range or writes the document on show. */
 export function installInteractionToolbar(editor: Editor, capabilities: BlockMenuCapabilities): () => void {
@@ -143,10 +144,14 @@ export function installInteractionToolbar(editor: Editor, capabilities: BlockMen
       const current = topBlock()
       return current && current.node.attrs["nodeId"] === id ? current.pos : undefined
     }, capabilities)
-    if (mobile) {
-      for (const [kind, label] of [["convert", "转换为"], ["insert", "插入"]] as const) {
-        add(row, { label, onActivate: () => { expanded = expanded === kind ? null : kind } }, expanded === kind, false)
-      }
+    const listTarget = resolveListTarget(editor)
+    const inList = [view.state.selection.$from, view.state.selection.$to].some($pos => {
+      for (let depth = $pos.depth; depth > 0; depth--) if (isList($pos.node(depth))) return true
+      return false
+    })
+    for (const [kind, label] of [["convert", "转换为"], ["insert", "插入"]] as const) {
+      if (!mobile && kind === "insert") continue
+      add(row, { label, onActivate: () => { expanded = expanded === kind ? null : kind } }, expanded === kind, false)
     }
     for (const format of TEXT_FORMATS) {
       const state = textFormatState(editor, format.name)
@@ -154,12 +159,22 @@ export function installInteractionToolbar(editor: Editor, capabilities: BlockMen
         onActivate: () => { toggleTextFormat(editor, format.name) } }, state.pressed)
     }
     if (mobile && commands) for (const item of commands.moveItems) if (item !== "divider") add(row, item)
-    if (mobile && expanded && commands) {
+    if (listTarget && !listTarget.paragraphs) {
+      for (const [lift, label] of [[false, "缩进"], [true, "反缩进"]] as const) {
+        add(row, { label, disabled: !listIndentCandidate(editor, lift), disabledReason: "当前项不能调整层级",
+          onActivate: () => { indentList(editor, lift) } })
+      }
+    }
+    if (expanded && commands) {
       const subrow = document.createElement("div")
       subrow.className = "hn-editor-toolbar-row"
       subrow.setAttribute("aria-label", expanded === "convert" ? "转换选项" : "插入选项")
       element.appendChild(subrow)
-      const entries = expanded === "convert" ? commands.conversionItems : commands.insertItems
+      const entries = expanded === "convert"
+        ? [...commands.conversionItems.filter(item => item !== "divider" &&
+          !["转换为有序列表", "转换为无序列表", "转换为待办列表", ...(inList ? ["转换为正文"] : [])].includes(item.label)),
+          ...listConversionItems(editor).filter(item => item.label !== "转换为正文" || inList)]
+        : commands.insertItems
       for (const item of entries) {
         if (item === "divider") continue
         add(subrow, { ...item, label: item.label.replace(/^(转换为|插入)/u, ""), onActivate: () => {
@@ -190,6 +205,7 @@ export function installInteractionToolbar(editor: Editor, capabilities: BlockMen
     const mobile = layout.isMobile()
     const text = selection instanceof TextSelection && !selection.empty &&
       TEXT_FORMATS.some(format => !textFormatState(editor, format.name).disabled)
+    const listTarget = resolveListTarget(editor)
     // During a native focus transition activeElement is briefly body. Let focusin settle
     // before deciding whether the user left this editor + toolbar surface.
     if (!ownsFocus()) {
@@ -197,7 +213,7 @@ export function installInteractionToolbar(editor: Editor, capabilities: BlockMen
       return
     }
     if (!view.editable || view.composing || composing || suppressed || selecting || dragging ||
-        !block || (!mobile && !text)) { hide(); return }
+        !block || (!mobile && !text && (!listTarget || listTarget.paragraphs))) { hide(); return }
     const parent = view.dom.closest(".hn-editor") ?? view.dom.parentElement
     if (parent && element.parentElement !== parent) parent.appendChild(element)
     if (force || renderedState !== view.state || renderedMobile !== mobile || element.childElementCount === 0) {
