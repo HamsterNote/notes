@@ -184,6 +184,41 @@
   color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
 }
 
+.hn-editor-content ol[data-hnn-list-style] {
+  padding-inline-start: max(1.75rem, var(--hn-list-marker-width));
+}
+
+.hn-editor-content ol > li[data-hnn-marker]::marker {
+  content: attr(data-hnn-marker) ". ";
+  font-variant-numeric: tabular-nums;
+}
+
+.hn-editor-link-dialog {
+  position: fixed;
+  z-index: 1200;
+  box-sizing: border-box;
+  max-height: calc(100dvh - 16px);
+  overflow: auto;
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--hn-border, #cbd5e1);
+  border-radius: 12px;
+  background: var(--hn-surface, white);
+  color: var(--hn-text, #1e293b);
+  box-shadow: 0 8px 28px #0002;
+}
+.hn-editor-link-dialog label { display: grid; gap: 4px; }
+.hn-editor-link-dialog input {
+  width: 100%; min-width: 0; box-sizing: border-box; padding: 8px;
+  border: 1px solid var(--hn-border, #cbd5e1); border-radius: 6px;
+  background: inherit; color: inherit; font: inherit;
+}
+.hn-editor-link-dialog p { margin: 0; font-size: 0.85rem; }
+.hn-editor-link-dialog [role="alert"] { color: var(--hn-danger, #b91c1c); }
+.hn-editor-link-dialog [hidden] { display: none; }
+.hn-editor-link-dialog button { padding: 6px 10px; font: inherit; cursor: pointer; }
+
 .hn-editor-content li > ul,
 .hn-editor-content li > ol {
   margin-top: 0.15rem;

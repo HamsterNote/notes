@@ -62,6 +62,26 @@ afterEach(() => {
 })
 
 describe("per-view text toolbars", () => {
+  it.each([390, 1000])("%ipx link button opens a labeled configuration layer and supports cursor editing/removal", viewport => {
+    resize(viewport)
+    const { editor } = make()
+    select(editor, 1, 6)
+    fireEvent.click(button("链接"))
+    const field = (name: string) => Array.from(document.querySelectorAll<HTMLLabelElement>(".hn-editor-link-dialog label"))
+      .find(label => label.textContent === name)!.querySelector("input")!
+    expect(field("链接标题").value).toBe("alpha")
+    field("URL").value = "https://example.com"
+    const action = (name: string) => Array.from(document.querySelectorAll<HTMLButtonElement>(".hn-editor-link-dialog button")).find(b => b.textContent === name)!
+    fireEvent.click(action("保存"))
+    expect(document.querySelector(".hn-editor-link-dialog")).toBeNull()
+    expect(editor.view.hasFocus()).toBe(true)
+    select(editor, 3)
+    fireEvent.click(button("链接"))
+    expect(field("链接标题").value).toBe("alpha")
+    expect(field("URL").value).toBe("https://example.com")
+    fireEvent.click(action("移除链接"))
+    expect(editor.state.doc.rangeHasMark(1, 6, editor.schema.marks["link"]!)).toBe(false)
+  })
   it.each([390, 1000])("%ipx list controls target the selected item and preserve its range", viewport => {
     resize(viewport)
     const { editor } = make()
@@ -90,10 +110,10 @@ describe("per-view text toolbars", () => {
     for (const label of ["有序列表", "无序列表", "待办列表", "正文"]) expect(button(label).disabled).toBe(true)
     expect(toolbar()!.querySelectorAll('button').length).toBeGreaterThan(3)
   })
-  it("shows seven Chinese buttons without stealing focus; expands commands in the same surface", () => {
+  it("shows eight Chinese buttons without stealing focus; expands commands in the same surface", () => {
     const { editor } = make()
     select(editor, 1)
-    expect(Array.from(toolbar()!.querySelectorAll("button"), b => b.textContent)).toEqual(["转换为", "插入", "加粗", "斜体", "下划线", "上移", "下移"])
+    expect(Array.from(toolbar()!.querySelectorAll("button"), b => b.textContent)).toEqual(["转换为", "插入", "加粗", "斜体", "下划线", "链接", "上移", "下移"])
     expect(editor.view.hasFocus()).toBe(true)
     expect(button("上移").disabled).toBe(true)
     fireEvent.click(button("转换为"))
@@ -179,7 +199,7 @@ describe("per-view text toolbars", () => {
     resize(841)
     expect(toolbar()).toBeNull()
     select(editor, 1, 6)
-    expect(Array.from(toolbar()!.querySelectorAll("button"), b => b.textContent)).toEqual(["转换为", "加粗", "斜体", "下划线"])
+    expect(Array.from(toolbar()!.querySelectorAll("button"), b => b.textContent)).toEqual(["转换为", "加粗", "斜体", "下划线", "链接"])
     editor.commands.setNodeSelection(0)
     expect(toolbar()).toBeNull()
     resize(390)

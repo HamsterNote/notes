@@ -213,6 +213,31 @@ export function listIndentCandidate(editor: Editor, lift: boolean): Transaction 
   const state = EditorState.create({ doc: editor.state.doc,
     selection: TextSelection.create(editor.state.doc, from + 2, to - last.nodeSize + 2 + last.firstChild!.content.size) })
   const tr = captureCommand(editor, (lift ? liftListItem : sinkListItem)(type), state)
+  if (tr && target.node.type.name === "orderedList" && target.end < target.node.childCount) {
+    // Preserve the original integers of the unmoved tail. When it still shares
+    // a container with the prefix, make it an independent ordered segment.
+    const tailId: unknown = target.node.child(target.end).attrs["nodeId"]
+    let tail: { node: PmNode; pos: number; index: number } | null = null
+    tr.doc.descendants((node, pos) => {
+      if (node.type.name !== "orderedList") return
+      node.forEach((child, _offset, index) => {
+        if (child.attrs["nodeId"] === tailId) tail = { node, pos, index }
+      })
+    })
+    const located = tail as { node: PmNode; pos: number; index: number } | null
+    if (located) {
+      const { node, pos, index } = located
+      const attrs = { ...node.attrs, start: Number(target.node.attrs["start"]) + target.end }
+      if (index === 0) tr.setNodeMarkup(pos, undefined, attrs)
+      else {
+        const parts = [node.copy(Fragment.fromArray(children(node).slice(0, index))),
+          node.type.create({ ...attrs, nodeId: null }, children(node).slice(index))]
+        const $pos = tr.doc.resolve(pos)
+        if (!$pos.parent.canReplace($pos.index(), $pos.index() + 1, Fragment.fromArray(parts))) return null
+        tr.replaceWith(pos, pos + node.nodeSize, parts)
+      }
+    }
+  }
   if (tr) preserveTextSelection(editor, tr)
   return tr
 }

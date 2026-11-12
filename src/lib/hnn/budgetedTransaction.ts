@@ -120,6 +120,7 @@ export function commitBudgetedTransaction(editor: Editor, tr: Transaction): bool
   if (!candidate) return false
   closeHistory(candidate)
   editor.view.dispatch(candidate)
+  if (!editor.state.doc.eq(candidate.doc)) return false
   // closeHistory 只重置 prevTime/prevRanges，隔离前序；再补一个无 step 的 close 事务，
   // 令紧随其后的同 tick 输入另起一个 undo step（文档/历史条目/dirty 均不受影响）。
   editor.view.dispatch(closeHistory(editor.state.tr))

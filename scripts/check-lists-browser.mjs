@@ -5,7 +5,8 @@ import react from "@vitejs/plugin-react"
 import { createServer } from "vite"
 import { chromium } from "playwright"
 
-mkdirSync("evidence/ham237", { recursive: true })
+const evidenceDir = process.env.LISTS_EVIDENCE_DIR ?? "evidence/ham237"
+mkdirSync(evidenceDir, { recursive: true })
 const server = await createServer({ configFile: false, root: path.resolve("scripts/fixtures/lists"), plugins: [react()],
   server: { host: "127.0.0.1", port: 0 }, resolve: { alias: [
     { find: "@hamster-note/notes/styles.css", replacement: path.resolve("src/lib/styles.css") },
@@ -109,7 +110,7 @@ try {
     assert.equal(await child.isChecked(), false)
     await peer.getByLabel("重做", { exact: true }).click()
     assert.equal(await child.isChecked(), true)
-    await page.screenshot({ path: `evidence/ham237/lists-${width}.png`, fullPage: true })
+    await page.screenshot({ path: `${evidenceDir}/lists-${width}.png`, fullPage: true })
     assert.deepEqual(errors, [])
     console.log(`PASS ${width}px: Enter/exit, indent/lift, freeze, failed save/retry/reopen, shared undo/redo; screenshot saved`)
     for (const kind of ["card", "drawing"]) {

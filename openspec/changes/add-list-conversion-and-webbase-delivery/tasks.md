@@ -15,11 +15,11 @@
 - [x] 1.9 验证共享 Provider 的勾选/转换、撤销重做及保存；集成测试断言两视图文档同步而焦点独立、失败仍为脏、重试成功后重开得到完整列表语义。
 - [x] 1.10 执行 notes `yarn lint`、`yarn typecheck`、`yarn test`、`yarn verify:tiptap-deps`、`yarn verify:legacy-api`、`yarn verify:phase1-scope`、`node --test scripts/phase1-ast-guards.test.mjs`、`yarn build`；增加并执行列表浏览器验证入口，交付结果和截图，M1 以库检查和浏览器行为均通过为完成依据。
 
-- [ ] 1.11 在当前列表渲染和库样式中实现 type=null 的层级循环派生，不改 HNN 或产生派生历史；单元及浏览器测试验证五层 1/a/i/1/a、混合无序/待办祖先、非列表包装不计深度、显式 type 优先、z/aa/ab/az/ba、罗马 iv/ix 与超界回退，断言装载后非脏。
-- [ ] 1.12 补齐缩进/反缩进的整数与显示兼容验证；测试新子列表 start=1、已有目标 start+插入位置继续、源后段保号、顶层 5/1/7 与二级 e/a/g、移动子孙样式派生和一次撤销重做恢复，断言持久化 start/type/checked 及节点标识不被显示逻辑改写。
-- [ ] 1.13 为既有 HnnBlockquote 增加 `> ` 快捷输入及引用内 Enter/退出/Shift+Enter；单元与浏览器验证裸 `>` 暂存、前缀消费、尾部文字与 marks、原段落 ID、撤销恢复字面前缀，排除行内/转义/代码/标题/列表项首段/非空选区/只读/freeze/IME，并验证深度预算失败零结构变更。
-- [ ] 1.14 在 interactionToolbar 接入链接配置层与内部选区命令；组件/浏览器测试验证标题默认与替换、未改标题保留原 marks、改标题保留共有 marks 并有提示、单链接部分选区/光标扩至全链、编辑/移除/取消/Escape/层外关闭，跨块/原子/code/多链接混选禁用，键盘标签、Tab、焦点归还符合规格。
-- [ ] 1.15 复用 urlPolicy 和预算事务验证链接提交；参数化单测覆盖空标题/URL、http/https/mailto/hnmagic、javascript/data/file/tel、相对与无协议 URL、控制字符和零宽字符、首尾普通空格、超预算、会话切换、freeze、任意文档事务导致陈旧目标拒绝；断言失败保留原文与草稿，保存/移除一次可撤销且两视图同步，不出现假成功。
+- [x] 1.11 在当前列表渲染和库样式中实现 type=null 的层级循环派生，不改 HNN 或产生派生历史；单元及浏览器测试验证五层 1/a/i/1/a、混合无序/待办祖先、非列表包装不计深度、显式 type 优先、z/aa/ab/az/ba、罗马 iv/ix 与超界回退，断言装载后非脏。
+- [x] 1.12 补齐缩进/反缩进的整数与显示兼容验证；测试新子列表 start=1、已有目标 start+插入位置继续、源后段保号、顶层 5/1/7 与二级 e/a/g、移动子孙样式派生和一次撤销重做恢复，断言持久化 start/type/checked 及节点标识不被显示逻辑改写。
+- [x] 1.13 为既有 HnnBlockquote 增加 `> ` 快捷输入及引用内 Enter/退出/Shift+Enter；单元与浏览器验证裸 `>` 暂存、前缀消费、尾部文字与 marks、原段落 ID、撤销恢复字面前缀，排除行内/转义/代码/标题/列表项首段/非空选区/只读/freeze/IME，并验证深度预算失败零结构变更。
+- [x] 1.14 在 interactionToolbar 接入链接配置层与内部选区命令；组件/浏览器测试验证标题默认与替换、未改标题保留原 marks、改标题保留共有 marks 并有提示、单链接部分选区/光标扩至全链、编辑/移除/取消/Escape/层外关闭，跨块/原子/code/多链接混选禁用，键盘标签、Tab、焦点归还符合规格。
+- [x] 1.15 复用 urlPolicy 和预算事务验证链接提交；参数化单测覆盖空标题/URL、http/https/mailto/hnmagic、javascript/data/file/tel、相对与无协议 URL、控制字符和零宽字符、首尾普通空格、超预算、会话切换、freeze、任意文档事务导致陈旧目标拒绝；断言失败保留原文与草稿，保存/移除一次可撤销且两视图同步，不出现假成功。
 - [ ] 1.16 增补三项联合持久化/Markdown/浏览器回归并执行 notes 既有检查：`yarn lint`、`yarn typecheck`、`yarn test --maxWorkers=2`、依赖/API/phase1 及 AST 守卫、`yarn build` 和列表/新增编辑浏览器脚本；覆盖 HNN 保存重开、自动编号 GFM 数字语义/复杂围栏、引用与链接 GFM 往返及特殊字符、危险链接诊断、双视图历史和已修复的列表共存抽屉授权提交。记录源码 SHA、命令、原始输出及桌面/移动 Web 截图；不顺手修改画笔 timestamp 既有缺陷，全部通过后才交接 M2。
 
 ## 2. M2：可安装的 notes 正式 npm 包

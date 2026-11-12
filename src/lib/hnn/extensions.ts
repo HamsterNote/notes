@@ -1,5 +1,7 @@
 import { Extension, getSchema, getTextSerializersFromSchema, Node, type Editor, type Extensions } from "@tiptap/core"
 import Link from "@tiptap/extension-link"
+import { HnnListNumbering } from "./listNumbering"
+import { HnnQuoteInteractions } from "./quoteInteractions"
 import katex from "katex"
 import { TaskList } from "@tiptap/extension-list"
 import { HnnListInteractions, HnnTaskItem } from "./listInteractions"
@@ -1656,6 +1658,8 @@ function buildHnnExtensions(includeUndoRedo: boolean): Extensions {
   return [
     HnnCompositionDeletion,
     HnnListInteractions,
+    HnnListNumbering,
+    HnnQuoteInteractions,
     StarterKit.configure({
       codeBlock: false,
       blockquote: false,

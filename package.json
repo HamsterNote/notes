@@ -63,7 +63,8 @@
     "verify:legacy-api": "node ./scripts/scan-legacy-public-api.mjs",
     "verify:phase1-scope": "node ./scripts/verify-phase1-scope.mjs",
     "check:pane-toolbar": "node scripts/check-pane-toolbar-browser.mjs",
-    "check:lists": "node scripts/check-lists-browser.mjs"
+    "check:lists": "node scripts/check-lists-browser.mjs",
+    "check:editor-refinements": "node scripts/check-editor-refinements-browser.mjs"
   },
   "peerDependencies": {
     "react": "^19.0.0",
