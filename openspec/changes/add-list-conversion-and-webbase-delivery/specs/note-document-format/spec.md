@@ -16,3 +16,16 @@
 #### Scenario: 旧的有效 v1 继续可读
 - **WHEN** 装载不含任务列表的有效 HNN v1，或已有合法三类列表的 v1
 - **THEN** 无需迁移即可装载并编辑，原有非列表内容及其结构不变
+
+### Requirement: 自动编号引用和链接沿用既有 v1 表示
+自动有序列表 SHALL 以既有 type=null 和整数 start 持久化，层级标号从文档树派生，MUST NOT 将 a./i.、计数缓存或显示深度写入正文或新增属性。显式 type SHALL 无损保留；缺省 type 继续按既有默认 null 解析，装载不产生迁移写入或脏状态。
+
+引用 SHALL 使用既有 blockquote、块内容与 author 属性（新快捷引用为 null），继续遵守既有 nodeId 和子节点约束。链接 SHALL 使用文本节点的 link mark，attrs 只含 href；“链接标题” SHALL 为正文显示文字，不新增 link.title、独立节点或元数据。所有路径 SHALL 使用同一 URL 白名单及原有严格资源校验。
+
+#### Scenario: 保存重开不改变自动模式
+- **WHEN** 保存含五层自动列表、显式 type=A 的旧列表、引用和配置链接的 HNN v1 后重开
+- **THEN** 自动层级样式重新派生，所有 start/type、author、href 和显示文字保留，不出现新增 schema 字段，也不因派生样式变脏
+
+#### Scenario: 不可信链接属性拒绝
+- **WHEN** 读取 link attrs 含额外 title 字段、危险 href，或不合法的引用内容
+- **THEN** 按现有严格编解码路径定位失败，源输入保持，不返回可保存替代文档
