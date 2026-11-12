@@ -1,0 +1,31 @@
+# Tasks
+
+以下全部为后续实现任务，本轮 Propose 不执行。按 M1 → M2 → M3 交接；每项完成后须保存验证结果。开发时验收为 Web-only，WebBase 仅用类型检查、单元测试、Web 构建和浏览器 E2E 判断完成，native 成败不阻塞该判断。
+
+## 1. M1：notes 三类列表编辑闭环
+
+- [ ] 1.1 在 notes 当前兼容基线上新增内部列表目标解析和候选事务模块；参考 design.md 已核查的旧分支转换与回归案例，复用当前 Tiptap schema/codec，不恢复旧 NoteBlock 模型；用单元测试验证光标单项、同层连续项、半开选区边界、跨层/跨容器禁用及块菜单整容器目标，断言未选项不变。
+- [ ] 1.2 实现普通段落创建列表及三类列表六向转换；矩阵测试覆盖 marks、行内引用、多段项、混合子列表、节点 ID 唯一性及父项转换不改变子待办状态，验证同类型请求零变更。
+- [ ] 1.3 实现拆段编号与 checked 属性规则；用 start=5 的三项列表局部转换测试断言前段 5、后段 7、转回新段 1 且不自动 join；验证待办转出删除 checked、转回 false、撤销还原 true。
+- [ ] 1.4 在 blockMenu 和 interactionToolbar 接入三类列表、转正文及缩进/反缩进操作；组件测试验证桌面/移动入口、禁用态、选区保持与明确目标，转正文保留子列表且父结构不能接受时零变更。
+- [ ] 1.5 完善 Enter、Tab/Shift+Tab 和移动缩进按钮；测试非空拆项、已完成项新行 false、空项嵌套提升/顶层退出、无前项不可缩进、整子树移动及单次撤销恢复。
+- [ ] 1.6 完善 checkbox 指针与键盘交互和样式；浏览器验证焦点 Space/点击切换、可访问 checked 状态、父子不联动、不会触发块拖拽，并覆盖桌面和移动布局。
+- [ ] 1.7 为菜单、键盘、checkbox 所有事务统一权限、IME 和预算保护；测试只读/freeze/组合输入、512 KiB/32 层/512 节点边界拒绝，断言失败不变文档/选区/历史，不产生半结构或脏状态。
+- [ ] 1.8 增补 codec 和 Markdown 回归；验证 HNN 三类列表混合树及 checked true/false 往返、非法 checked 定位失败、普通项 checked 被拒、有效旧 v1 可读；验证 `[X]`、GFM 编号/勾选及复杂列表围栏或诊断确认。
+- [ ] 1.9 验证共享 Provider 的勾选/转换、撤销重做及保存；集成测试断言两视图文档同步而焦点独立、失败仍为脏、重试成功后重开得到完整列表语义。
+- [ ] 1.10 执行 notes `yarn lint`、`yarn typecheck`、`yarn test`、`yarn verify:tiptap-deps`、`yarn verify:legacy-api`、`yarn verify:phase1-scope`、`node --test scripts/phase1-ast-guards.test.mjs`、`yarn build`；增加并执行列表浏览器验证入口，交付结果和截图，M1 以库检查和浏览器行为均通过为完成依据。
+
+## 2. M2：可安装的 notes 正式 npm 包
+
+- [ ] 2.1 在 M1 通过后核对 v3.2.0 源码、当前发布源码与 WebBase 所用公开 API，记录 revision/tag 及版本选择依据；确认新正式版本高于 3.2.0 且 registry 未占用，验证不遗漏宿主当前 Provider/视图/编解码公开接口。
+- [ ] 2.2 使用构建包和独立消费 fixture 检查公开入口；验证 ESM/CJS、types、styles.css/formula.css 和所需资源齐全，浏览器可创建/互转/勾选列表，无私有源码依赖，保存包身份与验证结果。
+- [ ] 2.3 沿用 v* tag 发布工作流发布选择的正式版本；确认发布检查通过且 npm 可安装，记录源码 revision、tag、npm 版本、dist 完整性与工作流结果，失败则停止 M3 并说明阻碍。
+- [ ] 2.4 在干净消费环境安装正式 npm 精确版本复验公开 API、样式及列表保存重开；核对实际解析版本/完整性对应发布记录，不能仅用本地 pack/link 代替。
+
+## 3. M3：WebBase 消费与 Web-only 验收
+
+- [ ] 3.1 在 M2 正式包可安装后更新 WebBase `webview/package.json` 和 `webview/pnpm-lock.yaml` 的 notes 精确版本，保留既有依赖 override；冻结锁文件安装后核对解析版本/完整性与 M2 记录一致，无本地路径或源码复制。
+- [ ] 3.2 沿用 main 样式入口及 HnnDocumentSession 的公开组件，补必要宿主适配与回归；类型检查与单元测试验证新包兼容，宿主外壳、metadata、图片等非列表内容不被列表保存改写。
+- [ ] 3.3 增补 Web 浏览器 E2E 场景并纳入项目 Web 验收入口：三种创建、六向互转、局部选区、混合嵌套、编号、勾选、撤销重做、保存关闭重开和分屏同步；失败/冲突/只读场景验证不误报保存、不丢内容、不抢其他栏焦点。
+- [ ] 3.4 在 WebBase 执行 `pnpm typecheck`、`pnpm test:run`、`pnpm build:web`、`pnpm test:e2e:web`；记录实际结果与浏览器证据，明确“开发时验收为 Web-only”，不运行或要求 native 验收作为完成判据。
+- [ ] 3.5 汇总 M1/M2/M3 证据、notes 正式版本、WebBase 精确依赖及变更 revision；用现用 3.2.0 对列表样本进行 Web 读取回归记录回滚兼容结论，交付回退依赖/锁文件说明，确认整条需求仅在 M3 通过后具备验收条件。
