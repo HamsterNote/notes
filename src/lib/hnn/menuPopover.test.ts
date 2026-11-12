@@ -400,3 +400,28 @@ describe("menuPopover：转换二级菜单", () => {
     expect(host.querySelectorAll('[role="menu"]')).toHaveLength(0)
   })
 })
+
+
+it("悬停展开后 ArrowRight 聚焦首个可用子项并可执行", () => {
+  vi.useFakeTimers()
+  const action = vi.fn()
+  const handle = openAnchoredMenu({ anchor, ariaLabel: "混合输入", items: [
+    { label: "下一行", children: [
+      { label: "不可用", disabled: true },
+      { label: "图像", onActivate: action }
+    ] }
+  ] })
+  const parent = handle.element.querySelector<HTMLButtonElement>("button")!
+  parent.dispatchEvent(new PointerEvent("pointerenter", { pointerType: "mouse" }))
+  vi.advanceTimersByTime(120)
+  expect(document.activeElement).toBe(parent)
+  keydown(parent, "ArrowRight")
+  const focused = document.activeElement as HTMLButtonElement
+  expect(focused.textContent).toBe("图像")
+  expect(focused.tabIndex).toBe(0)
+  // 原生按钮 Enter/Space 的默认激活为 click（jsdom 不合成默认动作）。
+  focused.click()
+  expect(action).toHaveBeenCalledOnce()
+  expect(host.querySelectorAll('[role="menu"]')).toHaveLength(0)
+  vi.useRealTimers()
+})

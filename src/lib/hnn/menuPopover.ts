@@ -54,6 +54,7 @@ export interface OpenAnchoredMenuOptions {
 export interface AnchoredMenuHandle {
   /** restoreFocus 为 true 时把焦点归还锚点（Esc 路径）；默认 false。 */
   close(restoreFocus?: boolean): void
+  focusFirst(): void
   readonly element: HTMLElement
 }
 
@@ -108,6 +109,7 @@ export function openAnchoredMenu(options: OpenAnchoredMenuOptions): AnchoredMenu
     clearHoverTimers()
     if (childIndex === index && child) {
       if (toggle) child.close(true)
+      else if (focus) child.focusFirst()
       return
     }
     child?.close(false)
@@ -389,5 +391,5 @@ export function openAnchoredMenu(options: OpenAnchoredMenuOptions): AnchoredMenu
   // 悬停展开不抢焦点；键盘/触屏打开仍聚焦首个可用条目。
   if (options.focusOnOpen !== false) moveFocus(-1, 1)
 
-  return { close, element }
+  return { close, element, focusFirst: () => moveFocus(-1, 1) }
 }

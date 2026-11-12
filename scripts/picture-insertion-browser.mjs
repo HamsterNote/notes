@@ -22,7 +22,13 @@ export async function checkPictureInsertion(page, url, evidenceDir) {
   await next.hover()
   const image = page.getByRole("menuitem", { name: "图像", exact: true })
   await image.waitFor()
-  await image.click()
+  assert.equal(await image.evaluate(element => element === document.activeElement), false)
+  await next.focus()
+  await page.keyboard.press("ArrowRight")
+  assert.equal(await page.evaluate(() => document.activeElement?.textContent), "表格")
+  await page.keyboard.press("End")
+  assert.equal(await image.evaluate(element => element === document.activeElement), true)
+  await page.keyboard.press("Enter")
   let dialog = page.getByRole("dialog", { name: "插入图像" })
   await dialog.locator("input[type=file]").setInputFiles({ name: "pixel.png", mimeType: "image/png", buffer: png })
   await dialog.getByAltText("图片预览").waitFor()
@@ -80,6 +86,7 @@ export async function checkPictureInsertion(page, url, evidenceDir) {
     browser: "Chromium",
     publicFixture: true,
     hoverWithoutToggle: true,
+    hoverThenArrowRightAndExecute: true,
     touchAndKeyboard: true,
     themes: ["light", "dark"],
     paneWidth: 320,

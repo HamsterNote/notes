@@ -2,6 +2,7 @@
   "browser": "Chromium",
   "publicFixture": true,
   "hoverWithoutToggle": true,
+  "hoverThenArrowRightAndExecute": true,
   "touchAndKeyboard": true,
   "themes": [
     "light",
