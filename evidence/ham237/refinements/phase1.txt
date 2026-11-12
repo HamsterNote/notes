@@ -1,0 +1,24 @@
+M1 refinements tasks 1.11-1.16
+Source SHA: f805d859f0a7fac285e70ab3ae78bab71774aea2
+UTC: 2026-11-12T13:03:39.928368+00:00
+Branch: agent/ham-237-editor-refinements
+Environment: Linux-7.0.0-31-generic-x86_64-with-glibc2.43
+Node: v24.15.0
+Yarn: 1.22.22
+Git: git version 2.53.0
+OpenSpec: 1.13.1
+Browser: Playwright 1.60.0, Chromium version logged in browser checks
+Viewports: 1440x1000 and 390x1000 (touch context)
+Scope: notes source alias; no npm publishing, WebBase integration, native build or pen timestamp changes
+
+$ yarn verify:phase1-scope
+yarn run v1.22.22
+(node:1620653) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+$ node ./scripts/verify-phase1-scope.mjs
+Phase 1 范围守卫 (Phase 1 task 1.4)
+  已检查依赖 40 项、源码文件 108 个、公共导出 79 个
+  范围: 禁止协作/Yjs、文件处理扩展、裸 ProseMirror 引用及公开 schema/extensions 注入契约
+
+Phase 1 范围守卫通过。
+Done in 1.89s.
