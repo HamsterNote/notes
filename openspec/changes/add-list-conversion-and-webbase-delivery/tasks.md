@@ -13,7 +13,7 @@
 - [x] 1.7 为菜单、键盘、checkbox 所有事务统一权限、IME 和预算保护；测试只读/freeze/组合输入、512 KiB/32 层/512 节点边界拒绝，断言失败不变文档/选区/历史，不产生半结构或脏状态。
 - [x] 1.8 增补 codec 和 Markdown 回归；验证 HNN 三类列表混合树及 checked true/false 往返、非法 checked 定位失败、普通项 checked 被拒、有效旧 v1 可读；验证 `[X]`、GFM 编号/勾选及复杂列表围栏或诊断确认。
 - [x] 1.9 验证共享 Provider 的勾选/转换、撤销重做及保存；集成测试断言两视图文档同步而焦点独立、失败仍为脏、重试成功后重开得到完整列表语义。
-- [ ] 1.10 执行 notes `yarn lint`、`yarn typecheck`、`yarn test`、`yarn verify:tiptap-deps`、`yarn verify:legacy-api`、`yarn verify:phase1-scope`、`node --test scripts/phase1-ast-guards.test.mjs`、`yarn build`；增加并执行列表浏览器验证入口，交付结果和截图，M1 以库检查和浏览器行为均通过为完成依据。
+- [x] 1.10 执行 notes `yarn lint`、`yarn typecheck`、`yarn test`、`yarn verify:tiptap-deps`、`yarn verify:legacy-api`、`yarn verify:phase1-scope`、`node --test scripts/phase1-ast-guards.test.mjs`、`yarn build`；增加并执行列表浏览器验证入口，交付结果和截图，M1 以库检查和浏览器行为均通过为完成依据。
 
 ## 2. M2：可安装的 notes 正式 npm 包
 
