@@ -5,6 +5,7 @@ import { EditorState, type Transaction } from "@tiptap/pm/state"
 import type { Node as PmNode } from "@tiptap/pm/model"
 import { decodeHnn, encodeHnn } from "../hnn/codec"
 import { createHnnNodeId } from "../hnn/nodeId"
+import { registerHnnTransactionPermission } from "../hnn/transactionPermission"
 import { createHnnExtensions, flushHnnPendingEdits, hnnRuntimeSchema } from "../hnn/extensions"
 import { installBlockReorder } from "./blockReorder"
 import { openBlockMenu } from "./blockMenu"
@@ -218,6 +219,7 @@ export class DocumentSession {
     editor.view.updateState(EditorState.create({ schema: hnnRuntimeSchema, doc: this.authority.doc, plugins: editor.state.plugins }))
     const record: DocumentView = { editor, instanceId: Symbol(viewId), references: undefined, pictureUpload: undefined, cleanup: [] }
     this.views.set(viewId, record)
+    record.cleanup.push(registerHnnTransactionPermission(editor, () => this.canInput()))
     record.cleanup.push(installHnnClipboardHistoryBoundary(editor))
     record.cleanup.push(installBlockReorder(editor, {
       openMenu: (anchor, getPos, onClosed) => {
@@ -355,6 +357,9 @@ export class DocumentSession {
         for (const tr of applied.transactions) for (const step of tr.steps) remote.step(step)
         remote.setStoredMarks(peer.editor.state.storedMarks)
         remote.setMeta("addToHistory", false)
+        // Replicate the authority's accepted structure, without reinterpreting
+        // an empty result as a fresh select-all deletion in the peer's selection.
+        remote.setMeta("preventClearDocument", true)
         const peerState = peer.editor.state.applyTransaction(remote).state
         peer.editor.view.updateState(peerState)
         this.emitTransaction(peer.editor, remote, [])

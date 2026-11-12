@@ -1,0 +1,102 @@
+HAM-237 M1 verification / 2026-11-12T09:01:36.950060+00:00
+
+$ uname -srm
+Linux 7.0.0-31-generic x86_64
+
+[exit 0]
+
+$ node --version
+v24.15.0
+
+[exit 0]
+
+$ yarn --version
+1.22.22
+
+[exit 0]
+
+$ git --version
+git version 2.53.0
+
+[exit 0]
+
+$ openspec --version
+1.13.1
+
+[exit 0]
+
+$ git rev-parse HEAD
+42a24ebf6498c9e449b8432f9bcf4b9c8fc45e7c
+
+[exit 0]
+
+$ yarn lint
+yarn run v1.22.22
+(node:1375104) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+$ eslint .
+Done in 43.85s.
+
+[exit 0]
+
+$ yarn typecheck
+yarn run v1.22.22
+(node:1375608) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+$ tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.fixtures.json
+Done in 35.48s.
+
+[exit 0]
+
+$ yarn test
+yarn run v1.22.22
+(node:1376057) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+$ vitest run
+
+ RUN  v4.1.10 /home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes
+
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/index.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/index.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/drag.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/base.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/index.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/controller.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/geometry.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/types.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/inertia.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/dom/normalize-pointer-event.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/dom/pose.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/finger.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/rotate.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/scale.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/mixin.js" points to missing source files
+Not implemented: Window's scrollBy() method
+ ❯ src/lib/hnn/markdown.test.ts (105 tests | 1 failed) 43769ms
+     × 大尺寸坏 base64 与严格 payload 失败在容量内完整局部保留 6606ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/lib/hnn/markdown.test.ts > 内部 Markdown codec > 大尺寸坏 base64 与严格 payload 失败在容量内完整局部保留
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ src/lib/hnn/markdown.test.ts:2057:3
+    2055|   })
+    2056|
+    2057|   it("大尺寸坏 base64 与严格 payload 失败在容量内完整局部保留", () => {
+       |   ^
+    2058|     const chunkLimit = HNN_LIMITS.maxAttrBytes - 256
+    2059|     const invalidBase64 = `${"A".repeat(150_000)}!${"A".repeat(149_999…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 45 passed (46)
+      Tests  1 failed | 953 passed (954)
+   Start at  17:03:01
+   Duration  74.10s (transform 13.23s, setup 1.12s, import 55.38s, tests 210.20s, environment 74.98s)
+
+error Command failed with exit code 1.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
+
+[exit 1]

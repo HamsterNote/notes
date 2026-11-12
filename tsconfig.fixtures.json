@@ -8,5 +8,5 @@
       "@hamster-note/notes": ["./src/lib/index.ts"]
     }
   },
-  "include": ["scripts/fixtures/pane-toolbar/**/*.tsx"]
+  "include": ["scripts/fixtures/pane-toolbar/**/*.tsx", "scripts/fixtures/lists/**/*.tsx"]
 }

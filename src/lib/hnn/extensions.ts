@@ -1,7 +1,8 @@
 import { Extension, getSchema, getTextSerializersFromSchema, Node, type Editor, type Extensions } from "@tiptap/core"
 import Link from "@tiptap/extension-link"
 import katex from "katex"
-import { TaskItem, TaskList } from "@tiptap/extension-list"
+import { TaskList } from "@tiptap/extension-list"
+import { HnnListInteractions, HnnTaskItem } from "./listInteractions"
 import { Table, TableKit } from "@tiptap/extension-table"
 import { closeHistory } from "@tiptap/pm/history"
 import type { Node as PmNode } from "@tiptap/pm/model"
@@ -1218,7 +1219,11 @@ function buildHnnExtensions(includeUndoRedo: boolean): Extensions {
                 const failure = bridge.validateCandidate(tr.doc)
                 if (failure !== null) return { ok: false, message: failure }
                 editor.view.dispatch(tr)
-                return { ok: true }
+                // dispatch returns void even when a session or plugin rejects
+                // the transaction. Only close the drawer after it took effect.
+                return editor.state.doc.eq(tr.doc)
+                  ? { ok: true }
+                  : { ok: false, message: "提交被拒绝，未保存更改，请重试" }
               },
               onClosed: () => preview.setAttribute("aria-expanded", "false")
             })
@@ -1650,6 +1655,7 @@ function buildHnnExtensions(includeUndoRedo: boolean): Extensions {
 
   return [
     HnnCompositionDeletion,
+    HnnListInteractions,
     StarterKit.configure({
       codeBlock: false,
       blockquote: false,
@@ -1661,7 +1667,7 @@ function buildHnnExtensions(includeUndoRedo: boolean): Extensions {
       trailingNode: false
     }),
     TaskList,
-    TaskItem.configure({ nested: true }),
+    HnnTaskItem,
     // Table 本体由 HnnTable 提供（带封闭行/列控件 NodeView）；Kit 只补 row/cell/header。
     TableKit.configure({ table: false }),
     HnnTable,

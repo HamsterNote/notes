@@ -1,0 +1,1785 @@
+yarn run v1.22.22
+(node:1394727) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+$ vitest run src/lib/editor/listDrafts.test.tsx src/lib/editor/listCommands.test.ts --maxWorkers=2 --reporter=verbose
+
+ RUN  v4.1.10 /home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes
+
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/index.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/index.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/drag.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/base.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/index.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/controller.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/geometry.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/types.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/inertia.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/dom/normalize-pointer-event.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/dom/pose.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/finger.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/rotate.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/scale.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/mixin.js" points to missing source files
+ ✓ src/lib/editor/listCommands.test.ts > M1.1 list targets > resolves one cursor item, partial contiguous range and a half-open endpoint, leaving other items unchanged 133ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.1 list targets > rejects cross-level/cross-container/mixed/atom selections; block target ignores residual cursor 48ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > creates bulletList from consecutive paragraphs without changing inline content/selection 31ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > bulletList -> bulletList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 25ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > bulletList -> orderedList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 35ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > bulletList -> taskList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 29ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > creates orderedList from consecutive paragraphs without changing inline content/selection 28ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > orderedList -> bulletList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 23ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > orderedList -> orderedList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 14ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > orderedList -> taskList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 26ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > creates taskList from consecutive paragraphs without changing inline content/selection 20ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > taskList -> bulletList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 20ms
+ × src/lib/editor/listDrafts.test.tsx > 'card' draft alongside 'bulletList' commits once while body stays locked, synchronizes peers, undoes/redoes and survives save/reopen 295ms
+   → expected "vi.fn()" to be called 1 times, but got 0 times
+ × src/lib/editor/listDrafts.test.tsx > 'drawing' draft alongside 'bulletList' commits once while body stays locked, synchronizes peers, undoes/redoes and survives save/reopen 90ms
+   → expected "vi.fn()" to be called 1 times, but got 0 times
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > taskList -> orderedList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 19ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > taskList -> taskList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 16ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.3 numbering and history > splits 5/6/7 into 5/bullet/7, converts back to separate 5/1/7 without joining 27ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.3 numbering and history > clears checked on exit, reinitializes false and undo/redo restores true and child state 21ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.4 explicit block menu and lossless unwrapping > rejects unwrap when the parent cannot accept paragraphs, without changing state 1ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.4 explicit block menu and lossless unwrapping > block menu targets all direct items; unwrap preserves children and marks 15ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.4 explicit block menu and lossless unwrapping > unwraps a nested list while preserving the legal parent item 12ms
+ × src/lib/editor/listDrafts.test.tsx > 'card' draft alongside 'orderedList' commits once while body stays locked, synchronizes peers, undoes/redoes and survives save/reopen 82ms
+   → expected "vi.fn()" to be called 1 times, but got 0 times
+ × src/lib/editor/listDrafts.test.tsx > 'drawing' draft alongside 'orderedList' commits once while body stays locked, synchronizes peers, undoes/redoes and survives save/reopen 44ms
+   → expected "vi.fn()" to be called 1 times, but got 0 times
+ × src/lib/editor/listDrafts.test.tsx > 'card' draft alongside 'taskList' commits once while body stays locked, synchronizes peers, undoes/redoes and survives save/reopen 48ms
+   → expected "vi.fn()" to be called 1 times, but got 0 times
+ × src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'forward' selection from an empty 'bulletList' item before splitting, with one undo 21ms
+   → expected [ 'paragraph', 'paragraph' ] to deeply equal [ 'bulletList' ]
+ × src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'backward' selection from an empty 'bulletList' item before splitting, with one undo 13ms
+   → expected [ 'paragraph', 'paragraph' ] to deeply equal [ 'bulletList' ]
+ × src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'forward' selection from an empty 'orderedList' item before splitting, with one undo 11ms
+   → expected [ 'paragraph', 'paragraph' ] to deeply equal [ 'orderedList' ]
+ × src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'backward' selection from an empty 'orderedList' item before splitting, with one undo 12ms
+   → expected [ 'paragraph', 'paragraph' ] to deeply equal [ 'orderedList' ]
+ × src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'forward' selection from an empty 'taskList' item before splitting, with one undo 12ms
+   → expected [ 'paragraph', 'paragraph' ] to deeply equal [ 'taskList' ]
+ × src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'backward' selection from an empty 'taskList' item before splitting, with one undo 27ms
+   → expected [ 'paragraph', 'paragraph' ] to deeply equal [ 'taskList' ]
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > splits a completed task in the middle without inheriting checked=true 26ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter on completed task creates unchecked sibling; empty Enter exits, each action undoes once 35ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > indent/lift moves the entire mixed subtree; no previous item is a no-op 22ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > empty nested Enter lifts one level 12ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > lifting taskList out of a different list preserves type, state, trailing content and numbering 20ms
+ × src/lib/editor/listDrafts.test.tsx > 'drawing' draft alongside 'taskList' commits once while body stays locked, synchronizes peers, undoes/redoes and survives save/reopen 56ms
+   → expected "vi.fn()" to be called 1 times, but got 0 times
+ × src/lib/editor/listDrafts.test.tsx > card rejected transaction reports failure and retains the drawer draft for retry 89ms
+   → Unable to find an accessible element with the role "dialog"
+
+Here are the accessible roles:
+
+  textbox:
+
+  Name "笔记内容编辑区 a":
+  [36m<div[39m
+    [33maria-label[39m=[32m"笔记内容编辑区 a"[39m
+    [33maria-multiline[39m=[32m"true"[39m
+    [33mclass[39m=[32m"tiptap ProseMirror hn-editor-content"[39m
+    [33mcontenteditable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"textbox"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtranslate[39m=[32m"no"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "块操作菜单":
+  [36m<span[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-haspopup[39m=[32m"menu"[39m
+    [33maria-hidden[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"块操作菜单"[39m
+    [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+    [33mcontenteditable[39m=[32m"false"[39m
+    [33mdata-drag-handle[39m=[32m""[39m
+    [33mdraggable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"button"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "块操作菜单":
+  [36m<span[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-haspopup[39m=[32m"menu"[39m
+    [33maria-hidden[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"块操作菜单"[39m
+    [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+    [33mcontenteditable[39m=[32m"false"[39m
+    [33mdata-drag-handle[39m=[32m""[39m
+    [33mdraggable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"button"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "编辑卡片":
+  [36m<button[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-haspopup[39m=[32m"dialog"[39m
+    [33maria-label[39m=[32m"编辑卡片"[39m
+    [33mclass[39m=[32m"hn-editor-data-preview"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  list:
+
+  Name "":
+  [36m<ul[39m
+    [33mdata-type[39m=[32m"taskList"[39m
+    [33mnodeid[39m=[32m"f858d284-0d7b-41ac-af32-a6b3878479c9"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  listitem:
+
+  Name "":
+  [36m<li[39m
+    [33mdata-checked[39m=[32m"true"[39m
+    [33mdata-type[39m=[32m"taskItem"[39m
+    [33mnodeid[39m=[32m"f2f83a7d-84dd-45ce-a4ee-1e24cbe2c46c"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  checkbox:
+
+  Name "待办：keep list":
+  [36m<input[39m
+    [33maria-disabled[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"待办：keep list"[39m
+    [33mtype[39m=[32m"checkbox"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mnodeid[39m=[32m"f929b1ee-bdf4-4662-9f16-a275c241915c"[39m
+  [36m/>[39m
+
+  --------------------------------------------------textbox:
+
+  Name "笔记内容编辑区 b":
+  [36m<div[39m
+    [33maria-label[39m=[32m"笔记内容编辑区 b"[39m
+    [33maria-multiline[39m=[32m"true"[39m
+    [33mclass[39m=[32m"tiptap ProseMirror hn-editor-content"[39m
+    [33mcontenteditable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"textbox"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtranslate[39m=[32m"no"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "块操作菜单":
+  [36m<span[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-haspopup[39m=[32m"menu"[39m
+    [33maria-hidden[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"块操作菜单"[39m
+    [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+    [33mcontenteditable[39m=[32m"false"[39m
+    [33mdata-drag-handle[39m=[32m""[39m
+    [33mdraggable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"button"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "块操作菜单":
+  [36m<span[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-haspopup[39m=[32m"menu"[39m
+    [33maria-hidden[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"块操作菜单"[39m
+    [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+    [33mcontenteditable[39m=[32m"false"[39m
+    [33mdata-drag-handle[39m=[32m""[39m
+    [33mdraggable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"button"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "编辑卡片":
+  [36m<button[39m
+    [33maria-haspopup[39m=[32m"dialog"[39m
+    [33maria-label[39m=[32m"编辑卡片"[39m
+    [33mclass[39m=[32m"hn-editor-data-preview"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  list:
+
+  Name "":
+  [36m<ul[39m
+    [33mdata-type[39m=[32m"taskList"[39m
+    [33mnodeid[39m=[32m"f858d284-0d7b-41ac-af32-a6b3878479c9"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  listitem:
+
+  Name "":
+  [36m<li[39m
+    [33mdata-checked[39m=[32m"true"[39m
+    [33mdata-type[39m=[32m"taskItem"[39m
+    [33mnodeid[39m=[32m"f2f83a7d-84dd-45ce-a4ee-1e24cbe2c46c"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  checkbox:
+
+  Name "待办：keep list":
+  [36m<input[39m
+    [33maria-disabled[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"待办：keep list"[39m
+    [33mtype[39m=[32m"checkbox"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mnodeid[39m=[32m"f929b1ee-bdf4-4662-9f16-a275c241915c"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mstyle[39m=[32m""[39m
+[36m>[39m
+  [36m<div[39m
+    [33maria-label[39m=[32m"笔记内容编辑区 a"[39m
+    [33maria-multiline[39m=[32m"true"[39m
+    [33mclass[39m=[32m"tiptap ProseMirror hn-editor-content"[39m
+    [33mcontenteditable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"textbox"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtranslate[39m=[32m"no"[39m
+  [36m>[39m
+    [36m<span[39m
+      [33maria-expanded[39m=[32m"false"[39m
+      [33maria-haspopup[39m=[32m"menu"[39m
+      [33maria-hidden[39m=[32m"false"[39m
+      [33maria-label[39m=[32m"块操作菜单"[39m
+      [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+      [33mcontenteditable[39m=[32m"false"[39m
+      [33mdata-drag-handle[39m=[32m""[39m
+      [33mdraggable[39m=[32m"true"[39m
+      [33mrole[39m=[32m"button"[39m
+      [33mtabindex[39m=[32m"0"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"hn-editor-block-handle-glyph"[39m
+      [36m>[39m
+        [0m⋮⋮[0m
+      [36m</span>[39m
+    [36m</span>[39m
+    [36m<ul[39m
+      [33mdata-type[39m=[32m"taskList"[39m
+      [33mnodeid[39m=[32m"f858d284-0d7b-41ac-af32-a6b3878479c9"[39m
+    [36m>[39m
+      [36m<li[39m
+        [33mdata-checked[39m=[32m"true"[39m
+        [33mdata-type[39m=[32m"taskItem"[39m
+        [33mnodeid[39m=[32m"f2f83a7d-84dd-45ce-a4ee-1e24cbe2c46c"[39m
+      [36m>[39m
+        [36m<label>[39m
+          [36m<input[39m
+            [33maria-disabled[39m=[32m"false"[39m
+            [33maria-label[39m=[32m"待办：keep list"[39m
+            [33mtype[39m=[32m"checkbox"[39m
+          [36m/>[39m
+        [36m</label>[39m
+        [36m<div>[39m
+          [36m<p[39m
+            [33mnodeid[39m=[32m"f929b1ee-bdf4-4662-9f16-a275c241915c"[39m
+          [36m>[39m
+            [0mkeep list[0m
+          [36m</p>[39m
+        [36m</div>[39m
+      [36m</li>[39m
+    [36m</ul>[39m
+    [36m<span[39m
+      [33maria-expanded[39m=[32m"false"[39m
+      [33maria-haspopup[39m=[32m"menu"[39m
+      [33maria-hidden[39m=[32m"false"[39m
+      [33maria-label[39m=[32m"块操作菜单"[39m
+      [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+      [33mcontenteditable[39m=[32m"false"[39m
+      [33mdata-drag-handle[39m=[32m""[39m
+      [33mdraggable[39m=[32m"true"[39m
+      [33mrole[39m=[32m"button"[39m
+      [33mtabindex[39m=[32m"0"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"hn-editor-block-handle-glyph"[39m
+      [36m>[39m
+        [0m⋮⋮[0m
+      [36m</span>[39m
+    [36m</span>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"hn-editor-data-block hn-editor-data-block--card"[39m
+      [33mcontenteditable[39m=[32m"false"[39m
+      [33mdata[39m=[32m"{\"schemaVersion\":1,\"cards\":[]}"[39m
+      [33mdata-hnn-node[39m=[32m"card"[39m
+      [33mnodeid[39m=[32m"eae936ac-4a09-410c-93d8-d6ae90e0bb25"[39m
+    [36m>[39m
+      [36m<button[39m
+        [33maria-expanded[39m=[32m"false"[39m
+        [33maria-haspopup[39m=[32m"dialog"[39m
+        [33maria-label[39m=[32m"编辑卡片"[39m
+        [33mclass[39m=[32m"hn-editor-data-preview"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"hn-editor-data-title"[39m
+        [36m>[39m
+          [0m卡片[0m
+        [36m</span>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"hn-editor-data-meta"[39m
+        [36m>[39m
+          [0m0 张卡片[0m
+        [36m</span>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"hn-editor-data-hint"[39m
+        [36m>[39m
+          [0m点击编辑[0m
+        [36m</span>[39m
+      [36m</button>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+  [36m<div[39m
+    [33maria-label[39m=[32m"笔记内容编辑区 b"[39m
+    [33maria-multiline[39m=[32m"true"[39m
+    [33mclass[39m=[32m"tiptap ProseMirror hn-editor-content"[39m
+    [33mcontenteditable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"textbox"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtranslate[39m=[32m"no"[39m
+  [36m>[39m
+    [36m<span[39m
+      [33maria-expanded[39m=[32m"false"[39m
+      [33maria-haspopup[39m=[32m"menu"[39m
+      [33maria-hidden[39m=[32m"false"[39m
+      [33maria-label[39m=[32m"块操作菜单"[39m
+      [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+      [33mcontenteditable[39m=[32m"false"[39m
+      [33mdata-drag-handle[39m=[32m""[39m
+      [33mdraggable[39m=[32m"true"[39m
+      [33mrole[39m=[32m"button"[39m
+      [33mtabindex[39m=[32m"0"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"hn-editor-block-handle-glyph"[39m
+      [36m>[39m
+        [0m⋮⋮[0m
+      [36m</span>[39m
+    [36m</span>[39m
+    [36m<ul[39m
+      [33mdata-type[39m=[32m"taskList"[39m
+      [33mnodeid[39m=[32m"f858d284-0d7b-41ac-af32-a6b3878479c9"[39m
+    [36m>[39m
+      [36m<li[39m
+        [33mdata-checked[39m=[32m"true"[39m
+        [33mdata-type[39m=[32m"taskItem"[39m
+        [33mnodeid[39m=[32m"f2f83a7d-84dd-45ce-a4ee-1e24cbe2c46c"[39m
+      [36m>[39m
+        [36m<label>[39m
+          [36m<input[39m
+            [33maria-disabled[39m=[32m"false"[39m
+            [33maria-label[39m=[32m"待办：keep list"[39m
+            [33mtype[39m=[32m"checkbox"[39m
+          [36m/>[39m
+        [36m</label>[39m
+        [36m<div>[39m
+          [36m<p[39m
+            [33mnodeid[39m=[32m"f929b1ee-bdf4-4662-9f16-a275c241915c"[39m
+          [36m>[39m
+            [0mkeep list[0m
+          [36m</p>[39m
+        [36m</div>[39m
+      [36m</li>[39m
+    [36m</ul>[39m
+    [36m<span[39m
+      [33maria-expanded[39m=[32m"false"[39m
+      [33maria-haspopup[39m=[32m"menu"[39m
+      [33maria-hidden[39m=[32m"false"[39m
+      [33maria-label[39m=[32m"块操作菜单"[39m
+      [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+      [33mcontenteditable[39m=[32m"false"[39m
+      [33mdata-drag-handle[39m=[32m""[39m
+      [33mdraggable[39m=[32m"true"[39m
+      [33mrole[39m=[32m"button"[39m
+      [33mtabindex[39m=[32m"0"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"hn-editor-block-handle-glyph"[39m
+      [36m>[39m
+        [0m⋮⋮[0m
+      [36m</span>[39m
+    [36m</span>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"hn-editor-data-block hn-editor-data-block--card"[39m
+      [33mcontenteditable[39m=[32m"false"[39m
+      [33mdata[39m=[32m"{\"schemaVersion\":1,\"cards\":[]}"[39m
+      [33mdata-hnn-node[39m=[32m"card"[39m
+      [33mnodeid[39m=[32m"eae936ac-4a09-410c-93d8-d6ae90e0bb25"[39m
+    [36m>[39m
+      [36m<button[39m
+        [33maria-haspopup[39m=[32m"dialog"[39m
+        [33maria-label[39m=[32m"编辑卡片"[39m
+        [33mclass[39m=[32m"hn-editor-data-preview"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"hn-editor-data-title"[39m
+        [36m>[39m
+          [0m卡片[0m
+        [36m</span>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"hn-editor-data-meta"[39m
+        [36m>[39m
+          [0m0 张卡片[0m
+        [36m</span>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"hn-editor-data-hint"[39m
+        [36m>[39m
+          [0m点击编辑[0m
+        [36m</span>[39m
+      [36m</button>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ × src/lib/editor/listDrafts.test.tsx > drawing rejected transaction reports failure and retains the drawer draft for retry 68ms
+   → Unable to find an accessible element with the role "dialog"
+
+Here are the accessible roles:
+
+  textbox:
+
+  Name "笔记内容编辑区 a":
+  [36m<div[39m
+    [33maria-label[39m=[32m"笔记内容编辑区 a"[39m
+    [33maria-multiline[39m=[32m"true"[39m
+    [33mclass[39m=[32m"tiptap ProseMirror hn-editor-content"[39m
+    [33mcontenteditable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"textbox"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtranslate[39m=[32m"no"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "块操作菜单":
+  [36m<span[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-haspopup[39m=[32m"menu"[39m
+    [33maria-hidden[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"块操作菜单"[39m
+    [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+    [33mcontenteditable[39m=[32m"false"[39m
+    [33mdata-drag-handle[39m=[32m""[39m
+    [33mdraggable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"button"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "块操作菜单":
+  [36m<span[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-haspopup[39m=[32m"menu"[39m
+    [33maria-hidden[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"块操作菜单"[39m
+    [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+    [33mcontenteditable[39m=[32m"false"[39m
+    [33mdata-drag-handle[39m=[32m""[39m
+    [33mdraggable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"button"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "编辑画板":
+  [36m<button[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-haspopup[39m=[32m"dialog"[39m
+    [33maria-label[39m=[32m"编辑画板"[39m
+    [33mclass[39m=[32m"hn-editor-data-preview"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  list:
+
+  Name "":
+  [36m<ul[39m
+    [33mdata-type[39m=[32m"taskList"[39m
+    [33mnodeid[39m=[32m"d871bf19-3b33-4cf7-aab6-9a052aa92b9c"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  listitem:
+
+  Name "":
+  [36m<li[39m
+    [33mdata-checked[39m=[32m"true"[39m
+    [33mdata-type[39m=[32m"taskItem"[39m
+    [33mnodeid[39m=[32m"aa9771b8-95fa-42dc-b300-0e735f4627e6"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  checkbox:
+
+  Name "待办：keep list":
+  [36m<input[39m
+    [33maria-disabled[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"待办：keep list"[39m
+    [33mtype[39m=[32m"checkbox"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mnodeid[39m=[32m"1ef18b31-50c4-490d-af4c-c4d3fd02e730"[39m
+  [36m/>[39m
+
+  --------------------------------------------------textbox:
+
+  Name "笔记内容编辑区 b":
+  [36m<div[39m
+    [33maria-label[39m=[32m"笔记内容编辑区 b"[39m
+    [33maria-multiline[39m=[32m"true"[39m
+    [33mclass[39m=[32m"tiptap ProseMirror hn-editor-content"[39m
+    [33mcontenteditable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"textbox"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtranslate[39m=[32m"no"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "块操作菜单":
+  [36m<span[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-haspopup[39m=[32m"menu"[39m
+    [33maria-hidden[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"块操作菜单"[39m
+    [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+    [33mcontenteditable[39m=[32m"false"[39m
+    [33mdata-drag-handle[39m=[32m""[39m
+    [33mdraggable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"button"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "块操作菜单":
+  [36m<span[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-haspopup[39m=[32m"menu"[39m
+    [33maria-hidden[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"块操作菜单"[39m
+    [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+    [33mcontenteditable[39m=[32m"false"[39m
+    [33mdata-drag-handle[39m=[32m""[39m
+    [33mdraggable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"button"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "编辑画板":
+  [36m<button[39m
+    [33maria-haspopup[39m=[32m"dialog"[39m
+    [33maria-label[39m=[32m"编辑画板"[39m
+    [33mclass[39m=[32m"hn-editor-data-preview"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  list:
+
+  Name "":
+  [36m<ul[39m
+    [33mdata-type[39m=[32m"taskList"[39m
+    [33mnodeid[39m=[32m"d871bf19-3b33-4cf7-aab6-9a052aa92b9c"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  listitem:
+
+  Name "":
+  [36m<li[39m
+    [33mdata-checked[39m=[32m"true"[39m
+    [33mdata-type[39m=[32m"taskItem"[39m
+    [33mnodeid[39m=[32m"aa9771b8-95fa-42dc-b300-0e735f4627e6"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  checkbox:
+
+  Name "待办：keep list":
+  [36m<input[39m
+    [33maria-disabled[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"待办：keep list"[39m
+    [33mtype[39m=[32m"checkbox"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mnodeid[39m=[32m"1ef18b31-50c4-490d-af4c-c4d3fd02e730"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mstyle[39m=[32m""[39m
+[36m>[39m
+  [36m<div[39m
+    [33maria-label[39m=[32m"笔记内容编辑区 a"[39m
+    [33maria-multiline[39m=[32m"true"[39m
+    [33mclass[39m=[32m"tiptap ProseMirror hn-editor-content"[39m
+    [33mcontenteditable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"textbox"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtranslate[39m=[32m"no"[39m
+  [36m>[39m
+    [36m<span[39m
+      [33maria-expanded[39m=[32m"false"[39m
+      [33maria-haspopup[39m=[32m"menu"[39m
+      [33maria-hidden[39m=[32m"false"[39m
+      [33maria-label[39m=[32m"块操作菜单"[39m
+      [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+      [33mcontenteditable[39m=[32m"false"[39m
+      [33mdata-drag-handle[39m=[32m""[39m
+      [33mdraggable[39m=[32m"true"[39m
+      [33mrole[39m=[32m"button"[39m
+      [33mtabindex[39m=[32m"0"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"hn-editor-block-handle-glyph"[39m
+      [36m>[39m
+        [0m⋮⋮[0m
+      [36m</span>[39m
+    [36m</span>[39m
+    [36m<ul[39m
+      [33mdata-type[39m=[32m"taskList"[39m
+      [33mnodeid[39m=[32m"d871bf19-3b33-4cf7-aab6-9a052aa92b9c"[39m
+    [36m>[39m
+      [36m<li[39m
+        [33mdata-checked[39m=[32m"true"[39m
+        [33mdata-type[39m=[32m"taskItem"[39m
+        [33mnodeid[39m=[32m"aa9771b8-95fa-42dc-b300-0e735f4627e6"[39m
+      [36m>[39m
+        [36m<label>[39m
+          [36m<input[39m
+            [33maria-disabled[39m=[32m"false"[39m
+            [33maria-label[39m=[32m"待办：keep list"[39m
+            [33mtype[39m=[32m"checkbox"[39m
+          [36m/>[39m
+        [36m</label>[39m
+        [36m<div>[39m
+          [36m<p[39m
+            [33mnodeid[39m=[32m"1ef18b31-50c4-490d-af4c-c4d3fd02e730"[39m
+          [36m>[39m
+            [0mkeep list[0m
+          [36m</p>[39m
+        [36m</div>[39m
+      [36m</li>[39m
+    [36m</ul>[39m
+    [36m<span[39m
+      [33maria-expanded[39m=[32m"false"[39m
+      [33maria-haspopup[39m=[32m"menu"[39m
+      [33maria-hidden[39m=[32m"false"[39m
+      [33maria-label[39m=[32m"块操作菜单"[39m
+      [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+      [33mcontenteditable[39m=[32m"false"[39m
+      [33mdata-drag-handle[39m=[32m""[39m
+      [33mdraggable[39m=[32m"true"[39m
+      [33mrole[39m=[32m"button"[39m
+      [33mtabindex[39m=[32m"0"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"hn-editor-block-handle-glyph"[39m
+      [36m>[39m
+        [0m⋮⋮[0m
+      [36m</span>[39m
+    [36m</span>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"hn-editor-data-block hn-editor-data-block--drawing"[39m
+      [33mcontenteditable[39m=[32m"false"[39m
+      [33mdata[39m=[32m"{\"strokes\":[],\"schemaVersion\":2}"[39m
+      [33mdata-hnn-node[39m=[32m"drawing"[39m
+      [33mnodeid[39m=[32m"65078dd7-0d0f-4d10-9dac-0b4a8a839805"[39m
+    [36m>[39m
+      [36m<button[39m
+        [33maria-expanded[39m=[32m"false"[39m
+        [33maria-haspopup[39m=[32m"dialog"[39m
+        [33maria-label[39m=[32m"编辑画板"[39m
+        [33mclass[39m=[32m"hn-editor-data-preview"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"hn-editor-data-title"[39m
+        [36m>[39m
+          [0m画板[0m
+        [36m</span>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"hn-editor-data-meta"[39m
+        [36m>[39m
+          [0m0 条笔画[0m
+        [36m</span>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"hn-editor-data-hint"[39m
+        [36m>[39m
+          [0m点击编辑[0m
+        [36m</span>[39m
+      [36m</button>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+  [36m<div[39m
+    [33maria-label[39m=[32m"笔记内容编辑区 b"[39m
+    [33maria-multiline[39m=[32m"true"[39m
+    [33mclass[39m=[32m"tiptap ProseMirror hn-editor-content"[39m
+    [33mcontenteditable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"textbox"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtranslate[39m=[32m"no"[39m
+  [36m>[39m
+    [36m<span[39m
+      [33maria-expanded[39m=[32m"false"[39m
+      [33maria-haspopup[39m=[32m"menu"[39m
+      [33maria-hidden[39m=[32m"false"[39m
+      [33maria-label[39m=[32m"块操作菜单"[39m
+      [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+      [33mcontenteditable[39m=[32m"false"[39m
+      [33mdata-drag-handle[39m=[32m""[39m
+      [33mdraggable[39m=[32m"true"[39m
+      [33mrole[39m=[32m"button"[39m
+      [33mtabindex[39m=[32m"0"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"hn-editor-block-handle-glyph"[39m
+      [36m>[39m
+        [0m⋮⋮[0m
+      [36m</span>[39m
+    [36m</span>[39m
+    [36m<ul[39m
+      [33mdata-type[39m=[32m"taskList"[39m
+      [33mnodeid[39m=[32m"d871bf19-3b33-4cf7-aab6-9a052aa92b9c"[39m
+    [36m>[39m
+      [36m<li[39m
+        [33mdata-checked[39m=[32m"true"[39m
+        [33mdata-type[39m=[32m"taskItem"[39m
+        [33mnodeid[39m=[32m"aa9771b8-95fa-42dc-b300-0e735f4627e6"[39m
+      [36m>[39m
+        [36m<label>[39m
+          [36m<input[39m
+            [33maria-disabled[39m=[32m"false"[39m
+            [33maria-label[39m=[32m"待办：keep list"[39m
+            [33mtype[39m=[32m"checkbox"[39m
+          [36m/>[39m
+        [36m</label>[39m
+        [36m<div>[39m
+          [36m<p[39m
+            [33mnodeid[39m=[32m"1ef18b31-50c4-490d-af4c-c4d3fd02e730"[39m
+          [36m>[39m
+            [0mkeep list[0m
+          [36m</p>[39m
+        [36m</div>[39m
+      [36m</li>[39m
+    [36m</ul>[39m
+    [36m<span[39m
+      [33maria-expanded[39m=[32m"false"[39m
+      [33maria-haspopup[39m=[32m"menu"[39m
+      [33maria-hidden[39m=[32m"false"[39m
+      [33maria-label[39m=[32m"块操作菜单"[39m
+      [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+      [33mcontenteditable[39m=[32m"false"[39m
+      [33mdata-drag-handle[39m=[32m""[39m
+      [33mdraggable[39m=[32m"true"[39m
+      [33mrole[39m=[32m"button"[39m
+      [33mtabindex[39m=[32m"0"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"hn-editor-block-handle-glyph"[39m
+      [36m>[39m
+        [0m⋮⋮[0m
+      [36m</span>[39m
+    [36m</span>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"hn-editor-data-block hn-editor-data-block--drawing"[39m
+      [33mcontenteditable[39m=[32m"false"[39m
+      [33mdata[39m=[32m"{\"strokes\":[],\"schemaVersion\":2}"[39m
+      [33mdata-hnn-node[39m=[32m"drawing"[39m
+      [33mnodeid[39m=[32m"65078dd7-0d0f-4d10-9dac-0b4a8a839805"[39m
+    [36m>[39m
+      [36m<button[39m
+        [33maria-haspopup[39m=[32m"dialog"[39m
+        [33maria-label[39m=[32m"编辑画板"[39m
+        [33mclass[39m=[32m"hn-editor-data-preview"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"hn-editor-data-title"[39m
+        [36m>[39m
+          [0m画板[0m
+        [36m</span>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"hn-editor-data-meta"[39m
+        [36m>[39m
+          [0m0 条笔画[0m
+        [36m</span>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"hn-editor-data-hint"[39m
+        [36m>[39m
+          [0m点击编辑[0m
+        [36m</span>[39m
+      [36m</button>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ✓ src/lib/editor/listDrafts.test.tsx > card draft authorization retains strict list budget and freeze rejection 55ms
+ ✓ src/lib/editor/listDrafts.test.tsx > drawing draft authorization retains strict list budget and freeze rejection 87ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > lifting orderedList out of a different list preserves type, state, trailing content and numbering 17ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > lifts a list inside a quote as a local unwrap, preserving ordered suffix numbering 14ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.6/1.7 guarded checkbox and commands > native checkbox changes only itself and undo is isolated 23ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.6/1.7 guarded checkbox and commands > readonly blocks checkbox/menu/Enter/indent with zero history 14ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.6/1.7 guarded checkbox and commands > composition blocks checkbox/menu/Enter/indent with zero history 12ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.6/1.7 guarded checkbox and commands > 512-node boundary rejects wrapping without selection/history/dirty changes 421ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.6/1.7 guarded checkbox and commands > 32-layer boundary rejects wrapping at the deepest paragraph 15ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.6/1.7 guarded checkbox and commands > 512 KiB boundary rejects both list wrapping and a checkbox that adds one byte 157ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 14 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'forward' selection from an empty 'bulletList' item before splitting, with one undo
+ FAIL  src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'backward' selection from an empty 'bulletList' item before splitting, with one undo
+AssertionError: expected [ 'paragraph', 'paragraph' ] to deeply equal [ 'bulletList' ]
+
+- Expected
++ Received
+
+  [
+-   "bulletList",
++   "paragraph",
++   "paragraph",
+  ]
+
+ ❯ src/lib/editor/listCommands.test.ts:180:27
+    178|     const before = editor.state.doc, selection = editor.state.selection
+    179|     expect(enterList(editor)).toBe(true)
+    180|     expect(types(editor)).toEqual([type])
+       |                           ^
+    181|     const result = editor.state.doc.firstChild!
+    182|     expect(result.childCount).toBe(2)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/14]⎯
+
+ FAIL  src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'forward' selection from an empty 'orderedList' item before splitting, with one undo
+ FAIL  src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'backward' selection from an empty 'orderedList' item before splitting, with one undo
+AssertionError: expected [ 'paragraph', 'paragraph' ] to deeply equal [ 'orderedList' ]
+
+- Expected
++ Received
+
+  [
+-   "orderedList",
++   "paragraph",
++   "paragraph",
+  ]
+
+ ❯ src/lib/editor/listCommands.test.ts:180:27
+    178|     const before = editor.state.doc, selection = editor.state.selection
+    179|     expect(enterList(editor)).toBe(true)
+    180|     expect(types(editor)).toEqual([type])
+       |                           ^
+    181|     const result = editor.state.doc.firstChild!
+    182|     expect(result.childCount).toBe(2)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/14]⎯
+
+ FAIL  src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'forward' selection from an empty 'taskList' item before splitting, with one undo
+ FAIL  src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'backward' selection from an empty 'taskList' item before splitting, with one undo
+AssertionError: expected [ 'paragraph', 'paragraph' ] to deeply equal [ 'taskList' ]
+
+- Expected
++ Received
+
+  [
+-   "taskList",
++   "paragraph",
++   "paragraph",
+  ]
+
+ ❯ src/lib/editor/listCommands.test.ts:180:27
+    178|     const before = editor.state.doc, selection = editor.state.selection
+    179|     expect(enterList(editor)).toBe(true)
+    180|     expect(types(editor)).toEqual([type])
+       |                           ^
+    181|     const result = editor.state.doc.firstChild!
+    182|     expect(result.childCount).toBe(2)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/14]⎯
+
+ FAIL  src/lib/editor/listDrafts.test.tsx > 'card' draft alongside 'bulletList' commits once while body stays locked, synchronizes peers, undoes/redoes and survives save/reopen
+ FAIL  src/lib/editor/listDrafts.test.tsx > 'drawing' draft alongside 'bulletList' commits once while body stays locked, synchronizes peers, undoes/redoes and survives save/reopen
+ FAIL  src/lib/editor/listDrafts.test.tsx > 'card' draft alongside 'orderedList' commits once while body stays locked, synchronizes peers, undoes/redoes and survives save/reopen
+ FAIL  src/lib/editor/listDrafts.test.tsx > 'drawing' draft alongside 'orderedList' commits once while body stays locked, synchronizes peers, undoes/redoes and survives save/reopen
+ FAIL  src/lib/editor/listDrafts.test.tsx > 'card' draft alongside 'taskList' commits once while body stays locked, synchronizes peers, undoes/redoes and survives save/reopen
+ FAIL  src/lib/editor/listDrafts.test.tsx > 'drawing' draft alongside 'taskList' commits once while body stays locked, synchronizes peers, undoes/redoes and survives save/reopen
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+ ❯ src/lib/editor/listDrafts.test.tsx:72:24
+     70|     expect(h.onChange).not.toHaveBeenCalled()
+     71|     fireEvent.click(within(dialog).getByText("完成"))
+     72|     expect(h.onChange).toHaveBeenCalledTimes(1)
+       |                        ^
+     73|     expect(session.getState().draft.phase).toBe("none")
+     74|     expect(within(document.body).queryByRole("dialog")).toBeNull()
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/14]⎯
+
+ FAIL  src/lib/editor/listDrafts.test.tsx > card rejected transaction reports failure and retains the drawer draft for retry
+TestingLibraryElementError: Unable to find an accessible element with the role "dialog"
+
+Here are the accessible roles:
+
+  textbox:
+
+  Name "笔记内容编辑区 a":
+  [36m<div[39m
+    [33maria-label[39m=[32m"笔记内容编辑区 a"[39m
+    [33maria-multiline[39m=[32m"true"[39m
+    [33mclass[39m=[32m"tiptap ProseMirror hn-editor-content"[39m
+    [33mcontenteditable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"textbox"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtranslate[39m=[32m"no"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "块操作菜单":
+  [36m<span[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-haspopup[39m=[32m"menu"[39m
+    [33maria-hidden[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"块操作菜单"[39m
+    [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+    [33mcontenteditable[39m=[32m"false"[39m
+    [33mdata-drag-handle[39m=[32m""[39m
+    [33mdraggable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"button"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "块操作菜单":
+  [36m<span[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-haspopup[39m=[32m"menu"[39m
+    [33maria-hidden[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"块操作菜单"[39m
+    [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+    [33mcontenteditable[39m=[32m"false"[39m
+    [33mdata-drag-handle[39m=[32m""[39m
+    [33mdraggable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"button"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "编辑卡片":
+  [36m<button[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-haspopup[39m=[32m"dialog"[39m
+    [33maria-label[39m=[32m"编辑卡片"[39m
+    [33mclass[39m=[32m"hn-editor-data-preview"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  list:
+
+  Name "":
+  [36m<ul[39m
+    [33mdata-type[39m=[32m"taskList"[39m
+    [33mnodeid[39m=[32m"f858d284-0d7b-41ac-af32-a6b3878479c9"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  listitem:
+
+  Name "":
+  [36m<li[39m
+    [33mdata-checked[39m=[32m"true"[39m
+    [33mdata-type[39m=[32m"taskItem"[39m
+    [33mnodeid[39m=[32m"f2f83a7d-84dd-45ce-a4ee-1e24cbe2c46c"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  checkbox:
+
+  Name "待办：keep list":
+  [36m<input[39m
+    [33maria-disabled[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"待办：keep list"[39m
+    [33mtype[39m=[32m"checkbox"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mnodeid[39m=[32m"f929b1ee-bdf4-4662-9f16-a275c241915c"[39m
+  [36m/>[39m
+
+  --------------------------------------------------textbox:
+
+  Name "笔记内容编辑区 b":
+  [36m<div[39m
+    [33maria-label[39m=[32m"笔记内容编辑区 b"[39m
+    [33maria-multiline[39m=[32m"true"[39m
+    [33mclass[39m=[32m"tiptap ProseMirror hn-editor-content"[39m
+    [33mcontenteditable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"textbox"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtranslate[39m=[32m"no"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "块操作菜单":
+  [36m<span[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-haspopup[39m=[32m"menu"[39m
+    [33maria-hidden[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"块操作菜单"[39m
+    [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+    [33mcontenteditable[39m=[32m"false"[39m
+    [33mdata-drag-handle[39m=[32m""[39m
+    [33mdraggable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"button"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "块操作菜单":
+  [36m<span[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-haspopup[39m=[32m"menu"[39m
+    [33maria-hidden[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"块操作菜单"[39m
+    [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+    [33mcontenteditable[39m=[32m"false"[39m
+    [33mdata-drag-handle[39m=[32m""[39m
+    [33mdraggable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"button"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "编辑卡片":
+  [36m<button[39m
+    [33maria-haspopup[39m=[32m"dialog"[39m
+    [33maria-label[39m=[32m"编辑卡片"[39m
+    [33mclass[39m=[32m"hn-editor-data-preview"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  list:
+
+  Name "":
+  [36m<ul[39m
+    [33mdata-type[39m=[32m"taskList"[39m
+    [33mnodeid[39m=[32m"f858d284-0d7b-41ac-af32-a6b3878479c9"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  listitem:
+
+  Name "":
+  [36m<li[39m
+    [33mdata-checked[39m=[32m"true"[39m
+    [33mdata-type[39m=[32m"taskItem"[39m
+    [33mnodeid[39m=[32m"f2f83a7d-84dd-45ce-a4ee-1e24cbe2c46c"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  checkbox:
+
+  Name "待办：keep list":
+  [36m<input[39m
+    [33maria-disabled[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"待办：keep list"[39m
+    [33mtype[39m=[32m"checkbox"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mnodeid[39m=[32m"f929b1ee-bdf4-4662-9f16-a275c241915c"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mstyle[39m=[32m""[39m
+[36m>[39m
+  [36m<div[39m
+    [33maria-label[39m=[32m"笔记内容编辑区 a"[39m
+    [33maria-multiline[39m=[32m"true"[39m
+    [33mclass[39m=[32m"tiptap ProseMirror hn-editor-content"[39m
+    [33mcontenteditable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"textbox"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtranslate[39m=[32m"no"[39m
+  [36m>[39m
+    [36m<span[39m
+      [33maria-expanded[39m=[32m"false"[39m
+      [33maria-haspopup[39m=[32m"menu"[39m
+      [33maria-hidden[39m=[32m"false"[39m
+      [33maria-label[39m=[32m"块操作菜单"[39m
+      [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+      [33mcontenteditable[39m=[32m"false"[39m
+      [33mdata-drag-handle[39m=[32m""[39m
+      [33mdraggable[39m=[32m"true"[39m
+      [33mrole[39m=[32m"button"[39m
+      [33mtabindex[39m=[32m"0"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"hn-editor-block-handle-glyph"[39m
+      [36m>[39m
+        [0m⋮⋮[0m
+      [36m</span>[39m
+    [36m</span>[39m
+    [36m<ul[39m
+      [33mdata-type[39m=[32m"taskList"[39m
+      [33mnodeid[39m=[32m"f858d284-0d7b-41ac-af32-a6b3878479c9"[39m
+    [36m>[39m
+      [36m<li[39m
+        [33mdata-checked[39m=[32m"true"[39m
+        [33mdata-type[39m=[32m"taskItem"[39m
+        [33mnodeid[39m=[32m"f2f83a7d-84dd-45ce-a4ee-1e24cbe2c46c"[39m
+      [36m>[39m
+        [36m<label>[39m
+          [36m<input[39m
+            [33maria-disabled[39m=[32m"false"[39m
+            [33maria-label[39m=[32m"待办：keep list"[39m
+            [33mtype[39m=[32m"checkbox"[39m
+          [36m/>[39m
+        [36m</label>[39m
+        [36m<div>[39m
+          [36m<p[39m
+            [33mnodeid[39m=[32m"f929b1ee-bdf4-4662-9f16-a275c241915c"[39m
+          [36m>[39m
+            [0mkeep list[0m
+          [36m</p>[39m
+        [36m</div>[39m
+      [36m</li>[39m
+    [36m</ul>[39m
+    [36m<span[39m
+      [33maria-expanded[39m=[32m"false"[39m
+      [33maria-haspopup[39m=[32m"menu"[39m
+      [33maria-hidden[39m=[32m"false"[39m
+      [33maria-label[39m=[32m"块操作菜单"[39m
+      [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+      [33mcontenteditable[39m=[32m"false"[39m
+      [33mdata-drag-handle[39m=[32m""[39m
+      [33mdraggable[39m=[32m"true"[39m
+      [33mrole[39m=[32m"button"[39m
+      [33mtabindex[39m=[32m"0"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"hn-editor-block-handle-glyph"[39m
+      [36m>[39m
+        [0m⋮⋮[0m
+      [36m</span>[39m
+    [36m</span>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"hn-editor-data-block hn-editor-data-block--card"[39m
+      [33mcontenteditable[39m=[32m"false"[39m
+      [33mdata[39m=[32m"{\"schemaVersion\":1,\"cards\":[]}"[39m
+      [33mdata-hnn-node[39m=[32m"card"[39m
+      [33mnodeid[39m=[32m"eae936ac-4a09-410c-93d8-d6ae90e0bb25"[39m
+    [36m>[39m
+      [36m<button[39m
+        [33maria-expanded[39m=[32m"false"[39m
+        [33maria-haspopup[39m=[32m"dialog"[39m
+        [33maria-label[39m=[32m"编辑卡片"[39m
+        [33mclass[39m=[32m"hn-editor-data-preview"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"hn-editor-data-title"[39m
+        [36m>[39m
+          [0m卡片[0m
+        [36m</span>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"hn-editor-data-meta"[39m
+        [36m>[39m
+          [0m0 张卡片[0m
+        [36m</span>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"hn-editor-data-hint"[39m
+        [36m>[39m
+          [0m点击编辑[0m
+        [36m</span>[39m
+      [36m</button>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+  [36m<div[39m
+    [33maria-label[39m=[32m"笔记内容编辑区 b"[39m
+    [33maria-multiline[39m=[32m"true"[39m
+    [33mclass[39m=[32m"tiptap ProseMirror hn-editor-content"[39m
+    [33mcontenteditable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"textbox"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtranslate[39m=[32m"no"[39m
+  [36m>[39m
+    [36m<span[39m
+      [33maria-expanded[39m=[32m"false"[39m
+      [33maria-haspopup[39m=[32m"menu"[39m
+      [33maria-hidden[39m=[32m"false"[39m
+      [33maria-label[39m=[32m"块操作菜单"[39m
+      [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+      [33mcontenteditable[39m=[32m"false"[39m
+      [33mdata-drag-handle[39m=[32m""[39m
+      [33mdraggable[39m=[32m"true"[39m
+      [33mrole[39m=[32m"button"[39m
+      [33mtabindex[39m=[32m"0"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"hn-editor-block-handle-glyph"[39m
+      [36m>[39m
+        [0m⋮⋮[0m
+      [36m</span>[39m
+    [36m</span>[39m
+    [36m<ul[39m
+      [33mdata-type[39m=[32m"taskList"[39m
+      [33mnodeid[39m=[32m"f858d284-0d7b-41ac-af32-a6b3878479c9"[39m
+    [36m>[39m
+      [36m<li[39m
+        [33mdata-checked[39m=[32m"true"[39m
+        [33mdata-type[39m=[32m"taskItem"[39m
+        [33mnodeid[39m=[32m"f2f83a7d-84dd-45ce-a4ee-1e24cbe2c46c"[39m
+      [36m>[39m
+        [36m<label>[39m
+          [36m<input[39m
+            [33maria-disabled[39m=[32m"false"[39m
+            [33maria-label[39m=[32m"待办：keep list"[39m
+            [33mtype[39m=[32m"checkbox"[39m
+          [36m/>[39m
+        [36m</label>[39m
+        [36m<div>[39m
+          [36m<p[39m
+            [33mnodeid[39m=[32m"f929b1ee-bdf4-4662-9f16-a275c241915c"[39m
+          [36m>[39m
+            [0mkeep list[0m
+          [36m</p>[39m
+        [36m</div>[39m
+      [36m</li>[39m
+    [36m</ul>[39m
+    [36m<span[39m
+      [33maria-expanded[39m=[32m"false"[39m
+      [33maria-haspopup[39m=[32m"menu"[39m
+      [33maria-hidden[39m=[32m"false"[39m
+      [33maria-label[39m=[32m"块操作菜单"[39m
+      [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+      [33mcontenteditable[39m=[32m"false"[39m
+      [33mdata-drag-handle[39m=[32m""[39m
+      [33mdraggable[39m=[32m"true"[39m
+      [33mrole[39m=[32m"button"[39m
+      [33mtabindex[39m=[32m"0"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"hn-editor-block-handle-glyph"[39m
+      [36m>[39m
+        [0m⋮⋮[0m
+      [36m</span>[39m
+    [36m</span>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"hn-editor-data-block hn-editor-data-block--card"[39m
+      [33mcontenteditable[39m=[32m"false"[39m
+      [33mdata[39m=[32m"{\"schemaVersion\":1,\"cards\":[]}"[39m
+      [33mdata-hnn-node[39m=[32m"card"[39m
+      [33mnodeid[39m=[32m"eae936ac-4a09-410c-93d8-d6ae90e0bb25"[39m
+    [36m>[39m
+      [36m<button[39m
+        [33maria-haspopup[39m=[32m"dialog"[39m
+        [33maria-label[39m=[32m"编辑卡片"[39m
+        [33mclass[39m=[32m"hn-editor-data-preview"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"hn-editor-data-title"[39m
+        [36m>[39m
+          [0m卡片[0m
+        [36m</span>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"hn-editor-data-meta"[39m
+        [36m>[39m
+          [0m0 张卡片[0m
+        [36m</span>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"hn-editor-data-hint"[39m
+        [36m>[39m
+          [0m点击编辑[0m
+        [36m</span>[39m
+      [36m</button>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/lib/editor/listDrafts.test.tsx:106:32
+    104|   const dialog = h.openAndEdit()
+    105|   fireEvent.click(within(dialog).getByText("完成"))
+    106|   expect(within(document.body).getByRole("dialog")).toBe(dialog)
+       |                                ^
+    107|   expect(within(dialog).getByRole("alert").textContent).toContain("未保存…
+    108|   expect(session.getState().draft).toMatchObject({ phase: "invalid", c…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/14]⎯
+
+ FAIL  src/lib/editor/listDrafts.test.tsx > drawing rejected transaction reports failure and retains the drawer draft for retry
+TestingLibraryElementError: Unable to find an accessible element with the role "dialog"
+
+Here are the accessible roles:
+
+  textbox:
+
+  Name "笔记内容编辑区 a":
+  [36m<div[39m
+    [33maria-label[39m=[32m"笔记内容编辑区 a"[39m
+    [33maria-multiline[39m=[32m"true"[39m
+    [33mclass[39m=[32m"tiptap ProseMirror hn-editor-content"[39m
+    [33mcontenteditable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"textbox"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtranslate[39m=[32m"no"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "块操作菜单":
+  [36m<span[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-haspopup[39m=[32m"menu"[39m
+    [33maria-hidden[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"块操作菜单"[39m
+    [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+    [33mcontenteditable[39m=[32m"false"[39m
+    [33mdata-drag-handle[39m=[32m""[39m
+    [33mdraggable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"button"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "块操作菜单":
+  [36m<span[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-haspopup[39m=[32m"menu"[39m
+    [33maria-hidden[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"块操作菜单"[39m
+    [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+    [33mcontenteditable[39m=[32m"false"[39m
+    [33mdata-drag-handle[39m=[32m""[39m
+    [33mdraggable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"button"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "编辑画板":
+  [36m<button[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-haspopup[39m=[32m"dialog"[39m
+    [33maria-label[39m=[32m"编辑画板"[39m
+    [33mclass[39m=[32m"hn-editor-data-preview"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  list:
+
+  Name "":
+  [36m<ul[39m
+    [33mdata-type[39m=[32m"taskList"[39m
+    [33mnodeid[39m=[32m"d871bf19-3b33-4cf7-aab6-9a052aa92b9c"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  listitem:
+
+  Name "":
+  [36m<li[39m
+    [33mdata-checked[39m=[32m"true"[39m
+    [33mdata-type[39m=[32m"taskItem"[39m
+    [33mnodeid[39m=[32m"aa9771b8-95fa-42dc-b300-0e735f4627e6"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  checkbox:
+
+  Name "待办：keep list":
+  [36m<input[39m
+    [33maria-disabled[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"待办：keep list"[39m
+    [33mtype[39m=[32m"checkbox"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mnodeid[39m=[32m"1ef18b31-50c4-490d-af4c-c4d3fd02e730"[39m
+  [36m/>[39m
+
+  --------------------------------------------------textbox:
+
+  Name "笔记内容编辑区 b":
+  [36m<div[39m
+    [33maria-label[39m=[32m"笔记内容编辑区 b"[39m
+    [33maria-multiline[39m=[32m"true"[39m
+    [33mclass[39m=[32m"tiptap ProseMirror hn-editor-content"[39m
+    [33mcontenteditable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"textbox"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtranslate[39m=[32m"no"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  button:
+
+  Name "块操作菜单":
+  [36m<span[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-haspopup[39m=[32m"menu"[39m
+    [33maria-hidden[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"块操作菜单"[39m
+    [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+    [33mcontenteditable[39m=[32m"false"[39m
+    [33mdata-drag-handle[39m=[32m""[39m
+    [33mdraggable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"button"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "块操作菜单":
+  [36m<span[39m
+    [33maria-expanded[39m=[32m"false"[39m
+    [33maria-haspopup[39m=[32m"menu"[39m
+    [33maria-hidden[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"块操作菜单"[39m
+    [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+    [33mcontenteditable[39m=[32m"false"[39m
+    [33mdata-drag-handle[39m=[32m""[39m
+    [33mdraggable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"button"[39m
+    [33mtabindex[39m=[32m"0"[39m
+  [36m/>[39m
+
+  Name "编辑画板":
+  [36m<button[39m
+    [33maria-haspopup[39m=[32m"dialog"[39m
+    [33maria-label[39m=[32m"编辑画板"[39m
+    [33mclass[39m=[32m"hn-editor-data-preview"[39m
+    [33mtype[39m=[32m"button"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  list:
+
+  Name "":
+  [36m<ul[39m
+    [33mdata-type[39m=[32m"taskList"[39m
+    [33mnodeid[39m=[32m"d871bf19-3b33-4cf7-aab6-9a052aa92b9c"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  listitem:
+
+  Name "":
+  [36m<li[39m
+    [33mdata-checked[39m=[32m"true"[39m
+    [33mdata-type[39m=[32m"taskItem"[39m
+    [33mnodeid[39m=[32m"aa9771b8-95fa-42dc-b300-0e735f4627e6"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  checkbox:
+
+  Name "待办：keep list":
+  [36m<input[39m
+    [33maria-disabled[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"待办：keep list"[39m
+    [33mtype[39m=[32m"checkbox"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  paragraph:
+
+  Name "":
+  [36m<p[39m
+    [33mnodeid[39m=[32m"1ef18b31-50c4-490d-af4c-c4d3fd02e730"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body[39m
+  [33mstyle[39m=[32m""[39m
+[36m>[39m
+  [36m<div[39m
+    [33maria-label[39m=[32m"笔记内容编辑区 a"[39m
+    [33maria-multiline[39m=[32m"true"[39m
+    [33mclass[39m=[32m"tiptap ProseMirror hn-editor-content"[39m
+    [33mcontenteditable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"textbox"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtranslate[39m=[32m"no"[39m
+  [36m>[39m
+    [36m<span[39m
+      [33maria-expanded[39m=[32m"false"[39m
+      [33maria-haspopup[39m=[32m"menu"[39m
+      [33maria-hidden[39m=[32m"false"[39m
+      [33maria-label[39m=[32m"块操作菜单"[39m
+      [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+      [33mcontenteditable[39m=[32m"false"[39m
+      [33mdata-drag-handle[39m=[32m""[39m
+      [33mdraggable[39m=[32m"true"[39m
+      [33mrole[39m=[32m"button"[39m
+      [33mtabindex[39m=[32m"0"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"hn-editor-block-handle-glyph"[39m
+      [36m>[39m
+        [0m⋮⋮[0m
+      [36m</span>[39m
+    [36m</span>[39m
+    [36m<ul[39m
+      [33mdata-type[39m=[32m"taskList"[39m
+      [33mnodeid[39m=[32m"d871bf19-3b33-4cf7-aab6-9a052aa92b9c"[39m
+    [36m>[39m
+      [36m<li[39m
+        [33mdata-checked[39m=[32m"true"[39m
+        [33mdata-type[39m=[32m"taskItem"[39m
+        [33mnodeid[39m=[32m"aa9771b8-95fa-42dc-b300-0e735f4627e6"[39m
+      [36m>[39m
+        [36m<label>[39m
+          [36m<input[39m
+            [33maria-disabled[39m=[32m"false"[39m
+            [33maria-label[39m=[32m"待办：keep list"[39m
+            [33mtype[39m=[32m"checkbox"[39m
+          [36m/>[39m
+        [36m</label>[39m
+        [36m<div>[39m
+          [36m<p[39m
+            [33mnodeid[39m=[32m"1ef18b31-50c4-490d-af4c-c4d3fd02e730"[39m
+          [36m>[39m
+            [0mkeep list[0m
+          [36m</p>[39m
+        [36m</div>[39m
+      [36m</li>[39m
+    [36m</ul>[39m
+    [36m<span[39m
+      [33maria-expanded[39m=[32m"false"[39m
+      [33maria-haspopup[39m=[32m"menu"[39m
+      [33maria-hidden[39m=[32m"false"[39m
+      [33maria-label[39m=[32m"块操作菜单"[39m
+      [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+      [33mcontenteditable[39m=[32m"false"[39m
+      [33mdata-drag-handle[39m=[32m""[39m
+      [33mdraggable[39m=[32m"true"[39m
+      [33mrole[39m=[32m"button"[39m
+      [33mtabindex[39m=[32m"0"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"hn-editor-block-handle-glyph"[39m
+      [36m>[39m
+        [0m⋮⋮[0m
+      [36m</span>[39m
+    [36m</span>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"hn-editor-data-block hn-editor-data-block--drawing"[39m
+      [33mcontenteditable[39m=[32m"false"[39m
+      [33mdata[39m=[32m"{\"strokes\":[],\"schemaVersion\":2}"[39m
+      [33mdata-hnn-node[39m=[32m"drawing"[39m
+      [33mnodeid[39m=[32m"65078dd7-0d0f-4d10-9dac-0b4a8a839805"[39m
+    [36m>[39m
+      [36m<button[39m
+        [33maria-expanded[39m=[32m"false"[39m
+        [33maria-haspopup[39m=[32m"dialog"[39m
+        [33maria-label[39m=[32m"编辑画板"[39m
+        [33mclass[39m=[32m"hn-editor-data-preview"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"hn-editor-data-title"[39m
+        [36m>[39m
+          [0m画板[0m
+        [36m</span>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"hn-editor-data-meta"[39m
+        [36m>[39m
+          [0m0 条笔画[0m
+        [36m</span>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"hn-editor-data-hint"[39m
+        [36m>[39m
+          [0m点击编辑[0m
+        [36m</span>[39m
+      [36m</button>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+  [36m<div[39m
+    [33maria-label[39m=[32m"笔记内容编辑区 b"[39m
+    [33maria-multiline[39m=[32m"true"[39m
+    [33mclass[39m=[32m"tiptap ProseMirror hn-editor-content"[39m
+    [33mcontenteditable[39m=[32m"true"[39m
+    [33mrole[39m=[32m"textbox"[39m
+    [33mtabindex[39m=[32m"0"[39m
+    [33mtranslate[39m=[32m"no"[39m
+  [36m>[39m
+    [36m<span[39m
+      [33maria-expanded[39m=[32m"false"[39m
+      [33maria-haspopup[39m=[32m"menu"[39m
+      [33maria-hidden[39m=[32m"false"[39m
+      [33maria-label[39m=[32m"块操作菜单"[39m
+      [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+      [33mcontenteditable[39m=[32m"false"[39m
+      [33mdata-drag-handle[39m=[32m""[39m
+      [33mdraggable[39m=[32m"true"[39m
+      [33mrole[39m=[32m"button"[39m
+      [33mtabindex[39m=[32m"0"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"hn-editor-block-handle-glyph"[39m
+      [36m>[39m
+        [0m⋮⋮[0m
+      [36m</span>[39m
+    [36m</span>[39m
+    [36m<ul[39m
+      [33mdata-type[39m=[32m"taskList"[39m
+      [33mnodeid[39m=[32m"d871bf19-3b33-4cf7-aab6-9a052aa92b9c"[39m
+    [36m>[39m
+      [36m<li[39m
+        [33mdata-checked[39m=[32m"true"[39m
+        [33mdata-type[39m=[32m"taskItem"[39m
+        [33mnodeid[39m=[32m"aa9771b8-95fa-42dc-b300-0e735f4627e6"[39m
+      [36m>[39m
+        [36m<label>[39m
+          [36m<input[39m
+            [33maria-disabled[39m=[32m"false"[39m
+            [33maria-label[39m=[32m"待办：keep list"[39m
+            [33mtype[39m=[32m"checkbox"[39m
+          [36m/>[39m
+        [36m</label>[39m
+        [36m<div>[39m
+          [36m<p[39m
+            [33mnodeid[39m=[32m"1ef18b31-50c4-490d-af4c-c4d3fd02e730"[39m
+          [36m>[39m
+            [0mkeep list[0m
+          [36m</p>[39m
+        [36m</div>[39m
+      [36m</li>[39m
+    [36m</ul>[39m
+    [36m<span[39m
+      [33maria-expanded[39m=[32m"false"[39m
+      [33maria-haspopup[39m=[32m"menu"[39m
+      [33maria-hidden[39m=[32m"false"[39m
+      [33maria-label[39m=[32m"块操作菜单"[39m
+      [33mclass[39m=[32m"hn-editor-block-handle ProseMirror-widget"[39m
+      [33mcontenteditable[39m=[32m"false"[39m
+      [33mdata-drag-handle[39m=[32m""[39m
+      [33mdraggable[39m=[32m"true"[39m
+      [33mrole[39m=[32m"button"[39m
+      [33mtabindex[39m=[32m"0"[39m
+    [36m>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"hn-editor-block-handle-glyph"[39m
+      [36m>[39m
+        [0m⋮⋮[0m
+      [36m</span>[39m
+    [36m</span>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"hn-editor-data-block hn-editor-data-block--drawing"[39m
+      [33mcontenteditable[39m=[32m"false"[39m
+      [33mdata[39m=[32m"{\"strokes\":[],\"schemaVersion\":2}"[39m
+      [33mdata-hnn-node[39m=[32m"drawing"[39m
+      [33mnodeid[39m=[32m"65078dd7-0d0f-4d10-9dac-0b4a8a839805"[39m
+    [36m>[39m
+      [36m<button[39m
+        [33maria-haspopup[39m=[32m"dialog"[39m
+        [33maria-label[39m=[32m"编辑画板"[39m
+        [33mclass[39m=[32m"hn-editor-data-preview"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"hn-editor-data-title"[39m
+        [36m>[39m
+          [0m画板[0m
+        [36m</span>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"hn-editor-data-meta"[39m
+        [36m>[39m
+          [0m0 条笔画[0m
+        [36m</span>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"hn-editor-data-hint"[39m
+        [36m>[39m
+          [0m点击编辑[0m
+        [36m</span>[39m
+      [36m</button>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+  [36m<div />[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/lib/editor/listDrafts.test.tsx:106:32
+    104|   const dialog = h.openAndEdit()
+    105|   fireEvent.click(within(dialog).getByText("完成"))
+    106|   expect(within(document.body).getByRole("dialog")).toBe(dialog)
+       |                                ^
+    107|   expect(within(dialog).getByRole("alert").textContent).toContain("未保存…
+    108|   expect(session.getState().draft).toMatchObject({ phase: "invalid", c…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/14]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  14 failed | 34 passed (48)
+   Start at  17:20:32
+   Duration  3.04s (transform 1.17s, setup 47ms, import 1.64s, tests 2.35s, environment 1.25s)
+
+error Command failed with exit code 1.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.

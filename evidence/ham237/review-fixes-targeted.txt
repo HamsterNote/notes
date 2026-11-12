@@ -1,0 +1,88 @@
+yarn run v1.22.22
+(node:1407897) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+$ vitest run src/lib/editor/listDrafts.test.tsx src/lib/editor/listCommands.test.ts --maxWorkers=2 --reporter=verbose
+
+ RUN  v4.1.10 /home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes
+
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/index.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/index.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/drag.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/base.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/index.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/controller.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/geometry.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/types.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag-core/dist/inertia.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/dom/normalize-pointer-event.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/dom/pose.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/finger.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/rotate.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/scale.js" points to missing source files
+Sourcemap for "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/node_modules/@system-ui-js/multi-drag/dist/drag/mixin.js" points to missing source files
+ ✓ src/lib/editor/listCommands.test.ts > M1.1 list targets > resolves one cursor item, partial contiguous range and a half-open endpoint, leaving other items unchanged 102ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.1 list targets > rejects cross-level/cross-container/mixed/atom selections; block target ignores residual cursor 28ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > creates bulletList from consecutive paragraphs without changing inline content/selection 22ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > bulletList -> bulletList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 18ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > bulletList -> orderedList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 22ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > bulletList -> taskList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 24ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > creates orderedList from consecutive paragraphs without changing inline content/selection 23ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > orderedList -> bulletList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 26ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > orderedList -> orderedList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 16ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > orderedList -> taskList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 18ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > creates taskList from consecutive paragraphs without changing inline content/selection 16ms
+ ✓ src/lib/editor/listDrafts.test.tsx > 'card' draft alongside 'bulletList' commits once while body stays locked, synchronizes peers, undoes/redoes and survives save/reopen 231ms
+ ✓ src/lib/editor/listDrafts.test.tsx > 'drawing' draft alongside 'bulletList' commits once while body stays locked, synchronizes peers, undoes/redoes and survives save/reopen 87ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > taskList -> bulletList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 21ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > taskList -> orderedList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 20ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.2 six conversions and paragraph creation > taskList -> taskList preserves IDs, marks, refs, multiple paragraphs and mixed descendants 15ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.3 numbering and history > splits 5/6/7 into 5/bullet/7, converts back to separate 5/1/7 without joining 21ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.3 numbering and history > clears checked on exit, reinitializes false and undo/redo restores true and child state 28ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.4 explicit block menu and lossless unwrapping > rejects unwrap when the parent cannot accept paragraphs, without changing state 1ms
+ ✓ src/lib/editor/listDrafts.test.tsx > 'card' draft alongside 'orderedList' commits once while body stays locked, synchronizes peers, undoes/redoes and survives save/reopen 71ms
+ ✓ src/lib/editor/listDrafts.test.tsx > 'drawing' draft alongside 'orderedList' commits once while body stays locked, synchronizes peers, undoes/redoes and survives save/reopen 60ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.4 explicit block menu and lossless unwrapping > block menu targets all direct items; unwrap preserves children and marks 17ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.4 explicit block menu and lossless unwrapping > unwraps a nested list while preserving the legal parent item 12ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter replaces selected text in one 'bulletList' item with two empty items 13ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter replaces selected text in one 'orderedList' item with two empty items 11ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter replaces selected text in one 'taskList' item with two empty items 13ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'forward' selection from an empty 'bulletList' item through character 3 before splitting, with one undo 13ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'backward' selection from an empty 'bulletList' item through character 3 before splitting, with one undo 13ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'forward' selection from an empty 'bulletList' item through character 6 before splitting, with one undo 13ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'backward' selection from an empty 'bulletList' item through character 6 before splitting, with one undo 17ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'forward' selection from an empty 'orderedList' item through character 3 before splitting, with one undo 13ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'backward' selection from an empty 'orderedList' item through character 3 before splitting, with one undo 13ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'forward' selection from an empty 'orderedList' item through character 6 before splitting, with one undo 12ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'backward' selection from an empty 'orderedList' item through character 6 before splitting, with one undo 12ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'forward' selection from an empty 'taskList' item through character 3 before splitting, with one undo 14ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'backward' selection from an empty 'taskList' item through character 3 before splitting, with one undo 13ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'forward' selection from an empty 'taskList' item through character 6 before splitting, with one undo 14ms
+ ✓ src/lib/editor/listDrafts.test.tsx > 'card' draft alongside 'taskList' commits once while body stays locked, synchronizes peers, undoes/redoes and survives save/reopen 71ms
+ ✓ src/lib/editor/listDrafts.test.tsx > 'drawing' draft alongside 'taskList' commits once while body stays locked, synchronizes peers, undoes/redoes and survives save/reopen 50ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter deletes a 'backward' selection from an empty 'taskList' item through character 6 before splitting, with one undo 13ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > splits a completed task in the middle without inheriting checked=true 13ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > Enter on completed task creates unchecked sibling; empty Enter exits, each action undoes once 19ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > indent/lift moves the entire mixed subtree; no previous item is a no-op 18ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > empty nested Enter lifts one level 10ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > lifting taskList out of a different list preserves type, state, trailing content and numbering 16ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > lifting orderedList out of a different list preserves type, state, trailing content and numbering 14ms
+ ✓ src/lib/editor/listDrafts.test.tsx > card rejected transaction reports failure and retains the drawer draft for retry 58ms
+ ✓ src/lib/editor/listDrafts.test.tsx > drawing rejected transaction reports failure and retains the drawer draft for retry 50ms
+ ✓ src/lib/editor/listDrafts.test.tsx > card draft authorization retains strict list budget and freeze rejection 39ms
+ ✓ src/lib/editor/listDrafts.test.tsx > drawing draft authorization retains strict list budget and freeze rejection 35ms
+ ✓ src/lib/editor/listDrafts.test.tsx > Enter replacing a forward selection of all list text preserves both views through shared undo/redo 29ms
+ ✓ src/lib/editor/listDrafts.test.tsx > Enter replacing a backward selection of all list text preserves both views through shared undo/redo 30ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.5 keyboard structure > lifts a list inside a quote as a local unwrap, preserving ordered suffix numbering 12ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.6/1.7 guarded checkbox and commands > native checkbox changes only itself and undo is isolated 14ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.6/1.7 guarded checkbox and commands > readonly blocks checkbox/menu/Enter/indent with zero history 12ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.6/1.7 guarded checkbox and commands > composition blocks checkbox/menu/Enter/indent with zero history 16ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.6/1.7 guarded checkbox and commands > 512-node boundary rejects wrapping without selection/history/dirty changes 400ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.6/1.7 guarded checkbox and commands > 32-layer boundary rejects wrapping at the deepest paragraph 18ms
+ ✓ src/lib/editor/listCommands.test.ts > M1.6/1.7 guarded checkbox and commands > 512 KiB boundary rejects both list wrapping and a checkbox that adds one byte 150ms
+
+ Test Files  2 passed (2)
+      Tests  59 passed (59)
+   Start at  17:28:32
+   Duration  2.77s (transform 950ms, setup 60ms, import 1.41s, tests 2.18s, environment 1.12s)
+
+Done in 3.13s.

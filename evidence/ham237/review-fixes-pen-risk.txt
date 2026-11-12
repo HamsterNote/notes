@@ -1,0 +1,13 @@
+Chromium 148.0.7778.96; Linux; public Provider/View fixture; source alias
+PASS 1440px: three creation entries and six directed conversions via toolbar
+PASS 1440px: partial numbering 5/1/7, child preserved, checkbox Space/click, no reorder
+PASS 1440px: Enter/exit, indent/lift, freeze, failed save/retry/reopen, shared undo/redo; screenshot saved
+PASS 1440px: real card drawer + lists, locked body, shared commit/undo/redo, save/reopen
+file:///home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/scripts/check-lists-browser.mjs:135
+      if (await dialog.getByRole("alert").isVisible()) throw new Error(await dialog.getByRole("alert").textContent())
+                                                             ^
+
+Error: /strokes/0/points/0/timestamp：不允许字段 timestamp
+    at file:///home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/scripts/check-lists-browser.mjs:135:62
+
+Node.js v24.15.0

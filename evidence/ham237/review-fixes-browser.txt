@@ -1,0 +1,11 @@
+Chromium 148.0.7778.96; Linux; public Provider/View fixture; source alias
+PASS 1440px: three creation entries and six directed conversions via toolbar
+PASS 1440px: partial numbering 5/1/7, child preserved, checkbox Space/click, no reorder
+PASS 1440px: Enter/exit, indent/lift, freeze, failed save/retry/reopen, shared undo/redo; screenshot saved
+PASS 1440px: real card drawer + lists, locked body, shared commit/undo/redo, save/reopen
+PASS 1440px: real drawing (line) drawer + lists, locked body, shared commit/undo/redo, save/reopen
+PASS 390px: three creation entries and six directed conversions via toolbar
+PASS 390px: partial numbering 5/1/7, child preserved, checkbox Space/click, no reorder
+PASS 390px: Enter/exit, indent/lift, freeze, failed save/retry/reopen, shared undo/redo; screenshot saved
+PASS 390px: real card drawer + lists, locked body, shared commit/undo/redo, save/reopen
+PASS 390px: real drawing (line) drawer + lists, locked body, shared commit/undo/redo, save/reopen
