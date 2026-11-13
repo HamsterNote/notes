@@ -61,7 +61,7 @@
 
 /* clean：已保存，最不抢眼的弱文本 */
 .hn-save-status--clean {
-  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
+  color: var(--hn-text-soft, rgba(51, 65, 85, 0.85));
 }
 
 /* dirty / saving：有待写出内容，稍强一档 */
@@ -85,7 +85,7 @@
 .hn-save-status__detail {
   display: block;
   margin-top: 0.1rem;
-  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
+  color: var(--hn-text-soft, rgba(51, 65, 85, 0.85));
   font-size: 0.8rem;
 }
 

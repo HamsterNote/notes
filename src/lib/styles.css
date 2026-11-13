@@ -282,33 +282,6 @@
   margin-top: 0.5rem;
 }
 
-/* 引用署名输入：沿用 hn-note-quote footer 的主题色与字重，保持无框可编辑 */
-.hn-editor-content .hn-editor-quote-footer {
-  margin-top: 0.8rem;
-}
-
-.hn-editor-content .hn-editor-quote-author {
-  width: 100%;
-  padding: 0.15rem 0;
-  border: none;
-  border-radius: 4px;
-  background: transparent;
-  color: var(--hn-theme-text, color-mix(in srgb, var(--hn-theme, #3b82f6) 75%, #1e293b));
-  font: inherit;
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-
-.hn-editor-content .hn-editor-quote-author::placeholder {
-  color: var(--hn-text-muted, rgba(51, 65, 85, 0.65));
-  font-weight: 400;
-}
-
-.hn-editor-content .hn-editor-quote-author:focus-visible {
-  outline: 2px solid var(--hn-theme, #3b82f6);
-  outline-offset: 2px;
-}
-
 /* 代码块卡片：与 hn-note-code-card 共享深色底、浅字与等宽栈，两种主题下保持一致 */
 .hn-editor-content .hn-editor-code-card {
   border-radius: var(--hn-radius, 24px);
@@ -1755,3 +1728,32 @@
   outline: 2px solid var(--hn-theme, #3b82f6);
   outline-offset: 2px;
 }
+
+/* painting-toolbar 0.8.4 uses literal colors, including inline shell colors.
+ * Panels render under this per-view shell; specificity beats injected vendor CSS. */
+.hn-editor .hn-view-toolbar .hn-pane-panel {
+  background: var(--hn-bg);
+  color: var(--hn-text);
+  border-color: var(--hn-text-muted);
+}
+.hn-editor .hn-view-toolbar .hn-pane-toolbar button:hover:enabled,
+.hn-editor .hn-view-toolbar .hn-pane-toolbar button:active:enabled {
+  background: var(--hn-surface-hover);
+}
+.hn-editor .hn-view-toolbar .hn-pane-toolbar button[aria-checked="true"] {
+  background: var(--hn-text);
+  color: var(--hn-bg);
+}
+.hn-editor .hn-view-toolbar .hn-pane-toolbar button:disabled {
+  color: var(--hn-text-muted);
+}
+.hn-editor .hn-view-toolbar .hn-pane-toolbar :is(button, input, select):focus-visible {
+  outline: 2px solid var(--hn-text);
+  outline-offset: -2px;
+}
+.hn-editor .hn-view-toolbar [role="status"] { color: var(--hn-text-soft); }
+
+.hn-editor-slash-menu { background: var(--hn-bg); color: var(--hn-text); border: 1px solid var(--hn-text-muted); position: fixed; z-index: 70; min-width: 180px; max-width: calc(100vw - 16px); overflow-y: auto; }
+.hn-editor-slash-menu [role="option"] { display: block; width: 100%; border: 0; background: transparent; color: var(--hn-text); text-align: left; padding: 8px 12px; font: inherit; }
+.hn-editor-slash-menu [aria-selected="true"] { background: var(--hn-surface-hover); outline: 2px solid var(--hn-text); outline-offset: -2px; }
+.hn-editor-slash-menu [role="option"]:disabled { color: var(--hn-text-muted); }

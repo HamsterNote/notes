@@ -220,7 +220,7 @@ export function installInteractionToolbar(editor: Editor, capabilities: BlockMen
       queueMicrotask(() => { if (!disposed && !ownsFocus()) hide() })
       return
     }
-    if (!view.editable || view.composing || composing || suppressed || selecting || dragging ||
+    if (view.dom.hasAttribute("data-hnn-slash-open") || !view.editable || view.composing || composing || suppressed || selecting || dragging ||
         !block || (!mobile && !text && !resolveLinkTarget(editor)?.href && (!listTarget || listTarget.paragraphs))) { hide(); return }
     const parent = view.dom.closest(".hn-editor") ?? view.dom.parentElement
     if (parent && element.parentElement !== parent) parent.appendChild(element)
@@ -267,6 +267,19 @@ export function installInteractionToolbar(editor: Editor, capabilities: BlockMen
     buttons[index]?.focus({ preventScroll: true })
     buttons[index]?.scrollIntoView?.({ block: "nearest", inline: "nearest" })
   }
+  const onPopoverOpen = (event: Event) => {
+    const root = view.dom.closest(".hn-editor") ?? view.dom.parentElement
+    if (event.target !== root || (event as CustomEvent).detail !== "slash") return
+    expanded = null
+    closeLinkEditor?.()
+    hide()
+  }
+  const onPopoverClose = (event: Event) => {
+    const root = view.dom.closest(".hn-editor") ?? view.dom.parentElement
+    if (event.target === root && (event as CustomEvent).detail === "slash") schedule()
+  }
+  document.addEventListener("hn-editor-popover-open", onPopoverOpen)
+  document.addEventListener("hn-editor-popover-close", onPopoverClose)
   const removeLayout = layout.subscribe(() => {
     hide(); expanded = null; selecting = false; dragging = false; renderedMobile = null; refresh(true)
   })
@@ -288,6 +301,8 @@ export function installInteractionToolbar(editor: Editor, capabilities: BlockMen
   observer?.observe(view.dom)
   editor.registerPlugin(new Plugin({ key, view: () => ({ update: () => refresh() }) }))
   return () => {
+    document.removeEventListener("hn-editor-popover-open", onPopoverOpen)
+    document.removeEventListener("hn-editor-popover-close", onPopoverClose)
     disposed = true
     closeLinkEditor?.()
     if (frame !== null) window.cancelAnimationFrame(frame)

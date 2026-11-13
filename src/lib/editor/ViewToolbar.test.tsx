@@ -118,3 +118,20 @@ describe("notes per-view toolbar", () => {
     expect(h.view("b").querySelector(".tiptap")).toBe(editorB)
   })
 })
+
+it("uses a per-view shell override and keeps file panels inside the initiating theme subtree", () => {
+  const h = mount(<>
+    <NoteEditorView viewId="a" paneId="a" theme="dark" files={files} layout={bottom()} />
+    <NoteEditorView viewId="b" paneId="b" theme="light" files={files} />
+  </>)
+  for (const id of ["a", "b"]) {
+    const toolbar = h.view(id).querySelector<HTMLElement>('[role="toolbar"]')!
+    expect(toolbar.style.background).toBe("var(--hn-surface)")
+    expect(toolbar.style.color).toBe("var(--hn-text)")
+    fireEvent.click(within(h.view(id)).getByLabelText("文件"))
+    expect(h.view(id).querySelector('[role="menu"]')).not.toBeNull()
+    fireEvent.keyDown(within(h.view(id)).getByRole("menu"), { key: "Escape" })
+  }
+  expect(h.view("a").classList.contains("hn-editor--dark")).toBe(true)
+  expect(h.view("b").classList.contains("hn-editor--light")).toBe(true)
+})

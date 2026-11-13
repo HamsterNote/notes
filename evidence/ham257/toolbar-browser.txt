@@ -1,0 +1,9 @@
+PASS 1440px light: toolbar/menu text contrast 13.98, focus 13.98
+PASS 1440px dark: toolbar/menu text contrast 14.85, focus 14.85
+PASS 1440px light: toolbar/menu text contrast 13.98, focus 13.98
+PASS 390px light: toolbar/menu text contrast 13.98, focus 13.98
+PASS 390px dark: toolbar/menu text contrast 14.85, focus 14.85
+PASS 390px light: toolbar/menu text contrast 13.98, focus 13.98
+PASS upload retry/cancel remain inside reserved flow content at 320px
+PASS inline mixed light/dark views: isolated shell/menu themes; unchanged document, selection and DOM identity
+PASS top/bottom safe-area offsets, content reservation, file select/remove and edge switch without document remount

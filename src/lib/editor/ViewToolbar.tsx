@@ -56,6 +56,13 @@ export function ViewToolbar({
     ...(onSelectFile === undefined ? {} : { onSelectFile }),
     ...(onRequestRemove === undefined ? {} : { onRequestRemove })
   }
+  // painting 0.8.4 hardcodes shell colors inline. Its toolbarProps.style is the
+  // supported override; the panel stays in this DOM subtree (no body portal).
+  const toolbarProps = { style: {
+    background: "var(--hn-surface)",
+    color: "var(--hn-text)",
+    borderColor: "var(--hn-text-muted)"
+  } }
   const controls = (
     <>
       <button type="button" aria-label="撤销" title="撤销" disabled={locked} onClick={onUndo}>
@@ -73,7 +80,7 @@ export function ViewToolbar({
   )
   if (!layout) {
     // Legacy hosts keep an in-flow control row; only its shell styling changes.
-    return <ToolbarShell placement="inline" label="笔记工具">{controls}</ToolbarShell>
+    return <ToolbarShell className="hn-view-toolbar" toolbarProps={toolbarProps} placement="inline" label="笔记工具">{controls}</ToolbarShell>
   }
   const bounds = layout.bounds
   const layerStyle: CSSProperties = bounds
@@ -82,6 +89,8 @@ export function ViewToolbar({
   return (
     <div data-pane-toolbar-boundary style={{ ...layerStyle, pointerEvents: "none", zIndex: 30 }}>
       <ToolbarShell
+        className="hn-view-toolbar"
+        toolbarProps={toolbarProps}
         placement="floating"
         layout={layout}
         label="笔记工具"

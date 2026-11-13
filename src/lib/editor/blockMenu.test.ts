@@ -865,3 +865,61 @@ describe("复合块显式展平（HAM-133）", () => {
     } finally { session.destroy() }
   })
 })
+
+describe("confirmed block deletion", () => {
+  const dialog = () => document.querySelector<HTMLElement>('[role="dialog"][aria-label="删除内容块？"]')!
+  const button = (label: string) => Array.from(dialog().querySelectorAll("button")).find(b => b.textContent === label)!
+  it.each(["取消", "Escape", "backdrop"])("%s cancels with no document, dirty or history change and restores handle focus", path => {
+    const session = sessionFor(paragraphsDocument("a", "b"))
+    try {
+      const before = session.editor.state.doc
+      const anchor = clickHandle(session, 0)
+      item("删除").click()
+      expect(document.activeElement).toBe(button("取消"))
+      keydown(button("取消"), "Tab")
+      expect(document.activeElement).toBe(button("确认删除"))
+      if (path === "取消") button("取消").click()
+      else if (path === "Escape") keydown(dialog(), "Escape")
+      else (dialog().parentElement as HTMLElement).click()
+      expect(dialog()).toBeNull()
+      expect(session.editor.state.doc).toBe(before)
+      expect(session.state.dirty).toBe(false)
+      expect(session.undo()).toBe(false)
+      expect(document.activeElement).toBe(anchor)
+    } finally { session.destroy() }
+  })
+  it("deletes only the anchor, undo restores IDs, last block becomes an empty paragraph", () => {
+    const session = sessionFor(tableDocument())
+    try {
+      const before = session.editor.state.doc
+      clickHandle(session, 1); item("删除").click()
+      button("确认删除").click()
+      expect(topLevelTexts(session)).toEqual(["before"])
+      const deleted = session.editor.state.doc
+      expect(session.undo()).toBe(true)
+      expect(session.editor.state.doc.eq(before)).toBe(true)
+      expect(session.redo()).toBe(true)
+      expect(session.editor.state.doc.eq(deleted)).toBe(true)
+      clickHandle(session, 0); item("删除").click(); button("确认删除").click()
+      expect(topLevelTypes(session)).toEqual(["paragraph"])
+      expect(session.editor.state.doc.textContent).toBe("")
+      expect(session.editor.state.doc.firstChild!.attrs["nodeId"]).not.toBe(ids[0])
+    } finally { session.destroy() }
+  })
+  it("any body change expires confirmation, selection-only changes do not", () => {
+    const session = sessionFor(paragraphsDocument("a", "b"))
+    try {
+      clickHandle(session, 0); item("删除").click()
+      session.editor.commands.setTextSelection(4)
+      expect(button("确认删除").disabled).toBe(false)
+      session.editor.commands.insertContent("changed")
+      const before = session.editor.state.doc
+      expect(button("确认删除").disabled).toBe(true)
+      expect(dialog().textContent).toContain("内容已变化，请重新打开")
+      button("确认删除").click()
+      expect(session.editor.state.doc).toBe(before)
+      session.destroy()
+      expect(dialog()).toBeNull()
+    } finally { if (!session.editor.isDestroyed) session.destroy() }
+  })
+})

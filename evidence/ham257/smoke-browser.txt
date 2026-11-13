@@ -1,0 +1,7 @@
+Environment: Linux; Chromium 148.0.7778.96; yarn dev demo; automated browser keyboard only, no physical macOS/Windows keyboard
+PASS S1: no author UI; edit/save/reload preserves author and body
+PASS S2: start/middle/end, nested/empty quote, Shift+Enter; exact single undo/redo
+PASS S3: cancel/Escape/backdrop, focus/Tab, whole subtree delete and exact undo/redo
+PASS S5: 1440/390px slash keyboard selection, bounds, cancellation, inline exclusion, exact undo/redo
+PASS S6 automated keyboard: Ctrl and Meta undo/redo; physical macOS and Windows NOT covered
+S4 is verified separately by check-pane-toolbar-browser.mjs (1440/390px and mixed themes).

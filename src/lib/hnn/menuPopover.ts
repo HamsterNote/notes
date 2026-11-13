@@ -265,6 +265,8 @@ export function openAnchoredMenu(options: OpenAnchoredMenuOptions): AnchoredMenu
 
   // 挂到锚点最近的 .hn-editor 根内：菜单样式与 light/dark 主题类随宿主联动。
   const host = anchor.closest(".hn-editor") ?? document.body
+  // Submenus are part of the existing menu; only a new root competes with slash.
+  if (options.placement !== "submenu") host.dispatchEvent(new CustomEvent("hn-editor-popover-open", { detail: "menu", bubbles: true }))
   host.appendChild(element)
 
   // 定位（bug-7.5-3 修复）：先挂进文档再量实际尺寸，然后一次算清水平钳制与
@@ -324,11 +326,16 @@ export function openAnchoredMenu(options: OpenAnchoredMenuOptions): AnchoredMenu
     document.removeEventListener("pointerdown", onDocumentPointerDown, true)
     window.removeEventListener("scroll", onWindowScroll, true)
     window.removeEventListener("resize", onWindowChange)
+    host.removeEventListener("hn-editor-popover-open", otherPopover)
     element.remove()
     if (restoreFocus) anchor.focus({ preventScroll: true })
     onClose?.()
   }
 
+  const otherPopover = (event: Event): void => {
+    if ((event as CustomEvent).detail === "slash") close(false)
+  }
+  host.addEventListener("hn-editor-popover-open", otherPopover)
   const onMenuKeyDown = (event: KeyboardEvent): void => {
     const focused = buttons.findIndex((button) => button === document.activeElement)
     switch (event.key) {

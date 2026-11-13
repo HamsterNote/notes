@@ -1,9 +1,45 @@
 import { Extension } from "@tiptap/core"
-import { lift, splitBlock } from "@tiptap/pm/commands"
-import { EditorState, Plugin, type Command, type Transaction } from "@tiptap/pm/state"
+import { splitBlock } from "@tiptap/pm/commands"
+import { EditorState, Plugin, TextSelection, type Transaction } from "@tiptap/pm/state"
+import { Fragment, type Node as PmNode } from "@tiptap/pm/model"
 import { findWrapping } from "@tiptap/pm/transform"
 import { captureChainTransaction, commitBudgetedTransaction, normalizeBudgetedCandidate } from "./budgetedTransaction"
 import { canApplyHnnTransaction } from "./transactionPermission"
+
+/** Split only the contiguous quote chain: cells/items keep ownership of their contents. */
+export function quoteExitCandidate(state: EditorState): Transaction | null {
+  const { selection } = state
+  if (!selection.$from.sameParent(selection.$to)) return null
+  const tr = state.tr.deleteSelection()
+  const { $from } = tr.selection
+  if (!["paragraph", "heading"].includes($from.parent.type.name)) return null
+  let outer = $from.depth - 1
+  if (outer < 1 || $from.node(outer).type.name !== "blockquote") return null
+  while (outer > 1 && $from.node(outer - 1).type.name === "blockquote") outer--
+  const line = $from.parent
+  const left = line.content.cut(0, $from.parentOffset)
+  const right = line.content.cut($from.parentOffset)
+  let before: PmNode[] = left.size ? [line.copy(left)] : []
+  let after: PmNode[] = []
+  for (let depth = $from.depth - 1; depth >= outer; depth--) {
+    const quote = $from.node(depth), index = $from.index(depth)
+    const children = Array.from({ length: quote.childCount }, (_, i) => quote.child(i))
+    const prefix = [...children.slice(0, index), ...before]
+    const suffix = [...after, ...children.slice(index + 1)]
+    before = prefix.length ? [quote.copy(Fragment.fromArray(prefix))] : []
+    after = suffix.length ? [quote.type.create({
+      ...quote.attrs, nodeId: prefix.length ? null : quote.attrs["nodeId"] as unknown
+    }, suffix)] : []
+  }
+  const paragraph = state.schema.nodes["paragraph"]!.create(null, right)
+  const from = $from.before(outer), to = from + $from.node(outer).nodeSize
+  const replacement = Fragment.fromArray([...before, paragraph, ...after])
+  const $start = tr.doc.resolve(from)
+  if (!$start.parent.canReplace($start.index(), $start.index() + 1, replacement)) return null
+  tr.replaceWith(from, to, replacement)
+  tr.setSelection(TextSelection.create(tr.doc, from + before.reduce((n, node) => n + node.nodeSize, 0) + 1))
+  return tr.scrollIntoView()
+}
 
 export const HnnQuoteInteractions = Extension.create({
   name: "hnnQuoteInteractions",
@@ -48,22 +84,15 @@ export const HnnQuoteInteractions = Extension.create({
         handleKeyDown(_view, event) {
           if (event.key !== "Enter" || event.altKey || event.ctrlKey || event.metaKey) return false
           const { state } = editor, { $from } = state.selection
-          if ($from.parent.type.name !== "paragraph") return false
-          let depth = $from.depth - 1
-          while (depth > 0 && $from.node(depth).type.name !== "blockquote") {
-            if (["listItem", "taskItem"].includes($from.node(depth).type.name)) return false
-            depth--
-          }
-          if (!depth) return false
+          if (!["paragraph", "heading"].includes($from.parent.type.name)) return false
+          const depth = $from.depth - 1
+          if (depth < 1 || $from.node(depth).type.name !== "blockquote") return false
           if (!canInput() || event.isComposing || event.keyCode === 229) return true
           let candidate: Transaction | null = null
           if (event.shiftKey) candidate = captureChainTransaction(editor, chain => chain.setHardBreak())
-          else {
-            const exit = state.selection.empty && $from.parent.content.size === 0 && depth === $from.depth - 1 &&
-              $from.index(depth) === $from.node(depth).childCount - 1
-            const command: Command = exit ? lift : splitBlock
-            command(state, tr => { candidate = tr })
-          }
+          else if (state.selection.$from.sameParent(state.selection.$to)) candidate = quoteExitCandidate(state)
+          else splitBlock(state, tr => { candidate = tr })
+
           if (candidate) commitBudgetedTransaction(editor, candidate)
           return true
         }
