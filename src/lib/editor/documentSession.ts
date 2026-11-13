@@ -487,7 +487,10 @@ export class DocumentSession {
     if (!effective.length) return { sessionId, kind: "noop" }
     const tr = closeHistory(record.editor.state.tr)
     for (const change of effective) tr.setNodeMarkup(change.position, undefined, change.attrs)
-    return { sessionId, kind: this.dispatch(viewId, tr) ? "applied" : "rejected" }
+    const applied = this.dispatch(viewId, tr)
+    // Isolate both sides: typing immediately after recovery must not absorb it.
+    if (applied) this.dispatch(viewId, closeHistory(record.editor.state.tr))
+    return { sessionId, kind: applied ? "applied" : "rejected" }
   }
   applyHostDocument(input: Parameters<NonNullable<NoteDocumentController["applyHostDocument"]>>[0]): ReturnType<NonNullable<NoteDocumentController["applyHostDocument"]>> {
     const sessionId = this.identity.sessionId
