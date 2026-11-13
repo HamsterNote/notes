@@ -129,7 +129,7 @@ describe("共享会话图像模态框", () => {
 
 describe("DocumentSession 图像目标与离开门禁", () => {
   it.each(["move", "delete"])("公开宿主快照在模态等待时 %s 目标：保留 session 并按 nodeId 确认或拒绝", async (action) => {
-    const upload = vi.fn(async () => ({ src: "hamster_note_data/images/0123456789abcdef0123456789abcdef.png" }))
+    const upload = vi.fn(() => Promise.resolve({ src: "hamster_note_data/images/0123456789abcdef0123456789abcdef.png" }))
     const changes = vi.fn()
     const session = new DocumentSession({ documentId: "A", loadKey: 1, initialDocument,
       initialHostSnapshot: { changeId: 0, value: { title: "", summary: "" } },

@@ -472,14 +472,17 @@ export class DocumentSession {
     const [viewId, record] = target
     const ids = new Set<string>()
     const changes: { position: number; attrs: Record<string, unknown> }[] = []
-    for (const replacement of input.replacements) {
-      if (!replacement || typeof replacement.nodeId !== "string" || typeof replacement.expectedSrc !== "string" || typeof replacement.src !== "string" || ids.has(replacement.nodeId) || !isManagedHnnPicturePath(replacement.src)) return { sessionId, kind: "rejected", reason: "invalid-replacement" }
-      ids.add(replacement.nodeId)
+    for (const value of input.replacements as readonly unknown[]) {
+      if (!value || typeof value !== "object") return { sessionId, kind: "rejected", reason: "invalid-replacement" }
+      const replacement = value as Record<string, unknown>
+      const { nodeId, expectedSrc, src } = replacement
+      if (typeof nodeId !== "string" || typeof expectedSrc !== "string" || typeof src !== "string" || ids.has(nodeId) || !isManagedHnnPicturePath(src)) return { sessionId, kind: "rejected", reason: "invalid-replacement" }
+      ids.add(nodeId)
       let matched = 0
       this.authority.doc.descendants((node, position) => {
-        if (node.type.name !== "picture" || node.attrs["nodeId"] !== replacement.nodeId) return
+        if (node.type.name !== "picture" || node.attrs["nodeId"] !== nodeId) return
         matched++
-        if (node.attrs["src"] === replacement.expectedSrc) changes.push({ position, attrs: { ...node.attrs, src: replacement.src } })
+        if (node.attrs["src"] === expectedSrc) changes.push({ position, attrs: { ...node.attrs, src } })
       })
       if (matched !== 1 || changes.length !== ids.size) return { sessionId, kind: "rejected", reason: "reference-changed" }
     }
