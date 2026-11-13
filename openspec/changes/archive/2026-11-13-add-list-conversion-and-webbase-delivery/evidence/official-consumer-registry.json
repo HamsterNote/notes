@@ -1,0 +1,26 @@
+{
+  "version": "3.3.0",
+  "dist": {
+    "shasum": "ae786ec68cd137e7333725e86d09490ed39a3f15",
+    "tarball": "https://registry.npmjs.org/@hamster-note/notes/-/notes-3.3.0.tgz",
+    "fileCount": 158,
+    "integrity": "sha512-tNJyGnosLEZFVSjALVw5TCRZVq6CqDwQ+YEvd5Nr6UaS0l/3YqNAFXSPG4CR0cKDLwyw4jNpq+WmN98wHJv7GQ==",
+    "signatures": [
+      {
+        "sig": "MEUCIDgqNW+xgr1PWnIgKDYIAVbZO766yNweBMxfZRduOFyBAiEA8nHaQqVWRh+XNZZxBoLYEFWvsveYIeXUEwZPzCZ8EXE=",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      },
+      {
+        "sig": "MEUCIQDHjk7x1UeN/N4EVAcJGT6USeNca0tROlnSoCUN1/IIhQIgRXjcDSIIhV9/DAqHxjl8q5WRUOJRzysUq+HCwFUZ8dk=",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      }
+    ],
+    "attestations": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/@hamster-note%2fnotes@3.3.0",
+      "provenance": {
+        "predicateType": "https://slsa.dev/provenance/v1"
+      }
+    },
+    "unpackedSize": 15020332
+  }
+}

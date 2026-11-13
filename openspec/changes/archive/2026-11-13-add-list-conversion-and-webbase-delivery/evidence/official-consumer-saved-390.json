@@ -1,0 +1,206 @@
+{
+  "schemaVersion": 1,
+  "data": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "taskList",
+        "attrs": {
+          "nodeId": "2dc40d7c-32f0-4a0c-9866-e6a4aed77836"
+        },
+        "content": [
+          {
+            "type": "taskItem",
+            "attrs": {
+              "nodeId": "bfd0871d-354b-426d-91e1-a91d27b83170",
+              "checked": true
+            },
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "123e4567-e89b-42d3-a456-426614174000"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "orderedList",
+        "attrs": {
+          "nodeId": "782e039b-a6b5-4c17-ac14-e1e19aa02a7c",
+          "start": 1,
+          "type": null
+        },
+        "content": [
+          {
+            "type": "listItem",
+            "attrs": {
+              "nodeId": "6a733851-cd8a-45c5-b391-9780e82ca212"
+            },
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "a88330b3-dc75-4ab3-babf-0b7d56d8d0c5"
+                }
+              },
+              {
+                "type": "orderedList",
+                "attrs": {
+                  "nodeId": "5fcf4e6d-833b-4ee5-b228-68c87c9522c8",
+                  "start": 1,
+                  "type": null
+                },
+                "content": [
+                  {
+                    "type": "listItem",
+                    "attrs": {
+                      "nodeId": "57b791ce-73f7-4adc-95c5-32784f3dc2b3"
+                    },
+                    "content": [
+                      {
+                        "type": "paragraph",
+                        "attrs": {
+                          "nodeId": "132c337c-9b83-49bf-8be1-1a3b61af62e1"
+                        },
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Level 2"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "orderedList",
+                        "attrs": {
+                          "nodeId": "2902078d-c7ed-41d5-8ea3-c6256524526d",
+                          "start": 1,
+                          "type": null
+                        },
+                        "content": [
+                          {
+                            "type": "listItem",
+                            "attrs": {
+                              "nodeId": "ee1443f2-b51c-4fb0-a0ad-4ea0184cb948"
+                            },
+                            "content": [
+                              {
+                                "type": "paragraph",
+                                "attrs": {
+                                  "nodeId": "ad24b316-68fd-41c1-a494-0b4228a007a6"
+                                },
+                                "content": [
+                                  {
+                                    "type": "text",
+                                    "text": "Level 3"
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "orderedList",
+                                "attrs": {
+                                  "nodeId": "128d1d4d-c298-4a42-bf6c-bd9da0d909eb",
+                                  "start": 1,
+                                  "type": null
+                                },
+                                "content": [
+                                  {
+                                    "type": "listItem",
+                                    "attrs": {
+                                      "nodeId": "b5b20312-60e1-4f85-81fd-8c419f02c0d1"
+                                    },
+                                    "content": [
+                                      {
+                                        "type": "paragraph",
+                                        "attrs": {
+                                          "nodeId": "1fddd56d-39f2-41ce-8fc6-b36e36f3ade9"
+                                        },
+                                        "content": [
+                                          {
+                                            "type": "text",
+                                            "text": "Level 4"
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "attrs": {
+              "nodeId": "1b6bd501-a85c-4b73-a49d-7ac1c56d6790"
+            },
+            "content": [
+              {
+                "type": "paragraph",
+                "attrs": {
+                  "nodeId": "62263a76-b486-4d45-acc3-404a5fb0e9a9"
+                },
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Level 5"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "blockquote",
+        "attrs": {
+          "nodeId": "09310783-3da8-40b4-acbf-929f0108c484",
+          "author": null
+        },
+        "content": [
+          {
+            "type": "paragraph",
+            "attrs": {
+              "nodeId": "1631867f-2f9c-47c8-94b9-5c1fcf6111f1"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "Quote text"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "attrs": {
+          "nodeId": "1a7a441c-78e2-407c-966a-adcab9dc383b"
+        },
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "link",
+                "attrs": {
+                  "href": "https://example.com/official"
+                }
+              }
+            ],
+            "text": "Selected words"
+          }
+        ]
+      }
+    ]
+  }
+}

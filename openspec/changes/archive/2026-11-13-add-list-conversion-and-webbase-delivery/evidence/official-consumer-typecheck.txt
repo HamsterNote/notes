@@ -1,0 +1,5 @@
+
+> typecheck
+> tsc --noEmit
+
+[exit code: 0]

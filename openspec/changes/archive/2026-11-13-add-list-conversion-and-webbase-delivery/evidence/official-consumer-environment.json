@@ -1,0 +1,44 @@
+{
+  "capturedAt": "2026-11-13T03:13:55.509872+00:00",
+  "notesArchiveBase": "4893764e951034b4887bf40d4bc34d57ffc534f3",
+  "node": "v24.15.0",
+  "npm": "11.12.1",
+  "os": "Linux-7.0.0-31-generic-x86_64-with-glibc2.43",
+  "openspec": "1.13.1",
+  "browser": "148.0.7778.96",
+  "registry": "https://registry.npmjs.org",
+  "installedNotes": "3.3.0",
+  "lockEntry": {
+    "version": "3.3.0",
+    "resolved": "https://registry.npmjs.org/@hamster-note/notes/-/notes-3.3.0.tgz",
+    "integrity": "sha512-tNJyGnosLEZFVSjALVw5TCRZVq6CqDwQ+YEvd5Nr6UaS0l/3YqNAFXSPG4CR0cKDLwyw4jNpq+WmN98wHJv7GQ==",
+    "license": "MIT",
+    "dependencies": {
+      "@hamster-note/components": "^0.2.1-beta.2",
+      "@hamster-note/painting": "0.2.0",
+      "@tiptap/core": "3.31.3",
+      "@tiptap/extension-list": "3.31.3",
+      "@tiptap/extension-table": "3.31.3",
+      "@tiptap/pm": "3.31.3",
+      "@tiptap/react": "3.31.3",
+      "@tiptap/starter-kit": "3.31.3",
+      "katex": "^0.17.0"
+    },
+    "engines": {
+      "node": ">=20.19.0",
+      "yarn": ">=1.22.0"
+    },
+    "peerDependencies": {
+      "react": "^19.0.0",
+      "react-dom": "^19.0.0"
+    }
+  },
+  "lockSha256": "96eb5c42aa3e45ba2c9b7c0a5e9b66b8c5cce3c653074352b389e0f47a2f54c3",
+  "fixtureSourceSha256": {
+    "main.tsx": "eea27d117a592bcc4106c2555aa84988062e8a7471f2304bba7e41eb12f87636",
+    "check.mjs": "a39851f81b792e8c5405d4c80967bf9129cbc79b6c242f4e857d15d251ae4f99",
+    "runtime.mjs": "89c05425bfe31b128775153257e8af3fdfaf1cf12223ed0797ab8a7aa33ab570",
+    "package.json": "e00bc47d1bc7cf60a0b21e93f38d4c4f9f5a8bbf8f60d6499d37dce6fda76e38",
+    "tsconfig.json": "b7e087a6b5333f462511a757c9000f0ed30c7b65787a97749cdc8d60c57a38a1"
+  }
+}

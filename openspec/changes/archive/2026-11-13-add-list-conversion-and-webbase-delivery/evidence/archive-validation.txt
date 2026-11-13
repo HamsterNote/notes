@@ -1,0 +1,13 @@
+✓ change/deliver-notes-3-1-2-public-host-capabilities
+✓ change/deliver-notes-3-1-shared-session
+✓ spec/host-integration
+✓ change/improve-picture-insertion
+✓ spec/markdown-codec
+✓ spec/note-content-blocks
+  ℹ [INFO] requirements[6]: Requirement text is very long (>500 characters). Consider breaking it down.
+  ℹ [INFO] requirements[13]: Requirement text is very long (>500 characters). Consider breaking it down.
+  ℹ [INFO] requirements[15]: Requirement text is very long (>500 characters). Consider breaking it down.
+✓ spec/note-document-format
+✓ spec/note-editor-core
+✓ spec/note-selection-and-clipboard
+Totals: 9 passed, 0 failed (9 items)

@@ -1,0 +1,18 @@
+{
+  "archive": {
+    "change": "add-list-conversion-and-webbase-delivery",
+    "archivedAs": "2026-11-13-add-list-conversion-and-webbase-delivery",
+    "path": "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes/openspec/changes/archive/2026-11-13-add-list-conversion-and-webbase-delivery",
+    "specsUpdated": true,
+    "totals": {
+      "added": 15,
+      "modified": 0,
+      "removed": 0,
+      "renamed": 0
+    }
+  },
+  "root": {
+    "path": "/home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-237-6be94a8e2103/workdir/notes",
+    "source": "nearest"
+  }
+}
