@@ -488,8 +488,13 @@ export class DocumentSession {
     }
     const effective = changes.filter(change => this.authority!.doc.nodeAt(change.position)?.attrs["src"] !== change.attrs["src"])
     if (!effective.length) return { sessionId, kind: "noop" }
-    const tr = closeHistory(record.editor.state.tr)
+    const tr = record.editor.state.tr
     for (const change of effective) tr.setNodeMarkup(change.position, undefined, change.attrs)
+    // Validate the complete candidate before touching live state or history.
+    // Individually valid references can together exceed the encoded shell budget.
+    try { encodeHnn(tr.doc) }
+    catch { return { sessionId, kind: "rejected", reason: "invalid-document" } }
+    closeHistory(tr)
     const applied = this.dispatch(viewId, tr)
     // Isolate both sides: typing immediately after recovery must not absorb it.
     if (applied) this.dispatch(viewId, closeHistory(record.editor.state.tr))
