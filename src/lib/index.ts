@@ -14,7 +14,7 @@ import "./styles.css"
 
 export { NoteDocumentProvider, NoteEditorView } from "./editor/NoteDocumentProvider"
 export type {
-  ActiveIdentity, AcquireFreeze, ReleaseFreeze, DetachViewResult,
+  DocumentEditResult, PictureReferenceReplacement, ActiveIdentity, AcquireFreeze, ReleaseFreeze, DetachViewResult,
   DraftKind, DraftPhase, EncodingState, FreezeOutcome, HostMetadataSnapshot,
   NoteDocumentController, NoteDocumentProviderProps, NoteEditorViewProps,
   NoteFileRequest, NoteFileRequestResult, NotePaneInsets, NotePaneToolbarLayout, NoteToolbarFile,

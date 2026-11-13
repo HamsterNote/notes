@@ -67,7 +67,14 @@ export type ReferenceInvalidationResult = { sessionId: string | null } & (
   | { kind: "abort"; reason: "disposed" }
   | { kind: "failure"; reason: "invalid-scope" }
 )
+/** 正文操作只能作用于调用者仍拥有的会话；拒绝时零事务。 */
+export type DocumentEditResult = Readonly<{ sessionId: string; kind: "applied" | "noop" | "rejected"; reason?: string }>
+export type PictureReferenceReplacement = Readonly<{ nodeId: string; expectedSrc: string; src: string }>
+
 export interface NoteDocumentController {
+  replacePictureReferences?(input: Readonly<{ expectedSessionId: string; replacements: readonly PictureReferenceReplacement[] }>): DocumentEditResult
+  applyHostDocument?(input: Readonly<{ expectedSessionId: string; document: unknown }>): DocumentEditResult
+
   getState(): NotePublicState
   subscribe(listener: (state: NotePublicState) => void): () => void
   updateHostSnapshot(snapshot: HostMetadataSnapshot, options: { expectedSessionId: string }): UpdateHostSnapshotResult
@@ -79,6 +86,9 @@ export interface NoteDocumentController {
   invalidateReferences?(input: { expectedSessionId: string; scope: ReferenceInvalidationScope }): ReferenceInvalidationResult
 }
 export type NoteDocumentProviderProps = {
+  /** 宿主选择共享历史时，按钮和快捷键都交给同一个权威历史，不回退本地历史。 */
+  onHistoryRequest?: (direction: "undo" | "redo", identity: ActiveIdentity) => boolean
+
   documentId: string
   loadKey: string | number
   initialDocument: unknown

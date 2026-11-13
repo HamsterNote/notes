@@ -12,6 +12,7 @@ import { openBlockMenu } from "./blockMenu"
 import { installHnnClipboardHistoryBoundary } from "./nativeClipboard"
 import { installHostReferences, isValidReferenceLookup, type HostReferenceInstaller } from "./hostReferences"
 import { installPictureUpload, type PictureUploadInstaller } from "./pictureUpload"
+import { isManagedHnnPicturePath } from "../hnn/urlPolicy"
 import { notifyPictureResolverChange } from "./pictureResolution"
 import type { HnnDrawerSession } from "./HnnDataDrawer"
 import type {
@@ -82,6 +83,7 @@ export class DocumentSession {
   private draft: PublicDraftState = { phase: "none" }
   private pictureDialog: DocumentPictureDialog | null = null
   private draftPayload: HnnDrawerSession | null = null
+  private applyingHostDocument = false
   private completingDraft = false
   private lastEditView: symbol | undefined
   private dispatching = false
@@ -103,6 +105,8 @@ export class DocumentSession {
       this.error = error
     }
     this.controller = {
+      replacePictureReferences: input => this.replacePictureReferences(input),
+      applyHostDocument: input => this.applyHostDocument(input),
       getState: () => this.getState(),
       subscribe: (listener) => { this.listeners.add(listener); return () => { this.listeners.delete(listener) } },
       updateHostSnapshot: (snapshot, context) => this.updateHost(snapshot, context.expectedSessionId),
@@ -439,7 +443,7 @@ export class DocumentSession {
           const snapshot = encodeHnn(next.doc)
           this.encodingError = undefined
           this.error = undefined
-          try { this.options.onChange(snapshot, { ...this.identity }) } catch { /* Host observer is not a producer. */ }
+          try { if (!this.applyingHostDocument) this.options.onChange(snapshot, { ...this.identity }) } catch { /* Host observer is not a producer. */ }
         } catch (error) { this.encodingError = error; this.error = error }
         this.schedule()
       }
@@ -456,9 +460,61 @@ export class DocumentSession {
     if (focus) editor.emit("focus", { editor, transaction, event: focus.event })
     if (blur) editor.emit("blur", { editor, transaction, event: blur.event })
   }
+  private editableTarget(expected: string, allowPictureDraft = false) {
+    if (expected !== this.sessionId || !this.canInput() || this.freezing || this.pendingAcquires || (!allowPictureDraft && (this.pictureDialog || this.hasUploads()))) return null
+    return [...this.views.entries()][0] ?? null
+  }
+  replacePictureReferences(input: Parameters<NonNullable<NoteDocumentController["replacePictureReferences"]>>[0]): ReturnType<NonNullable<NoteDocumentController["replacePictureReferences"]>> {
+    const sessionId = this.identity.sessionId
+    if (!input || !Array.isArray(input.replacements)) return { sessionId, kind: "rejected", reason: "invalid-replacement" }
+    const target = this.editableTarget(input.expectedSessionId)
+    if (!target || !this.authority) return { sessionId, kind: "rejected", reason: "stale-or-locked" }
+    const [viewId, record] = target
+    const ids = new Set<string>()
+    const changes: { position: number; attrs: Record<string, unknown> }[] = []
+    for (const replacement of input.replacements) {
+      if (!replacement || typeof replacement.nodeId !== "string" || typeof replacement.expectedSrc !== "string" || typeof replacement.src !== "string" || ids.has(replacement.nodeId) || !isManagedHnnPicturePath(replacement.src)) return { sessionId, kind: "rejected", reason: "invalid-replacement" }
+      ids.add(replacement.nodeId)
+      let matched = 0
+      this.authority.doc.descendants((node, position) => {
+        if (node.type.name !== "picture" || node.attrs["nodeId"] !== replacement.nodeId) return
+        matched++
+        if (node.attrs["src"] === replacement.expectedSrc) changes.push({ position, attrs: { ...node.attrs, src: replacement.src } })
+      })
+      if (matched !== 1 || changes.length !== ids.size) return { sessionId, kind: "rejected", reason: "reference-changed" }
+    }
+    const effective = changes.filter(change => this.authority!.doc.nodeAt(change.position)?.attrs["src"] !== change.attrs["src"])
+    if (!effective.length) return { sessionId, kind: "noop" }
+    const tr = closeHistory(record.editor.state.tr)
+    for (const change of effective) tr.setNodeMarkup(change.position, undefined, change.attrs)
+    return { sessionId, kind: this.dispatch(viewId, tr) ? "applied" : "rejected" }
+  }
+  applyHostDocument(input: Parameters<NonNullable<NoteDocumentController["applyHostDocument"]>>[0]): ReturnType<NonNullable<NoteDocumentController["applyHostDocument"]>> {
+    const sessionId = this.identity.sessionId
+    if (!input) return { sessionId, kind: "rejected", reason: "invalid-document" }
+    // Remote accepted edits must still map pending picture anchors. They do not
+    // authorize a local reference migration or complete an in-flight upload.
+    const target = this.editableTarget(input.expectedSessionId, true)
+    if (!target || !this.authority) return { sessionId, kind: "rejected", reason: "stale-or-locked" }
+    let document: PmNode
+    try { document = decodeHnn(input.document) } catch { return { sessionId, kind: "rejected", reason: "invalid-document" } }
+    if (this.authority.doc.eq(document)) return { sessionId, kind: "noop" }
+    const [viewId, record] = target
+    const before = record.editor.state.doc.content
+    const start = before.findDiffStart(document.content)!
+    const end = before.findDiffEnd(document.content)!
+    const overlap = start - Math.min(end.a, end.b)
+    const oldEnd = overlap > 0 ? end.a + overlap : end.a
+    const newEnd = overlap > 0 ? end.b + overlap : end.b
+    const tr = record.editor.state.tr.replace(start, oldEnd, document.slice(start, newEnd)).setMeta("addToHistory", false)
+    this.applyingHostDocument = true
+    try { return { sessionId, kind: this.dispatch(viewId, tr) ? "applied" : "rejected" } }
+    finally { this.applyingHostDocument = false }
+  }
   history(viewId: string, forward: boolean): boolean {
     const record = this.views.get(viewId)
     if (!record || !this.authority || !this.canInput() || this.freezing) return false
+    if (this.options.onHistoryRequest) return this.options.onHistoryRequest(forward ? "redo" : "undo", { ...this.identity })
     const state = this.authority.apply(this.authority.tr.setSelection(record.editor.state.selection.getBookmark().resolve(this.authority.doc)).setMeta("addToHistory", false))
     return (forward ? redo : undo)(state, (tr) => { this.dispatch(viewId, tr) })
   }

@@ -35,7 +35,7 @@ const EXPECTED_VALUE_EXPORTS: readonly ExpectedExport[] = [
 
 const EXPECTED_TYPE_EXPORTS: readonly ExpectedExport[] = [
   ...[
-    "ActiveIdentity", "AcquireFreeze", "ReleaseFreeze", "DetachViewResult", "DraftKind", "DraftPhase", "EncodingState",
+    "DocumentEditResult", "PictureReferenceReplacement", "ActiveIdentity", "AcquireFreeze", "ReleaseFreeze", "DetachViewResult", "DraftKind", "DraftPhase", "EncodingState",
     "FreezeOutcome", "HostMetadataSnapshot", "NoteDocumentController", "NoteDocumentProviderProps", "NoteEditorViewProps",
     "NoteFileRequest", "NoteFileRequestResult", "NotePaneInsets", "NotePaneToolbarLayout", "NoteToolbarFile",
     "NotePublicState", "NoteStateLifecycle", "OnSave", "PublicDraftState", "ReferenceInvalidationResult", "ReferenceInvalidationScope", "RequestSaveResult", "SaveContext", "SavePayload",
