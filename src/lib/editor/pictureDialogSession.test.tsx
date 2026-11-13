@@ -128,6 +128,32 @@ describe("共享会话图像模态框", () => {
 })
 
 describe("DocumentSession 图像目标与离开门禁", () => {
+  it.each(["move", "delete"])("公开宿主快照在模态等待时 %s 目标：保留 session 并按 nodeId 确认或拒绝", async (action) => {
+    const upload = vi.fn(() => Promise.resolve({ src: "hamster_note_data/images/0123456789abcdef0123456789abcdef.png" }))
+    const changes = vi.fn()
+    const session = new DocumentSession({ documentId: "A", loadKey: 1, initialDocument,
+      initialHostSnapshot: { changeId: 0, value: { title: "", summary: "" } },
+      onSave: async () => {}, onChange: changes, onPictureUpload: upload })
+    const a = session.attachView("a")
+    try {
+      expect(session.openPictureDialog("a", ids[0]!, document.createElement("button"))).toBe(true)
+      const content = initialDocument.data["content"] as unknown[]
+      const updated = { schemaVersion: 1, data: { type: "doc", content: action === "move" ? [content[1], content[0]] : [content[1]] } }
+      expect(session.controller.applyHostDocument!({ expectedSessionId: session.identity.sessionId, document: updated }).kind).toBe("applied")
+      expect(changes).not.toHaveBeenCalled()
+      expect(session.pictureDialogForView("a")).not.toBeNull()
+      const ticket = session.confirmPictureDialog("a", file())
+      if (action === "delete") { expect(ticket).toBeNull(); expect(upload).not.toHaveBeenCalled() }
+      else {
+        expect(ticket).toBeTruthy()
+        await waitFor(() => expect(a.editor.state.doc.childCount).toBe(3))
+        expect(a.editor.state.doc.child(0).textContent).toBe("b")
+        expect(a.editor.state.doc.child(1).textContent).toBe("a")
+        expect(a.editor.state.doc.child(2).type.name).toBe("picture")
+      }
+    } finally { session.dispose() }
+  })
+
   it("删除目标后拒绝确认；模态期间禁止并行草稿和 owner 离开", () => {
     const upload = vi.fn()
     const session = new DocumentSession({

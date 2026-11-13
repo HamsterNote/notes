@@ -448,3 +448,56 @@ describe("full node assembly and asynchronous origin", () => {
     expect(options.onChange).not.toHaveBeenCalled()
   })
 })
+
+describe("公开受保护图片恢复与宿主共享历史", () => {
+  const nodeId = "123e4567-e89b-42d3-a456-426614174001"
+  const oldSrc = "https://legacy.example/api/assets/original"
+  const src = "hamster_note_data/images/0123456789abcdef0123456789abcdef.png"
+  const withPicture = () => ({ schemaVersion: 1, data: { type: "doc", content: [
+    initialDocument().data.content[0], { type: "picture", attrs: { nodeId, src: oldSrc, alt: "旧图" } }
+  ] } })
+  it("CAS 引用替换为独立共享历史事务，另一视图可撤销和重做且保存仅有持久路径", async () => {
+    const h = make({ initialDocument: withPicture() })
+    expect(h.c.replacePictureReferences!({ expectedSessionId: h.id, replacements: [{ nodeId, expectedSrc: oldSrc, src }] }).kind).toBe("applied")
+    expect(h.a.editor.state.doc.lastChild?.attrs["src"]).toBe(src)
+    expect(h.b.editor.state.doc.lastChild?.attrs["src"]).toBe(src)
+    h.session.dispatch("a", h.a.editor.state.tr.insertText("after", 1))
+    expect(h.session.history("b", false)).toBe(true)
+    expect(h.a.editor.state.doc.textContent).not.toContain("after")
+    expect(h.a.editor.state.doc.lastChild?.attrs["src"]).toBe(src)
+    expect(h.session.history("b", false)).toBe(true)
+    expect(h.a.editor.state.doc.lastChild?.attrs["src"]).toBe(oldSrc)
+    expect(h.session.history("a", true)).toBe(true)
+    const saved = await finish(h.c.requestSave({ reason: "host-save", expectedSessionId: h.id }))
+    expect(saved.kind).toBe("saved")
+    const serialized = JSON.stringify(vi.mocked(h.options.onSave).mock.calls[0]?.[0])
+    expect(serialized).toContain(src)
+    expect(serialized).not.toMatch(/blob:|data:image|base64/)
+  })
+  it("陈旧会话、陈旧引用、重复 nodeId、运行时 URL 都零事务；批量匹配失败原子拒绝", () => {
+    const h = make({ initialDocument: withPicture() })
+    const replace = (expectedSessionId: string, replacements: { nodeId: string; expectedSrc: string; src: string }[]) => h.c.replacePictureReferences!({ expectedSessionId, replacements })
+    const valid = { nodeId, expectedSrc: oldSrc, src }
+    expect(replace("stale", [valid]).kind).toBe("rejected")
+    expect(replace(h.id, [{ ...valid, expectedSrc: "changed" }]).kind).toBe("rejected")
+    expect(replace(h.id, [valid, valid]).kind).toBe("rejected")
+    expect(replace(h.id, [valid, { ...valid, nodeId: "missing" }]).kind).toBe("rejected")
+    for (const bad of ["blob:https://host/id", "data:image/png;base64,AA==", "https://host/p.png"]) expect(replace(h.id, [{ ...valid, src: bad }]).kind).toBe("rejected")
+    expect(h.options.onChange).not.toHaveBeenCalled()
+    expect(h.a.editor.state.doc.lastChild?.attrs["src"]).toBe(oldSrc)
+  })
+  it("冻结后拒绝恢复；宿主快照应用不回显、不替换 session，历史按钮交给宿主权威", async () => {
+    const onHistoryRequest = vi.fn(() => true)
+    const h = make({ initialDocument: withPicture(), onHistoryRequest })
+    const frozen = await h.c.setInputFrozen(true, { expectedSessionId: h.id, requestId: "freeze" })
+    expect(frozen.kind).toBe("applied")
+    expect(h.c.replacePictureReferences!({ expectedSessionId: h.id, replacements: [{ nodeId, expectedSrc: oldSrc, src }] }).kind).toBe("rejected")
+    if ("leaseId" in frozen) await h.c.setInputFrozen(false, { expectedSessionId: h.id, requestId: "freeze", leaseId: frozen.leaseId })
+    expect(h.c.applyHostDocument!({ expectedSessionId: h.id, document: initialDocument() }).kind).toBe("applied")
+    expect(h.c.getState().identity?.sessionId).toBe(h.id)
+    expect(h.options.onChange).not.toHaveBeenCalled()
+    expect(h.b.editor.state.doc.childCount).toBe(1)
+    expect(h.session.history("b", false)).toBe(true)
+    expect(onHistoryRequest).toHaveBeenCalledWith("undo", h.session.identity)
+  })
+})

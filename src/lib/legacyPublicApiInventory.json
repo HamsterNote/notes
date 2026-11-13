@@ -266,6 +266,8 @@
     }
   ],
   "currentPublicExports": [
+    { "name": "DocumentEditResult", "kind": "type", "source": "./editor/documentTypes" },
+    { "name": "PictureReferenceReplacement", "kind": "type", "source": "./editor/documentTypes" },
     { "name": "NoteDocumentProvider", "kind": "value", "source": "./editor/NoteDocumentProvider" },
     { "name": "NoteEditorView", "kind": "value", "source": "./editor/NoteDocumentProvider" },
     { "name": "ActiveIdentity", "kind": "type", "source": "./editor/documentTypes" },
