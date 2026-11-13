@@ -1,0 +1,44 @@
+{
+  "package": "@hamster-note/notes@3.3.0",
+  "browser": "148.0.7778.96",
+  "results": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "threeCreations": 3,
+      "sixConversions": 6,
+      "markers": [
+        "1",
+        "a",
+        "i",
+        "1",
+        "a"
+      ],
+      "quote": true,
+      "link": true,
+      "checkedSaveReopen": true,
+      "pageErrors": []
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "threeCreations": 3,
+      "sixConversions": 6,
+      "markers": [
+        "1",
+        "a",
+        "i",
+        "1",
+        "a"
+      ],
+      "quote": true,
+      "link": true,
+      "checkedSaveReopen": true,
+      "pageErrors": []
+    }
+  ]
+}

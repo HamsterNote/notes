@@ -1,0 +1,108 @@
+npm warn ERESOLVE overriding peer dependency
+npm warn ERESOLVE overriding peer dependency
+npm warn While resolving: @tiptap/extension-bubble-menu@3.33.1
+npm warn Found: @tiptap/core@3.31.3
+npm warn node_modules/@tiptap/core
+npm warn   @tiptap/core@"3.31.3" from @hamster-note/notes@3.3.0
+npm warn   node_modules/@hamster-note/notes
+npm warn     @hamster-note/notes@"3.3.0" from the root project
+npm warn   4 more (@tiptap/extension-list, @tiptap/extension-table, ...)
+npm warn
+npm warn Could not resolve dependency:
+npm warn peer @tiptap/core@"3.33.1" from @tiptap/extension-bubble-menu@3.33.1
+npm warn node_modules/@tiptap/extension-bubble-menu
+npm warn   optional @tiptap/extension-bubble-menu@"^3.31.3" from @tiptap/react@3.31.3
+npm warn   node_modules/@tiptap/react
+npm warn
+npm warn Conflicting peer dependency: @tiptap/core@3.33.1
+npm warn node_modules/@tiptap/core
+npm warn   peer @tiptap/core@"3.33.1" from @tiptap/extension-bubble-menu@3.33.1
+npm warn   node_modules/@tiptap/extension-bubble-menu
+npm warn     optional @tiptap/extension-bubble-menu@"^3.31.3" from @tiptap/react@3.31.3
+npm warn     node_modules/@tiptap/react
+npm warn ERESOLVE overriding peer dependency
+npm warn While resolving: @tiptap/extension-bubble-menu@3.33.1
+npm warn Found: @tiptap/pm@3.31.3
+npm warn node_modules/@tiptap/pm
+npm warn   @tiptap/pm@"3.31.3" from @hamster-note/notes@3.3.0
+npm warn   node_modules/@hamster-note/notes
+npm warn     @hamster-note/notes@"3.3.0" from the root project
+npm warn   5 more (@tiptap/core, @tiptap/extension-list, ...)
+npm warn
+npm warn Could not resolve dependency:
+npm warn peer @tiptap/pm@"3.33.1" from @tiptap/extension-bubble-menu@3.33.1
+npm warn node_modules/@tiptap/extension-bubble-menu
+npm warn   optional @tiptap/extension-bubble-menu@"^3.31.3" from @tiptap/react@3.31.3
+npm warn   node_modules/@tiptap/react
+npm warn
+npm warn Conflicting peer dependency: @tiptap/pm@3.33.1
+npm warn node_modules/@tiptap/pm
+npm warn   peer @tiptap/pm@"3.33.1" from @tiptap/extension-bubble-menu@3.33.1
+npm warn   node_modules/@tiptap/extension-bubble-menu
+npm warn     optional @tiptap/extension-bubble-menu@"^3.31.3" from @tiptap/react@3.31.3
+npm warn     node_modules/@tiptap/react
+npm warn ERESOLVE overriding peer dependency
+npm warn While resolving: @tiptap/extension-floating-menu@3.33.1
+npm warn Found: @tiptap/core@3.31.3
+npm warn node_modules/@tiptap/core
+npm warn   @tiptap/core@"3.31.3" from @hamster-note/notes@3.3.0
+npm warn   node_modules/@hamster-note/notes
+npm warn     @hamster-note/notes@"3.3.0" from the root project
+npm warn   4 more (@tiptap/extension-list, @tiptap/extension-table, ...)
+npm warn
+npm warn Could not resolve dependency:
+npm warn peer @tiptap/core@"3.33.1" from @tiptap/extension-floating-menu@3.33.1
+npm warn node_modules/@tiptap/extension-floating-menu
+npm warn   optional @tiptap/extension-floating-menu@"^3.31.3" from @tiptap/react@3.31.3
+npm warn   node_modules/@tiptap/react
+npm warn
+npm warn Conflicting peer dependency: @tiptap/core@3.33.1
+npm warn node_modules/@tiptap/core
+npm warn   peer @tiptap/core@"3.33.1" from @tiptap/extension-floating-menu@3.33.1
+npm warn   node_modules/@tiptap/extension-floating-menu
+npm warn     optional @tiptap/extension-floating-menu@"^3.31.3" from @tiptap/react@3.31.3
+npm warn     node_modules/@tiptap/react
+npm warn ERESOLVE overriding peer dependency
+npm warn While resolving: @tiptap/extension-floating-menu@3.33.1
+npm warn Found: @tiptap/pm@3.31.3
+npm warn node_modules/@tiptap/pm
+npm warn   @tiptap/pm@"3.31.3" from @hamster-note/notes@3.3.0
+npm warn   node_modules/@hamster-note/notes
+npm warn     @hamster-note/notes@"3.3.0" from the root project
+npm warn   5 more (@tiptap/core, @tiptap/extension-list, ...)
+npm warn
+npm warn Could not resolve dependency:
+npm warn peer @tiptap/pm@"3.33.1" from @tiptap/extension-floating-menu@3.33.1
+npm warn node_modules/@tiptap/extension-floating-menu
+npm warn   optional @tiptap/extension-floating-menu@"^3.31.3" from @tiptap/react@3.31.3
+npm warn   node_modules/@tiptap/react
+npm warn
+npm warn Conflicting peer dependency: @tiptap/pm@3.33.1
+npm warn node_modules/@tiptap/pm
+npm warn   peer @tiptap/pm@"3.33.1" from @tiptap/extension-floating-menu@3.33.1
+npm warn   node_modules/@tiptap/extension-floating-menu
+npm warn     optional @tiptap/extension-floating-menu@"^3.31.3" from @tiptap/react@3.31.3
+npm warn     node_modules/@tiptap/react
+npm warn ERESOLVE overriding peer dependency
+npm warn While resolving: @hamster-note/painting@0.2.0
+npm warn Found: react@19.0.0
+npm warn node_modules/react
+npm warn   peer react@"^19.3.0" from react-native@0.88.1
+npm warn   node_modules/@hamster-note/notes/node_modules/react-native
+npm warn     peer react-native@">=0.74" from @hamster-note/painting@0.2.0
+npm warn     node_modules/@hamster-note/notes/node_modules/@hamster-note/painting
+npm warn
+npm warn Could not resolve dependency:
+npm warn peer react@"^18.0.0" from @hamster-note/painting@0.2.0
+npm warn node_modules/@hamster-note/notes/node_modules/@hamster-note/painting
+npm warn   @hamster-note/painting@"0.2.0" from @hamster-note/notes@3.3.0
+npm warn   node_modules/@hamster-note/notes
+npm warn
+npm warn Conflicting peer dependency: react@18.3.1
+npm warn node_modules/react
+npm warn   peer react@"^18.0.0" from @hamster-note/painting@0.2.0
+npm warn   node_modules/@hamster-note/notes/node_modules/@hamster-note/painting
+npm warn     @hamster-note/painting@"0.2.0" from @hamster-note/notes@3.3.0
+npm warn     node_modules/@hamster-note/notes
+
+added 328 packages in 29s

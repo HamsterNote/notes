@@ -1,0 +1,1040 @@
+HAM-237 npm 3.3.0 release verification
+Actual publication executed exactly once by existing tag Release workflow.
+Registry configured by setup-node: https://registry.npmjs.org
+No local competing publish, unpublish, force push, or version retry.
+
+$ git ls-remote --tags origin refs/tags/v3.3.0 refs/tags/v3.3.0^{}
+639785b51654316f15eb6f02c51f78c49e71123a	refs/tags/v3.3.0
+5758f85c26ea7469d4645bfd60982f9899ac166b	refs/tags/v3.3.0^{}
+
+GitHub Release workflow JSON
+{"conclusion":"success","headSha":"5758f85c26ea7469d4645bfd60982f9899ac166b","jobs":[{"completedAt":"2026-11-12T14:27:28Z","conclusion":"success","databaseId":131246951293,"name":"publish","startedAt":"2026-11-12T14:25:26Z","status":"completed","steps":[{"completedAt":"2026-11-12T14:25:28Z","conclusion":"success","name":"Set up job","number":1,"startedAt":"2026-11-12T14:25:27Z","status":"completed"},{"completedAt":"2026-11-12T14:25:29Z","conclusion":"success","name":"Checkout","number":2,"startedAt":"2026-11-12T14:25:28Z","status":"completed"},{"completedAt":"2026-11-12T14:25:34Z","conclusion":"success","name":"Setup Node.js","number":3,"startedAt":"2026-11-12T14:25:29Z","status":"completed"},{"completedAt":"2026-11-12T14:25:39Z","conclusion":"success","name":"Install dependencies","number":4,"startedAt":"2026-11-12T14:25:34Z","status":"completed"},{"completedAt":"2026-11-12T14:25:40Z","conclusion":"success","name":"Prepare version from tag","number":5,"startedAt":"2026-11-12T14:25:39Z","status":"completed"},{"completedAt":"2026-11-12T14:25:40Z","conclusion":"success","name":"Verify package version","number":6,"startedAt":"2026-11-12T14:25:40Z","status":"completed"},{"completedAt":"2026-11-12T14:25:57Z","conclusion":"success","name":"Lint","number":7,"startedAt":"2026-11-12T14:25:40Z","status":"completed"},{"completedAt":"2026-11-12T14:26:12Z","conclusion":"success","name":"Typecheck","number":8,"startedAt":"2026-11-12T14:25:57Z","status":"completed"},{"completedAt":"2026-11-12T14:26:59Z","conclusion":"success","name":"Test","number":9,"startedAt":"2026-11-12T14:26:12Z","status":"completed"},{"completedAt":"2026-11-12T14:27:03Z","conclusion":"success","name":"Verify editor contracts","number":10,"startedAt":"2026-11-12T14:26:59Z","status":"completed"},{"completedAt":"2026-11-12T14:27:18Z","conclusion":"success","name":"Build","number":11,"startedAt":"2026-11-12T14:27:03Z","status":"completed"},{"completedAt":"2026-11-12T14:27:26Z","conclusion":"success","name":"Publish package","number":12,"startedAt":"2026-11-12T14:27:18Z","status":"completed"},{"completedAt":"2026-11-12T14:27:26Z","conclusion":"success","name":"Post Setup Node.js","number":23,"startedAt":"2026-11-12T14:27:26Z","status":"completed"},{"completedAt":"2026-11-12T14:27:27Z","conclusion":"success","name":"Post Checkout","number":24,"startedAt":"2026-11-12T14:27:26Z","status":"completed"},{"completedAt":"2026-11-12T14:27:27Z","conclusion":"success","name":"Complete job","number":25,"startedAt":"2026-11-12T14:27:27Z","status":"completed"}],"url":"https://github.com/HamsterNote/notes/actions/runs/43237012807/job/131246951293"}],"status":"completed","url":"https://github.com/HamsterNote/notes/actions/runs/43237012807"}
+
+Raw Publish package step (including command, registry and shasum)
+publish	Publish package	﻿2026-11-12T14:27:18.1877297Z ##[group]Run npm publish --access public --tag "latest"
+publish	Publish package	2026-11-12T14:27:18.1877825Z [36;1mnpm publish --access public --tag "latest"[0m
+publish	Publish package	2026-11-12T14:27:18.1912929Z shell: /usr/bin/bash -e {0}
+publish	Publish package	2026-11-12T14:27:18.1913574Z env:
+publish	Publish package	2026-11-12T14:27:18.1914000Z   NPM_CONFIG_USERCONFIG: /home/runner/work/_temp/.npmrc
+publish	Publish package	2026-11-12T14:27:18.1915487Z   NODE_AUTH_TOKEN: ***
+publish	Publish package	2026-11-12T14:27:18.1915870Z ##[endgroup]
+publish	Publish package	2026-11-12T14:27:18.7849970Z npm warn Unknown user config "always-auth". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+publish	Publish package	2026-11-12T14:27:20.5191958Z npm warn publish npm auto-corrected some errors in your package.json when publishing.  Please run "npm pkg fix" to address these errors.
+publish	Publish package	2026-11-12T14:27:20.5193994Z npm warn publish errors corrected:
+publish	Publish package	2026-11-12T14:27:20.5195680Z npm warn publish "repository.url" was normalized to "git+https://github.com/HamsterNote/notes.git"
+publish	Publish package	2026-11-12T14:27:20.5238400Z npm notice
+publish	Publish package	2026-11-12T14:27:20.5240992Z npm notice 📦  @hamster-note/notes@3.3.0
+publish	Publish package	2026-11-12T14:27:20.5241843Z npm notice Tarball Contents
+publish	Publish package	2026-11-12T14:27:20.5259541Z npm notice 1.1kB LICENSE
+publish	Publish package	2026-11-12T14:27:20.5260247Z npm notice 20.9kB README.md
+publish	Publish package	2026-11-12T14:27:20.5260860Z npm notice 63.6kB dist/fonts/KaTeX_AMS-Regular.ttf
+publish	Publish package	2026-11-12T14:27:20.5261716Z npm notice 33.5kB dist/fonts/KaTeX_AMS-Regular.woff
+publish	Publish package	2026-11-12T14:27:20.5262779Z npm notice 28.1kB dist/fonts/KaTeX_AMS-Regular.woff2
+publish	Publish package	2026-11-12T14:27:20.5263502Z npm notice 12.4kB dist/fonts/KaTeX_Caligraphic-Bold.ttf
+publish	Publish package	2026-11-12T14:27:20.5264296Z npm notice 7.7kB dist/fonts/KaTeX_Caligraphic-Bold.woff
+publish	Publish package	2026-11-12T14:27:20.5265026Z npm notice 6.9kB dist/fonts/KaTeX_Caligraphic-Bold.woff2
+publish	Publish package	2026-11-12T14:27:20.5265802Z npm notice 12.3kB dist/fonts/KaTeX_Caligraphic-Regular.ttf
+publish	Publish package	2026-11-12T14:27:20.5266791Z npm notice 7.7kB dist/fonts/KaTeX_Caligraphic-Regular.woff
+publish	Publish package	2026-11-12T14:27:20.5267545Z npm notice 6.9kB dist/fonts/KaTeX_Caligraphic-Regular.woff2
+publish	Publish package	2026-11-12T14:27:20.5268209Z npm notice 19.6kB dist/fonts/KaTeX_Fraktur-Bold.ttf
+publish	Publish package	2026-11-12T14:27:20.5268768Z npm notice 13.3kB dist/fonts/KaTeX_Fraktur-Bold.woff
+publish	Publish package	2026-11-12T14:27:20.5269310Z npm notice 11.3kB dist/fonts/KaTeX_Fraktur-Bold.woff2
+publish	Publish package	2026-11-12T14:27:20.5269925Z npm notice 19.6kB dist/fonts/KaTeX_Fraktur-Regular.ttf
+publish	Publish package	2026-11-12T14:27:20.5270794Z npm notice 13.2kB dist/fonts/KaTeX_Fraktur-Regular.woff
+publish	Publish package	2026-11-12T14:27:20.5271341Z npm notice 11.3kB dist/fonts/KaTeX_Fraktur-Regular.woff2
+publish	Publish package	2026-11-12T14:27:20.5271869Z npm notice 51.3kB dist/fonts/KaTeX_Main-Bold.ttf
+publish	Publish package	2026-11-12T14:27:20.5272664Z npm notice 29.9kB dist/fonts/KaTeX_Main-Bold.woff
+publish	Publish package	2026-11-12T14:27:20.5273415Z npm notice 25.3kB dist/fonts/KaTeX_Main-Bold.woff2
+publish	Publish package	2026-11-12T14:27:20.5273953Z npm notice 33.0kB dist/fonts/KaTeX_Main-BoldItalic.ttf
+publish	Publish package	2026-11-12T14:27:20.5274477Z npm notice 19.4kB dist/fonts/KaTeX_Main-BoldItalic.woff
+publish	Publish package	2026-11-12T14:27:20.5275101Z npm notice 16.8kB dist/fonts/KaTeX_Main-BoldItalic.woff2
+publish	Publish package	2026-11-12T14:27:20.5275888Z npm notice 33.6kB dist/fonts/KaTeX_Main-Italic.ttf
+publish	Publish package	2026-11-12T14:27:20.5276648Z npm notice 19.7kB dist/fonts/KaTeX_Main-Italic.woff
+publish	Publish package	2026-11-12T14:27:20.5277215Z npm notice 17.0kB dist/fonts/KaTeX_Main-Italic.woff2
+publish	Publish package	2026-11-12T14:27:20.5277727Z npm notice 53.6kB dist/fonts/KaTeX_Main-Regular.ttf
+publish	Publish package	2026-11-12T14:27:20.5278305Z npm notice 30.8kB dist/fonts/KaTeX_Main-Regular.woff
+publish	Publish package	2026-11-12T14:27:20.5278828Z npm notice 26.3kB dist/fonts/KaTeX_Main-Regular.woff2
+publish	Publish package	2026-11-12T14:27:20.5279443Z npm notice 31.2kB dist/fonts/KaTeX_Math-BoldItalic.ttf
+publish	Publish package	2026-11-12T14:27:20.5280154Z npm notice 18.7kB dist/fonts/KaTeX_Math-BoldItalic.woff
+publish	Publish package	2026-11-12T14:27:20.5280677Z npm notice 16.4kB dist/fonts/KaTeX_Math-BoldItalic.woff2
+publish	Publish package	2026-11-12T14:27:20.5281262Z npm notice 31.3kB dist/fonts/KaTeX_Math-Italic.ttf
+publish	Publish package	2026-11-12T14:27:20.5281755Z npm notice 18.7kB dist/fonts/KaTeX_Math-Italic.woff
+publish	Publish package	2026-11-12T14:27:20.5282701Z npm notice 16.4kB dist/fonts/KaTeX_Math-Italic.woff2
+publish	Publish package	2026-11-12T14:27:20.5283237Z npm notice 24.5kB dist/fonts/KaTeX_SansSerif-Bold.ttf
+publish	Publish package	2026-11-12T14:27:20.5283745Z npm notice 14.4kB dist/fonts/KaTeX_SansSerif-Bold.woff
+publish	Publish package	2026-11-12T14:27:20.5284698Z npm notice 12.2kB dist/fonts/KaTeX_SansSerif-Bold.woff2
+publish	Publish package	2026-11-12T14:27:20.5285219Z npm notice 22.4kB dist/fonts/KaTeX_SansSerif-Italic.ttf
+publish	Publish package	2026-11-12T14:27:20.5285796Z npm notice 14.1kB dist/fonts/KaTeX_SansSerif-Italic.woff
+publish	Publish package	2026-11-12T14:27:20.5286437Z npm notice 12.0kB dist/fonts/KaTeX_SansSerif-Italic.woff2
+publish	Publish package	2026-11-12T14:27:20.5287195Z npm notice 19.4kB dist/fonts/KaTeX_SansSerif-Regular.ttf
+publish	Publish package	2026-11-12T14:27:20.5288028Z npm notice 12.3kB dist/fonts/KaTeX_SansSerif-Regular.woff
+publish	Publish package	2026-11-12T14:27:20.5288764Z npm notice 10.3kB dist/fonts/KaTeX_SansSerif-Regular.woff2
+publish	Publish package	2026-11-12T14:27:20.5289558Z npm notice 16.6kB dist/fonts/KaTeX_Script-Regular.ttf
+publish	Publish package	2026-11-12T14:27:20.5290326Z npm notice 10.6kB dist/fonts/KaTeX_Script-Regular.woff
+publish	Publish package	2026-11-12T14:27:20.5291119Z npm notice 9.6kB dist/fonts/KaTeX_Script-Regular.woff2
+publish	Publish package	2026-11-12T14:27:20.5291779Z npm notice 12.2kB dist/fonts/KaTeX_Size1-Regular.ttf
+publish	Publish package	2026-11-12T14:27:20.5292647Z npm notice 6.5kB dist/fonts/KaTeX_Size1-Regular.woff
+publish	Publish package	2026-11-12T14:27:20.5293267Z npm notice 5.5kB dist/fonts/KaTeX_Size1-Regular.woff2
+publish	Publish package	2026-11-12T14:27:20.5293816Z npm notice 11.5kB dist/fonts/KaTeX_Size2-Regular.ttf
+publish	Publish package	2026-11-12T14:27:20.5294368Z npm notice 6.2kB dist/fonts/KaTeX_Size2-Regular.woff
+publish	Publish package	2026-11-12T14:27:20.5294916Z npm notice 5.2kB dist/fonts/KaTeX_Size2-Regular.woff2
+publish	Publish package	2026-11-12T14:27:20.5295447Z npm notice 7.6kB dist/fonts/KaTeX_Size3-Regular.ttf
+publish	Publish package	2026-11-12T14:27:20.5295941Z npm notice 4.4kB dist/fonts/KaTeX_Size3-Regular.woff
+publish	Publish package	2026-11-12T14:27:20.5296513Z npm notice 3.6kB dist/fonts/KaTeX_Size3-Regular.woff2
+publish	Publish package	2026-11-12T14:27:20.5297015Z npm notice 10.4kB dist/fonts/KaTeX_Size4-Regular.ttf
+publish	Publish package	2026-11-12T14:27:20.5297525Z npm notice 6.0kB dist/fonts/KaTeX_Size4-Regular.woff
+publish	Publish package	2026-11-12T14:27:20.5298062Z npm notice 4.9kB dist/fonts/KaTeX_Size4-Regular.woff2
+publish	Publish package	2026-11-12T14:27:20.5298592Z npm notice 27.6kB dist/fonts/KaTeX_Typewriter-Regular.ttf
+publish	Publish package	2026-11-12T14:27:20.5299215Z npm notice 16.0kB dist/fonts/KaTeX_Typewriter-Regular.woff
+publish	Publish package	2026-11-12T14:27:20.5299788Z npm notice 13.6kB dist/fonts/KaTeX_Typewriter-Regular.woff2
+publish	Publish package	2026-11-12T14:27:20.5300330Z npm notice 23.8kB dist/formula.css
+publish	Publish package	2026-11-12T14:27:20.5300773Z npm notice 1.2MB dist/index.cjs
+publish	Publish package	2026-11-12T14:27:20.5301227Z npm notice 5.3MB dist/index.cjs.map
+publish	Publish package	2026-11-12T14:27:20.5301926Z npm notice 38B dist/index.d.ts
+publish	Publish package	2026-11-12T14:27:20.5302330Z npm notice 1.8MB dist/index.js
+publish	Publish package	2026-11-12T14:27:20.5302970Z npm notice 5.5MB dist/index.js.map
+publish	Publish package	2026-11-12T14:27:20.5303509Z npm notice 1.3kB dist/lib/editor/blockMenu.d.ts
+publish	Publish package	2026-11-12T14:27:20.5303967Z npm notice 904B dist/lib/editor/blockMenu.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5304546Z npm notice 6.1kB dist/lib/editor/blockReorder.d.ts
+publish	Publish package	2026-11-12T14:27:20.5305057Z npm notice 1.0kB dist/lib/editor/blockReorder.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5305597Z npm notice 3.1kB dist/lib/editor/documentSession.d.ts
+publish	Publish package	2026-11-12T14:27:20.5306180Z npm notice 2.8kB dist/lib/editor/documentSession.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5306700Z npm notice 7.6kB dist/lib/editor/documentTypes.d.ts
+publish	Publish package	2026-11-12T14:27:20.5307230Z npm notice 7.4kB dist/lib/editor/documentTypes.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5307757Z npm notice 2.8kB dist/lib/editor/HnnDataDrawer.d.ts
+publish	Publish package	2026-11-12T14:27:20.5308321Z npm notice 2.0kB dist/lib/editor/HnnDataDrawer.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5309027Z npm notice 1.6kB dist/lib/editor/hostReferenceInteractions.d.ts
+publish	Publish package	2026-11-12T14:27:20.5309657Z npm notice 1.1kB dist/lib/editor/hostReferenceInteractions.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5310228Z npm notice 2.6kB dist/lib/editor/hostReferences.d.ts
+publish	Publish package	2026-11-12T14:27:20.5310749Z npm notice 1.6kB dist/lib/editor/hostReferences.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5311322Z npm notice 1.3kB dist/lib/editor/HostReferenceUI.d.ts
+publish	Publish package	2026-11-12T14:27:20.5311800Z npm notice 542B dist/lib/editor/HostReferenceUI.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5312335Z npm notice 307B dist/lib/editor/interactionLayout.d.ts
+publish	Publish package	2026-11-12T14:27:20.5313144Z npm notice 232B dist/lib/editor/interactionLayout.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5313700Z npm notice 346B dist/lib/editor/interactionToolbar.d.ts
+publish	Publish package	2026-11-12T14:27:20.5314387Z npm notice 337B dist/lib/editor/interactionToolbar.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5314883Z npm notice 846B dist/lib/editor/linkEditing.d.ts
+publish	Publish package	2026-11-12T14:27:20.5315378Z npm notice 966B dist/lib/editor/linkEditing.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5315880Z npm notice 1.8kB dist/lib/editor/listCommands.d.ts
+publish	Publish package	2026-11-12T14:27:20.5316416Z npm notice 1.4kB dist/lib/editor/listCommands.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5316900Z npm notice 1.8kB dist/lib/editor/MarkdownExport.d.ts
+publish	Publish package	2026-11-12T14:27:20.5317449Z npm notice 870B dist/lib/editor/MarkdownExport.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5317944Z npm notice 482B dist/lib/editor/nativeClipboard.d.ts
+publish	Publish package	2026-11-12T14:27:20.5318507Z npm notice 261B dist/lib/editor/nativeClipboard.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5319038Z npm notice 434B dist/lib/editor/NoteDocumentProvider.d.ts
+publish	Publish package	2026-11-12T14:27:20.5319600Z npm notice 467B dist/lib/editor/NoteDocumentProvider.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5320176Z npm notice 1.8kB dist/lib/editor/NoteEditor.d.ts
+publish	Publish package	2026-11-12T14:27:20.5320664Z npm notice 701B dist/lib/editor/NoteEditor.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5321257Z npm notice 1.2kB dist/lib/editor/NoteSaveStatus.d.ts
+publish	Publish package	2026-11-12T14:27:20.5321770Z npm notice 561B dist/lib/editor/NoteSaveStatus.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5322255Z npm notice 1.8kB dist/lib/editor/pictureUpload.d.ts
+publish	Publish package	2026-11-12T14:27:20.5323011Z npm notice 1.2kB dist/lib/editor/pictureUpload.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5323532Z npm notice 4.5kB dist/lib/editor/session.d.ts
+publish	Publish package	2026-11-12T14:27:20.5324683Z npm notice 1.2kB dist/lib/editor/session.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5325188Z npm notice 328B dist/lib/editor/sessionKey.d.ts
+publish	Publish package	2026-11-12T14:27:20.5325679Z npm notice 227B dist/lib/editor/sessionKey.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5326214Z npm notice 527B dist/lib/editor/textFormatting.d.ts
+publish	Publish package	2026-11-12T14:27:20.5326735Z npm notice 421B dist/lib/editor/textFormatting.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5327291Z npm notice 6.1kB dist/lib/editor/types.d.ts
+publish	Publish package	2026-11-12T14:27:20.5327762Z npm notice 4.1kB dist/lib/editor/types.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5328271Z npm notice 1.3kB dist/lib/editor/ViewToolbar.d.ts
+publish	Publish package	2026-11-12T14:27:20.5328840Z npm notice 1.2kB dist/lib/editor/ViewToolbar.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5329357Z npm notice 2.8kB dist/lib/hnn/budgetedTransaction.d.ts
+publish	Publish package	2026-11-12T14:27:20.5330008Z npm notice 830B dist/lib/hnn/budgetedTransaction.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5330538Z npm notice 2.3kB dist/lib/hnn/cardPayload.d.ts
+publish	Publish package	2026-11-12T14:27:20.5331055Z npm notice 1.8kB dist/lib/hnn/cardPayload.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5331576Z npm notice 987B dist/lib/hnn/codec.d.ts
+publish	Publish package	2026-11-12T14:27:20.5332039Z npm notice 720B dist/lib/hnn/codec.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5332700Z npm notice 557B dist/lib/hnn/compositionDeletion.d.ts
+publish	Publish package	2026-11-12T14:27:20.5333290Z npm notice 236B dist/lib/hnn/compositionDeletion.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5333845Z npm notice 442B dist/lib/hnn/directoryEntries.d.ts
+publish	Publish package	2026-11-12T14:27:20.5334455Z npm notice 399B dist/lib/hnn/directoryEntries.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5335196Z npm notice 1.4kB dist/lib/hnn/drawingPayload.d.ts
+publish	Publish package	2026-11-12T14:27:20.5335711Z npm notice 1.0kB dist/lib/hnn/drawingPayload.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5336221Z npm notice 3.0kB dist/lib/hnn/extensions.d.ts
+publish	Publish package	2026-11-12T14:27:20.5336763Z npm notice 1.6kB dist/lib/hnn/extensions.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5337237Z npm notice 1.4kB dist/lib/hnn/limits.d.ts
+publish	Publish package	2026-11-12T14:27:20.5337714Z npm notice 379B dist/lib/hnn/limits.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5338215Z npm notice 448B dist/lib/hnn/listInteractions.d.ts
+publish	Publish package	2026-11-12T14:27:20.5338782Z npm notice 274B dist/lib/hnn/listInteractions.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5339304Z npm notice 553B dist/lib/hnn/listNumbering.d.ts
+publish	Publish package	2026-11-12T14:27:20.5339805Z npm notice 516B dist/lib/hnn/listNumbering.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5340259Z npm notice 1.1kB dist/lib/hnn/markdown.d.ts
+publish	Publish package	2026-11-12T14:27:20.5340754Z npm notice 915B dist/lib/hnn/markdown.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5341258Z npm notice 3.2kB dist/lib/hnn/menuPopover.d.ts
+publish	Publish package	2026-11-12T14:27:20.5341763Z npm notice 1.2kB dist/lib/hnn/menuPopover.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5342506Z npm notice 1.9kB dist/lib/hnn/nodeId.d.ts
+publish	Publish package	2026-11-12T14:27:20.5343066Z npm notice 833B dist/lib/hnn/nodeId.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5343639Z npm notice 953B dist/lib/hnn/persistedStringBudget.d.ts
+publish	Publish package	2026-11-12T14:27:20.5344177Z npm notice 583B dist/lib/hnn/persistedStringBudget.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5344679Z npm notice 153B dist/lib/hnn/quoteInteractions.d.ts
+publish	Publish package	2026-11-12T14:27:20.5345271Z npm notice 217B dist/lib/hnn/quoteInteractions.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5345739Z npm notice 307B dist/lib/hnn/schema.d.ts
+publish	Publish package	2026-11-12T14:27:20.5346259Z npm notice 217B dist/lib/hnn/schema.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5346703Z npm notice 1.7kB dist/lib/hnn/stringBytes.d.ts
+publish	Publish package	2026-11-12T14:27:20.5347177Z npm notice 538B dist/lib/hnn/stringBytes.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5347725Z npm notice 1.7kB dist/lib/hnn/tableEdgeControls.d.ts
+publish	Publish package	2026-11-12T14:27:20.5348228Z npm notice 1.1kB dist/lib/hnn/tableEdgeControls.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5348843Z npm notice 273B dist/lib/hnn/transactionPermission.d.ts
+publish	Publish package	2026-11-12T14:27:20.5349404Z npm notice 335B dist/lib/hnn/transactionPermission.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5349920Z npm notice 469B dist/lib/hnn/urlPolicy.d.ts
+publish	Publish package	2026-11-12T14:27:20.5350421Z npm notice 258B dist/lib/hnn/urlPolicy.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5350903Z npm notice 1.9kB dist/lib/index.d.ts
+publish	Publish package	2026-11-12T14:27:20.5351398Z npm notice 1.4kB dist/lib/index.d.ts.map
+publish	Publish package	2026-11-12T14:27:20.5351815Z npm notice 58.4kB dist/styles.css
+publish	Publish package	2026-11-12T14:27:20.5352265Z npm notice 3.7kB package.json
+publish	Publish package	2026-11-12T14:27:20.5352900Z npm notice Tarball Details
+publish	Publish package	2026-11-12T14:27:20.5353368Z npm notice name: @hamster-note/notes
+publish	Publish package	2026-11-12T14:27:20.5353776Z npm notice version: 3.3.0
+publish	Publish package	2026-11-12T14:27:20.5354261Z npm notice filename: hamster-note-notes-3.3.0.tgz
+publish	Publish package	2026-11-12T14:27:20.5354736Z npm notice package size: 4.3 MB
+publish	Publish package	2026-11-12T14:27:20.5355197Z npm notice unpacked size: 15.0 MB
+publish	Publish package	2026-11-12T14:27:20.5355801Z npm notice shasum: ae786ec68cd137e7333725e86d09490ed39a3f15
+publish	Publish package	2026-11-12T14:27:20.5356392Z npm notice integrity: sha512-tNJyGnosLEZFV[...]+WmN98wHJv7GQ==
+publish	Publish package	2026-11-12T14:27:20.5356933Z npm notice total files: 158
+publish	Publish package	2026-11-12T14:27:20.5357284Z npm notice
+publish	Publish package	2026-11-12T14:27:21.6597151Z npm notice npm tokens that bypass 2FA are being restricted for account changes and direct publishing. Learn how to prepare: https://gh.io/npm-gat-bypass2fa-deprecation
+publish	Publish package	2026-11-12T14:27:22.0886466Z npm notice Publishing to https://registry.npmjs.org/ with tag latest and public access
+publish	Publish package	2026-11-12T14:27:22.8548762Z npm notice publish Signed provenance statement with source and build information from GitHub Actions
+publish	Publish package	2026-11-12T14:27:22.8553546Z npm notice publish Provenance statement published to transparency log: https://search.sigstore.dev/?logIndex=3834051021
+publish	Publish package	2026-11-12T14:27:26.5675089Z npm notice Your package is being processed and may take a few minutes to become available.
+publish	Publish package	2026-11-12T14:27:26.5678304Z + @hamster-note/notes@3.3.0
+
+$ npm view @hamster-note/notes version dist-tags --registry https://registry.npmjs.org --prefer-online --cache <isolated-cache>
+version = '3.3.0'
+dist-tags = { latest: '3.3.0' }
+
+$ npm view @hamster-note/notes@3.3.0 dist.shasum dist.integrity dist.tarball --registry https://registry.npmjs.org --prefer-online --cache <isolated-cache> --json
+{
+  "dist.shasum": "ae786ec68cd137e7333725e86d09490ed39a3f15",
+  "dist.integrity": "sha512-tNJyGnosLEZFVSjALVw5TCRZVq6CqDwQ+YEvd5Nr6UaS0l/3YqNAFXSPG4CR0cKDLwyw4jNpq+WmN98wHJv7GQ==",
+  "dist.tarball": "https://registry.npmjs.org/@hamster-note/notes/-/notes-3.3.0.tgz"
+}
+
+$ npm pack @hamster-note/notes@3.3.0 --ignore-scripts --registry https://registry.npmjs.org --prefer-online --cache <isolated-cache> --pack-destination <artifact-dir> --json
+[
+  {
+    "id": "@hamster-note/notes@3.3.0",
+    "name": "@hamster-note/notes",
+    "version": "3.3.0",
+    "size": 4345223,
+    "unpackedSize": 15020332,
+    "shasum": "ae786ec68cd137e7333725e86d09490ed39a3f15",
+    "integrity": "sha512-tNJyGnosLEZFVSjALVw5TCRZVq6CqDwQ+YEvd5Nr6UaS0l/3YqNAFXSPG4CR0cKDLwyw4jNpq+WmN98wHJv7GQ==",
+    "filename": "hamster-note-notes-3.3.0.tgz",
+    "files": [
+      {
+        "path": "LICENSE",
+        "size": 1069,
+        "mode": 420
+      },
+      {
+        "path": "README.md",
+        "size": 20863,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_AMS-Regular.ttf",
+        "size": 63632,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_AMS-Regular.woff",
+        "size": 33516,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_AMS-Regular.woff2",
+        "size": 28076,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Caligraphic-Bold.ttf",
+        "size": 12368,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Caligraphic-Bold.woff",
+        "size": 7716,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Caligraphic-Bold.woff2",
+        "size": 6912,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Caligraphic-Regular.ttf",
+        "size": 12344,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Caligraphic-Regular.woff",
+        "size": 7656,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Caligraphic-Regular.woff2",
+        "size": 6908,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Fraktur-Bold.ttf",
+        "size": 19584,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Fraktur-Bold.woff",
+        "size": 13296,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Fraktur-Bold.woff2",
+        "size": 11348,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Fraktur-Regular.ttf",
+        "size": 19572,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Fraktur-Regular.woff",
+        "size": 13208,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Fraktur-Regular.woff2",
+        "size": 11316,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Main-Bold.ttf",
+        "size": 51336,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Main-Bold.woff",
+        "size": 29912,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Main-Bold.woff2",
+        "size": 25324,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Main-BoldItalic.ttf",
+        "size": 32968,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Main-BoldItalic.woff",
+        "size": 19412,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Main-BoldItalic.woff2",
+        "size": 16780,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Main-Italic.ttf",
+        "size": 33580,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Main-Italic.woff",
+        "size": 19676,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Main-Italic.woff2",
+        "size": 16988,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Main-Regular.ttf",
+        "size": 53580,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Main-Regular.woff",
+        "size": 30772,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Main-Regular.woff2",
+        "size": 26272,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Math-BoldItalic.ttf",
+        "size": 31196,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Math-BoldItalic.woff",
+        "size": 18668,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Math-BoldItalic.woff2",
+        "size": 16400,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Math-Italic.ttf",
+        "size": 31308,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Math-Italic.woff",
+        "size": 18748,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Math-Italic.woff2",
+        "size": 16440,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_SansSerif-Bold.ttf",
+        "size": 24504,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_SansSerif-Bold.woff",
+        "size": 14408,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_SansSerif-Bold.woff2",
+        "size": 12216,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_SansSerif-Italic.ttf",
+        "size": 22364,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_SansSerif-Italic.woff",
+        "size": 14112,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_SansSerif-Italic.woff2",
+        "size": 12028,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_SansSerif-Regular.ttf",
+        "size": 19436,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_SansSerif-Regular.woff",
+        "size": 12316,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_SansSerif-Regular.woff2",
+        "size": 10344,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Script-Regular.ttf",
+        "size": 16648,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Script-Regular.woff",
+        "size": 10588,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Script-Regular.woff2",
+        "size": 9644,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Size1-Regular.ttf",
+        "size": 12228,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Size1-Regular.woff",
+        "size": 6496,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Size1-Regular.woff2",
+        "size": 5468,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Size2-Regular.ttf",
+        "size": 11508,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Size2-Regular.woff",
+        "size": 6188,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Size2-Regular.woff2",
+        "size": 5208,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Size3-Regular.ttf",
+        "size": 7588,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Size3-Regular.woff",
+        "size": 4420,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Size3-Regular.woff2",
+        "size": 3624,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Size4-Regular.ttf",
+        "size": 10364,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Size4-Regular.woff",
+        "size": 5980,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Size4-Regular.woff2",
+        "size": 4928,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Typewriter-Regular.ttf",
+        "size": 27556,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Typewriter-Regular.woff",
+        "size": 16028,
+        "mode": 420
+      },
+      {
+        "path": "dist/fonts/KaTeX_Typewriter-Regular.woff2",
+        "size": 13568,
+        "mode": 420
+      },
+      {
+        "path": "dist/formula.css",
+        "size": 23826,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.cjs",
+        "size": 1195239,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.cjs.map",
+        "size": 5303735,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.d.ts",
+        "size": 38,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.js",
+        "size": 1753715,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.js.map",
+        "size": 5458931,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/blockMenu.d.ts",
+        "size": 1327,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/blockMenu.d.ts.map",
+        "size": 904,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/blockReorder.d.ts",
+        "size": 6081,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/blockReorder.d.ts.map",
+        "size": 1016,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/documentSession.d.ts",
+        "size": 3051,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/documentSession.d.ts.map",
+        "size": 2840,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/documentTypes.d.ts",
+        "size": 7637,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/documentTypes.d.ts.map",
+        "size": 7367,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/HnnDataDrawer.d.ts",
+        "size": 2819,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/HnnDataDrawer.d.ts.map",
+        "size": 2050,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/hostReferenceInteractions.d.ts",
+        "size": 1558,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/hostReferenceInteractions.d.ts.map",
+        "size": 1089,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/hostReferences.d.ts",
+        "size": 2558,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/hostReferences.d.ts.map",
+        "size": 1607,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/HostReferenceUI.d.ts",
+        "size": 1282,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/HostReferenceUI.d.ts.map",
+        "size": 542,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/interactionLayout.d.ts",
+        "size": 307,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/interactionLayout.d.ts.map",
+        "size": 232,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/interactionToolbar.d.ts",
+        "size": 346,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/interactionToolbar.d.ts.map",
+        "size": 337,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/linkEditing.d.ts",
+        "size": 846,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/linkEditing.d.ts.map",
+        "size": 966,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/listCommands.d.ts",
+        "size": 1841,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/listCommands.d.ts.map",
+        "size": 1426,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/MarkdownExport.d.ts",
+        "size": 1802,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/MarkdownExport.d.ts.map",
+        "size": 870,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/nativeClipboard.d.ts",
+        "size": 482,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/nativeClipboard.d.ts.map",
+        "size": 261,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/NoteDocumentProvider.d.ts",
+        "size": 434,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/NoteDocumentProvider.d.ts.map",
+        "size": 467,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/NoteEditor.d.ts",
+        "size": 1785,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/NoteEditor.d.ts.map",
+        "size": 701,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/NoteSaveStatus.d.ts",
+        "size": 1214,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/NoteSaveStatus.d.ts.map",
+        "size": 561,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/pictureUpload.d.ts",
+        "size": 1788,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/pictureUpload.d.ts.map",
+        "size": 1186,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/session.d.ts",
+        "size": 4521,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/session.d.ts.map",
+        "size": 1232,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/sessionKey.d.ts",
+        "size": 328,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/sessionKey.d.ts.map",
+        "size": 227,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/textFormatting.d.ts",
+        "size": 527,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/textFormatting.d.ts.map",
+        "size": 421,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/types.d.ts",
+        "size": 6076,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/types.d.ts.map",
+        "size": 4093,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/ViewToolbar.d.ts",
+        "size": 1277,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/editor/ViewToolbar.d.ts.map",
+        "size": 1200,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/budgetedTransaction.d.ts",
+        "size": 2767,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/budgetedTransaction.d.ts.map",
+        "size": 830,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/cardPayload.d.ts",
+        "size": 2320,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/cardPayload.d.ts.map",
+        "size": 1787,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/codec.d.ts",
+        "size": 987,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/codec.d.ts.map",
+        "size": 720,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/compositionDeletion.d.ts",
+        "size": 557,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/compositionDeletion.d.ts.map",
+        "size": 236,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/directoryEntries.d.ts",
+        "size": 442,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/directoryEntries.d.ts.map",
+        "size": 399,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/drawingPayload.d.ts",
+        "size": 1358,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/drawingPayload.d.ts.map",
+        "size": 1037,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/extensions.d.ts",
+        "size": 2984,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/extensions.d.ts.map",
+        "size": 1626,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/limits.d.ts",
+        "size": 1402,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/limits.d.ts.map",
+        "size": 379,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/listInteractions.d.ts",
+        "size": 448,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/listInteractions.d.ts.map",
+        "size": 274,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/listNumbering.d.ts",
+        "size": 553,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/listNumbering.d.ts.map",
+        "size": 516,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/markdown.d.ts",
+        "size": 1135,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/markdown.d.ts.map",
+        "size": 915,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/menuPopover.d.ts",
+        "size": 3200,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/menuPopover.d.ts.map",
+        "size": 1172,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/nodeId.d.ts",
+        "size": 1851,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/nodeId.d.ts.map",
+        "size": 833,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/persistedStringBudget.d.ts",
+        "size": 953,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/persistedStringBudget.d.ts.map",
+        "size": 583,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/quoteInteractions.d.ts",
+        "size": 153,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/quoteInteractions.d.ts.map",
+        "size": 217,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/schema.d.ts",
+        "size": 307,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/schema.d.ts.map",
+        "size": 217,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/stringBytes.d.ts",
+        "size": 1669,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/stringBytes.d.ts.map",
+        "size": 538,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/tableEdgeControls.d.ts",
+        "size": 1687,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/tableEdgeControls.d.ts.map",
+        "size": 1124,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/transactionPermission.d.ts",
+        "size": 273,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/transactionPermission.d.ts.map",
+        "size": 335,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/urlPolicy.d.ts",
+        "size": 469,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/hnn/urlPolicy.d.ts.map",
+        "size": 258,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/index.d.ts",
+        "size": 1900,
+        "mode": 420
+      },
+      {
+        "path": "dist/lib/index.d.ts.map",
+        "size": 1379,
+        "mode": 420
+      },
+      {
+        "path": "dist/styles.css",
+        "size": 58399,
+        "mode": 420
+      },
+      {
+        "path": "package.json",
+        "size": 3673,
+        "mode": 420
+      }
+    ],
+    "entryCount": 158,
+    "bundled": []
+  }
+]
+
+SHA-1/SHA-512 and published package assertions: PASS
+{
+  "verifiedAt": "2026-11-12T14:31:40.122269+00:00",
+  "tag": "v3.3.0",
+  "tagObject": "639785b51654316f15eb6f02c51f78c49e71123a",
+  "sourceCommit": "5758f85c26ea7469d4645bfd60982f9899ac166b",
+  "workflow": "https://github.com/HamsterNote/notes/actions/runs/43237012807",
+  "package": "@hamster-note/notes",
+  "version": "3.3.0",
+  "latest": "3.3.0",
+  "shasum": "ae786ec68cd137e7333725e86d09490ed39a3f15",
+  "integrity": "sha512-tNJyGnosLEZFVSjALVw5TCRZVq6CqDwQ+YEvd5Nr6UaS0l/3YqNAFXSPG4CR0cKDLwyw4jNpq+WmN98wHJv7GQ==",
+  "downloadMatchesRegistry": true,
+  "packageFiles": 158,
+  "declarationFiles": 45,
+  "forbiddenFiles": []
+}
+
+Registry initially returned 3.2.0/404 while npm processed the package. No republish was performed; final view and exact-version download succeeded.

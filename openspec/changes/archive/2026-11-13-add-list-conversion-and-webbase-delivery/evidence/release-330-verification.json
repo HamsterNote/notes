@@ -1,0 +1,16 @@
+{
+  "verifiedAt": "2026-11-12T14:31:40.122269+00:00",
+  "tag": "v3.3.0",
+  "tagObject": "639785b51654316f15eb6f02c51f78c49e71123a",
+  "sourceCommit": "5758f85c26ea7469d4645bfd60982f9899ac166b",
+  "workflow": "https://github.com/HamsterNote/notes/actions/runs/43237012807",
+  "package": "@hamster-note/notes",
+  "version": "3.3.0",
+  "latest": "3.3.0",
+  "shasum": "ae786ec68cd137e7333725e86d09490ed39a3f15",
+  "integrity": "sha512-tNJyGnosLEZFVSjALVw5TCRZVq6CqDwQ+YEvd5Nr6UaS0l/3YqNAFXSPG4CR0cKDLwyw4jNpq+WmN98wHJv7GQ==",
+  "downloadMatchesRegistry": true,
+  "packageFiles": 158,
+  "declarationFiles": 45,
+  "forbiddenFiles": []
+}

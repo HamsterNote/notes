@@ -1,0 +1,61 @@
+{
+  "installed": {
+    "version": "3.3.0",
+    "resolved": "https://registry.npmjs.org/@hamster-note/notes/-/notes-3.3.0.tgz",
+    "integrity": "sha512-tNJyGnosLEZFVSjALVw5TCRZVq6CqDwQ+YEvd5Nr6UaS0l/3YqNAFXSPG4CR0cKDLwyw4jNpq+WmN98wHJv7GQ==",
+    "license": "MIT",
+    "dependencies": {
+      "@hamster-note/components": "^0.2.1-beta.2",
+      "@hamster-note/painting": "0.2.0",
+      "@tiptap/core": "3.31.3",
+      "@tiptap/extension-list": "3.31.3",
+      "@tiptap/extension-table": "3.31.3",
+      "@tiptap/pm": "3.31.3",
+      "@tiptap/react": "3.31.3",
+      "@tiptap/starter-kit": "3.31.3",
+      "katex": "^0.17.0"
+    },
+    "engines": {
+      "node": ">=20.19.0",
+      "yarn": ">=1.22.0"
+    },
+    "peerDependencies": {
+      "react": "^19.0.0",
+      "react-dom": "^19.0.0"
+    }
+  },
+  "official": {
+    "shasum": "ae786ec68cd137e7333725e86d09490ed39a3f15",
+    "tarball": "https://registry.npmjs.org/@hamster-note/notes/-/notes-3.3.0.tgz",
+    "fileCount": 158,
+    "integrity": "sha512-tNJyGnosLEZFVSjALVw5TCRZVq6CqDwQ+YEvd5Nr6UaS0l/3YqNAFXSPG4CR0cKDLwyw4jNpq+WmN98wHJv7GQ==",
+    "signatures": [
+      {
+        "sig": "MEUCIDgqNW+xgr1PWnIgKDYIAVbZO766yNweBMxfZRduOFyBAiEA8nHaQqVWRh+XNZZxBoLYEFWvsveYIeXUEwZPzCZ8EXE=",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      },
+      {
+        "sig": "MEUCIQDHjk7x1UeN/N4EVAcJGT6USeNca0tROlnSoCUN1/IIhQIgRXjcDSIIhV9/DAqHxjl8q5WRUOJRzysUq+HCwFUZ8dk=",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      }
+    ],
+    "attestations": {
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/@hamster-note%2fnotes@3.3.0",
+      "provenance": {
+        "predicateType": "https://slsa.dev/provenance/v1"
+      }
+    },
+    "unpackedSize": 15020332
+  },
+  "publicEntries": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./formula.css": "./dist/formula.css"
+  },
+  "fonts": 60,
+  "verdict": "PASS: exact official registry install, integrity, ESM/CJS/types/CSS/font resources"
+}
