@@ -1,0 +1,228 @@
+{
+  "date": "2026-11-03",
+  "sourceIssue": "HAM-135",
+  "attachmentId": "01a19fbb-b815-7774-86db-bb007717dc5e",
+  "attachmentSha256": "52ab47e41ff8c1a87a40bb3c3fbe89e559b2c2b97aab1b6bba25575d508f3f14",
+  "simulator": "iPhone 17e",
+  "runtime": "iOS 27.2",
+  "app": "com.hamster-note.preview 1.1.0 (1)",
+  "keyboard": "iOS Simplified Chinese Pinyin",
+  "wechatKeyboardTested": false,
+  "editorDom": "span.hn-note-editable[data-editable-block-id]",
+  "exactInstalledCommitAndNotesVersion": null,
+  "equivalentToReportedApp": null,
+  "rootCauseKnown": false,
+  "fixed": false,
+  "runs": [
+    {
+      "file": "candidate-events.json",
+      "events": 91,
+      "types": {
+        "start": 1,
+        "selectionchange": 12,
+        "keydown": 9,
+        "compositionstart": 2,
+        "compositionupdate": 11,
+        "beforeinput": 15,
+        "input": 15,
+        "mutation": 15,
+        "keyup": 9,
+        "compositionend": 2
+      },
+      "maxBodyBlocks": 1,
+      "finalText": [
+        "你好哈哈"
+      ],
+      "commitSequence": [
+        {
+          "seq": 39,
+          "type": "beforeinput",
+          "inputType": "insertCompositionText",
+          "data": "你好",
+          "isComposing": true,
+          "isTrusted": true
+        },
+        {
+          "seq": 40,
+          "type": "input",
+          "inputType": "insertCompositionText",
+          "data": "你好",
+          "isComposing": true,
+          "isTrusted": true
+        },
+        {
+          "seq": 45,
+          "type": "beforeinput",
+          "inputType": "insertFromComposition",
+          "data": "你好",
+          "isComposing": true,
+          "isTrusted": true
+        },
+        {
+          "seq": 46,
+          "type": "input",
+          "inputType": "insertFromComposition",
+          "data": "你好",
+          "isComposing": true,
+          "isTrusted": true
+        },
+        {
+          "seq": 48,
+          "type": "compositionend",
+          "inputType": null,
+          "data": "你好",
+          "isComposing": null,
+          "isTrusted": true
+        },
+        {
+          "seq": 89,
+          "type": "compositionend",
+          "inputType": null,
+          "data": "哈哈",
+          "isComposing": null,
+          "isTrusted": true
+        }
+      ]
+    },
+    {
+      "file": "space-events.json",
+      "events": 90,
+      "types": {
+        "marker": 1,
+        "keydown": 9,
+        "compositionstart": 2,
+        "compositionupdate": 11,
+        "beforeinput": 15,
+        "input": 15,
+        "mutation": 15,
+        "selectionchange": 11,
+        "keyup": 9,
+        "compositionend": 2
+      },
+      "maxBodyBlocks": 1,
+      "finalText": [
+        "你好哈哈"
+      ],
+      "commitSequence": [
+        {
+          "seq": 38,
+          "type": "beforeinput",
+          "inputType": "insertCompositionText",
+          "data": "你好",
+          "isComposing": true,
+          "isTrusted": true
+        },
+        {
+          "seq": 39,
+          "type": "input",
+          "inputType": "insertCompositionText",
+          "data": "你好",
+          "isComposing": true,
+          "isTrusted": true
+        },
+        {
+          "seq": 44,
+          "type": "beforeinput",
+          "inputType": "insertFromComposition",
+          "data": "你好",
+          "isComposing": true,
+          "isTrusted": true
+        },
+        {
+          "seq": 45,
+          "type": "input",
+          "inputType": "insertFromComposition",
+          "data": "你好",
+          "isComposing": true,
+          "isTrusted": true
+        },
+        {
+          "seq": 47,
+          "type": "compositionend",
+          "inputType": null,
+          "data": "你好",
+          "isComposing": null,
+          "isTrusted": true
+        },
+        {
+          "seq": 88,
+          "type": "compositionend",
+          "inputType": null,
+          "data": "哈哈",
+          "isComposing": null,
+          "isTrusted": true
+        }
+      ]
+    },
+    {
+      "file": "space-repeat-events.json",
+      "events": 90,
+      "types": {
+        "marker": 1,
+        "keydown": 9,
+        "compositionstart": 2,
+        "compositionupdate": 11,
+        "beforeinput": 15,
+        "input": 15,
+        "mutation": 15,
+        "selectionchange": 11,
+        "keyup": 9,
+        "compositionend": 2
+      },
+      "maxBodyBlocks": 1,
+      "finalText": [
+        "你好哈哈"
+      ],
+      "commitSequence": [
+        {
+          "seq": 38,
+          "type": "beforeinput",
+          "inputType": "insertCompositionText",
+          "data": "你好",
+          "isComposing": true,
+          "isTrusted": true
+        },
+        {
+          "seq": 39,
+          "type": "input",
+          "inputType": "insertCompositionText",
+          "data": "你好",
+          "isComposing": true,
+          "isTrusted": true
+        },
+        {
+          "seq": 44,
+          "type": "beforeinput",
+          "inputType": "insertFromComposition",
+          "data": "你好",
+          "isComposing": true,
+          "isTrusted": true
+        },
+        {
+          "seq": 45,
+          "type": "input",
+          "inputType": "insertFromComposition",
+          "data": "你好",
+          "isComposing": true,
+          "isTrusted": true
+        },
+        {
+          "seq": 47,
+          "type": "compositionend",
+          "inputType": null,
+          "data": "你好",
+          "isComposing": null,
+          "isTrusted": true
+        },
+        {
+          "seq": 88,
+          "type": "compositionend",
+          "inputType": null,
+          "data": "哈哈",
+          "isComposing": null,
+          "isTrusted": true
+        }
+      ]
+    }
+  ]
+}
