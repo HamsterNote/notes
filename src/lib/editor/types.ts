@@ -44,6 +44,7 @@ export type EditorSessionOptions = Readonly<{
    * 陈旧结果在库内丢弃。
    */
   onPictureUpload?: PictureUploadHandler
+  onPictureResolve?: PictureResolveHandler
   /**
    * 宿主引用候选查询（D11/任务 7.2）：mention/resource 的 `@`/`[[` 候选。缺省时无
    * 候选入口；文档只持久 resourceId/name，候选与解析结果绝不写入 HNN。
@@ -65,7 +66,7 @@ export type EditorSessionOptions = Readonly<{
 /**
  * 图片上传宿主契约（D8）。库仅处理 picture 节点的图片文件；每个文件一个稳定
  * `uploadId`，首次 `attempt` 为 1、retry 仅递增 `attempt`。宿主 MUST 按 `uploadId`
- * 幂等，并返回可持久化的 http/https `src` 与可选 `alt`。
+ * 幂等，并返回可持久化的 HTTP(S) 或封闭托管图片 `src` 与可选 `alt`。
  */
 export type PictureUploadRequest = Readonly<{
   uploadId: string
@@ -79,6 +80,22 @@ export type PictureUploadResult = Readonly<{
 }>
 
 export type PictureUploadHandler = (file: File, request: PictureUploadRequest) => Promise<PictureUploadResult>
+
+export type PictureResolveContext = Readonly<{
+  signal: AbortSignal
+  documentId: string
+  loadKey: string | number
+}>
+
+export type PictureResolveResult = Readonly<{
+  url: string
+  dispose?: () => void
+}>
+
+export type PictureResolveHandler = (
+  src: string,
+  context: PictureResolveContext
+) => Promise<PictureResolveResult>
 
 /** 上传临时态只存在于内存/DOM 桥，绝不进入 HNN。 */
 export type PictureUploadItemStatus = "uploading" | "failed"

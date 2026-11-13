@@ -10,9 +10,8 @@
  *   块重排通道（D9）。
  * - 文本块互转保留无损校验；复合块转文本块显式展平为正文纯文本（有损提示），
  *   引用目标无损包裹原块。所有转换走预算化事务与独立撤销边界。
- * - 插入表格/公式/图片：插到当前块之后（合法空结构，预算化单事务 + 历史栅栏）；
- *   图片仅宿主提供上传回调时可用（DESIGN.md §12），激活后走与 picker 相同的
- *   hidden input → PictureUploadInstaller.enqueue 通道，占位/失败/重试语义一致。
+ * - “下一行”包含表格/公式/图像：表格和公式用预算化单事务插入当前块之后；
+ *   图像按 nodeId 打开确认模态框，确认后才进入统一上传通道。
  *
  * 所有变更都在激活瞬间重新解析 getPos 与当前文档：菜单打开期间的外部文档变化
  * 不会落到错位目标；只读会话在 blockReorder 侧已拦截，这里仍逐条 double-guard。
@@ -37,10 +36,8 @@ import { isList, listConversionItems } from "./listCommands"
 installHnnBudgetEncoder(encodeHnn)
 
 export interface BlockMenuCapabilities {
-  /** 宿主是否提供图片上传（决定图片入口可用性，DESIGN.md §12）。 */
   readonly canUploadPicture: () => boolean
-  /** 与 picker/paste/drop 相同的上传入队通道；position 为文档内插入点。 */
-  readonly enqueuePictures: (files: Iterable<File>, position: number) => readonly string[]
+  readonly openPictureDialog: (nodeId: string, anchor: HTMLElement) => boolean
 }
 
 export interface OpenBlockMenuOptions {
@@ -119,7 +116,7 @@ function flattenedText(node: ProseMirrorNode): string {
   })
 }
 
-export function getBlockCommands(editor: Editor, getPos: () => number | undefined, capabilities: BlockMenuCapabilities) {
+export function getBlockCommands(editor: Editor, getPos: () => number | undefined, capabilities: BlockMenuCapabilities, menuAnchor?: HTMLElement) {
 
   /** 激活瞬间的实时块解析；块已不存在（外部删改）时返回 null，动作整体放弃。 */
   let resolveBlock = (): { pos: number; index: number; count: number; node: import("@tiptap/pm/model").Node } | null => {
@@ -256,12 +253,10 @@ export function getBlockCommands(editor: Editor, getPos: () => number | undefine
 
   const insertItems: AnchoredMenuEntry[] = [
     {
-      label: "插入表格",
+      label: "表格",
       onActivate: () => {
         const pos = insertPosAfterBlock()
         if (pos === null || !editor.view.editable) return
-        // 合法空结构（2 行 3 列含表头行）；捕获后补齐新节点 ID 并对最终候选整文档
-        // encodeHnn 预算预检（节点/表格/512KiB 外壳），成功才单事务提交 + 历史栅栏。
         const cell = (type: string) => ({ type, content: [{ type: "paragraph" }] })
         const candidate = captureChainTransaction(editor, (chain) => chain.insertContentAt(pos, {
           type: "table",
@@ -274,13 +269,10 @@ export function getBlockCommands(editor: Editor, getPos: () => number | undefine
       }
     },
     {
-      label: "插入公式",
+      label: "公式",
       onActivate: () => {
         const pos = insertPosAfterBlock()
         if (pos === null || !editor.view.editable) return
-        // 公式块必须携带 codec 要求的非空 latex；省略 attrs 时取 schema 默认占位 "0"，
-        // 使最终候选可被 encodeHnn 接受（空串会被严格 codec 拒绝）。点击“编辑公式”
-        // 进入既有弹出编辑器改写。
         const candidate = captureChainTransaction(editor, (chain) =>
           chain.insertContentAt(pos, { type: "formula" })
         )
@@ -288,28 +280,15 @@ export function getBlockCommands(editor: Editor, getPos: () => number | undefine
       }
     },
     {
-      label: "插入图片",
+      label: "图像",
       disabled: !capabilities.canUploadPicture(),
       disabledReason: "宿主未提供图片上传能力",
       onActivate: () => {
-        const pos = insertPosAfterBlock()
-        if (pos === null || !editor.view.editable || !capabilities.canUploadPicture()) return
-        // 与 NoteEditor picker 同一通道：hidden input → enqueue(files, position)，
-        // 占位/失败/重试/abort 语义与既有上传完全一致。
-        const input = document.createElement("input")
-        input.type = "file"
-        input.accept = "image/*"
-        input.multiple = true
-        input.style.display = "none"
-        input.addEventListener("change", () => {
-          const livePos = insertPosAfterBlock()
-          if (livePos !== null && capabilities.canUploadPicture() && input.files?.length) {
-            capabilities.enqueuePictures(input.files, livePos)
-          }
-          input.remove()
-        }, { once: true })
-        document.body.appendChild(input)
-        input.click()
+        const block = resolveBlock()
+        if (!block || !editor.view.editable || !capabilities.canUploadPicture()) return
+        const targetId: unknown = block.node.attrs["nodeId"]
+        const returnFocus = menuAnchor ?? (document.activeElement instanceof HTMLElement ? document.activeElement : document.body)
+        if (typeof targetId === "string") capabilities.openPictureDialog(targetId, returnFocus)
       }
     }
   ]
@@ -319,14 +298,17 @@ export function getBlockCommands(editor: Editor, getPos: () => number | undefine
 
 export function openBlockMenu(options: OpenBlockMenuOptions): AnchoredMenuHandle | null {
   const { editor, anchor, getPos, capabilities, onClosed } = options
-  const commands = getBlockCommands(editor, getPos, capabilities)
+  const commands = getBlockCommands(editor, getPos, capabilities, anchor)
   if (!commands) return null
   return openAnchoredMenu({
     anchor,
     items: [...commands.moveItems, ...commands.indentItems, "divider", {
       label: "转换为",
       children: commands.conversionItems
-    }, "divider", ...commands.insertItems],
+    }, "divider", {
+      label: "下一行",
+      children: commands.insertItems
+    }],
     ariaLabel: "块操作菜单",
     onClose: onClosed
   })

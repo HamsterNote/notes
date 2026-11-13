@@ -8,7 +8,7 @@ import { Slice } from "@tiptap/pm/model"
 import { NodeSelection, TextSelection } from "@tiptap/pm/state"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { encodeHnn } from "../hnn/codec"
-import { installPictureUpload, type PictureUploadInstaller } from "./pictureUpload"
+import { installPictureUpload, PICTURE_MAX_FILE_BYTES, type PictureUploadInstaller } from "./pictureUpload"
 import { createEditorSession } from "./session"
 import type { PictureUploadState } from "./types"
 
@@ -46,7 +46,9 @@ function nearNodeLimitSession(): Session {
 }
 
 function imageFile(name = "photo.png", type = "image/png", bytes = 4): File {
-  return new File([new Uint8Array(bytes)], name, { type })
+  const content = new Uint8Array(Math.max(bytes, 8))
+  content.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+  return new File([content], name, { type })
 }
 
 const flush = () => new Promise<void>((resolve) => setTimeout(resolve, 0))
@@ -124,13 +126,14 @@ function dropEvent(files: File[], clientX = 0, clientY = 0, modifiers: { ctrlKey
 }
 
 describe("6.7 picture upload installer（headless 核心）", () => {
-  it("占位为 Decoration.widget：状态/文件/uploadId/attempt 只进内存桥，不进入 HNN", () => {
+  it("占位为 Decoration.widget：状态/文件/uploadId/attempt 只进内存桥，不进入 HNN", async () => {
     const { session, installer, upload } = mount("base")
     upload.mockReturnValue(deferred<{ src: string }>().promise)
 
     const cursor = TextSelection.create(session.editor.state.doc, 2)
     session.editor.view.dispatch(session.editor.state.tr.setSelection(cursor))
     const [uploadId] = installer.enqueue([imageFile()])
+    await flush()
 
     expect(uploadId).toBeDefined()
     expect(upload).toHaveBeenCalledTimes(1)
@@ -221,6 +224,7 @@ describe("6.7 picture upload installer（headless 核心）", () => {
 
     session.editor.view.dispatch(session.editor.state.tr.setSelection(TextSelection.create(session.editor.state.doc, 2)))
     const [uploadId] = installer.enqueue([imageFile()])
+    await flush()
     const firstRequest = (upload.mock.calls[0] as [File, { uploadId: string; attempt: number; signal: AbortSignal }])[1]
 
     first.reject(new Error("boom"))
@@ -229,6 +233,7 @@ describe("6.7 picture upload installer（headless 核心）", () => {
     expect(placeholders(session)[0]?.getAttribute("data-hn-upload-status")).toBe("failed")
 
     expect(installer.retry(uploadId!)).toBe(true)
+    await flush()
     expect(upload).toHaveBeenCalledTimes(2)
     const secondRequest = (upload.mock.calls[1] as [File, { uploadId: string; attempt: number; signal: AbortSignal }])[1]
     expect(secondRequest.uploadId).toBe(uploadId)
@@ -247,6 +252,7 @@ describe("6.7 picture upload installer（headless 核心）", () => {
 
     session.editor.view.dispatch(session.editor.state.tr.setSelection(TextSelection.create(session.editor.state.doc, 2)))
     const [uploadId] = installer.enqueue([imageFile()])
+    await flush()
     const request = (upload.mock.calls[0] as [File, { signal: AbortSignal }])[1]
     const before = session.editor.state.doc
 
@@ -271,6 +277,7 @@ describe("6.7 picture upload installer：失败/取消/陈旧与坐标边界", (
 
     session.editor.view.dispatch(session.editor.state.tr.setSelection(TextSelection.create(session.editor.state.doc, 2)))
     installer.enqueue([imageFile()])
+    await flush()
     const request = (upload.mock.calls[0] as [File, { signal: AbortSignal }])[1]
     const before = session.editor.state.doc
 
@@ -352,6 +359,7 @@ describe("6.7 picture upload installer：失败/取消/陈旧与坐标边界", (
     // 光标在 p1 内 → 目标为 p1 之后（跨块边界 5）。
     session.editor.view.dispatch(session.editor.state.tr.setSelection(TextSelection.create(session.editor.state.doc, 2)))
     installer.enqueue([imageFile()])
+    await flush()
     const request = (upload.mock.calls[0] as [File, { signal: AbortSignal }])[1]
     expect(placeholders(session)).toHaveLength(1)
 
@@ -378,7 +386,7 @@ describe("6.7 picture upload installer：失败/取消/陈旧与坐标边界", (
 })
 
 describe("6.7 picture upload installer：paste / drop 拦截", () => {
-  it("粘贴图片文件被消费并入队，不插入文档且与原生 clipboard 兼容", () => {
+  it("粘贴图片文件被消费并入队，不插入文档且与原生 clipboard 兼容", async () => {
     const { session, installer, upload } = mount("base")
     const pending = deferred<{ src: string }>()
     upload.mockReturnValue(pending.promise)
@@ -386,6 +394,7 @@ describe("6.7 picture upload installer：paste / drop 拦截", () => {
 
     const event = clipboardEventWithFiles([imageFile()])
     session.editor.view.dom.dispatchEvent(event)
+    await flush()
 
     expect(upload).toHaveBeenCalledTimes(1)
     expect(event.defaultPrevented).toBe(true)
@@ -394,11 +403,12 @@ describe("6.7 picture upload installer：paste / drop 拦截", () => {
     expect(lastState(installer).items).toHaveLength(1)
   })
 
-  it("拖入图片文件按 posAtCoords 入队；坐标失败或内部拖拽均不入队、不 fallback 0", () => {
+  it("拖入图片文件按 posAtCoords 入队；坐标失败或内部拖拽均不入队、不 fallback 0", async () => {
     const first = mount("base")
     first.session.editor.view.posAtCoords = vi.fn(() => ({ pos: 2, inside: -1 }))
     const before = first.session.editor.state.doc
     first.session.editor.view.dom.dispatchEvent(dropEvent([imageFile()], 10, 10))
+    await flush()
     expect(first.upload).toHaveBeenCalledTimes(1)
     expect(first.session.editor.state.doc.eq(before)).toBe(true)
     expect(placeholders(first.session)).toHaveLength(1)
@@ -661,6 +671,7 @@ describe("PR11 #5：图片批量选择顺序不受网络完成顺序影响", () 
     expect(installer.getState().items).toMatchObject([{ uploadId: firstId, status: "failed" }])
     session.editor.view.dispatch(session.editor.state.tr.insertText("用户输入", 1))
     expect(installer.retry(firstId!)).toBe(true)
+    await flush()
     expect(upload.mock.calls[2]?.[1]).toMatchObject({ uploadId: firstId, attempt: 2 })
     retry.resolve({ src: "https://cdn.test/a.png" })
     await flush()
@@ -716,5 +727,51 @@ describe("PR11 #5：图片批量选择顺序不受网络完成顺序影响", () 
     await flush()
     expect(pictureNodes(session).map((node) => node.src)).toEqual(["https://cdn.test/a.png"])
     expect(installer.getState().items).toHaveLength(0)
+  })
+
+  it("宿主可返回封闭托管路径，非法相对路径仍拒绝", async () => {
+    const { session, installer, upload } = mount()
+    const src = "hamster_note_data/images/0123456789abcdef0123456789abcdef.webp"
+    upload.mockResolvedValueOnce({ src })
+    installer.enqueue([imageFile()])
+    await flush()
+    expect(pictureNodes(session).map((node) => node.src)).toEqual([src])
+
+    upload.mockResolvedValueOnce({ src: "images/not-managed.png" })
+    installer.enqueue([imageFile()])
+    await flush()
+    expect(pictureNodes(session)).toHaveLength(1)
+    expect(installer.getState().items[0]?.status).toBe("failed")
+  })
+
+  it("默认上限恰等 100 MiB 接受，超 1 字节拒绝且不调用宿主", async () => {
+    const { installer, upload } = mount()
+    upload.mockResolvedValue({ src: "https://cdn.test/limit.png" })
+    const exact = imageFile("exact.png")
+    Object.defineProperty(exact, "size", { value: PICTURE_MAX_FILE_BYTES })
+    installer.enqueue([exact])
+    await flush()
+    expect(upload).toHaveBeenCalledTimes(1)
+
+    const oversized = imageFile("oversized.png")
+    Object.defineProperty(oversized, "size", { value: PICTURE_MAX_FILE_BYTES + 1 })
+    const [uploadId] = installer.enqueue([oversized])
+    await flush()
+    expect(upload).toHaveBeenCalledTimes(1)
+    expect(installer.getState().items[0]).toMatchObject({ uploadId, status: "failed" })
+    expect(installer.retry(uploadId!)).toBe(false)
+  })
+
+  it("伪造 PNG 扩展名/MIME 的文件不调用宿主，失败 retry 保持 uploadId", async () => {
+    const { installer, upload } = mount()
+    const fake = new File(["not a png"], "fake.png", { type: "image/png" })
+    const [uploadId] = installer.enqueue([fake])
+    await flush()
+    expect(upload).not.toHaveBeenCalled()
+    expect(installer.getState().items[0]).toMatchObject({ uploadId, attempt: 1, status: "failed" })
+    expect(installer.retry(uploadId!)).toBe(true)
+    await flush()
+    expect(upload).not.toHaveBeenCalled()
+    expect(installer.getState().items[0]).toMatchObject({ uploadId, attempt: 2, status: "failed" })
   })
 })

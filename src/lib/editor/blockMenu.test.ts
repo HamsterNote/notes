@@ -94,6 +94,9 @@ function item(label: string): HTMLButtonElement {
   if (label.startsWith("转换为") && label !== "转换为" && !items().some(button => button.textContent === label)) {
     items().find(button => button.textContent === "转换为")!.click()
   }
+  if (["表格", "公式", "图像"].includes(label) && !items().some(button => button.textContent === label)) {
+    items().find(button => button.textContent === "下一行")!.click()
+  }
   const found = items().find((button) => button.textContent === label)
   expect(found, `菜单条目：${label}`).toBeDefined()
   return found!
@@ -375,7 +378,7 @@ describe("安全转换（不可丢复合内容，不适用禁用）", () => {
         expect(item(label).disabled).toBe(false)
         if (label !== "转换为引用") expect(item(label).title).toContain("丢弃")
       }
-      expect(item("插入表格").disabled).toBe(false)
+      expect(item("表格").disabled).toBe(false)
       expect(topLevelTypes(session)).toEqual(["paragraph", "table"])
     } finally {
       session.destroy()
@@ -612,12 +615,12 @@ describe("转换无损与预算（oracle 7.5 回归）", () => {
       const before = session.editor.state.doc
       clickHandle(session, 0)
       // 插入表格 +15 节点、公式 +1 节点都越过 512 上限。
-      item("插入表格").click()
+      item("表格").click()
       expect(session.editor.state.doc.eq(before)).toBe(true)
       expect(topLevelTypes(session).every((type) => type === "paragraph")).toBe(true)
       expect(session.undo()).toBe(false)
       clickHandle(session, 0)
-      item("插入公式").click()
+      item("公式").click()
       expect(session.editor.state.doc.eq(before)).toBe(true)
       expect(session.undo()).toBe(false)
       expect(session.state.dirty).toBe(false)
@@ -652,7 +655,7 @@ describe("适用插入", () => {
     const session = sessionFor(paragraphsDocument("a", "b"))
     try {
       clickHandle(session, 0)
-      item("插入表格").click()
+      item("表格").click()
       expect(topLevelTypes(session)).toEqual(["paragraph", "table", "paragraph"])
       expect(session.undo()).toBe(true)
       expect(topLevelTypes(session)).toEqual(["paragraph", "paragraph"])
@@ -665,7 +668,7 @@ describe("适用插入", () => {
     const session = sessionFor(paragraphsDocument("a", "b"))
     try {
       clickHandle(session, 1)
-      item("插入公式").click()
+      item("公式").click()
       expect(topLevelTypes(session)).toEqual(["paragraph", "paragraph", "formula"])
       expect(session.undo()).toBe(true)
       expect(topLevelTypes(session)).toEqual(["paragraph", "paragraph"])
@@ -674,18 +677,18 @@ describe("适用插入", () => {
     }
   })
 
-  it("宿主未提供上传能力：插入图片禁用并注明原因", () => {
+  it("宿主未提供上传能力：图像禁用并注明原因", () => {
     const session = sessionFor(paragraphsDocument("a"))
     try {
       clickHandle(session, 0)
-      expect(item("插入图片").disabled).toBe(true)
-      expect(item("插入图片").title).toBe("宿主未提供图片上传能力")
+      expect(item("图像").disabled).toBe(true)
+      expect(item("图像").title).toBe("宿主未提供图片上传能力")
     } finally {
       session.destroy()
     }
   })
 
-  it("宿主提供上传能力：激活走与 picker 相同的 hidden input → enqueue 通道", async () => {
+  it("图像入口按 nodeId 打开对话框，确认后才上传并插到目标块之后", async () => {
     let resolveUpload: (result: { src: string }) => void = () => {}
     const upload = vi.fn(
       (file: File) => new Promise<{ src: string }>((resolve) => {
@@ -704,24 +707,18 @@ describe("适用插入", () => {
       document.body.appendChild(shell)
       mountedShells.push(shell)
     }
-    // 捕获菜单创建的 hidden file input（jsdom 不弹系统选择器）。
-    const clickSpy = vi.spyOn(HTMLInputElement.prototype, "click").mockImplementation(() => {})
     try {
       clickHandle(session, 0)
-      expect(item("插入图片").disabled).toBe(false)
-      item("插入图片").click()
-      const input = document.body.querySelector<HTMLInputElement>("input[type='file']")
-      expect(input).not.toBeNull()
-      expect(input!.accept).toBe("image/*")
-      expect(clickSpy).toHaveBeenCalledTimes(1)
+      expect(item("图像").disabled).toBe(false)
+      item("图像").click()
+      expect(session.pictureDialog).toMatchObject({ nodeId: ids[0] })
+      expect(upload).not.toHaveBeenCalled()
 
-      const file = new File(["png"], "photo.png", { type: "image/png" })
-      Object.defineProperty(input, "files", { value: [file], configurable: true })
-      input!.dispatchEvent(new window.Event("change"))
-      // 与 picker/paste/drop 同一入队通道：上传回调立即被调用，占位以 widget 呈现。
-      expect(upload).toHaveBeenCalledTimes(1)
+      const content = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+      const file = new File([content], "photo.png", { type: "image/png" })
+      expect(session.confirmPictureDialog(file)).not.toBeNull()
+      await vi.waitFor(() => expect(upload).toHaveBeenCalledTimes(1))
       expect(upload.mock.calls[0]![0]).toBe(file)
-      // 上传成功后 picture 块落在原块之后（激活瞬间捕获的插入点）。
       resolveUpload({ src: "https://cdn.example.com/photo.png" })
       await vi.waitFor(() => {
         expect(topLevelTypes(session)).toEqual(["paragraph", "picture", "paragraph"])
@@ -746,7 +743,7 @@ describe("只读守卫（double-guard）", () => {
         getPos: () => 0,
         capabilities: {
           canUploadPicture: () => false,
-          enqueuePictures: () => []
+          openPictureDialog: () => false
         },
         onClosed
       })
@@ -767,7 +764,7 @@ describe("只读守卫（double-guard）", () => {
         getPos: () => undefined,
         capabilities: {
           canUploadPicture: () => false,
-          enqueuePictures: () => []
+          openPictureDialog: () => false
         },
         onClosed: () => {}
       })
@@ -781,7 +778,7 @@ describe("只读守卫（double-guard）", () => {
 
 
 describe("复合块显式展平（HAM-133）", () => {
-  const capabilities = { canUploadPicture: () => false, enqueuePictures: () => [] }
+  const capabilities = { canUploadPicture: () => false, openPictureDialog: () => false }
   const id = (i: number) => `123e4567-e89b-42d3-a456-${String(i + 200).padStart(12, "0")}`
   const paragraph = (i: number, text: string) => ({ type: "paragraph", attrs: { nodeId: id(i) },
     ...(text ? { content: [{ type: "text", text, marks: [{ type: "bold" }] }] } : {}) })

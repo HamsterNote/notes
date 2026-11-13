@@ -145,7 +145,7 @@ export function installInteractionToolbar(editor: Editor, capabilities: BlockMen
     const commands = getBlockCommands(editor, () => {
       const current = topBlock()
       return current && current.node.attrs["nodeId"] === id ? current.pos : undefined
-    }, capabilities)
+    }, capabilities, element)
     const listTarget = resolveListTarget(editor)
     const inList = [view.state.selection.$from, view.state.selection.$to].some($pos => {
       for (let depth = $pos.depth; depth > 0; depth--) if (isList($pos.node(depth))) return true

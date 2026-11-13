@@ -1,5 +1,5 @@
 import { EditorContent } from "@tiptap/react"
-import { Component, useCallback, useLayoutEffect, useRef, useState, type ChangeEvent, type ReactNode, type SyntheticEvent } from "react"
+import { Component, useCallback, useLayoutEffect, useRef, useState, type ReactNode, type SyntheticEvent } from "react"
 import { decodeHnn, encodeHnn, type HnnDocument } from "../hnn/codec"
 import { isSafeHnnUrl } from "../hnn/urlPolicy"
 import { HnnDataDrawer } from "./HnnDataDrawer"
@@ -8,6 +8,7 @@ import type { HostReferenceInstaller } from "./hostReferences"
 import { MarkdownExport, type MarkdownExportProps } from "./MarkdownExport"
 import { NoteSaveStatus } from "./NoteSaveStatus"
 import type { PictureUploadInstaller } from "./pictureUpload"
+import { PictureUploadDialog } from "./PictureUploadDialog"
 import { createEditorSession, type EditorSession } from "./session"
 import { encodeNoteEditorSessionKey } from "./sessionKey"
 import type {
@@ -45,6 +46,7 @@ type AcceptedInitial = VerifiedInitial & Readonly<{
   onSave: NoteSave | undefined
   onChange: EditorSessionOptions["onChange"]
   onPictureUpload: EditorSessionOptions["onPictureUpload"]
+  onPictureResolve: EditorSessionOptions["onPictureResolve"]
   onReferenceCandidates: EditorSessionOptions["onReferenceCandidates"]
   onReferenceActivate: EditorSessionOptions["onReferenceActivate"]
   onReferenceResolve: EditorSessionOptions["onReferenceResolve"]
@@ -125,6 +127,7 @@ type InitialValidatorProps = Readonly<{
   onSave: NoteSave | undefined
   onChange: EditorSessionOptions["onChange"]
   onPictureUpload: EditorSessionOptions["onPictureUpload"]
+  onPictureResolve: EditorSessionOptions["onPictureResolve"]
   onReferenceCandidates: EditorSessionOptions["onReferenceCandidates"]
   onReferenceActivate: EditorSessionOptions["onReferenceActivate"]
   onReferenceResolve: EditorSessionOptions["onReferenceResolve"]
@@ -143,6 +146,7 @@ function InitialValidator(props: InitialValidatorProps) {
     onSave: props.onSave,
     onChange: props.onChange,
     onPictureUpload: props.onPictureUpload,
+    onPictureResolve: props.onPictureResolve,
     onReferenceCandidates: props.onReferenceCandidates,
     onReferenceActivate: props.onReferenceActivate,
     onReferenceResolve: props.onReferenceResolve,
@@ -181,85 +185,43 @@ function uploadErrorText(error: unknown): string | undefined {
   return undefined
 }
 
-/**
- * 图片上传控件（任务 6.7）：显式 picker 按钮 + 每文件上传中/失败重试/取消列表。
- * - 只有用户点击「插入图片」才打开系统文件选择，组件绝不自动打开；
- * - input 显式 accept="image/*" multiple；Markdown/HNN 等文件既不能被 picker
- *   选中，drop 时也被上传插件按 MIME 过滤（仅 image/* 入队）；
- * - 上传状态订阅自会话内 installer；占位 decoration 与状态只存在于内存，不进 HNN。
- */
-export function PictureUploadControls(props: Readonly<{ installer: PictureUploadInstaller; theme: "light" | "dark"; disabled?: boolean }>) {
+export function PictureUploadControls(props: Readonly<{
+  installer: PictureUploadInstaller
+  theme: "light" | "dark"
+  disabled?: boolean
+  excludeUploadId?: string
+}>) {
   const { installer } = props
   const [state, setState] = useState<PictureUploadState>(() => installer.getState())
   useLayoutEffect(() => {
     setState(installer.getState())
     return installer.subscribe(setState)
   }, [installer])
-  const inputRef = useRef<HTMLInputElement | null>(null)
-
-  const openPicker = useCallback(() => inputRef.current?.click(), [])
-  const handleFiles = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      installer.enqueue(event.currentTarget.files ?? [])
-      // 重置 value：同一文件再次选择也能触发 change。
-      event.currentTarget.value = ""
-    },
-    [installer]
-  )
+  const items = state.items.filter((item) => item.uploadId !== props.excludeUploadId)
+  if (items.length === 0) return null
 
   return (
     <div className={`hn-editor-uploads hn-editor-uploads--${props.theme}`}>
-      <button type="button" className="hn-editor-uploads__picker" onClick={openPicker} disabled={props.disabled}>
-        插入图片
-      </button>
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        multiple
-        hidden
-        tabIndex={-1}
-        aria-hidden="true"
-        className="hn-editor-uploads__input"
-        onChange={handleFiles}
-      />
-      {state.items.length > 0 && (
-        <ul className="hn-editor-uploads__list" aria-label="图片上传进度">
-          {state.items.map((item) => (
-            <li className="hn-editor-uploads__item" data-status={item.status} key={item.uploadId}>
-              <span className="hn-editor-uploads__name">{item.fileName}</span>
-              {item.status === "uploading" ? (
-                <span className="hn-editor-uploads__status" role="status">
-                  上传中（第 {item.attempt} 次尝试）…
-                </span>
-              ) : (
-                <span className="hn-editor-uploads__error" role="alert">
-                  上传失败{uploadErrorText(item.error) ? `：${uploadErrorText(item.error)}` : ""}
-                </span>
-              )}
-              {item.status === "failed" && (
-                <button
-                  type="button"
-                  className="hn-editor-uploads__retry"
-                  aria-label={`重试上传 ${item.fileName}`}
-                  disabled={props.disabled}
-                  onClick={() => installer.retry(item.uploadId)}
-                >
-                  重试
-                </button>
-              )}
-              <button
-                type="button"
-                className="hn-editor-uploads__cancel"
-                aria-label={`取消上传 ${item.fileName}`}
-                onClick={() => installer.cancel(item.uploadId)}
-              >
-                取消
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+      <ul className="hn-editor-uploads__list" aria-label="图片上传进度">
+        {items.map((item) => (
+          <li className="hn-editor-uploads__item" data-status={item.status} key={item.uploadId}>
+            <span className="hn-editor-uploads__name">{item.fileName}</span>
+            {item.status === "uploading" ? (
+              <span className="hn-editor-uploads__status" role="status">上传中（第 {item.attempt} 次尝试）…</span>
+            ) : (
+              <span className="hn-editor-uploads__error" role="alert">
+                上传失败{uploadErrorText(item.error) ? `：${uploadErrorText(item.error)}` : ""}
+              </span>
+            )}
+            {item.status === "failed" && (
+              <button type="button" className="hn-editor-uploads__retry" aria-label={`重试上传 ${item.fileName}`}
+                disabled={props.disabled} onClick={() => installer.retry(item.uploadId)}>重试</button>
+            )}
+            <button type="button" className="hn-editor-uploads__cancel" aria-label={`取消上传 ${item.fileName}`}
+              onClick={() => installer.cancel(item.uploadId)}>取消</button>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
@@ -279,6 +241,7 @@ function NoteEditorSession(props: NoteEditorProps) {
   })
   const [acceptedInitial, setAcceptedInitial] = useState<AcceptedInitial | null>(null)
   const [mounted, setMounted] = useState<MountedSession | null>(null)
+  const [pictureDialog, setPictureDialog] = useState<EditorSession["pictureDialog"] | null>(null)
   // 上传/导出能力只镜像“已接受且 commit”的 callback 状态：未接受候选（含 invalid 新
   // key）永远不会改写它们，旧会话的控件界面、在途上传与待确认诊断因此原样保留。
   const [uploadEnabled, setUploadEnabled] = useState(false)
@@ -293,6 +256,10 @@ function NoteEditorSession(props: NoteEditorProps) {
   const acceptInitial = useCallback((initial: AcceptedInitial) => {
     setAcceptedInitial((current) => current?.sessionKey === initial.sessionKey ? current : initial)
   }, [])
+  useLayoutEffect(() => {
+    setPictureDialog(mounted?.session.pictureDialog ?? null)
+    return mounted?.session.subscribePictureDialog(() => setPictureDialog(mounted.session.pictureDialog ?? null))
+  }, [mounted])
 
   // 已提交同 key 的 callback 可在 commit 后更新；不同 key 只能由 InitialValidator 成功
   // 后采用，故无效候选 render 无法污染旧 session 的 callback（无效新 key 保留旧 doc、
@@ -321,6 +288,7 @@ function NoteEditorSession(props: NoteEditorProps) {
       documentId: acceptedInitial.documentId,
       loadKey: acceptedInitial.loadKey,
       initialDocument: acceptedInitial.document,
+      ...(acceptedInitial.onPictureResolve === undefined ? {} : { onPictureResolve: acceptedInitial.onPictureResolve }),
       ...(acceptedInitial.initialRevision === undefined ? {} : { initialRevision: acceptedInitial.initialRevision }),
       onSave: async (snapshot, context) => {
         if (!callbacks.current.onSave) throw new Error("未提供 onSave，不能保存文档")
@@ -362,6 +330,7 @@ function NoteEditorSession(props: NoteEditorProps) {
     if (!mounted || mounted.sessionKey !== sessionKey) return
     if (acceptedInitial?.sessionKey !== sessionKey) return
     mounted.session.configurePictureUpload(props.onPictureUpload)
+    mounted.session.configurePictureResolver(props.onPictureResolve)
     mounted.session.configureHostReferences({
       ...(props.onReferenceCandidates === undefined ? {} : { candidates: props.onReferenceCandidates }),
       ...(props.onReferenceActivate === undefined ? {} : { activate: props.onReferenceActivate }),
@@ -374,6 +343,7 @@ function NoteEditorSession(props: NoteEditorProps) {
     acceptedInitial?.sessionKey,
     mounted,
     props.onPictureUpload,
+    props.onPictureResolve,
     props.onExportMarkdown,
     props.onReferenceCandidates,
     props.onReferenceActivate,
@@ -427,6 +397,7 @@ function NoteEditorSession(props: NoteEditorProps) {
         onSave={props.onSave}
         onChange={props.onChange}
         onPictureUpload={props.onPictureUpload}
+        onPictureResolve={props.onPictureResolve}
         onReferenceCandidates={props.onReferenceCandidates}
         onReferenceActivate={props.onReferenceActivate}
         onReferenceResolve={props.onReferenceResolve}
@@ -448,6 +419,18 @@ function NoteEditorSession(props: NoteEditorProps) {
       }}
     >
       <EditorContent editor={mounted?.session.editor ?? null} />
+      {uploadEnabled && mounted?.session.pictureUpload && <PictureUploadControls
+        installer={mounted.session.pictureUpload}
+        theme={themeName}
+        {...(pictureDialog?.uploadId ? { excludeUploadId: pictureDialog.uploadId } : {})}
+      />}
+      {mounted && pictureDialog && mounted.session.pictureUpload && <PictureUploadDialog
+        installer={mounted.session.pictureUpload}
+        anchor={pictureDialog.anchor}
+        {...(pictureDialog.uploadId ? { uploadId: pictureDialog.uploadId } : {})}
+        onConfirm={(file) => mounted.session.confirmPictureDialog(file)}
+        onClose={() => mounted.session.closePictureDialog()}
+      />}
       {/* 宿主引用候选菜单（7.2）：挂在 EditorContent 旁，随会话 key 隔离 remount；桥
           生命周期由组件自行管理（layout effect 建/毁）。installer 身份进 state：
           fn→fn 更新身份不变（桥零打扰），能力增删/activate 翻转身份变化触发桥重建；
@@ -469,18 +452,9 @@ function NoteEditorSession(props: NoteEditorProps) {
           theme={themeName}
         />
       )}
-      {/* 会话控件栏（6.7 上传 / 7.3 保存状态 / 7.6 Markdown 导出）：key 与 session 取自
-          同一原子挂载态，切换时整体 remount，状态/订阅/在途操作不跨会话。 */}
       {mounted && (
-        <div className="hn-editor-controls">
+        <div className="hn-editor-session-actions">
           <SessionSaveStatus key={`save:${mounted.sessionKey}`} session={mounted.session} theme={themeName} />
-          {uploadEnabled && mounted.session.pictureUpload && (
-            <PictureUploadControls
-              key={`upload:${mounted.sessionKey}`}
-              installer={mounted.session.pictureUpload}
-              theme={themeName}
-            />
-          )}
           {exportEnabled && (
             <MarkdownExport
               key={mounted.sessionKey}

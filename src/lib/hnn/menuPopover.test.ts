@@ -340,4 +340,88 @@ describe("menuPopover：转换二级菜单", () => {
     expect(host.querySelectorAll('[role="menu"]')).toHaveLength(0)
     expect(onClose).toHaveBeenCalledTimes(1)
   })
+
+  it("鼠标悬停延时展开且不 toggle、不抢焦点；父子联合区域退出后才关闭", () => {
+    vi.useFakeTimers()
+    const { parent } = openNested()
+    const pointer = (target: HTMLElement, type: "pointerenter" | "pointerleave") => {
+      target.dispatchEvent(new window.PointerEvent(type, { pointerType: "mouse" }))
+    }
+    pointer(parent, "pointerenter")
+    vi.advanceTimersByTime(119)
+    expect(sub()).toBeNull()
+    vi.advanceTimersByTime(1)
+    expect(sub()).not.toBeNull()
+    expect(document.activeElement).toBe(parent)
+    pointer(parent, "pointerenter")
+    vi.advanceTimersByTime(200)
+    expect(sub()).not.toBeNull()
+
+    const child = sub()
+    pointer(parent, "pointerleave")
+    vi.advanceTimersByTime(100)
+    pointer(child, "pointerenter")
+    vi.advanceTimersByTime(200)
+    expect(sub()).toBe(child)
+    pointer(child, "pointerleave")
+    vi.advanceTimersByTime(179)
+    expect(sub()).not.toBeNull()
+    vi.advanceTimersByTime(1)
+    expect(sub()).toBeNull()
+    expect(parent.getAttribute("aria-expanded")).toBe("false")
+  })
+
+  it("切换父项会关闭旧层；离开待展开项或销毁菜单会清理计时器", () => {
+    vi.useFakeTimers()
+    const handle = openAnchoredMenu({ anchor, ariaLabel: "双父项", items: [
+      { label: "第一组", children: [{ label: "一" }] },
+      { label: "第二组", children: [{ label: "二" }] },
+      { label: "普通项" }
+    ] })
+    const parents = items()
+    parents[0]!.dispatchEvent(new PointerEvent("pointerenter", { pointerType: "mouse" }))
+    vi.advanceTimersByTime(120)
+    expect(host.querySelector('[aria-label="第一组选项"]')).not.toBeNull()
+    parents[1]!.dispatchEvent(new PointerEvent("pointerenter", { pointerType: "mouse" }))
+    expect(host.querySelector('[aria-label="第一组选项"]')).toBeNull()
+    vi.advanceTimersByTime(120)
+    expect(host.querySelector('[aria-label="第二组选项"]')).not.toBeNull()
+
+    parents[1]!.dispatchEvent(new PointerEvent("pointerleave", { pointerType: "mouse" }))
+    vi.advanceTimersByTime(180)
+    parents[1]!.dispatchEvent(new PointerEvent("pointerenter", { pointerType: "mouse" }))
+    parents[1]!.dispatchEvent(new PointerEvent("pointerleave", { pointerType: "mouse" }))
+    vi.advanceTimersByTime(200)
+    expect(host.querySelector('[aria-label="第二组选项"]')).toBeNull()
+
+    parents[0]!.dispatchEvent(new PointerEvent("pointerenter", { pointerType: "mouse" }))
+    handle.close()
+    vi.advanceTimersByTime(500)
+    expect(host.querySelectorAll('[role="menu"]')).toHaveLength(0)
+  })
+})
+
+
+it("悬停展开后 ArrowRight 聚焦首个可用子项并可执行", () => {
+  vi.useFakeTimers()
+  const action = vi.fn()
+  const handle = openAnchoredMenu({ anchor, ariaLabel: "混合输入", items: [
+    { label: "下一行", children: [
+      { label: "不可用", disabled: true },
+      { label: "图像", onActivate: action }
+    ] }
+  ] })
+  const parent = handle.element.querySelector<HTMLButtonElement>("button")!
+  parent.dispatchEvent(new PointerEvent("pointerenter", { pointerType: "mouse" }))
+  vi.advanceTimersByTime(120)
+  expect(document.activeElement).toBe(parent)
+  keydown(parent, "ArrowRight")
+  const focused = document.activeElement as HTMLButtonElement
+  expect(focused.textContent).toBe("图像")
+  expect(focused.tabIndex).toBe(0)
+  // 原生按钮 Enter/Space 的默认激活为 click（jsdom 不合成默认动作）。
+  focused.click()
+  expect(action).toHaveBeenCalledOnce()
+  expect(host.querySelectorAll('[role="menu"]')).toHaveLength(0)
+  vi.useRealTimers()
 })

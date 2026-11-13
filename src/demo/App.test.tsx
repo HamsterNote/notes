@@ -263,12 +263,17 @@ describe("演示宿主 — 图片上传", () => {
   })
 
   async function pickImage(name = "白板.png"): Promise<void> {
-    fireEvent.click(await screen.findByRole("button", { name: "插入图片" }))
-    const input = document.querySelector(".hn-editor-uploads__input")
-    expect(input).not.toBeNull()
-    fireEvent.change(input as HTMLInputElement, {
-      target: { files: [new File(["fake-image"], name, { type: "image/png" })] }
+    const editor = document.querySelector<HTMLElement>(".demo-note-preview .hn-editor")!
+    fireEvent.click(editor.querySelector("[data-drag-handle]")!)
+    fireEvent.click(within(editor).getByText("下一行"))
+    fireEvent.click(within(editor).getByText("图像"))
+    const dialog = await screen.findByRole("dialog", { name: "插入图像" })
+    fireEvent.change(dialog.querySelector("input[type='file']")!, {
+      target: { files: [new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])], name, { type: "image/png" })] }
     })
+    const confirm = within(dialog).getByRole<HTMLButtonElement>("button", { name: "确认插入" })
+    await waitFor(() => expect(confirm.disabled).toBe(false))
+    fireEvent.click(confirm)
   }
 
   it("上传成功：演示回调返回持久 https 示例地址并插入图片，事件说明未发送文件", async () => {
@@ -287,13 +292,13 @@ describe("演示宿主 — 图片上传", () => {
     )
   })
 
-  it("“下次上传失败一次”：失败后经列表重试成功（同 uploadId 幂等）", async () => {
+  it("“下次上传失败一次”：失败后经模态框重试成功（同 uploadId 幂等）", async () => {
     renderApp()
     await editableDom()
     fireEvent.click(screen.getByRole("switch", { name: /下次上传失败一次/ }))
     await pickImage("重试照片.png")
     await screen.findByText(/上传 重试照片\.png：演示模拟失败/, undefined, { timeout: 4000 })
-    fireEvent.click(await screen.findByRole("button", { name: /重试上传 重试照片\.png/ }))
+    fireEvent.click(await screen.findByRole("button", { name: "重试上传" }))
     await screen.findByText(/演示上传未发送文件，返回示例地址：重试照片\.png/, undefined, { timeout: 4000 })
   })
 })

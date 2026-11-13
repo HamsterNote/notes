@@ -6,12 +6,13 @@ import type { Node as PmNode } from "@tiptap/pm/model"
 import { decodeHnn, encodeHnn } from "../hnn/codec"
 import { createHnnNodeId } from "../hnn/nodeId"
 import { registerHnnTransactionPermission } from "../hnn/transactionPermission"
-import { createHnnExtensions, flushHnnPendingEdits, hnnRuntimeSchema } from "../hnn/extensions"
+import { createHnnSessionExtensions, flushHnnPendingEdits, hnnRuntimeSchema } from "../hnn/extensions"
 import { installBlockReorder } from "./blockReorder"
 import { openBlockMenu } from "./blockMenu"
 import { installHnnClipboardHistoryBoundary } from "./nativeClipboard"
 import { installHostReferences, isValidReferenceLookup, type HostReferenceInstaller } from "./hostReferences"
 import { installPictureUpload, type PictureUploadInstaller } from "./pictureUpload"
+import { notifyPictureResolverChange } from "./pictureResolution"
 import type { HnnDrawerSession } from "./HnnDataDrawer"
 import type {
   ActiveIdentity, DetachViewResult, FreezeOutcome, HostMetadataSnapshot,
@@ -28,6 +29,13 @@ export type DocumentView = {
   pictureUpload: PictureUploadInstaller | undefined
   cleanup: Array<() => void>
 }
+
+export type DocumentPictureDialog = Readonly<{
+  viewId: string
+  nodeId: string
+  anchor: HTMLElement
+  uploadId?: string
+}>
 
 function createSessionUuid(): string {
   const crypto = globalThis.crypto
@@ -72,6 +80,7 @@ export class DocumentSession {
   private freezing = false
   private requests = new Map<string, string | null>()
   private draft: PublicDraftState = { phase: "none" }
+  private pictureDialog: DocumentPictureDialog | null = null
   private draftPayload: HnnDrawerSession | null = null
   private completingDraft = false
   private lastEditView: symbol | undefined
@@ -119,10 +128,14 @@ export class DocumentSession {
     const changed = ["onReferenceCandidates", "onReferenceActivate", "onReferenceResolve"] as const
     const presenceChanged = changed.some((key) => !!this.options[key] !== !!options[key])
     const uploadChanged = !!this.options.onPictureUpload !== !!options.onPictureUpload
+    const resolverChanged = this.options.onPictureResolve !== options.onPictureResolve
     this.options = options
     if (uploadChanged) {
       for (const record of this.views.values()) this.configurePictureUpload(record)
       this.notify()
+    }
+    if (resolverChanged) {
+      for (const record of this.views.values()) notifyPictureResolverChange(record.editor)
     }
     if (presenceChanged) {
       for (const record of this.views.values()) this.configureReferences(record)
@@ -171,7 +184,7 @@ export class DocumentSession {
   canReplace(): boolean {
     const state = this.getState()
     return this.lifecycle !== "disposed" && !state.dirty.body && !state.dirty.host
-      && this.draft.phase === "none" && !this.pending && !this.pendingAcquires && !this.freezing && !this.frozen && !this.hasUploads()
+      && this.draft.phase === "none" && !this.pictureDialog && !this.pending && !this.pendingAcquires && !this.freezing && !this.frozen && !this.hasUploads()
   }
   resourceUsage(): { views: number; requests: number; activeLeases: number; undoEvents: number; redoEvents: number; sessionMappingEntries: number } {
     return {
@@ -189,6 +202,7 @@ export class DocumentSession {
     if (expected !== sessionId) return { sessionId, kind: "noop", reason: "stale" }
     if (!this.views.has(viewId)) return { sessionId, kind: "noop", reason: "unknown-view" }
     if (this.draft.phase !== "none" && this.draft.ownerViewId === viewId) return { sessionId, kind: "blocked", reason: "draft-owner" }
+    if (this.pictureDialog?.viewId === viewId) return { sessionId, kind: "blocked", reason: "draft-owner" }
     return { sessionId, kind: "allowed" }
   }
 
@@ -204,7 +218,11 @@ export class DocumentSession {
       })
     })
     const editor = new Editor({
-      extensions: [...createHnnExtensions(), sharedCommands],
+      extensions: [...createHnnSessionExtensions(false, {
+        documentId: this.identity.documentId,
+        loadKey: this.identity.loadKey,
+        getResolver: () => this.options.onPictureResolve
+      }), sharedCommands],
       content: this.authority.doc.toJSON() as Record<string, unknown>,
       // All commands and NodeViews use the same closed schema, including NodeType identity.
       onBeforeCreate: ({ editor: current }) => {
@@ -225,47 +243,97 @@ export class DocumentSession {
       openMenu: (anchor, getPos, onClosed) => {
         if (!this.canInput()) return undefined
         const menu = openBlockMenu({ editor, anchor, getPos, onClosed, capabilities: {
-          canUploadPicture: () => !!record.pictureUpload && this.canStartUpload(),
-          enqueuePictures: (files, position) => record.pictureUpload?.enqueue(files, position) ?? []
+          canUploadPicture: () => !!record.pictureUpload && this.canStartUpload(viewId) && !this.pictureDialog,
+          openPictureDialog: (nodeId, dialogAnchor) => this.openPictureDialog(viewId, nodeId, dialogAnchor)
         } })
         return menu ? (restoreFocus?: boolean) => menu.close(restoreFocus) : undefined
       }
     }))
     record.cleanup.push(installInteractionToolbar(editor, {
-      canUploadPicture: () => !!record.pictureUpload && this.canStartUpload(),
-      enqueuePictures: (files, position) => record.pictureUpload?.enqueue(files, position) ?? []
+      canUploadPicture: () => !!record.pictureUpload && this.canStartUpload(viewId) && !this.pictureDialog,
+      openPictureDialog: (nodeId, anchor) => this.openPictureDialog(viewId, nodeId, anchor)
     }))
     this.configureReferences(record)
     this.configurePictureUpload(record)
     this.refreshEditable()
     return record
   }
-  private canStartUpload(): boolean {
+  private canStartUpload(viewId?: string): boolean {
     return this.canInput() && this.draft.phase === "none" && !this.freezing && !this.pendingAcquires
+      && (!this.pictureDialog || this.pictureDialog.viewId === viewId)
   }
   private hasUploads(): boolean {
     return [...this.views.values()].some((record) => !!record.pictureUpload?.getState().items.length)
   }
   private flushUploads(): void {
-    if (!this.canStartUpload()) return
-    for (const record of [...this.views.values()]) record.pictureUpload?.flushCompletions()
+    for (const [viewId, record] of [...this.views]) {
+      if (this.canStartUpload(viewId)) record.pictureUpload?.flushCompletions()
+    }
+  }
+  private picturePosition(record: DocumentView, nodeId: string): number | null {
+    let position: number | null = null
+    record.editor.state.doc.forEach((node, offset) => {
+      if (node.attrs["nodeId"] === nodeId) position = offset + node.nodeSize
+    })
+    return position
+  }
+  pictureDialogForView(viewId: string): DocumentPictureDialog | null {
+    return this.pictureDialog?.viewId === viewId ? this.pictureDialog : null
+  }
+  openPictureDialog(viewId: string, nodeId: string, anchor: HTMLElement): boolean {
+    const record = this.views.get(viewId)
+    if (!record?.pictureUpload || this.pictureDialog || !this.canStartUpload(viewId)) return false
+    if (this.picturePosition(record, nodeId) === null) return false
+    this.pictureDialog = { viewId, nodeId, anchor }
+    this.notify()
+    return true
+  }
+  confirmPictureDialog(viewId: string, file: File): string | null {
+    const dialog = this.pictureDialog
+    const record = this.views.get(viewId)
+    if (!dialog || dialog.viewId !== viewId || dialog.uploadId || !record?.pictureUpload || !this.canStartUpload(viewId)) return null
+    const position = this.picturePosition(record, dialog.nodeId)
+    if (position === null) return null
+    const uploadId = record.pictureUpload.enqueue([file], position)[0] ?? null
+    if (uploadId) {
+      this.pictureDialog = { ...dialog, uploadId }
+      this.notify()
+    }
+    return uploadId
+  }
+  closePictureDialog(viewId: string): void {
+    const dialog = this.pictureDialog
+    if (!dialog || dialog.viewId !== viewId) return
+    if (dialog.uploadId) this.views.get(viewId)?.pictureUpload?.cancel(dialog.uploadId)
+    this.pictureDialog = null
+    this.notify()
+    this.flushUploads()
   }
   private configurePictureUpload(record: DocumentView): void {
     if (!this.options.onPictureUpload || this.lifecycle !== "ready") {
+      const viewId = [...this.views].find(([, value]) => value === record)?.[0]
+      if (viewId && this.pictureDialog?.viewId === viewId) this.closePictureDialog(viewId)
       record.pictureUpload?.destroy()
       record.pictureUpload = undefined
       return
     }
     if (record.pictureUpload) return
     const current = () => this.lifecycle === "ready" && [...this.views.values()].includes(record)
+    const currentViewId = () => [...this.views].find(([, value]) => value === record)?.[0]
     record.pictureUpload = installPictureUpload(record.editor, {
       upload: (file, context) => {
         const handler = this.options.onPictureUpload
         if (!current() || !handler) return Promise.reject(new Error("Picture upload is no longer available"))
         return handler(file, context)
       },
-      canStart: () => current() && this.canStartUpload(),
-      canCommit: () => current() && this.canStartUpload(),
+      canStart: () => {
+        const viewId = currentViewId()
+        return !!viewId && current() && this.canStartUpload(viewId)
+      },
+      canCommit: () => {
+        const viewId = currentViewId()
+        return !!viewId && current() && this.canStartUpload(viewId)
+      },
       dispatch: (tr) => {
         if (!current()) return false
         const entry = [...this.views].find(([, value]) => value === record)
@@ -312,6 +380,7 @@ export class DocumentSession {
   }
   detachView(viewId: string, record: DocumentView): void {
     if (this.views.get(viewId) !== record) return
+    if (this.pictureDialog?.viewId === viewId) this.closePictureDialog(viewId)
     record.pictureUpload?.destroy()
     record.references?.destroy()
     for (const cleanup of record.cleanup) cleanup()
@@ -520,7 +589,7 @@ export class DocumentSession {
       if ([...this.views.values()].some(({ editor }) => editor.view.composing)) return {
         ...result, kind: "failure", reason: "composition-commit", error: new Error("Composition still pending")
       }
-      if (this.pendingEdits || this.hasUploads()) return {
+      if (this.pendingEdits || this.hasUploads() || this.pictureDialog) return {
         ...result, kind: "failure", reason: "pending-edit", error: new Error("Reference or picture edit still pending")
       }
       const nextLease = createSessionUuid()
@@ -534,7 +603,7 @@ export class DocumentSession {
     } finally { this.freezing = false }
   }
   beginDraft(viewId: string, kind: "card" | "drawing"): boolean {
-    if (!this.canInput() || this.freezing) return false
+    if (!this.canInput() || this.freezing || this.pictureDialog) return false
     this.draft = { phase: "editing", draftId: createSessionUuid(), kind, ownerViewId: viewId, changed: false }
     this.refreshEditable()
     return true

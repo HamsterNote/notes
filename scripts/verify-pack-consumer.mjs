@@ -6,6 +6,7 @@ import path from "node:path"
 import { pathToFileURL } from "node:url"
 import { chromium } from "playwright"
 import { checkPublicHost } from "./public-host-browser.mjs"
+import { checkPictureInsertion } from "./picture-insertion-browser.mjs"
 
 const tarball = path.resolve(process.argv[2] ?? "evidence/hamster-note-notes-3.1.0.tgz")
 const expectedVersion = process.argv[3] ?? "3.1.0"
@@ -65,7 +66,7 @@ try {
   await page.waitForFunction(() => document.querySelector('[data-view-id="right"] .tiptap p')?.textContent === "new package body")
   await page.locator('[data-view-id="right"]').getByRole("button", { name: "保存", exact: true }).click()
   await page.waitForFunction(() => JSON.parse(localStorage.getItem("pack-save") ?? "null")?.document.data.content[0].content[0].text === "new package body")
-  assert.equal(await right.locator("p").textContent(), "new package body")
+  assert.equal(await right.locator("p").first().textContent(), "new package body")
   const legacy = page.locator("#legacy")
   await legacy.locator(".tiptap").click(); await page.keyboard.press("Control+Home"); await page.keyboard.type("old ")
   await legacy.getByRole("button", { name: "保存", exact: true }).click()
@@ -73,6 +74,10 @@ try {
   assert.deepEqual(errors, [])
   await page.screenshot({ path: `${evidence}/consumer.png`, fullPage: true })
   console.log("consumer browser", browser.version(), "new Provider/dual View/save + legacy NoteSave/revision PASS")
+  const pictureContext = await browser.newContext({ viewport: { width: 900, height: 900 }, hasTouch: true })
+  try {
+    await checkPictureInsertion(await pictureContext.newPage(), server.resolvedUrls.local[0], `${evidence}/picture-consumer`)
+  } finally { await pictureContext.close() }
   if (publicHost) {
     const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } })
     await context.tracing.start({ screenshots: true, snapshots: true, sources: true })

@@ -1,0 +1,23 @@
+{
+  "browser": "Chromium",
+  "publicFixture": true,
+  "hoverWithoutToggle": true,
+  "touchAndKeyboard": true,
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "paneWidth": 320,
+  "targetFollowedNodeId": true,
+  "sharedUndoRedo": true,
+  "providerAndStandalone": true,
+  "selectedBeforeUpload": 0,
+  "uploadedBytes": 68,
+  "persistedSrc": "hamster_note_data/images/0123456789abcdef0123456789abcdef.png",
+  "runtimeUrlPersisted": false,
+  "realPixelWidth": 1,
+  "screenshots": [
+    "dialog-light-dark-320.png",
+    "inserted-dual-pane.png"
+  ]
+}

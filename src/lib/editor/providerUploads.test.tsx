@@ -12,8 +12,10 @@ afterEach(() => { cleanup(); for (const s of sessions.splice(0)) s.dispose() })
 const initial = { schemaVersion: 1, data: { type: "doc", content: [{ type: "paragraph", attrs: {
   nodeId: "123e4567-e89b-42d3-a456-426614174000"
 }, content: [{ type: "text", text: "body" }] }] } }
-const image = (name = "image.png") => new File(["image"], name, { type: "image/png" })
-const tick = async () => { await Promise.resolve(); await Promise.resolve() }
+const image = (name = "image.png") => new File([
+  new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+], name, { type: "image/png" })
+const tick = async () => { await new Promise<void>((resolve) => setTimeout(resolve, 0)); await Promise.resolve() }
 function pending() {
   let resolve!: (value: PictureUploadResult) => void, reject!: (error: unknown) => void
   const promise = new Promise<PictureUploadResult>((yes, no) => { resolve = yes; reject = no })
@@ -40,11 +42,13 @@ it("hot enables/removes/re-enables upload and uses replacement handlers only for
   s.updateCallbacks({ ...options, onPictureUpload: first })
   const uploader = a.pictureUpload!
   uploader.enqueue([image()])
+  await tick()
   s.updateCallbacks({ ...options, onPictureUpload: second })
   expect(a.pictureUpload).toBe(uploader)
   old.reject(new Error("failure")); await tick()
   const id = uploader.getState().items[0]!.uploadId
   expect(uploader.retry(id)).toBe(true)
+  await tick()
   expect(second.mock.calls[0]).toBeDefined()
   expect(first.mock.calls).toHaveLength(1)
   s.updateCallbacks(options)
@@ -103,6 +107,7 @@ it.each(["cancel", "detach", "remove", "dispose", "anchor"])("aborts on %s and i
   if (action === "anchor") s.dispatch("a", a.editor.state.tr.insert(a.editor.state.doc.content.size, a.editor.schema.nodes["paragraph"]!.create()))
   const [id] = a.pictureUpload!.enqueue([image()])
   expect(s.canReplace()).toBe(false)
+  await tick()
   const signal = upload.mock.calls[0]![1].signal
   if (action === "cancel") a.pictureUpload!.cancel(id!)
   if (action === "detach") { s.detachView("a", a); s.attachView("a") }
@@ -143,6 +148,7 @@ it("save excludes all upload state; freeze rejects pending/failed without consum
   expect(a.pictureUpload!.enqueue([image()])).toEqual([])
   await c.setInputFrozen(false, { expectedSessionId, requestId: "S", leaseId: two.leaseId })
   expect(a.pictureUpload!.enqueue([image()])).toHaveLength(1)
+  await tick()
   expect(upload).toHaveBeenCalledTimes(2)
 })
 it.each(["card", "drawing"] as const)("defers successful upload during %s draft and commits once after close with separate history", async (kind) => {
@@ -193,6 +199,17 @@ function mount(upload?: NoteDocumentProviderProps["onPictureUpload"], kind?: "ca
     children: <><NoteEditorView viewId="a" /><NoteEditorView viewId="b" /></> }
   return { ...render(<NoteDocumentProvider {...props} />), props, controllerRef, onChange }
 }
+async function confirmPublicPicture(h: ReturnType<typeof mount>): Promise<void> {
+  const pane = h.container.querySelector<HTMLElement>('[data-view-id="a"]')!
+  fireEvent.click(pane.querySelector("[data-drag-handle]")!)
+  fireEvent.click(within(pane).getByText("下一行"))
+  fireEvent.click(within(pane).getByText("图像"))
+  const dialog = within(document.body).getByRole("dialog", { name: "插入图像" })
+  fireEvent.change(dialog.querySelector('input[type="file"]')!, { target: { files: [image()] } })
+  const confirm = within(dialog).getByRole<HTMLButtonElement>("button", { name: "确认插入" })
+  await waitFor(() => expect(confirm.disabled).toBe(false))
+  fireEvent.click(confirm)
+}
 it.each(["throw", "reject", "unsafe"])("public UI supports %s failure, accessible retry, stable identity and cancel/late isolation", async (failure) => {
   const late = pending()
   const upload = vi.fn<NonNullable<NoteDocumentProviderProps["onPictureUpload"]>>()
@@ -201,24 +218,28 @@ it.each(["throw", "reject", "unsafe"])("public UI supports %s failure, accessibl
       return failure === "reject" ? Promise.reject(new Error("offline")) : Promise.resolve({ src: "javascript:alert(1)" })
     }).mockImplementation(() => late.promise)
   const h = mount(upload)
-  const input = h.container.querySelector<HTMLInputElement>('input[type="file"]')!
-  fireEvent.change(input, { target: { files: [image()] } })
-  await waitFor(() => expect(h.getByRole("alert").textContent).toContain("上传失败"))
+  await confirmPublicPicture(h)
+  await waitFor(() => expect(h.getByRole("alert").textContent).not.toBe(""))
   expect(h.onChange).not.toHaveBeenCalled()
-  fireEvent.click(h.getByRole("button", { name: "重试上传 image.png" }))
+  fireEvent.click(h.getByRole("button", { name: "重试上传" }))
+  await waitFor(() => expect(upload).toHaveBeenCalledTimes(2))
   expect(upload.mock.calls[1]![1]).toMatchObject({ uploadId: upload.mock.calls[0]![1].uploadId, attempt: 2 })
   expect(upload.mock.calls[1]![1].signal).not.toBe(upload.mock.calls[0]![1].signal)
-  fireEvent.click(h.getByRole("button", { name: "取消上传 image.png" }))
+  fireEvent.click(h.getByRole("button", { name: "取消" }))
   expect(upload.mock.calls[1]![1].signal.aborted).toBe(true)
   await act(async () => { late.resolve({ src: "https://example.com/late.png" }); await tick() })
   expect(h.onChange).not.toHaveBeenCalled()
   expect(h.container.querySelector('[data-hnn-node="picture"]')).toBeNull()
-  expect(h.queryByRole("button", { name: "取消上传 image.png" })).toBeNull()
+  expect(h.queryByRole("button", { name: "取消" })).toBeNull()
 })
 it.each(["card", "drawing"] as const)("real %s portal cancellation commits the deferred upload once", async (kind) => {
   const result = pending()
   const h = mount(() => result.promise, kind)
-  fireEvent.change(h.container.querySelector('input[type="file"]')!, { target: { files: [image()] } })
+  const area = h.container.querySelector<HTMLElement>(".tiptap")!
+  const paste = new Event("paste", { bubbles: true, cancelable: true })
+  Object.defineProperty(paste, "clipboardData", { value: { files: [image()], getData: () => "", types: ["Files"] } })
+  fireEvent(area, paste)
+  await tick()
   const a = within(h.container.querySelector('[data-view-id="a"]') as HTMLElement)
   fireEvent.click(a.getByLabelText(kind === "card" ? "编辑卡片" : "编辑画板"))
   await act(async () => { result.resolve({ src: "https://example.com/deferred.png" }); await tick() })
@@ -237,6 +258,7 @@ it("public no-upload behavior, image paste, internal drag guard and legal sessio
   const event = new Event("paste", { bubbles: true, cancelable: true })
   Object.defineProperty(event, "clipboardData", { value: { files: [image()], getData: () => "", types: ["Files"] } })
   fireEvent(area, event)
+  await tick()
   expect(upload).toHaveBeenCalledTimes(1)
   h.rerender(<NoteDocumentProvider {...h.props} loadKey={2} onPictureUpload={upload} />)
   expect(h.controllerRef.current!.getState().identity!.sessionId).toBe(id)

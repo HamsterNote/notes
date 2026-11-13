@@ -2,11 +2,12 @@ import { installInteractionToolbar } from "./interactionToolbar"
 import { Editor } from "@tiptap/core"
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model"
 import { encodeHnn, decodeHnn, type HnnDocument } from "../hnn/codec"
-import { createHnnEditorExtensions } from "../hnn/extensions"
+import { createHnnSessionExtensions } from "../hnn/extensions"
 import { installBlockReorder } from "./blockReorder"
 import { openBlockMenu } from "./blockMenu"
 import { installHostReferences, type HostReferenceInstaller } from "./hostReferences"
 import { installHnnClipboardHistoryBoundary } from "./nativeClipboard"
+import { notifyPictureResolverChange } from "./pictureResolution"
 import { installPictureUpload, type PictureUploadInstaller } from "./pictureUpload"
 import type {
   EditorSessionOptions,
@@ -15,6 +16,7 @@ import type {
   HostReferenceActivate,
   HostReferenceResolve,
   NoteSaveResult,
+  PictureResolveHandler,
   PictureUploadHandler
 } from "./types"
 
@@ -26,6 +28,12 @@ export type HostReferenceCapability = Readonly<{
 }>
 
 type Listener = () => void
+
+export type EditorPictureDialog = Readonly<{
+  nodeId: string
+  anchor: HTMLElement
+  uploadId?: string
+}>
 
 type PendingSave = {
   token: symbol
@@ -57,6 +65,8 @@ export class EditorSession {
   #destroyed = false
   #pending: PendingSave | undefined
   #listeners = new Set<Listener>()
+  #pictureDialogListeners = new Set<Listener>()
+  #pictureDialog: EditorPictureDialog | undefined
   #removeClipboardHistoryBoundary: (() => void) | undefined
   #removeInteractionToolbar: (() => void) | undefined
   #removeBlockReorder: (() => void) | undefined
@@ -64,6 +74,7 @@ export class EditorSession {
   // 上传 handler 独立成字段：installer 闭包运行期读取，同 key 更新 callback 时未来请求
   // 用新 handler，在途请求的 uploadId/signal 不受影响。
   #pictureUploadHandler: PictureUploadHandler | undefined
+  #pictureResolveHandler: PictureResolveHandler | undefined
   #hostReferences: HostReferenceInstaller | undefined
   // 引用三 callback 独立成字段：candidates/resolve 经 installer 闭包运行期读取，纯
   // fn→fn（三 presence 全不变）只影响未来请求，在途候选/解析/激活全部稳定；任一
@@ -75,16 +86,21 @@ export class EditorSession {
 
   constructor(options: EditorSessionOptions) {
     // 不持有调用方 options 对象，避免构造后外部突变改变这次会话的 CAS 语义。
-    const { documentId, loadKey, initialDocument, initialRevision, onSave, onChange, onPictureUpload } = options
+    const { documentId, loadKey, initialDocument, initialRevision, onSave, onChange, onPictureUpload, onPictureResolve } = options
     const { onReferenceCandidates, onReferenceActivate, onReferenceResolve } = options
     assertValidLoadKey(loadKey)
     this.#documentId = documentId
     this.#onSave = onSave
     this.#onChange = onChange
+    this.#pictureResolveHandler = onPictureResolve
     // 必须先解码：失败时不创建 Editor，更不能创建可保存的兜底文档。
     const decodedDocument = decodeHnn(initialDocument)
     this.editor = new Editor({
-      extensions: createHnnEditorExtensions(),
+      extensions: createHnnSessionExtensions(true, {
+        documentId,
+        loadKey,
+        getResolver: () => this.#pictureResolveHandler
+      }),
       // codec schema 与会话 schema 分别构造；必须用 JSON 跨 schema 重新物化 document。
       content: decodedDocument.toJSON() as unknown as Record<string, unknown>,
       enableContentCheck: true,
@@ -111,8 +127,8 @@ export class EditorSession {
           anchor,
           getPos,
           capabilities: {
-            canUploadPicture: () => this.#pictureUpload !== undefined,
-            enqueuePictures: (files, position) => this.#pictureUpload?.enqueue(files, position) ?? []
+            canUploadPicture: () => this.#pictureUpload !== undefined && !this.#pictureDialog,
+            openPictureDialog: (nodeId, anchor) => this.openPictureDialog(nodeId, anchor)
           },
           onClosed
         })
@@ -120,8 +136,8 @@ export class EditorSession {
       }
     })
     this.#removeInteractionToolbar = installInteractionToolbar(this.editor, {
-      canUploadPicture: () => this.#pictureUpload !== undefined,
-      enqueuePictures: (files, position) => this.#pictureUpload?.enqueue(files, position) ?? []
+      canUploadPicture: () => this.#pictureUpload !== undefined && !this.#pictureDialog,
+      openPictureDialog: (nodeId, anchor) => this.openPictureDialog(nodeId, anchor)
     })
     // 初始即带上传回调的会话直接安装（任务 6.7）；构造后同 key 新增/更新/移除回调由
     // configurePictureUpload 驱动。与重排的 drop 所有权互斥：重排只认领自定义 MIME 的
@@ -160,6 +176,56 @@ export class EditorSession {
     return this.#pictureUpload
   }
 
+  get pictureDialog(): EditorPictureDialog | undefined {
+    return this.#pictureDialog
+  }
+
+  subscribePictureDialog(listener: Listener): () => void {
+    this.#pictureDialogListeners.add(listener)
+    return () => { this.#pictureDialogListeners.delete(listener) }
+  }
+
+  #notifyPictureDialog(): void {
+    for (const listener of [...this.#pictureDialogListeners]) listener()
+  }
+
+  #picturePosition(nodeId: string): number | null {
+    let position: number | null = null
+    this.editor.state.doc.forEach((node, offset) => {
+      if (node.attrs["nodeId"] === nodeId) position = offset + node.nodeSize
+    })
+    return position
+  }
+
+  openPictureDialog(nodeId: string, anchor: HTMLElement): boolean {
+    if (this.#destroyed || this.#pictureDialog || !this.#pictureUpload || !this.editor.view.editable) return false
+    if (this.#picturePosition(nodeId) === null) return false
+    this.#pictureDialog = { nodeId, anchor }
+    this.#notifyPictureDialog()
+    return true
+  }
+
+  confirmPictureDialog(file: File): string | null {
+    const dialog = this.#pictureDialog
+    if (!dialog || dialog.uploadId || !this.#pictureUpload || this.#destroyed || !this.editor.view.editable) return null
+    const position = this.#picturePosition(dialog.nodeId)
+    if (position === null) return null
+    const uploadId = this.#pictureUpload.enqueue([file], position)[0] ?? null
+    if (uploadId) {
+      this.#pictureDialog = { ...dialog, uploadId }
+      this.#notifyPictureDialog()
+    }
+    return uploadId
+  }
+
+  closePictureDialog(): void {
+    const dialog = this.#pictureDialog
+    if (!dialog) return
+    if (dialog.uploadId) this.#pictureUpload?.cancel(dialog.uploadId)
+    this.#pictureDialog = undefined
+    this.#notifyPictureDialog()
+  }
+
   /** 只增安装上传插件：不动 doc/selection/history/baseline，editor 实例保持不变。 */
   #installPictureUpload(): void {
     this.#pictureUpload = installPictureUpload(this.editor, {
@@ -188,12 +254,19 @@ export class EditorSession {
     if (handler === this.#pictureUploadHandler) return
     this.#pictureUploadHandler = handler
     if (!handler) {
+      this.closePictureDialog()
       this.#pictureUpload?.destroy()
       this.#pictureUpload = undefined
       return
     }
     // 已有 installer：字段已更新，未来 startUpload 自然读取新 handler，无需重装。
     if (!this.#pictureUpload) this.#installPictureUpload()
+  }
+
+  configurePictureResolver(handler: PictureResolveHandler | undefined): void {
+    if (this.#destroyed || handler === this.#pictureResolveHandler) return
+    this.#pictureResolveHandler = handler
+    notifyPictureResolverChange(this.editor)
   }
 
   /**
@@ -334,6 +407,7 @@ export class EditorSession {
 
   destroy(): void {
     if (this.#destroyed) return
+    this.closePictureDialog()
     this.#destroyed = true
     this.#pending?.controller.abort()
     // 先 abort 全部在途上传并注销上传插件：宿主即使忽略 abort，陈旧结果也由
@@ -343,6 +417,7 @@ export class EditorSession {
     // 绝不回写后续会话（D11 切换中止策略与保存/上传一致）。
     this.#hostReferences?.destroy()
     this.#listeners.clear()
+    this.#pictureDialogListeners.clear()
     this.#removeClipboardHistoryBoundary?.()
     // 先取消进行中的拖拽手势与 document 监听，再销毁视图。
     this.#removeInteractionToolbar?.()

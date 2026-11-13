@@ -146,7 +146,7 @@ describe("M1.4 explicit block menu and lossless unwrapping", () => {
   it("block menu targets all direct items; unwrap preserves children and marks", () => {
     const { editor } = make([list("bulletList", [item("parent", "bulletList", [list("taskList", [item("child", "taskList")])]), item("sibling")])])
     select(editor, "child")
-    const commands = getBlockCommands(editor, () => 0, { canUploadPicture: () => false, enqueuePictures: () => [] })!
+    const commands = getBlockCommands(editor, () => 0, { canUploadPicture: () => false, openPictureDialog: () => false })!
     expect(commands.indentItems[0]).toMatchObject({ label: "缩进", disabled: true })
     expect(commands.indentItems[1]).toMatchObject({ label: "反缩进", disabled: false })
     const entry = commands.conversionItems.find(entry => entry !== "divider" && entry.label === "转换为正文")
