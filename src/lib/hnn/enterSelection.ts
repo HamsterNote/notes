@@ -32,8 +32,15 @@ export const HnnEnterSelection = Extension.create({
           // Document/selection updates and explicit selection commands own the
           // range. Metadata-only updates must not absorb pending native movement.
           update(view, prevState) {
-            if (view.state.doc !== prevState.doc || !view.state.selection.eq(prevState.selection) ||
-                selectionOwnershipKey.getState(view.state) !== selectionOwnershipKey.getState(prevState)) {
+            const explicitlySet = selectionOwnershipKey.getState(view.state) !== selectionOwnershipKey.getState(prevState)
+            const sameSelection = view.state.selection.eq(prevState.selection)
+            // updateState skips selectionToDOM for an equal range. Finish that
+            // explicit command's write before sampling, rather than remembering
+            // the stale cursor that a session may overwrite after this callback.
+            // focus() is PM's public synchronous selection write; never steal
+            // focus from another pane or interrupt an active composition.
+            if (explicitlySet && sameSelection && view.hasFocus() && !view.composing) view.focus()
+            if (view.state.doc !== prevState.doc || !sameSelection || explicitlySet) {
               written = nativeSelection(view)
             }
           }

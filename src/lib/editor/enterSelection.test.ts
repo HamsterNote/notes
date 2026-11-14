@@ -158,7 +158,6 @@ it.each([false, true])("review: equal model command, subsequent native End=%s", 
   documentId: "review", loadKey: 1,
   initialDocument: { schemaVersion: 1, data: normalizeInitialHnnContent({ type: "doc", content: [{ type: "taskList", content: [{ type: "taskItem", attrs: { checked: false }, content: [{ type: "paragraph", content: [{ type: "text", text: "First" }] }] }] }] }) },
   initialHostSnapshot: { changeId: 0, value: { title: "", summary: "" } },
-  // eslint-disable-next-line @typescript-eslint/require-await
   onSave: async () => {}, onChange: () => {}
  })
  const { editor } = session.attachView("a")
