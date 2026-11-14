@@ -35,3 +35,5 @@
 - [x] 6.1 在开发完成后执行 `yarn test`、`yarn typecheck`、`yarn lint`、`yarn build`，确认引用、块菜单、列表、共享会话、图片弹层/上传相关回归通过；失败先修复再记录实际结果，不把本次 propose 的文档校验当成功能验证。
 - [ ] 6.2 在 `yarn dev` demo 或实际宿主按 proposal 的 S1–S6 执行完整冒烟，包含 macOS 与 Windows 真实键盘、1440/390px、明暗双视图、保存重开、取消/权限/陈旧拒绝和结构单步撤销；交付逐条结果、截图/HNN 与未覆盖平台，不将模拟键盘冒充真实系统验证。
 - [x] 6.3 将六项原话、两个 delta spec 和实际实现逐项对照，执行 `openspec validate improve-note-editor-interactions --strict`；提供全部需求覆盖与自测证据后再交付下一阶段评审，不提前勾选未执行任务。
+
+> 6.2 保持未勾选：S1–S5 已由浏览器自动化与人类浏览器验收覆盖，S6 仅自动化 KeyboardEvent 覆盖，真实 macOS / Windows 键盘未验证。2026-11-14 人类在浏览器验收通过并接受该限制。
