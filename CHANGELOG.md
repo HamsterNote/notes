@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Upgrade Notes
 - 当前构建使用 `vendor/hamster-note-painting-0.8.4-57a82fb.tgz`；painting 0.8.4 尚未发布 npm，发布后改为公开依赖。画板数据仍使用原 painting 0.2.0 运行时，文件入口来自 0.8.4 的轻量 `/toolbar` 子路径，未引入绘图运行时。
 
+## [3.5.2] - 2026-11-14
+
+### Fixed
+- HAM-266：浮动工具栏继续按有效 safe area 和标题遮挡定位，但不再通过占用空间 padding 压缩正文；顶部/底部布局切换保持正文尺寸、文档会话与历史不变。
+
 ## [3.1.2] - 2026-10-18
 
 ### Added
