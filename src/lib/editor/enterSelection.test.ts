@@ -67,6 +67,19 @@ describe("Enter selection ownership", () => {
     expect(session.editor.state.selection.toJSON()).toMatchObject({ anchor: 7, head: 4 })
   })
 
+  it("preserves pending native End across an unrelated metadata-only transaction", () => {
+    const session = make()
+    delayedEnd(session)
+    const before = session.editor.state.doc
+    session.editor.view.dispatch(session.editor.state.tr.setMeta("unrelated", true))
+    expect(session.editor.state.doc).toBe(before)
+    expect(session.editor.state.selection.toJSON()).toMatchObject({ anchor: 3, head: 8 })
+    expect(document.getSelection()!.isCollapsed).toBe(true)
+    expect(document.getSelection()!.anchorOffset).toBe(5)
+    key(session)
+    expect(lines(session)).toEqual(["First", ""])
+  })
+
   it("honors a newer explicit model selection instead of the earlier native End", () => {
     const session = make()
     delayedEnd(session)
