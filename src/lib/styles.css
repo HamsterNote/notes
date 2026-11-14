@@ -1740,7 +1740,9 @@
 .hn-editor .hn-view-toolbar .hn-pane-toolbar button:active:enabled {
   background: var(--hn-surface-hover);
 }
-.hn-editor .hn-view-toolbar .hn-pane-toolbar button[aria-checked="true"] {
+.hn-editor .hn-view-toolbar .hn-pane-toolbar button[aria-checked="true"],
+.hn-editor .hn-view-toolbar .hn-pane-toolbar button[aria-checked="true"]:hover:enabled,
+.hn-editor .hn-view-toolbar .hn-pane-toolbar button[aria-checked="true"]:active:enabled {
   background: var(--hn-text);
   color: var(--hn-bg);
 }

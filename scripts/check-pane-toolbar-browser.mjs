@@ -15,6 +15,10 @@ const server = await createServer({ configFile: false, root: path.resolve("scrip
 let browser
 const closeEnough = (actual, expected, message) =>
   assert(Math.abs(actual - expected) <= 1.5, `${message}: expected ${expected} ±1.5, got ${actual}`)
+const rgb = color => color.match(/[\d.]+/g).slice(0, 3).map(Number)
+const lum = color => rgb(color).map(v => v / 255).map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4)
+  .reduce((n, v, i) => n + v * [.2126, .7152, .0722][i], 0)
+const contrast = (a, b) => (Math.max(lum(a), lum(b)) + .05) / (Math.min(lum(a), lum(b)) + .05)
 try {
   await server.listen()
   browser = await chromium.launch()
@@ -66,10 +70,6 @@ try {
       })
       assert.equal(palette.bg, theme === "dark" ? "rgb(23, 32, 51)" : "rgb(248, 250, 252)")
       assert.equal(palette.text, theme === "dark" ? "rgb(241, 245, 249)" : "rgb(30, 41, 59)")
-      const rgb = color => color.match(/[\d.]+/g).slice(0, 3).map(Number)
-      const lum = color => rgb(color).map(v => v / 255).map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4)
-        .reduce((n, v, i) => n + v * [.2126, .7152, .0722][i], 0)
-      const contrast = (a, b) => (Math.max(lum(a), lum(b)) + .05) / (Math.min(lum(a), lum(b)) + .05)
       assert(contrast(palette.bg, palette.text) >= 4.5)
       await page.getByRole("button", { name: "文件", exact: true }).click()
       const menuPalette = await menu.evaluate(e => ({ bg: getComputedStyle(e).backgroundColor, text: getComputedStyle(e).color }))
@@ -127,6 +127,46 @@ try {
   assert.deepEqual(await page.evaluate(() => window.toolbarState()), sessionBefore)
   await page.screenshot({ path: "evidence/ham257/toolbar-split-inline.png" })
   console.log("PASS inline mixed light/dark views: isolated shell/menu themes; unchanged document, selection and DOM identity")
+  // Pointer states must retain the checked foreground/background pair. Test
+  // both layouts at desktop/mobile widths, including an actual held press.
+  const checkedStates = []
+  for (const placement of ["floating", "inline"]) {
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 1000 })
+      await page.goto(`${server.resolvedUrls.local[0]}?edge=bottom${placement === "inline" ? "&inline=1" : ""}`)
+      await view.locator(".tiptap").waitFor()
+      for (const theme of ["light", "dark"]) {
+        const currentlyDark = await view.evaluate(e => e.classList.contains("hn-editor--dark"))
+        if (currentlyDark !== (theme === "dark")) await page.locator("#toggle-theme").click()
+        await view.getByRole("button", { name: "文件", exact: true }).click()
+        const current = view.locator('[role="menuitemradio"][aria-checked="true"]')
+        await current.hover()
+        for (const state of ["hover", "active"]) {
+          if (state === "active") await page.mouse.down()
+          const palette = await current.evaluate((e, state) => ({
+            text: getComputedStyle(e).color,
+            bg: getComputedStyle(e).backgroundColor,
+            matches: e.matches(state === "active" ? ":active" : ":hover")
+          }), state)
+          assert.equal(palette.matches, true, `must exercise real :${state}`)
+          const ratio = contrast(palette.text, palette.bg)
+          checkedStates.push({ placement, width, theme, state, ...palette, ratio })
+          console.log(`CHECK selected ${placement} ${width}px ${theme} ${state}: foreground=${palette.text}, background=${palette.bg}, contrast=${ratio.toFixed(2)}:1`)
+        }
+        // Release away from the row so the selected file is not activated.
+        await page.mouse.move(1, 1)
+        await page.mouse.up()
+        await page.keyboard.press("Escape")
+      }
+    }
+  }
+  for (const result of checkedStates) {
+    const label = `${result.placement} ${result.width}px ${result.theme} ${result.state}`
+    assert.equal(result.text, result.theme === "dark" ? "rgb(15, 23, 42)" : "rgb(255, 255, 255)", label)
+    assert.equal(result.bg, result.theme === "dark" ? "rgb(241, 245, 249)" : "rgb(30, 41, 59)", label)
+    assert(result.ratio >= 4.5, `${label}: selected text contrast ${result.ratio.toFixed(2)} < 4.5`)
+  }
+  console.log("PASS selected hover/active foreground, background and contrast in both themes, layouts and widths")
   assert.deepEqual(errors, [])
   console.log("PASS top/bottom safe-area offsets, content reservation, file select/remove and edge switch without document remount")
 } finally {
