@@ -20,6 +20,7 @@ import { jsonStringBytes, utf8Bytes } from "./stringBytes"
 import { collectHnnNodeIds, createHnnNodeIdPlugin, HNN_NODE_ID_TYPES, normalizeInitialHnnContent } from "./nodeId"
 import { isSafeHnnPictureUrl, isSafeHnnUrl } from "./urlPolicy"
 import { HnnCompositionDeletion } from "./compositionDeletion"
+import { HnnEnterSelection } from "./enterSelection"
 import { createPictureResolution } from "../editor/pictureResolution"
 import type { PictureResolveHandler } from "../editor/types"
 
@@ -1632,6 +1633,7 @@ function buildHnnExtensions(includeUndoRedo: boolean, pictureResolution?: HnnPic
   })
 
   return [
+    HnnEnterSelection,
     HnnCompositionDeletion,
     HnnHistoryKeys,
     HnnListInteractions,

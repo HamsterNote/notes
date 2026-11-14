@@ -10,7 +10,7 @@ function make(type = "taskList", onSave?: Parameters<typeof createEditorSession>
   const content = type === "paragraph" ? [paragraph] : [{ type, attrs: type === "orderedList" ? { start: 1 } : {}, content: [{
     type: type === "taskList" ? "taskItem" : "listItem", attrs: type === "taskList" ? { checked: false } : {}, content: [paragraph]
   }] }]
-  const session = createEditorSession({ documentId: "enter", loadKey: 1, onSave,
+  const session = createEditorSession({ documentId: "enter", loadKey: 1, ...(onSave ? { onSave } : {}),
     initialDocument: { schemaVersion: 1, data: normalizeInitialHnnContent({ type: "doc", content }) } })
   sessions.push(session)
   document.body.append(session.editor.view.dom)
@@ -86,6 +86,31 @@ describe("Enter selection ownership", () => {
     expect(lines(session)).toEqual(["F", "t"])
   })
 
+  it.each([{ isComposing: true }, { keyCode: 229 }])("does not take selection ownership during IME %j", options => {
+    const session = make()
+    delayedEnd(session)
+    const state = session.editor.state
+    key(session, "Enter", options)
+    expect(session.editor.state).toBe(state)
+  })
+
+  it("does not import an external selection or change a readonly editor", () => {
+    const session = make()
+    delayedEnd(session)
+    session.editor.setEditable(false)
+    const state = session.editor.state
+    key(session)
+    expect(session.editor.state).toBe(state)
+    session.editor.setEditable(true)
+    const outside = document.createElement("p")
+    outside.textContent = "outside"
+    document.body.append(outside)
+    document.getSelection()!.setBaseAndExtent(outside.firstChild!, 0, outside.firstChild!, 3)
+    key(session)
+    // The model selection still owns Enter: no outside text is imported.
+    expect(lines(session)).toEqual(["", ""])
+  })
+
   it("uses the delayed native cursor for ordinary paragraph Enter too", () => {
     const session = make("paragraph")
     delayedEnd(session, 1)
@@ -95,7 +120,7 @@ describe("Enter selection ownership", () => {
 
   it("undoes and redoes Enter once, and saves/reopens the preserved text", async () => {
     let saved: HnnDocument | undefined
-    const session = make("taskList", async document => { saved = document; return { status: "saved" } })
+    const session = make("taskList", document => { saved = document; return Promise.resolve({ kind: "saved" }) })
     const before = session.editor.state.doc
     delayedEnd(session)
     key(session)
@@ -106,7 +131,7 @@ describe("Enter selection ownership", () => {
     expect(session.undo()).toBe(false)
     expect(session.redo()).toBe(true)
     expect(session.editor.state.doc.eq(after)).toBe(true)
-    await session.save()
+    await expect(session.save()).resolves.toEqual({ kind: "saved" })
     expect(saved).toEqual(encodeHnn(after))
     const reopened = createEditorSession({ documentId: "enter", loadKey: 2, initialDocument: saved! })
     sessions.push(reopened)
