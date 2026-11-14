@@ -38,7 +38,7 @@ try {
   assert.equal(await shell.getAttribute("data-toolbar-edge"), "top")
   closeEnough(topBox.y, 60, "top toolbar offset must be 16 + max(top=24, header=44)")
   assert.equal(await padding("paddingBottom"), 0)
-  closeEnough(await padding("paddingTop"), 60 + topBox.height, "content must reserve the top toolbar")
+  assert.equal(await padding("paddingTop"), 0)
 
   await page.getByRole("button", { name: "文件", exact: true }).click()
   const menu = page.getByRole("menu", { name: "文件列表", exact: true })
@@ -56,7 +56,7 @@ try {
   await page.waitForFunction(() => document.querySelector("[data-toolbar-edge]")?.getAttribute("data-toolbar-edge") === "bottom")
   const bottomBox = await shell.boundingBox()
   closeEnough(1000 - (bottomBox.y + bottomBox.height), 50, "bottom toolbar offset must be 16 + bottom=34")
-  closeEnough(await padding("paddingBottom"), 50 + bottomBox.height, "content must reserve the bottom toolbar")
+  assert.equal(await padding("paddingBottom"), 0)
   assert.equal(await padding("paddingTop"), 0)
   assert.equal(await view.locator(".tiptap").getAttribute("data-keep"), "yes")
 
@@ -95,14 +95,13 @@ try {
   })
   const retry = view.getByRole("button", { name: "重试上传 retry.png", exact: true })
   await retry.waitFor()
-  // The padding must protect upload controls too, not end before their list.
   assert.equal(await content.locator(".hn-editor-uploads__list").count(), 1)
   await retry.click()
   await page.waitForFunction(() => window.sessionLog.filter(entry => entry.kind === "upload").length === 2)
   await view.getByRole("button", { name: "取消上传 retry.png", exact: true }).click()
   assert.equal(await view.locator(".hn-editor-uploads__list").count(), 0)
   await page.screenshot({ path: "evidence/ham257/toolbar-upload-320.png", fullPage: false })
-  console.log("PASS upload retry/cancel remain inside reserved flow content at 320px")
+  console.log("PASS upload retry/cancel remain in the unchanged flow content at 320px")
   await page.setViewportSize({ width: 1440, height: 1000 })
   await page.goto(`${server.resolvedUrls.local[0]}?split=1&inline=1`)
   await page.locator('[data-view-id="b"] .tiptap').waitFor()
@@ -168,7 +167,7 @@ try {
   }
   console.log("PASS selected hover/active foreground, background and contrast in both themes, layouts and widths")
   assert.deepEqual(errors, [])
-  console.log("PASS top/bottom safe-area offsets, content reservation, file select/remove and edge switch without document remount")
+  console.log("PASS top/bottom safe-area offsets, unchanged content padding, file select/remove and edge switch without document remount")
 } finally {
   await browser?.close()
   await server.close()

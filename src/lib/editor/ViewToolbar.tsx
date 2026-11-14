@@ -25,7 +25,7 @@ type ViewToolbarProps = {
   onUndo: () => void
   onRedo: () => void
   onSave: () => void
-  onOccupiedSpaceChange: (space: Readonly<{ top: number; bottom: number }>) => void
+  onOccupiedSpaceChange?: (space: Readonly<{ top: number; bottom: number }>) => void
 }
 
 /**
@@ -94,7 +94,7 @@ export function ViewToolbar({
         placement="floating"
         layout={layout}
         label="笔记工具"
-        onOccupiedSpaceChange={onOccupiedSpaceChange}
+        {...(onOccupiedSpaceChange ? { onOccupiedSpaceChange } : {})}
       >
         {controls}
       </ToolbarShell>
