@@ -1,0 +1,45 @@
+PASS 1440px light: toolbar/menu text contrast 13.98, focus 13.98
+PASS 1440px dark: toolbar/menu text contrast 14.85, focus 14.85
+PASS 1440px light: toolbar/menu text contrast 13.98, focus 13.98
+PASS 390px light: toolbar/menu text contrast 13.98, focus 13.98
+PASS 390px dark: toolbar/menu text contrast 14.85, focus 14.85
+PASS 390px light: toolbar/menu text contrast 13.98, focus 13.98
+PASS upload retry/cancel remain inside reserved flow content at 320px
+PASS inline mixed light/dark views: isolated shell/menu themes; unchanged document, selection and DOM identity
+CHECK selected floating 1440px light hover: foreground=rgb(255, 255, 255), background=rgb(241, 245, 249), contrast=1.10:1
+CHECK selected floating 1440px light active: foreground=rgb(255, 255, 255), background=rgb(241, 245, 249), contrast=1.10:1
+CHECK selected floating 1440px dark hover: foreground=rgb(15, 23, 42), background=rgb(32, 43, 63), contrast=1.26:1
+CHECK selected floating 1440px dark active: foreground=rgb(15, 23, 42), background=rgb(32, 43, 63), contrast=1.26:1
+CHECK selected floating 390px light hover: foreground=rgb(255, 255, 255), background=rgb(241, 245, 249), contrast=1.10:1
+CHECK selected floating 390px light active: foreground=rgb(255, 255, 255), background=rgb(241, 245, 249), contrast=1.10:1
+CHECK selected floating 390px dark hover: foreground=rgb(15, 23, 42), background=rgb(32, 43, 63), contrast=1.26:1
+CHECK selected floating 390px dark active: foreground=rgb(15, 23, 42), background=rgb(32, 43, 63), contrast=1.26:1
+CHECK selected inline 1440px light hover: foreground=rgb(255, 255, 255), background=rgb(241, 245, 249), contrast=1.10:1
+CHECK selected inline 1440px light active: foreground=rgb(255, 255, 255), background=rgb(241, 245, 249), contrast=1.10:1
+CHECK selected inline 1440px dark hover: foreground=rgb(15, 23, 42), background=rgb(32, 43, 63), contrast=1.26:1
+CHECK selected inline 1440px dark active: foreground=rgb(15, 23, 42), background=rgb(32, 43, 63), contrast=1.26:1
+CHECK selected inline 390px light hover: foreground=rgb(255, 255, 255), background=rgb(241, 245, 249), contrast=1.10:1
+CHECK selected inline 390px light active: foreground=rgb(255, 255, 255), background=rgb(241, 245, 249), contrast=1.10:1
+CHECK selected inline 390px dark hover: foreground=rgb(15, 23, 42), background=rgb(32, 43, 63), contrast=1.26:1
+CHECK selected inline 390px dark active: foreground=rgb(15, 23, 42), background=rgb(32, 43, 63), contrast=1.26:1
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: floating 1440px light hover
++ actual - expected
+
++ 'rgb(241, 245, 249)'
+- 'rgb(30, 41, 59)'
+       ^
+
+    at file:///home/zhangxiao/multica_workspaces/hamster-arm-d6b65621f809/ham-257-9c8b3d5266df/workdir/notes/scripts/check-pane-toolbar-browser.mjs:166:12 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 'rgb(241, 245, 249)',
+  expected: 'rgb(30, 41, 59)',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.15.0

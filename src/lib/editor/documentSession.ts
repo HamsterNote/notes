@@ -214,12 +214,7 @@ export class DocumentSession {
     if (!this.authority || this.lifecycle !== "ready" || this.views.has(viewId)) throw new Error("View is not attachable")
     const sharedCommands = Extension.create({
       name: "sharedDocumentHistory",
-      addCommands: () => ({ undo: () => () => this.history(viewId, false), redo: () => () => this.history(viewId, true) }),
-      addKeyboardShortcuts: () => ({
-        "Mod-z": () => this.history(viewId, false),
-        "Mod-Shift-z": () => this.history(viewId, true),
-        "Mod-y": () => this.history(viewId, true)
-      })
+      addCommands: () => ({ undo: () => () => this.history(viewId, false), redo: () => () => this.history(viewId, true) })
     })
     const editor = new Editor({
       extensions: [...createHnnSessionExtensions(false, {

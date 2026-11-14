@@ -1,0 +1,26 @@
+PASS 1440px light: toolbar/menu text contrast 13.98, focus 13.98
+PASS 1440px dark: toolbar/menu text contrast 14.85, focus 14.85
+PASS 1440px light: toolbar/menu text contrast 13.98, focus 13.98
+PASS 390px light: toolbar/menu text contrast 13.98, focus 13.98
+PASS 390px dark: toolbar/menu text contrast 14.85, focus 14.85
+PASS 390px light: toolbar/menu text contrast 13.98, focus 13.98
+PASS upload retry/cancel remain inside reserved flow content at 320px
+PASS inline mixed light/dark views: isolated shell/menu themes; unchanged document, selection and DOM identity
+CHECK selected floating 1440px light hover: foreground=rgb(255, 255, 255), background=rgb(30, 41, 59), contrast=14.63:1
+CHECK selected floating 1440px light active: foreground=rgb(255, 255, 255), background=rgb(30, 41, 59), contrast=14.63:1
+CHECK selected floating 1440px dark hover: foreground=rgb(15, 23, 42), background=rgb(241, 245, 249), contrast=16.30:1
+CHECK selected floating 1440px dark active: foreground=rgb(15, 23, 42), background=rgb(241, 245, 249), contrast=16.30:1
+CHECK selected floating 390px light hover: foreground=rgb(255, 255, 255), background=rgb(30, 41, 59), contrast=14.63:1
+CHECK selected floating 390px light active: foreground=rgb(255, 255, 255), background=rgb(30, 41, 59), contrast=14.63:1
+CHECK selected floating 390px dark hover: foreground=rgb(15, 23, 42), background=rgb(241, 245, 249), contrast=16.30:1
+CHECK selected floating 390px dark active: foreground=rgb(15, 23, 42), background=rgb(241, 245, 249), contrast=16.30:1
+CHECK selected inline 1440px light hover: foreground=rgb(255, 255, 255), background=rgb(30, 41, 59), contrast=14.63:1
+CHECK selected inline 1440px light active: foreground=rgb(255, 255, 255), background=rgb(30, 41, 59), contrast=14.63:1
+CHECK selected inline 1440px dark hover: foreground=rgb(15, 23, 42), background=rgb(241, 245, 249), contrast=16.30:1
+CHECK selected inline 1440px dark active: foreground=rgb(15, 23, 42), background=rgb(241, 245, 249), contrast=16.30:1
+CHECK selected inline 390px light hover: foreground=rgb(255, 255, 255), background=rgb(30, 41, 59), contrast=14.63:1
+CHECK selected inline 390px light active: foreground=rgb(255, 255, 255), background=rgb(30, 41, 59), contrast=14.63:1
+CHECK selected inline 390px dark hover: foreground=rgb(15, 23, 42), background=rgb(241, 245, 249), contrast=16.30:1
+CHECK selected inline 390px dark active: foreground=rgb(15, 23, 42), background=rgb(241, 245, 249), contrast=16.30:1
+PASS selected hover/active foreground, background and contrast in both themes, layouts and widths
+PASS top/bottom safe-area offsets, content reservation, file select/remove and edge switch without document remount

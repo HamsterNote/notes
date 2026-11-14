@@ -655,6 +655,8 @@ describe("EditorSession", () => {
       expect(session.redo()).toBe(true)
       expect(session.editor.getText()).toBe("command")
 
+      document.body.append(session.editor.view.dom)
+      session.editor.view.focus()
       fireEvent.keyDown(session.editor.view.dom, { key: "z", ctrlKey: true })
       expect(session.editor.getText()).toBe("first")
       fireEvent.keyDown(session.editor.view.dom, { key: "z", ctrlKey: true, shiftKey: true })

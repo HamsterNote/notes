@@ -213,29 +213,15 @@ describe("PR11 NodeView 回归", () => {
       }
     })
 
-    it("blockquote author 512 字节可提交，513 字节零事务并恢复输入；空输入仍归一为 null", () => {
+    it("blockquote author stays in HNN without an editable or visible author surface", () => {
       const session = createEditorSession({ documentId: "C7c", loadKey: "c7c", initialDocument: quoteDocument() })
       try {
-        const input = session.editor.view.dom.querySelector<HTMLInputElement>(".hn-editor-quote-author")
-        if (!input) throw new Error("blockquote author 输入框未渲染")
-
-        const ok = "作".repeat(170) + "aa" // 512 字节
-        fireEvent.change(input, { target: { value: ok } })
-        expect(attrsOf(session, "blockquote")?.["author"]).toBe(ok)
-
-        const tooLong = "作".repeat(171) // 513 字节
-        fireEvent.change(input, { target: { value: tooLong } })
-        expect(attrsOf(session, "blockquote")?.["author"]).toBe(ok)
-        expect(input.value).toBe(ok)
-        expect(errorText(session, ".hn-editor-field-error")).toContain("超出长度上限")
-
-        // 空输入是合法归一：author 变为 null，不产生错误。
-        fireEvent.change(input, { target: { value: "   " } })
-        expect(attrsOf(session, "blockquote")?.["author"]).toBeNull()
-        expect(errorText(session, ".hn-editor-field-error")).toBe("")
-      } finally {
-        session.destroy()
-      }
+        const before = encodeHnn(session.editor.state.doc)
+        expect(session.editor.view.dom.querySelector("blockquote input, blockquote footer")).toBeNull()
+        session.editor.commands.insertContent("正文")
+        expect(attrsOf(session, "blockquote")?.["author"]).toEqual(
+          (before.data as { content: { attrs: Record<string, unknown> }[] }).content[0]!.attrs["author"])
+      } finally { session.destroy() }
     })
   })
 

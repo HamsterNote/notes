@@ -1,8 +1,9 @@
-import { useState } from "react"
+import { createRef, useState } from "react"
 import { createRoot } from "react-dom/client"
 import {
   NoteDocumentProvider,
   NoteEditorView,
+  type NoteDocumentController,
   type NoteFileRequest,
   type NoteFileRequestResult,
   type NotePaneToolbarLayout,
@@ -18,10 +19,13 @@ const files: readonly NoteToolbarFile[] = [
   { key: "/local/a.hnn", storageId: "local", path: "a.hnn", displayName: "A.hnn", resolvedFormat: "hnn" },
   { key: "/local/b.hnn", storageId: "local", path: "b.hnn", displayName: "B.hnn", resolvedFormat: "hnn" }
 ]
+const controllerRef = createRef<NoteDocumentController>()
+;(window as Window & { toolbarState?: () => unknown }).toolbarState = () => controllerRef.current?.getState()
 const log: unknown[] = []
 const record = (entry: unknown) => { log.push(entry); (window as Window & { sessionLog?: unknown[] }).sessionLog = log }
 
 export function Fixture() {
+  const [theme, setTheme] = useState<"light" | "dark">("light")
   const [edge, setEdge] = useState<"top" | "bottom">(params.get("edge") === "bottom" ? "bottom" : "top")
   const [items, setItems] = useState<readonly NoteToolbarFile[]>(files)
   const layout: NotePaneToolbarLayout = {
@@ -38,7 +42,7 @@ export function Fixture() {
     setItems(current => current.filter(file => file.key !== request.fileKey))
     return Promise.resolve({ status: "success" })
   }
-  return <NoteDocumentProvider documentId="toolbar-fixture" loadKey={1} initialDocument={initial}
+  return <NoteDocumentProvider controllerRef={controllerRef} documentId="toolbar-fixture" loadKey={1} initialDocument={initial}
     initialHostSnapshot={{ changeId: 0, value: { title: "", summary: "" } }}
     onSave={() => Promise.resolve()} onChange={() => {}}
     onPictureUpload={(_file, request) => {
@@ -46,8 +50,10 @@ export function Fixture() {
       return Promise.reject(new Error("fixture upload failure"))
     }}>
     <button id="toggle-edge" type="button" onClick={() => setEdge(current => current === "top" ? "bottom" : "top")}>切换方向</button>
-    <NoteEditorView viewId="a" paneId="pane-a" files={items} {...(items[0] === undefined ? {} : { currentFileKey: items[0].key })}
-      onSelectFile={select} onRequestRemove={remove} layout={layout} />
+    <button id="toggle-theme" type="button" onClick={() => setTheme(t => t === "light" ? "dark" : "light")}>切换主题</button>
+    <NoteEditorView theme={theme} viewId="a" paneId="pane-a" files={items} {...(items[0] === undefined ? {} : { currentFileKey: items[0].key })}
+      onSelectFile={select} onRequestRemove={remove} {...(params.has("inline") ? {} : { layout })} />
+    {params.has("split") && <NoteEditorView viewId="b" paneId="pane-b" theme="light" files={items} onSelectFile={select} />}
   </NoteDocumentProvider>
 }
 

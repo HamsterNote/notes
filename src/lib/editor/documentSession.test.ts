@@ -501,3 +501,83 @@ describe("公开受保护图片恢复与宿主共享历史", () => {
     expect(onHistoryRequest).toHaveBeenCalledWith("undo", h.session.identity)
   })
 })
+
+describe("physical Ctrl/Meta history keyboard ownership", () => {
+  function press(editor: ReturnType<DocumentSession["attachView"]>["editor"], init: KeyboardEventInit) {
+    document.body.append(editor.view.dom)
+    editor.view.focus()
+    return fireEvent.keyDown(editor.view.dom, { key: "z", ...init })
+  }
+  it.each(["ctrlKey", "metaKey"] as const)("%s consumes empty/false-host history exactly once with identity", modifier => {
+    const onHistoryRequest = vi.fn(() => false)
+    const h = make({ onHistoryRequest })
+    press(h.a.editor, { [modifier]: true })
+    expect(onHistoryRequest).toHaveBeenCalledExactlyOnceWith("undo", h.session.identity)
+    onHistoryRequest.mockClear()
+    press(h.b.editor, { key: "Z", shiftKey: true, [modifier]: true })
+    expect(onHistoryRequest).toHaveBeenCalledExactlyOnceWith("redo", h.session.identity)
+    expect(h.a.editor.state.doc.eq(h.b.editor.state.doc)).toBe(true)
+    onHistoryRequest.mockClear()
+    press(h.a.editor, { [modifier]: true, altKey: true })
+    press(h.a.editor, { [modifier]: true, isComposing: true })
+    press(h.a.editor, { [modifier]: true, keyCode: 229 })
+    expect(onHistoryRequest).not.toHaveBeenCalled()
+  })
+  it.each(["ctrlKey", "metaKey"] as const)("%s uses one global timeline and clears redo after new input", modifier => {
+    const h = make()
+    h.insert(h.a, "A")
+    const afterA = h.a.editor.state.doc
+    h.insert(h.b, "B")
+    press(h.a.editor, { [modifier]: true })
+    expect(h.a.editor.state.doc.eq(afterA)).toBe(true)
+    expect(h.b.editor.state.doc.eq(afterA)).toBe(true)
+    press(h.b.editor, { key: "Z", shiftKey: true, [modifier]: true })
+    expect(h.a.editor.state.doc.textContent).toContain("BA")
+    press(h.a.editor, { [modifier]: true })
+    h.insert(h.b, "C")
+    const branched = h.a.editor.state.doc
+    press(h.a.editor, { key: "Z", shiftKey: true, [modifier]: true })
+    expect(h.a.editor.state.doc).toBe(branched)
+  })
+  it("readonly/frozen and form focus do not request body history; empty editable body is consumed", async () => {
+    const onHistoryRequest = vi.fn(() => false)
+    const h = make({ onHistoryRequest })
+    document.body.append(h.a.editor.view.dom)
+    const input = document.createElement("input")
+    document.body.append(input); input.focus()
+    fireEvent.keyDown(input, { key: "z", ctrlKey: true })
+    expect(onHistoryRequest).not.toHaveBeenCalled()
+    const result = await h.c.setInputFrozen(true, { expectedSessionId: h.id, requestId: "keys" })
+    press(h.a.editor, { ctrlKey: true })
+    expect(onHistoryRequest).not.toHaveBeenCalled()
+    if (!("leaseId" in result)) throw new Error("missing lease")
+    await h.c.setInputFrozen(false, { expectedSessionId: h.id, requestId: "keys", leaseId: result.leaseId })
+    expect(press(h.a.editor, { ctrlKey: true })).toBe(false) // preventDefault
+    expect(onHistoryRequest).toHaveBeenCalledOnce()
+    input.remove()
+  })
+})
+
+it("remote body changes invalidate slash callbacks and freeze dismisses a current menu", async () => {
+  const h = make()
+  document.body.append(h.a.editor.view.dom, h.b.editor.view.dom)
+  vi.spyOn(h.a.editor.view, "coordsAtPos").mockReturnValue({ left: 10, right: 10, top: 10, bottom: 30 })
+  const slash = () => {
+    h.a.editor.commands.setTextSelection(1)
+    const view = h.a.editor.view
+    view.someProp("handleTextInput", handler => handler(view, 1, 1, "/", () => h.a.editor.state.tr.insertText("/", 1)))
+  }
+  slash()
+  const menu = document.querySelector('[role=listbox]')!
+  const oldButton = menu.querySelector<HTMLButtonElement>("button:not(:disabled)")!
+  h.insert(h.b, "remote")
+  expect(document.querySelector('[role=listbox]')).toBeNull()
+  const before = h.a.editor.state.doc, history = h.session.resourceUsage().undoEvents
+  oldButton.click()
+  expect(h.a.editor.state.doc).toBe(before)
+  expect(h.session.resourceUsage().undoEvents).toBe(history)
+  slash()
+  expect(document.querySelector('[role=listbox]')).not.toBeNull()
+  await h.c.setInputFrozen(true, { expectedSessionId: h.id, requestId: "slash" })
+  expect(document.querySelector('[role=listbox]')).toBeNull()
+})

@@ -1,0 +1,214 @@
+{
+  "S1": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "blockquote",
+        "attrs": {
+          "nodeId": "56cf4437-3381-4c5b-bcbf-45a077cd75cc",
+          "author": "张三"
+        },
+        "content": [
+          {
+            "type": "paragraph",
+            "attrs": {
+              "nodeId": "1328af8f-aa59-455a-95a0-9d060e655948"
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "改甲乙"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "S2": [
+    {
+      "type": "doc",
+      "content": [
+        {
+          "type": "paragraph",
+          "attrs": {
+            "nodeId": "222ba1b7-8836-4d51-a70c-58c6d62f7491"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "甲乙"
+            }
+          ]
+        },
+        {
+          "type": "blockquote",
+          "attrs": {
+            "nodeId": "3e5c3118-a626-4a58-84dc-7258d35bca96",
+            "author": "张三"
+          },
+          "content": [
+            {
+              "type": "paragraph",
+              "attrs": {
+                "nodeId": "8b367a9f-a483-4c50-b710-369a0f8b24e4"
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "丙"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "doc",
+      "content": [
+        {
+          "type": "blockquote",
+          "attrs": {
+            "nodeId": "dd24e419-b18f-4f44-9ffa-5e01d243c469",
+            "author": "张三"
+          },
+          "content": [
+            {
+              "type": "paragraph",
+              "attrs": {
+                "nodeId": "b100948f-f45f-4113-a1bb-f5a31c1f8b44"
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "甲"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "attrs": {
+            "nodeId": "917c1807-90e1-4444-b75c-36ff3f359fc8"
+          },
+          "content": [
+            {
+              "type": "text",
+              "text": "乙"
+            }
+          ]
+        },
+        {
+          "type": "blockquote",
+          "attrs": {
+            "nodeId": "e89dcdc3-1175-4ef5-a27f-31e709b0775e",
+            "author": "张三"
+          },
+          "content": [
+            {
+              "type": "paragraph",
+              "attrs": {
+                "nodeId": "c32bf62f-92bc-4beb-88e7-f8d387055de3"
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "丙"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "doc",
+      "content": [
+        {
+          "type": "blockquote",
+          "attrs": {
+            "nodeId": "d5f865e2-e6e7-484d-91c8-eda2eebbf188",
+            "author": "张三"
+          },
+          "content": [
+            {
+              "type": "paragraph",
+              "attrs": {
+                "nodeId": "1e24f0e9-4374-4356-9b7a-5573a0d20256"
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "甲乙"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "attrs": {
+            "nodeId": "0179190a-bd72-4304-b225-acaaa80653f5"
+          }
+        },
+        {
+          "type": "blockquote",
+          "attrs": {
+            "nodeId": "a744d834-5e47-43f2-90b2-c1ea1bc4dd8a",
+            "author": "张三"
+          },
+          "content": [
+            {
+              "type": "paragraph",
+              "attrs": {
+                "nodeId": "260a4460-5521-4998-b427-093752c1d3d2"
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "丙"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "S3": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "paragraph",
+        "attrs": {
+          "nodeId": "ef393c9c-0b4f-4ffc-90c4-87f87ffa6d45"
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "后继"
+          }
+        ]
+      }
+    ]
+  },
+  "S5": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "paragraph",
+        "attrs": {
+          "nodeId": "2c7ad316-5166-4407-80ca-3de60d63b6a9"
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "/正文"
+          }
+        ]
+      }
+    ]
+  }
+}

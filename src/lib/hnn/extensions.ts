@@ -1,6 +1,7 @@
 import { Extension, getSchema, getTextSerializersFromSchema, Node, type Editor, type Extensions } from "@tiptap/core"
 import Link from "@tiptap/extension-link"
 import { HnnListNumbering } from "./listNumbering"
+import { HnnSlashCommands } from "../editor/slashCommands"
 import { HnnQuoteInteractions } from "./quoteInteractions"
 import katex from "katex"
 import { TaskList } from "@tiptap/extension-list"
@@ -9,6 +10,7 @@ import { Table, TableKit } from "@tiptap/extension-table"
 import { closeHistory } from "@tiptap/pm/history"
 import type { Node as PmNode } from "@tiptap/pm/model"
 import StarterKit from "@tiptap/starter-kit"
+import { HnnHistoryKeys } from "./historyKeys"
 import { HNN_CARD_EMPTY_DATA, parseCardPayload } from "./cardPayload"
 import { deriveHnnDirectoryEntries } from "./directoryEntries"
 import { HNN_DRAWING_EMPTY_DATA, parseDrawingPayload } from "./drawingPayload"
@@ -20,6 +22,16 @@ import { isSafeHnnPictureUrl, isSafeHnnUrl } from "./urlPolicy"
 import { HnnCompositionDeletion } from "./compositionDeletion"
 import { createPictureResolution } from "../editor/pictureResolution"
 import type { PictureResolveHandler } from "../editor/types"
+
+// Retain StarterKit's official history plugin/commands; physical keyboard routing
+// belongs solely to HnnHistoryKeys so platform keymaps cannot run a second time.
+const HnnStarterKit = StarterKit.extend({
+  addExtensions() {
+    return (this.parent?.() ?? []).map(extension => extension.name === "undoRedo"
+      ? extension.extend({ addKeyboardShortcuts: () => ({}) })
+      : extension)
+  }
+})
 
 const nodeIdAttr = { default: null }
 const persistentNodeTypes = [...HNN_NODE_ID_TYPES]
@@ -1531,62 +1543,18 @@ function buildHnnExtensions(includeUndoRedo: boolean, pictureResolution?: HnnPic
     },
     renderText: containerRenderText(() => ""),
     addNodeView() {
-      // 封闭引用块：正文 contentDOM 保持 ProseMirror 编辑，署名输入单独提交 attr。
-      return ({ node, HTMLAttributes, getPos, editor }) => {
+      // author remains a persistence attribute; the editable surface is body only.
+      return ({ node, HTMLAttributes }) => {
         const dom = document.createElement("blockquote")
         applyDomAttrs(dom, HTMLAttributes)
         const body = document.createElement("div")
         body.className = "hn-editor-quote-body"
-        const footer = document.createElement("footer")
-        footer.className = "hn-editor-quote-footer"
-        const authorInput = document.createElement("input")
-        authorInput.type = "text"
-        authorInput.className = "hn-editor-quote-author"
-        authorInput.setAttribute("aria-label", "引用署名")
-        authorInput.placeholder = "署名"
-        // 可访问校验错误（role=alert 即 aria-live=assertive），空时由 CSS 隐藏。
-        const error = document.createElement("span")
-        error.className = "hn-editor-field-error"
-        error.setAttribute("role", "alert")
-        footer.append(authorInput, error)
-        dom.append(body, footer)
-
-        // update 时同步刷新；所有恢复路径以最近持久节点为准，绝不退回初始 node。
-        let currentNode = node
-        const syncFromNode = (current: typeof node): void => {
-          const author = typeof current.attrs["author"] === "string" ? current.attrs["author"] : ""
-          if (authorInput.value !== author) authorInput.value = author
-        }
-        syncFromNode(currentNode)
-
-        authorInput.addEventListener("input", () => { error.textContent = "" })
-        authorInput.addEventListener("change", () => {
-          // codec 允许 author 为 null 或缺省；空输入归一为 null，绝不写入空字符串。
-          const author = authorInput.value.trim()
-          // 与 codec blockquote author（maxLabelBytes）等价预检：失败零事务、恢复最近持久输入。
-          if (author !== "") {
-            const overLimit = attrStringError(author, HNN_LIMITS.maxLabelBytes, "引用署名")
-            if (overLimit !== null) {
-              error.textContent = overLimit
-              syncFromNode(currentNode)
-              return
-            }
-          }
-          error.textContent = ""
-          commitNodeAttrs(editor, getPos, { author: author === "" ? null : author })
-        })
-
+        dom.append(body)
         return {
           dom,
           contentDOM: body,
-          update(updatedNode) {
-            if (updatedNode.type !== node.type) return false
-            currentNode = updatedNode
-            syncFromNode(updatedNode)
-            return true
-          },
-          stopEvent: (event) => eventInside(footer, event),
-          ignoreMutation: (mutation) => !body.contains(mutation.target)
+          update: updated => updated.type === node.type,
+          ignoreMutation: mutation => mutation.type !== "selection" && !body.contains(mutation.target)
         }
       }
     }
@@ -1665,10 +1633,12 @@ function buildHnnExtensions(includeUndoRedo: boolean, pictureResolution?: HnnPic
 
   return [
     HnnCompositionDeletion,
+    HnnHistoryKeys,
     HnnListInteractions,
     HnnListNumbering,
     HnnQuoteInteractions,
-    StarterKit.configure({
+    HnnSlashCommands,
+    HnnStarterKit.configure({
       codeBlock: false,
       blockquote: false,
       link: false,

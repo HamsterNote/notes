@@ -673,75 +673,26 @@ describe("内部 NoteEditor 标准块控件（Phase 6.1 Gate）", () => {
     return (changes.at(-1)!.data as { content: SnapshotNode[] }).content
   }
 
-  it("blockquote NodeView：正文 contentDOM 可编辑，署名输入一次事务持久化并可一步撤销，保存重载保留", async () => {
-    const changes: HnnDocument[] = []
+  it.each([false, true])("blockquote has no author UI and preserves old author on save/reopen (readonly=%s)", async readOnly => {
+    const initial = quoteDocument() as { data: { content: { attrs: Record<string, unknown> }[] } }
+    initial.data.content[0]!.attrs["author"] = "Ada"
     const saved: HnnDocument[] = []
-    const view = render(
-      <NoteEditor
-        documentId="Q"
-        loadKey="q1"
-        initialDocument={quoteDocument() as never}
-        onChange={(snapshot) => changes.push(snapshot)}
-        onSave={(snapshot) => { saved.push(snapshot); return Promise.resolve({ kind: "saved" }) }}
-      />
-    )
+    const view = render(<NoteEditor documentId="Q" loadKey="q1"
+      initialDocument={initial as never}
+      onSave={snapshot => { saved.push(snapshot); return Promise.resolve({ kind: "saved" }) }} />)
     const session = createdSessions.at(-1)!
-    const quote = view.container.querySelector("blockquote")!
-    // 正文走独立 contentDOM，署名输入是正文之外的封闭控件
-    expect(quote.querySelector(".hn-editor-quote-body")?.textContent).toContain("引用内容")
-    const author = quote.querySelector<HTMLInputElement>(".hn-editor-quote-author")!
-    expect(author.getAttribute("aria-label")).toBe("引用署名")
-    expect(author.value).toBe("")
-
-    insertIntoBlock(session.editor, "blockquote", "改")
-    expect(session.editor.getText()).toContain("改引用内容")
-
-    fireEvent.change(author, { target: { value: "Ada" } })
-    expect(snapshotBlocks(changes)[0]!.attrs?.["author"]).toBe("Ada")
-
-    // 一次控件操作只产生一个事务：一步 undo 即可还原，redo 恢复
-    session.editor.commands.undo()
-    expect(author.value).toBe("")
-    session.editor.commands.redo()
-    expect(author.value).toBe("Ada")
-
-    await session.save()
-    view.unmount()
-    const reload = render(<NoteEditor documentId="Q" loadKey="q2" initialDocument={saved[0]!} />)
-    expect(reload.container.querySelector<HTMLInputElement>(".hn-editor-quote-author")!.value).toBe("Ada")
-  })
-
-  it("blockquote NodeView：紧邻正文输入后的署名提交是独立 undo step，一步 undo 只撤署名", () => {
-    const view = render(<NoteEditor documentId="QH" loadKey="qh1" initialDocument={quoteDocument() as never} />)
-    const session = createdSessions.at(-1)!
-    const author = view.container.querySelector<HTMLInputElement>(".hn-editor-quote-author")!
-
-    // 紧邻的正文输入与署名提交必须被 closeHistory 切分，否则会合并成一步。
-    insertIntoBlock(session.editor, "blockquote", "改")
-    fireEvent.change(author, { target: { value: "Ada" } })
-
-    session.editor.commands.undo()
-    // 只撤销署名属性，正文输入保留
-    expect(author.value).toBe("")
-    expect(session.editor.getText()).toContain("改引用内容")
-
-    session.editor.commands.undo()
-    expect(session.editor.getText()).not.toContain("改引用内容")
-  })
-
-  it("blockquote NodeView：连续署名提交各自成为独立 undo step", () => {
-    const view = render(<NoteEditor documentId="QH2" loadKey="qh2" initialDocument={quoteDocument() as never} />)
-    const session = createdSessions.at(-1)!
-    const author = view.container.querySelector<HTMLInputElement>(".hn-editor-quote-author")!
-
-    fireEvent.change(author, { target: { value: "Ada" } })
-    fireEvent.change(author, { target: { value: "Bob" } })
-    expect(author.value).toBe("Bob")
-
-    session.editor.commands.undo()
-    expect(author.value).toBe("Ada")
-    session.editor.commands.undo()
-    expect(author.value).toBe("")
+    session.editor.setEditable(!readOnly)
+    expect(view.container.querySelector(".hn-editor-quote-body")?.textContent).toContain("引用内容")
+    expect(view.container.querySelector("blockquote input, blockquote footer")).toBeNull()
+    if (!readOnly) {
+      insertIntoBlock(session.editor, "blockquote", "改")
+      await session.save()
+      view.unmount()
+      const reload = render(<NoteEditor documentId="Q" loadKey="q2" initialDocument={saved[0]!} />)
+      expect(reload.container.querySelector("blockquote input, blockquote footer")).toBeNull()
+      expect((saved[0]!.data as typeof initial.data).content[0]!.attrs["author"]).toBe("Ada")
+      expect(reload.container.textContent).toContain("改引用内容")
+    }
   })
 
   it("codeBlock NodeView：语言 combobox、文件名 textbox 与安全高亮层，控件单事务持久化，保存重载保留", async () => {
