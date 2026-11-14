@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from "vitest"
+import { DocumentSession } from "./documentSession"
 import { createEditorSession, type EditorSession } from "./session"
 import { normalizeInitialHnnContent } from "../hnn/nodeId"
 import { encodeHnn, type HnnDocument } from "../hnn/codec"
@@ -150,4 +151,30 @@ describe("Enter selection ownership", () => {
     sessions.push(reopened)
     expect(lines(reopened)).toEqual(["First", ""])
   })
+})
+
+it.each([false, true])("review: equal model command, subsequent native End=%s", (subsequentEnd) => {
+ const session = new DocumentSession({
+  documentId: "review", loadKey: 1,
+  initialDocument: { schemaVersion: 1, data: normalizeInitialHnnContent({ type: "doc", content: [{ type: "taskList", content: [{ type: "taskItem", attrs: { checked: false }, content: [{ type: "paragraph", content: [{ type: "text", text: "First" }] }] }] }] }) },
+  initialHostSnapshot: { changeId: 0, value: { title: "", summary: "" } },
+  // eslint-disable-next-line @typescript-eslint/require-await
+  onSave: async () => {}, onChange: () => {}
+ })
+ const { editor } = session.attachView("a")
+ document.body.append(editor.view.dom); editor.view.focus()
+ const key = (name = "Enter") => editor.view.dom.dispatchEvent(new KeyboardEvent("keydown", { key: name, code: name, keyCode: name === "Enter" ? 13 : 35, bubbles: true, cancelable: true }))
+ const move = () => document.getSelection()!.setBaseAndExtent(editor.view.dom.querySelector("p")!.firstChild!, 5, editor.view.dom.querySelector("p")!.firstChild!, 5)
+ try {
+  editor.commands.setTextSelection({ from: 3, to: 8 })
+  key("End"); move()
+  editor.commands.setTextSelection({ from: 3, to: 8 })
+  expect(document.getSelection()!.toString()).toBe("First")
+  if (subsequentEnd) { key("End"); move() }
+  expect(editor.state.selection.toJSON()).toMatchObject({ anchor: 3, head: 8 })
+  key()
+  const texts: string[] = []
+  editor.state.doc.descendants(n => { if (n.isTextblock) texts.push(n.textContent) })
+  expect(texts).toEqual(subsequentEnd ? ["First", ""] : ["", ""])
+ } finally { session.dispose(); document.body.replaceChildren() }
 })
