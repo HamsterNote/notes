@@ -1,6 +1,8 @@
 import { Extension } from "@tiptap/core"
-import { Plugin, TextSelection } from "@tiptap/pm/state"
+import { Plugin, PluginKey, TextSelection } from "@tiptap/pm/state"
 import type { EditorView } from "@tiptap/pm/view"
+
+const selectionOwnershipKey = new PluginKey<number>("hnnEnterSelectionOwnership")
 
 function nativeSelection(view: EditorView) {
   const selection = view.dom.ownerDocument.getSelection()
@@ -18,12 +20,23 @@ export const HnnEnterSelection = Extension.create({
   addProseMirrorPlugins() {
     let written: ReturnType<typeof nativeSelection> = null
     return [new Plugin({
+      key: selectionOwnershipKey,
+      state: {
+        init: () => 0,
+        // Explicitly reasserting the same range still gives the model ownership.
+        apply: (tr, version) => tr.selectionSet ? version + 1 : version
+      },
       view(view) {
         written = nativeSelection(view)
         return {
-          // A model transaction owns the selection it just rendered, including
-          // explicit selection commands. Only subsequent native movement wins.
-          update(view) { written = nativeSelection(view) }
+          // Document/selection updates and explicit selection commands own the
+          // range. Metadata-only updates must not absorb pending native movement.
+          update(view, prevState) {
+            if (view.state.doc !== prevState.doc || !view.state.selection.eq(prevState.selection) ||
+                selectionOwnershipKey.getState(view.state) !== selectionOwnershipKey.getState(prevState)) {
+              written = nativeSelection(view)
+            }
+          }
         }
       },
       props: {
