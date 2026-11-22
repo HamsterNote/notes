@@ -169,3 +169,52 @@ it("过期浮层关闭且不导航；只读链接允许跳转但不能编辑或�
   expect(within(popover).getByRole<HTMLButtonElement>("button", { name: "编辑" }).disabled).toBe(true)
   expect(within(popover).getByRole<HTMLButtonElement>("button", { name: "删除" }).disabled).toBe(true)
 })
+
+it("多步骤事务按每个 step 前的文档坐标拒绝链接局部删除", () => {
+  const { session, a, b } = make([paragraph([
+    text("前"), text("链接", link("https://example.test")), text("后")
+  ])])
+  const before = a.state.doc
+  const transaction = a.state.tr.insertText("预", 2, 2).delete(3, 4)
+  expect(session.dispatch("a", transaction)).toBe(false)
+  expect(a.state.doc.eq(before)).toBe(true)
+  expect(b.state.doc.eq(before)).toBe(true)
+})
+
+it("链接前缀增长后可从新的链接起点输入，缩短前缀也不误拒", () => {
+  const { session, a, b } = make([paragraph([
+    text("前"), text("链接", link("https://example.test")), text("后")
+  ])])
+  const grow = a.state.tr.insertText("预", 2, 2).insertText("边", 3, 3)
+  expect(session.dispatch("a", grow)).toBe(true)
+  expect(a.state.doc.textContent).toBe("前预边链接后")
+  expect(b.state.doc.eq(a.state.doc)).toBe(true)
+  const grown = a.state.doc
+  const shrink = a.state.tr.delete(2, 4)
+  expect(session.dispatch("a", shrink)).toBe(true)
+  expect(a.state.doc.textContent).toBe("前链接后")
+  expect(b.state.doc.eq(a.state.doc)).toBe(true)
+  expect(a.state.doc.eq(grown)).toBe(false)
+})
+
+it("浮层在容器滚动与窗口缩放时重新读取锚点位置", () => {
+  const { a } = make([paragraph([text("官网", link("https://example.test"))])])
+  const linkElement = anchor(a)
+  let current = { left: 20, bottom: 40 }
+  vi.spyOn(linkElement, "getBoundingClientRect").mockImplementation(() => ({
+    left: current.left, bottom: current.bottom, top: current.bottom - 20,
+    right: current.left + 100, width: 100, height: 20
+  }) as DOMRect)
+  const popover = open(a)
+  vi.spyOn(popover, "getBoundingClientRect").mockReturnValue({ width: 100, height: 20 } as DOMRect)
+  expect(popover.style.left).toBe("20px")
+  expect(popover.style.top).toBe("44px")
+  current = { left: 120, bottom: 96 }
+  fireEvent.scroll(a.view.dom)
+  expect(popover.style.left).toBe("120px")
+  expect(popover.style.top).toBe("100px")
+  current = { left: 180, bottom: 150 }
+  fireEvent(window, new Event("resize"))
+  expect(popover.style.left).toBe("180px")
+  expect(popover.style.top).toBe("154px")
+})

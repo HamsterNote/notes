@@ -3,7 +3,7 @@ import { openExternalLink } from "./linkBlockInteractions"
 import { Editor, Extension } from "@tiptap/core"
 import { closeHistory, history, isHistoryTransaction, redo, redoDepth, undo, undoDepth } from "@tiptap/pm/history"
 import { EditorState, type Transaction } from "@tiptap/pm/state"
-import { HNN_LINK_BLOCK_TRANSACTION } from "./linkBlockTransactions"
+import { HNN_LINK_BLOCK_TRANSACTION, markLinkBlockTransaction } from "./linkBlockTransactions"
 import type { Node as PmNode } from "@tiptap/pm/model"
 import { decodeHnn, encodeHnn } from "../hnn/codec"
 import { createHnnNodeId } from "../hnn/nodeId"
@@ -521,7 +521,9 @@ export class DocumentSession {
     const overlap = start - Math.min(end.a, end.b)
     const oldEnd = overlap > 0 ? end.a + overlap : end.a
     const newEnd = overlap > 0 ? end.b + overlap : end.b
-    const tr = record.editor.state.tr.replace(start, oldEnd, document.slice(start, newEnd)).setMeta("addToHistory", false)
+    const tr = markLinkBlockTransaction(
+      record.editor.state.tr.replace(start, oldEnd, document.slice(start, newEnd)).setMeta("addToHistory", false)
+    )
     this.applyingHostDocument = true
     try { return { sessionId, kind: this.dispatch(viewId, tr) ? "applied" : "rejected" } }
     finally { this.applyingHostDocument = false }

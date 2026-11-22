@@ -50,9 +50,11 @@ export function installLinkBlockInteractions(
       editor.off("transaction", onTransaction)
       editor.off("destroy", onDestroy)
       document.removeEventListener("pointerdown", outside, true)
+      document.removeEventListener("scroll", positionPanel, true)
       window.removeEventListener("resize", positionPanel)
       window.visualViewport?.removeEventListener("resize", positionPanel)
       window.visualViewport?.removeEventListener("scroll", positionPanel)
+      observer?.disconnect()
       panel.remove()
       if (closeCurrent === close) closeCurrent = null
       if (restoreFocus && anchor.isConnected) anchor.focus({ preventScroll: true })
@@ -98,8 +100,9 @@ export function installLinkBlockInteractions(
       close()
     })
     ;(view.dom.closest(".hn-editor") ?? view.dom.parentElement ?? document.body).append(panel)
-    const rect = anchor.getBoundingClientRect()
     const positionPanel = (): void => {
+      if (!anchor.isConnected) { close(false); return }
+      const rect = anchor.getBoundingClientRect()
       const viewport = window.visualViewport
       const left = (viewport?.offsetLeft ?? 0) + 8
       const top = (viewport?.offsetTop ?? 0) + 8
@@ -112,9 +115,13 @@ export function installLinkBlockInteractions(
       panel.style.top = `${Math.max(top, Math.min(rect.bottom + 4, top + height - size.height))}px`
     }
     positionPanel()
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(positionPanel)
+    observer?.observe(view.dom)
+    observer?.observe(anchor)
     editor.on("transaction", onTransaction)
     editor.on("destroy", onDestroy)
     document.addEventListener("pointerdown", outside, true)
+    document.addEventListener("scroll", positionPanel, true)
     window.addEventListener("resize", positionPanel)
     window.visualViewport?.addEventListener("resize", positionPanel)
     window.visualViewport?.addEventListener("scroll", positionPanel)

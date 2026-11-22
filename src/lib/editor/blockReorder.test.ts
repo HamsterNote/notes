@@ -1454,3 +1454,27 @@ describe("mobile body hold and cancellation contract", () => {
     button.remove()
   })
 })
+
+it("完整保留链接及格式的段落可重排，真实提交并由 undo/redo 还原", () => {
+  const document: HnnDocument = { schemaVersion: 1, data: { type: "doc", content: [
+    { type: "paragraph", attrs: { nodeId: ids[0] }, content: [{ type: "text", text: "a", marks: [
+      { type: "link", attrs: { href: "https://example.test" } }, { type: "bold" }
+    ] }] },
+    { type: "paragraph", attrs: { nodeId: ids[1] }, content: [{ type: "text", text: "b" }] }
+  ] } }
+  const session = sessionFor(document)
+  try {
+    const linked: unknown = session.editor.state.doc.firstChild!.toJSON()
+    expect(reorderTopLevelBlock(session.editor.view, 0, 2)).toBe(true)
+    expect(topLevelTexts(session)).toEqual(["b", "a"])
+    expect(session.editor.state.doc.child(1).toJSON()).toEqual(linked)
+    expect(session.undo()).toBe(true)
+    expect(topLevelTexts(session)).toEqual(["a", "b"])
+    expect(session.editor.state.doc.firstChild!.toJSON()).toEqual(linked)
+    expect(session.redo()).toBe(true)
+    expect(topLevelTexts(session)).toEqual(["b", "a"])
+    expect(session.editor.state.doc.child(1).toJSON()).toEqual(linked)
+  } finally {
+    session.destroy()
+  }
+})

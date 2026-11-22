@@ -2,7 +2,7 @@ import { Extension } from "@tiptap/core"
 import { isHistoryTransaction } from "@tiptap/pm/history"
 import type { Mark, Node } from "@tiptap/pm/model"
 import { Plugin, type Transaction } from "@tiptap/pm/state"
-import { AddMarkStep, RemoveMarkStep } from "@tiptap/pm/transform"
+import { AddMarkStep, RemoveMarkStep, type Step } from "@tiptap/pm/transform"
 
 export const HNN_LINK_BLOCK_TRANSACTION = "hnnLinkBlockTransaction"
 
@@ -35,21 +35,30 @@ function linkRanges(doc: Node): LinkRange[] {
   return ranges
 }
 
-function touchesLink(transaction: Transaction): boolean {
-  const ranges = linkRanges(transaction.before)
+function touchesLink(step: Step, doc: Node): boolean {
+  const ranges = linkRanges(doc)
   if (!ranges.length) return false
-  return transaction.steps.some(step => {
-    if (step instanceof AddMarkStep || step instanceof RemoveMarkStep)
-      return ranges.some(range => step.from < range.to && step.to > range.from)
-    let touched = false
-    step.getMap().forEach((oldStart, oldEnd) => {
-      if (ranges.some(range =>
-        oldStart < range.to && oldEnd > range.from ||
-        oldStart === oldEnd && oldStart > range.from && oldStart < range.to
-      )) touched = true
-    })
-    return touched
+  if (step instanceof AddMarkStep || step instanceof RemoveMarkStep)
+    return ranges.some(range => step.from < range.to && step.to > range.from)
+  let touched = false
+  step.getMap().forEach((oldStart, oldEnd) => {
+    if (ranges.some(range =>
+      oldStart < range.to && oldEnd > range.from ||
+      oldStart === oldEnd && oldStart > range.from && oldStart < range.to
+    )) touched = true
   })
+  return touched
+}
+
+function touchesLinkAcrossSteps(transaction: Transaction): boolean {
+  let current = transaction.before
+  for (const step of transaction.steps) {
+    if (touchesLink(step, current)) return true
+    const applied = step.apply(current)
+    if (applied.failed) return true
+    current = applied.doc!
+  }
+  return false
 }
 
 export const HnnLinkBlockProtection = Extension.create({
@@ -60,7 +69,7 @@ export const HnnLinkBlockProtection = Extension.create({
         return !transaction.docChanged ||
           isHistoryTransaction(transaction) ||
           transaction.getMeta(HNN_LINK_BLOCK_TRANSACTION) === true ||
-          !touchesLink(transaction)
+          !touchesLinkAcrossSteps(transaction)
       }
     })]
   }
