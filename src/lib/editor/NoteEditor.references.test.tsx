@@ -282,6 +282,11 @@ describe("7.2 宿主引用接线：激活与无回调语义", () => {
     return event
   }
 
+  function jump(): void {
+    expect(screen.getByRole("dialog", { name: "链接操作" })).toBeDefined()
+    fireEvent.click(screen.getByRole("button", { name: "跳转" }))
+  }
+
   it.each([true, false])("真实 NoteEditor 零引用回调：editable=%s 时 hnmagic click/key/中键始终禁止默认导航", (editable) => {
     const view = render(<NoteEditor documentId="doc-a" loadKey="v1" initialDocument={linkDocument()} />)
     const session = latestSession()
@@ -307,7 +312,7 @@ describe("7.2 宿主引用接线：激活与无回调语义", () => {
     expect(screen.queryByRole("listbox")).toBeNull()
   })
 
-  it.each([true, false])("真实 NoteEditor 有 activate：editable=%s 时 hnmagic 原 href 交宿主一次并随卸载 abort", (editable) => {
+  it.each([true, false])("真实 NoteEditor 有 activate：editable=%s 时仅浮层跳转交宿主并随卸载 abort", (editable) => {
     const activate = vi.fn<HostReferenceActivate>(() => new Promise<void>(() => undefined))
     const href = "hnmagic://note/42?from=component"
     const view = render(<NoteEditor documentId="doc-a" loadKey="v1" initialDocument={linkDocument(href)} onReferenceActivate={activate} />)
@@ -316,12 +321,16 @@ describe("7.2 宿主引用接线：激活与无回调语义", () => {
     const before = encodeHnn(session.editor.state.doc)
     const link = anchor(view.container)
     expect(dispatchClick(link).defaultPrevented).toBe(true)
+    expect(activate).not.toHaveBeenCalled()
+    jump()
     expect(activate).toHaveBeenCalledTimes(1)
     expect(activate.mock.calls[0]?.[0]).toEqual({ kind: "hnmagic", href })
     expect(activate.mock.calls[0]?.[1].documentId).toBe("doc-a")
     const key = new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true })
     act(() => { link.dispatchEvent(key) })
     expect(key.defaultPrevented).toBe(true)
+    expect(activate).toHaveBeenCalledTimes(1)
+    jump()
     expect(activate).toHaveBeenCalledTimes(2)
     expect(activate.mock.calls[1]?.[0]).toEqual({ kind: "hnmagic", href })
     expect(encodeHnn(session.editor.state.doc)).toEqual(before)
@@ -338,14 +347,17 @@ describe("7.2 宿主引用接线：激活与无回调语义", () => {
     const view = render(<NoteEditor {...props} onReferenceActivate={activate} />)
     const session = latestSession()
     expect(dispatchClick(anchor(view.container)).defaultPrevented).toBe(true)
+    jump()
     const signal = activate.mock.calls[0]![1].signal
     view.rerender(<NoteEditor {...props} />)
     expect(session.hostReferences).toBeUndefined()
     expect(signal.aborted).toBe(true)
     expect(dispatchClick(anchor(view.container)).defaultPrevented).toBe(true)
+    jump()
     expect(activate).toHaveBeenCalledTimes(1)
     view.rerender(<NoteEditor {...props} onReferenceActivate={activate} />)
     expect(dispatchClick(anchor(view.container)).defaultPrevented).toBe(true)
+    jump()
     expect(activate).toHaveBeenCalledTimes(2)
     expect(createdSessions).toHaveLength(1)
     expect(latestSession()).toBe(session)
@@ -353,18 +365,14 @@ describe("7.2 宿主引用接线：激活与无回调语义", () => {
 
   it.each([
     [true, false], [false, false], [true, true], [false, true]
-  ])("真实 NoteEditor 普通 http/mailto 不被 guard 接管（editable=%s，activate=%s）", (editable, withActivate) => {
+  ])("真实 NoteEditor 普通 http/mailto 只打开链接浮层（editable=%s，activate=%s）", (editable, withActivate) => {
     const activate = vi.fn<HostReferenceActivate>()
     for (const href of ["http://example.test/path", "https://example.test/path", "mailto:ada@example.test"]) {
       const view = render(<NoteEditor documentId="doc-a" loadKey="v1" initialDocument={linkDocument(href)} {...(withActivate ? { onReferenceActivate: activate } : {})} />)
       act(() => { latestSession().editor.setEditable(editable) })
       const link = anchor(view.container)
-      let preventedByEditor: boolean | undefined
-      // 在编辑器所有 handler 之后记录结果，再阻止 jsdom 实际导航；不是预先取消事件。
-      const nativeProbe = (event: Event) => { preventedByEditor = event.defaultPrevented; event.preventDefault() }
-      document.addEventListener("click", nativeProbe, { once: true })
-      dispatchClick(link)
-      expect(preventedByEditor).toBe(false)
+      expect(dispatchClick(link).defaultPrevented).toBe(true)
+      expect(screen.getByRole("dialog", { name: "链接操作" })).toBeDefined()
       expect(activate).not.toHaveBeenCalled()
       view.unmount()
     }

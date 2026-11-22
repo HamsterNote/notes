@@ -1,7 +1,9 @@
 import { installInteractionToolbar } from "./interactionToolbar"
+import { openExternalLink } from "./linkBlockInteractions"
 import { Editor, Extension } from "@tiptap/core"
-import { closeHistory, history, redo, redoDepth, undo, undoDepth } from "@tiptap/pm/history"
+import { closeHistory, history, isHistoryTransaction, redo, redoDepth, undo, undoDepth } from "@tiptap/pm/history"
 import { EditorState, type Transaction } from "@tiptap/pm/state"
+import { HNN_LINK_BLOCK_TRANSACTION } from "./linkBlockTransactions"
 import type { Node as PmNode } from "@tiptap/pm/model"
 import { decodeHnn, encodeHnn } from "../hnn/codec"
 import { createHnnNodeId } from "../hnn/nodeId"
@@ -251,6 +253,9 @@ export class DocumentSession {
     record.cleanup.push(installInteractionToolbar(editor, {
       canUploadPicture: () => !!record.pictureUpload && this.canStartUpload(viewId) && !this.pictureDialog,
       openPictureDialog: (nodeId, anchor) => this.openPictureDialog(viewId, nodeId, anchor)
+    }, {
+      activate: reference => record.references?.activate(reference),
+      openExternal: href => (this.options.onExternalLinkActivate ?? openExternalLink)(href)
     }))
     this.configureReferences(record)
     this.configurePictureUpload(record)
@@ -422,7 +427,11 @@ export class DocumentSession {
       for (const peer of this.views.values()) {
         if (peer === record) continue
         const remote = peer.editor.state.tr
-        for (const tr of applied.transactions) for (const step of tr.steps) remote.step(step)
+        for (const tr of applied.transactions) {
+          if (tr.getMeta(HNN_LINK_BLOCK_TRANSACTION) === true || isHistoryTransaction(tr))
+            remote.setMeta(HNN_LINK_BLOCK_TRANSACTION, true)
+          for (const step of tr.steps) remote.step(step)
+        }
         remote.setStoredMarks(peer.editor.state.storedMarks)
         remote.setMeta("addToHistory", false)
         // Replicate the authority's accepted structure, without reinterpreting

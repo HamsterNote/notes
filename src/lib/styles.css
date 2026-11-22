@@ -573,7 +573,17 @@
   color: var(--hn-theme-text, color-mix(in srgb, var(--hn-theme, #3b82f6) 75%, #1e293b));
   text-decoration: underline;
   text-decoration-color: var(--hn-theme-border, color-mix(in srgb, var(--hn-theme, #3b82f6) 30%, transparent));
+  border: 1px solid var(--hn-theme-border, color-mix(in srgb, var(--hn-theme, #3b82f6) 30%, transparent));
+  border-radius: 3px;
+  padding: 0 2px;
+  background: var(--hn-theme-soft, color-mix(in srgb, var(--hn-theme, #3b82f6) 8%, transparent));
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  cursor: pointer;
 }
+
+.hn-editor-link-popover { padding: 8px; }
+.hn-editor-link-popover button { white-space: nowrap; }
 
 /* ===== Phase 6.2 自定义块界面 =====
  * 全部为封闭 NodeView 样式；token 全部走 var(--hn-*) 并带兜底，兼容暗色主题。 */

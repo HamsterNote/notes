@@ -21,6 +21,8 @@ export type InitialLoadErrorContext = Readonly<{
 /** 初始 HNN 严格校验失败时通知候选会话；不会替换仍在运行的旧会话。 */
 export type InitialLoadErrorHandler = (error: unknown, context: InitialLoadErrorContext) => void
 
+export type ExternalLinkActivate = (href: string) => void
+
 export type EditorSessionStatus = "idle" | "saving" | "error" | "conflict"
 
 export type EditorSessionState = Readonly<{
@@ -51,10 +53,12 @@ export type EditorSessionOptions = Readonly<{
    */
   onReferenceCandidates?: HostCandidateProvider
   /**
-   * 宿主引用激活（D11）：点击/键盘激活 mention/resource/externalItem 或 hnmagic 链接
-   * 时调用，库绝不自行导航。缺省时引用节点不暴露 tab stop；hnmagic 仍禁止原生跳转。
+   * 宿主引用激活（D11）：点击/键盘激活 mention/resource/externalItem，或在 hnmagic
+   * 链接浮层选择「跳转」时调用。库绝不自行导航；hnmagic 始终禁止原生协议跳转。
    */
   onReferenceActivate?: HostReferenceActivate
+  /** 普通链接的显式「跳转」交给宿主；Web 缺省新标签页，mailto 走协议处理器。 */
+  onExternalLinkActivate?: ExternalLinkActivate
   /**
    * 宿主引用运行时解析（D11）：loading/resolved/missing/error 只读映射供占位呈现；
    * 缺省时一律受控 missing，不破坏文档。

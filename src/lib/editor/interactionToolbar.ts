@@ -6,9 +6,14 @@ import { editorLayout } from "./interactionLayout"
 import { TEXT_FORMATS, textFormatState, toggleTextFormat } from "./textFormatting"
 import { indentList, isList, listConversionItems, listIndentCandidate, resolveListTarget } from "./listCommands"
 import { openLinkEditor, resolveLinkTarget } from "./linkEditing"
+import { installLinkBlockInteractions, type LinkBlockInteractionOptions } from "./linkBlockInteractions"
 
 /** Per-view ephemeral UI. Never restores an old range or writes the document on show. */
-export function installInteractionToolbar(editor: Editor, capabilities: BlockMenuCapabilities): () => void {
+export function installInteractionToolbar(
+  editor: Editor,
+  capabilities: BlockMenuCapabilities,
+  linkOptions: LinkBlockInteractionOptions = {}
+): () => void {
   const view = editor.view
   const layout = editorLayout()
   const key = new PluginKey("hnnInteractionToolbar")
@@ -300,10 +305,12 @@ export function installInteractionToolbar(editor: Editor, capabilities: BlockMen
   const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(schedule)
   observer?.observe(view.dom)
   editor.registerPlugin(new Plugin({ key, view: () => ({ update: () => refresh() }) }))
+  const removeLinkBlockInteractions = installLinkBlockInteractions(editor, linkOptions)
   return () => {
     document.removeEventListener("hn-editor-popover-open", onPopoverOpen)
     document.removeEventListener("hn-editor-popover-close", onPopoverClose)
     disposed = true
+    removeLinkBlockInteractions()
     closeLinkEditor?.()
     if (frame !== null) window.cancelAnimationFrame(frame)
     removeLayout()

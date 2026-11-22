@@ -48,6 +48,7 @@ export type {
   EditorSessionOptions,
   EditorSessionState,
   EditorSessionStatus,
+  ExternalLinkActivate,
   HostCandidateKind,
   HostCandidateProvider,
   HostCandidateState,

@@ -23,6 +23,7 @@ import { HnnCompositionDeletion } from "./compositionDeletion"
 import { HnnEnterSelection } from "./enterSelection"
 import { createPictureResolution } from "../editor/pictureResolution"
 import type { PictureResolveHandler } from "../editor/types"
+import { HnnLinkBlockProtection } from "../editor/linkBlockTransactions"
 
 // Retain StarterKit's official history plugin/commands; physical keyboard routing
 // belongs solely to HnnHistoryKeys so platform keymaps cannot run a second time.
@@ -1657,6 +1658,7 @@ function buildHnnExtensions(includeUndoRedo: boolean, pictureResolution?: HnnPic
     HnnTable,
     HnnBlockquote,
     HnnLink,
+    HnnLinkBlockProtection,
     HnnCodeBlock,
     HnnCallout,
     HnnCollapsible,

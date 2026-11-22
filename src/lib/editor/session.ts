@@ -87,7 +87,7 @@ export class EditorSession {
   constructor(options: EditorSessionOptions) {
     // 不持有调用方 options 对象，避免构造后外部突变改变这次会话的 CAS 语义。
     const { documentId, loadKey, initialDocument, initialRevision, onSave, onChange, onPictureUpload, onPictureResolve } = options
-    const { onReferenceCandidates, onReferenceActivate, onReferenceResolve } = options
+    const { onReferenceCandidates, onReferenceActivate, onReferenceResolve, onExternalLinkActivate } = options
     assertValidLoadKey(loadKey)
     this.#documentId = documentId
     this.#onSave = onSave
@@ -138,6 +138,9 @@ export class EditorSession {
     this.#removeInteractionToolbar = installInteractionToolbar(this.editor, {
       canUploadPicture: () => this.#pictureUpload !== undefined && !this.#pictureDialog,
       openPictureDialog: (nodeId, anchor) => this.openPictureDialog(nodeId, anchor)
+    }, {
+      activate: reference => this.#hostReferences?.activate(reference),
+      ...(onExternalLinkActivate ? { openExternal: onExternalLinkActivate } : {})
     })
     // 初始即带上传回调的会话直接安装（任务 6.7）；构造后同 key 新增/更新/移除回调由
     // configurePictureUpload 驱动。与重排的 drop 所有权互斥：重排只认领自定义 MIME 的

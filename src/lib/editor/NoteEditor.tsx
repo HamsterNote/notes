@@ -9,6 +9,7 @@ import { MarkdownExport, type MarkdownExportProps } from "./MarkdownExport"
 import { NoteSaveStatus } from "./NoteSaveStatus"
 import type { PictureUploadInstaller } from "./pictureUpload"
 import { PictureUploadDialog } from "./PictureUploadDialog"
+import { openExternalLink } from "./linkBlockInteractions"
 import { createEditorSession, type EditorSession } from "./session"
 import { encodeNoteEditorSessionKey } from "./sessionKey"
 import type {
@@ -50,6 +51,7 @@ type AcceptedInitial = VerifiedInitial & Readonly<{
   onReferenceCandidates: EditorSessionOptions["onReferenceCandidates"]
   onReferenceActivate: EditorSessionOptions["onReferenceActivate"]
   onReferenceResolve: EditorSessionOptions["onReferenceResolve"]
+  onExternalLinkActivate: EditorSessionOptions["onExternalLinkActivate"]
   onExportMarkdown: MarkdownExportProps["onExport"] | undefined
 }>
 
@@ -58,6 +60,7 @@ type CommittedCallbacks = Readonly<{
   onSave: NoteSave | undefined
   onChange: EditorSessionOptions["onChange"]
   onPictureUpload: EditorSessionOptions["onPictureUpload"]
+  onExternalLinkActivate: EditorSessionOptions["onExternalLinkActivate"]
   onExportMarkdown: MarkdownExportProps["onExport"] | undefined
 }>
 
@@ -131,6 +134,7 @@ type InitialValidatorProps = Readonly<{
   onReferenceCandidates: EditorSessionOptions["onReferenceCandidates"]
   onReferenceActivate: EditorSessionOptions["onReferenceActivate"]
   onReferenceResolve: EditorSessionOptions["onReferenceResolve"]
+  onExternalLinkActivate: EditorSessionOptions["onExternalLinkActivate"]
   onExportMarkdown: MarkdownExportProps["onExport"] | undefined
   onVerified: (initial: AcceptedInitial) => void
 }>
@@ -150,6 +154,7 @@ function InitialValidator(props: InitialValidatorProps) {
     onReferenceCandidates: props.onReferenceCandidates,
     onReferenceActivate: props.onReferenceActivate,
     onReferenceResolve: props.onReferenceResolve,
+    onExternalLinkActivate: props.onExternalLinkActivate,
     onExportMarkdown: props.onExportMarkdown,
     ...(props.initialRevision === undefined ? {} : { initialRevision: props.initialRevision })
   }
@@ -237,6 +242,7 @@ function NoteEditorSession(props: NoteEditorProps) {
     onSave: undefined,
     onChange: undefined,
     onPictureUpload: undefined,
+    onExternalLinkActivate: undefined,
     onExportMarkdown: undefined
   })
   const [acceptedInitial, setAcceptedInitial] = useState<AcceptedInitial | null>(null)
@@ -270,10 +276,11 @@ function NoteEditorSession(props: NoteEditorProps) {
         onSave: props.onSave,
         onChange: props.onChange,
         onPictureUpload: props.onPictureUpload,
+        onExternalLinkActivate: props.onExternalLinkActivate,
         onExportMarkdown: props.onExportMarkdown
       }
     }
-  }, [acceptedInitial?.sessionKey, props.onChange, props.onPictureUpload, props.onExportMarkdown, props.onSave, sessionKey])
+  }, [acceptedInitial?.sessionKey, props.onChange, props.onPictureUpload, props.onExternalLinkActivate, props.onExportMarkdown, props.onSave, sessionKey])
 
   useLayoutEffect(() => {
     if (!acceptedInitial) return
@@ -282,6 +289,7 @@ function NoteEditorSession(props: NoteEditorProps) {
       onSave: acceptedInitial.onSave,
       onChange: acceptedInitial.onChange,
       onPictureUpload: acceptedInitial.onPictureUpload,
+      onExternalLinkActivate: acceptedInitial.onExternalLinkActivate,
       onExportMarkdown: acceptedInitial.onExportMarkdown
     }
     const created = createEditorSession({
@@ -294,7 +302,12 @@ function NoteEditorSession(props: NoteEditorProps) {
         if (!callbacks.current.onSave) throw new Error("未提供 onSave，不能保存文档")
         return callbacks.current.onSave(snapshot, context)
       },
-      onChange: (snapshot) => callbacks.current.onChange?.(snapshot)
+      onChange: (snapshot) => callbacks.current.onChange?.(snapshot),
+      onExternalLinkActivate: href => {
+        const handler = callbacks.current.onExternalLinkActivate
+        if (handler) handler(href)
+        else openExternalLink(href)
+      }
     })
     // 上传能力不进会话 options：初始与后续同 key 变化统一走 configurePictureUpload，
     // 避免两条安装路径语义分叉。
@@ -368,7 +381,7 @@ function NoteEditorSession(props: NoteEditorProps) {
    * 永久导航安全边界不依赖候选/解析/激活能力：三回调全无时不安装 installer，
    * 但 hnmagic 锚点仍不能启动浏览器协议处理器。capture 先于 PM DOM 处理；仅限
    * 当前编辑器内容中的合法魔法链接，不影响普通链接、Drawer 或其他宿主区域。
-   * 有激活桥时只 preventDefault，继续传播交桥调用宿主，绝不自行调用两次。
+   * 只阻止协议默认导航；链接浮层负责激活，宿主仅在用户选择「跳转」后收到请求。
    */
   const guardMagicNavigation = (event: SyntheticEvent): boolean => {
     const editor = mounted?.session.editor
@@ -401,6 +414,7 @@ function NoteEditorSession(props: NoteEditorProps) {
         onReferenceCandidates={props.onReferenceCandidates}
         onReferenceActivate={props.onReferenceActivate}
         onReferenceResolve={props.onReferenceResolve}
+        onExternalLinkActivate={props.onExternalLinkActivate}
         onExportMarkdown={props.onExportMarkdown}
         onVerified={acceptInitial}
       />
@@ -412,10 +426,7 @@ function NoteEditorSession(props: NoteEditorProps) {
       onAuxClickCapture={guardMagicNavigation}
       onKeyDownCapture={(event) => {
         if (event.key !== "Enter" && event.key !== " ") return
-        if (!guardMagicNavigation(event)) return
-        // 有回调时 document capture 的交互桥已经消费；无桥（或无激活能力）时
-        // 必须阻止 Enter/Space 继续变成 PM 编辑键，readonly 同样禁用协议导航。
-        if (!referencesInstaller?.hasActivate) event.stopPropagation()
+        guardMagicNavigation(event)
       }}
     >
       <EditorContent editor={mounted?.session.editor ?? null} />
