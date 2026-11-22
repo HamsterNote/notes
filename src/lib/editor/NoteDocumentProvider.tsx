@@ -79,7 +79,6 @@ export function NoteEditorView({
   const session = useContext(SessionContext)
   const state = useDocumentState(session)
   const [record, setRecord] = useState<DocumentView | null>(null)
-  const [occupied, setOccupied] = useState({ top: 0, bottom: 0 })
   useLayoutEffect(() => {
     if (!session || session.getState().lifecycle !== "ready") { setRecord(null); return }
     const attached = session.attachView(viewId)
@@ -106,13 +105,11 @@ export function NoteEditorView({
       const href = anchor?.getAttribute("href")
       if (href?.startsWith("hnmagic:") && isSafeHnnUrl(href)) event.preventDefault()
     }}>
-    <div style={layout ? { boxSizing: "border-box", paddingTop: occupied.top, paddingBottom: occupied.bottom } : undefined}>
+    <div>
       <div inert={locked}>
         <EditorContent editor={record?.editor ?? null} />
         {record?.references && <HostReferenceUI editor={record.editor} installer={record.references} />}
       </div>
-      {/* Reserve toolbar space after every flow control, including upload
-          retry/cancel actions, so the floating bar cannot cover those actions. */}
       {record?.pictureUpload && <PictureUploadControls installer={record.pictureUpload} theme={theme} disabled={locked}
         {...(pictureDialog?.uploadId ? { excludeUploadId: pictureDialog.uploadId } : {})} />}
     </div>
@@ -134,8 +131,6 @@ export function NoteEditorView({
         onSave={() => {
           session.controller.requestSave({ reason: "editor-button", expectedSessionId: session.identity.sessionId })
         }}
-        onOccupiedSpaceChange={(space) => setOccupied((current) =>
-          current.top === space.top && current.bottom === space.bottom ? current : space)}
       />
       {pictureDialog && record.pictureUpload && <PictureUploadDialog
         installer={record.pictureUpload}

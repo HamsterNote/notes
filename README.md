@@ -39,7 +39,7 @@ yarn build
 
 `NoteEditorView` 新增可选的分栏工具栏输入：`files`、`currentFileKey`、`paneId`、`busy`、`onSelectFile`、`onRequestRemove` 与 `layout`。文件按钮位于撤销/重做之后；库只发起带 `paneId` 与 `requestId` 的异步请求，当前项与列表始终由宿主快照决定，移除最后一项被禁止。未传 `files` 时保留旧工具且不显示文件入口。
 
-`layout` 为 `{ edge: 'top' | 'bottom', insets: { top, bottom, left, right }, headerContentInset, bounds? }`。提供后使用 painting 0.8.4 的 `ToolbarShell` 在所属栏边缘渲染固定工具栏，`top`/`bottom` 安全区各消费一次（`headerContentInset` 与 `top` 取最大值，不相加），并通过占用空间回调为正文预留高度；仅切换 `edge` 不重建文档或会话。左右分屏两栏均传 `bottom`，上下分屏上栏传 `top`、下栏传 `bottom`。构建时期使用 `vendor/hamster-note-painting-0.8.4-57a82fb.tgz`，发布依赖待 painting 0.8.4 上架后统一。
+`layout` 为 `{ edge: 'top' | 'bottom', insets: { top, bottom, left, right }, headerContentInset, bounds? }`。提供后使用 painting 0.8.4 的 `ToolbarShell` 在所属栏边缘渲染固定工具栏，`top`/`bottom` 安全区各消费一次（`headerContentInset` 与 `top` 取最大值，不相加）。浮动工具栏的占位不会转为正文 padding，正文保持原有尺寸并延伸到工具栏及安全区后面；宿主需要避免遮挡光标时应使用滚动容器的 scroll padding 或选区 reveal。仅切换 `edge` 不重建文档或会话。左右分屏两栏均传 `bottom`，上下分屏上栏传 `top`、下栏传 `bottom`。构建时期使用 `vendor/hamster-note-painting-0.8.4-57a82fb.tgz`，发布依赖待 painting 0.8.4 上架后统一。
 
 ### 3.1.2 宿主引用失效与图片上传
 

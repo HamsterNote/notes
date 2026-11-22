@@ -77,7 +77,7 @@ describe("notes per-view toolbar", () => {
     expect(within(legacy.view("a")).queryByLabelText("文件")).toBeNull()
   })
 
-  it("gives the top toolbar the effective safe area once and reserves content space", async () => {
+  it("positions the top toolbar with the effective safe area without shrinking content", () => {
     const h = mount(<NoteEditorView viewId="a" paneId="a" files={files} currentFileKey={files[0]!.key}
       layout={{ edge: "top", insets: { top: 24, bottom: 34, left: 0, right: 0 }, headerContentInset: 44 }} />)
     const view = h.view("a")
@@ -86,8 +86,8 @@ describe("notes per-view toolbar", () => {
     expect(shell.style.top).toBe("60px")
     expect(shell.style.bottom).toBe("")
     const content = view.firstElementChild as HTMLElement
-    await waitFor(() => expect(content.style.paddingTop).toBe("60px"))
-    expect(content.style.paddingBottom).toBe("0px")
+    expect(content.style.paddingTop).toBe("")
+    expect(content.style.paddingBottom).toBe("")
   })
 
   it("anchors bottom and top panes independently and keeps the document mounted across direction changes", () => {
