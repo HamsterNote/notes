@@ -417,30 +417,27 @@ describe("7.2 交互桥：点击激活交接宿主", () => {
     return anchor
   }
 
-  it("hnmagic mark 点击交宿主，保留 href、不虚构 resourceId，销毁中止激活", () => {
+  it("hnmagic 点击只开浮层，手工引用桥不直接激活", () => {
     const activate = vi.fn<HostReferenceActivate>(() => new Promise<void>(() => undefined))
     const { session } = setup(linkContent("hnmagic://note/42"), { activate })
     const before = encodeHnn(session.editor.state.doc)
     const event = new MouseEvent("click", { bubbles: true, cancelable: true })
     linkDom(session).dispatchEvent(event)
     expect(event.defaultPrevented).toBe(true)
-    expect(activate).toHaveBeenCalledTimes(1)
-    expect(activate.mock.calls[0]?.[0]).toEqual({ kind: "hnmagic", href: "hnmagic://note/42" })
-    expect(activate.mock.calls[0]?.[1].documentId).toBe("doc-1")
+    expect(document.querySelector('[aria-label="链接操作"]')).not.toBeNull()
+    expect(activate).not.toHaveBeenCalled()
     expect(encodeHnn(session.editor.state.doc)).toEqual(before)
     expect(session.undo()).toBe(false)
-    const signal = activate.mock.calls[0]![1].signal
-    session.destroy()
-    expect(signal.aborted).toBe(true)
   })
 
-  it("hnmagic 无回调也禁止原生跳转，Enter/Space 不产生编辑事务", () => {
+  it("hnmagic 无回调时点击/键盘只开浮层，协议与中键导航仍被禁止", () => {
     const { session } = setup(linkContent("hnmagic://note/42"))
     const before = encodeHnn(session.editor.state.doc)
     const anchor = linkDom(session)
     const event = new MouseEvent("click", { bubbles: true, cancelable: true })
     anchor.dispatchEvent(event)
     expect(event.defaultPrevented).toBe(true)
+    expect(document.querySelector('[aria-label="链接操作"]')).not.toBeNull()
     const middleClick = new MouseEvent("auxclick", { button: 1, bubbles: true, cancelable: true })
     anchor.dispatchEvent(middleClick)
     expect(middleClick.defaultPrevented).toBe(true)
@@ -450,7 +447,7 @@ describe("7.2 交互桥：点击激活交接宿主", () => {
     expect(session.undo()).toBe(false)
   })
 
-  it("hnmagic Enter/Space 键盘激活一次，重复 keydown 不重复调用宿主", () => {
+  it("hnmagic Enter/Space 打开浮层，重复 keydown 不产生宿主激活", () => {
     const activate = vi.fn<HostReferenceActivate>()
     const { session } = setup(linkContent("hnmagic://note/42"), { activate })
     const anchor = linkDom(session)
@@ -460,26 +457,21 @@ describe("7.2 交互桥：点击激活交接宿主", () => {
     const repeat = new KeyboardEvent("keydown", { key: "Enter", repeat: true, bubbles: true, cancelable: true })
     anchor.dispatchEvent(repeat)
     expect(repeat.defaultPrevented).toBe(true)
-    expect(activate.mock.calls.map(([reference]) => reference)).toEqual([
-      { kind: "hnmagic", href: "hnmagic://note/42" },
-      { kind: "hnmagic", href: "hnmagic://note/42" }
-    ])
+    expect(activate).not.toHaveBeenCalled()
   })
 
-  it.each(["http://example.test/path", "https://example.test/path", "mailto:ada@example.test"])("普通 %s 链接不被交互桥接管", (href) => {
+  it.each(["http://example.test/path", "https://example.test/path", "mailto:ada@example.test"])("普通 %s 链接同样先开浮层而不直接激活引用桥", (href) => {
     const activate = vi.fn<HostReferenceActivate>()
     const { session } = setup(linkContent(href), { activate })
     const anchor = linkDom(session)
-    // 独立阻止浏览器最终导航，但记录桥执行后的 defaultPrevented。
-    let preventedByBridge: boolean | undefined
-    const preventNative = (event: Event) => { preventedByBridge = event.defaultPrevented; event.preventDefault() }
-    document.addEventListener("click", preventNative, { once: true })
-    anchor.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }))
-    expect(preventedByBridge).toBe(false)
+    const event = new MouseEvent("click", { bubbles: true, cancelable: true })
+    anchor.dispatchEvent(event)
+    expect(event.defaultPrevented).toBe(true)
+    expect(document.querySelector('[aria-label="链接操作"]')).not.toBeNull()
     const probe = keydownProbe(session)
     keydownOn(anchor, "Enter")
     probe.stop()
-    expect(probe.calls).toEqual(["Enter"])
+    expect(probe.calls).toEqual([])
     expect(activate).not.toHaveBeenCalled()
   })
 

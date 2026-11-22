@@ -14,9 +14,9 @@ const src = "hamster_note_data/images/0123456789abcdef0123456789abcdef.png"
 /** A synchronous reference host, not WebBase's bridge or an iframe simulation.
  * Both SDK Providers and every editing transaction use the real implementation.
  */
-function mount(theme: "light" | "dark") {
+function mount(theme: "light" | "dark", initialDocument = initial) {
   const refs = [createRef<NoteDocumentController>(), createRef<NoteDocumentController>()]
-  const snapshots = [initial]
+  const snapshots = [initialDocument]
   let cursor = 0
   const changes = vi.fn((value: HnnDocument, source: number) => {
     snapshots.splice(cursor + 1); snapshots.push(value); cursor++
@@ -31,7 +31,7 @@ function mount(theme: "light" | "dark") {
   })
   const upload = vi.fn(() => Promise.resolve({ src }))
   const view = render(<>{refs.map((ref, index) => <NoteDocumentProvider key={index} documentId="shared" loadKey={1}
-    initialDocument={initial} initialHostSnapshot={{ changeId: 0, value: { title: "", summary: "" } }}
+    initialDocument={initialDocument} initialHostSnapshot={{ changeId: 0, value: { title: "", summary: "" } }}
     controllerRef={ref} onChange={value => changes(value, index)} onSave={() => Promise.resolve()}
     onHistoryRequest={direction => history(direction)} onPictureUpload={upload}>
     <NoteEditorView viewId={String(index)} theme={theme} />
@@ -138,4 +138,32 @@ it("confirmed picture deletion and host undo/redo only change references and nev
   fireEvent.click(within(h.pane(1)).getByRole("button", { name: "重做" }))
   expect(h.area(0).querySelectorAll("[data-hnn-node=picture]")).toHaveLength(0)
   expect(h.upload).toHaveBeenCalledTimes(1)
+})
+
+it("independent Providers apply whole-link deletion and host undo/redo without rejecting the snapshot", () => {
+  const linked: HnnDocument = { schemaVersion: 1, data: { type: "doc", content: [
+    { type: "paragraph", attrs: { nodeId: ids[0] }, content: [{ type: "text", text: "A", marks: [
+      { type: "link", attrs: { href: "https://example.test" } }, { type: "bold" }
+    ] }] },
+    { type: "paragraph", attrs: { nodeId: ids[1] }, content: [{ type: "text", text: "B" }] }
+  ] } }
+  const h = mount("light", linked)
+  expect(h.area(0).querySelectorAll("a")).toHaveLength(1)
+  expect(h.area(1).querySelectorAll("a")).toHaveLength(1)
+  fireEvent.click(h.area(0).querySelector("a")!)
+  fireEvent.click(within(document.body).getByRole("button", { name: "删除" }))
+  expect(h.area(0).querySelectorAll("a")).toHaveLength(0)
+  expect(h.area(1).querySelectorAll("a")).toHaveLength(0)
+  expect([...h.area(1).querySelectorAll("p")].map(node => node.textContent)).toEqual(["", "B"])
+  fireEvent.click(within(h.pane(1)).getByRole("button", { name: "撤销" }))
+  expect(h.history).toHaveBeenLastCalledWith("undo")
+  expect(h.area(0).querySelector("a")?.textContent).toBe("A")
+  expect(h.area(1).querySelector("a")?.textContent).toBe("A")
+  expect(h.area(0).querySelector("strong")?.textContent).toBe("A")
+  expect(h.area(1).querySelector("strong")?.textContent).toBe("A")
+  fireEvent.click(within(h.pane(1)).getByRole("button", { name: "重做" }))
+  expect(h.history).toHaveBeenLastCalledWith("redo")
+  expect(h.area(0).querySelectorAll("a")).toHaveLength(0)
+  expect(h.area(1).querySelectorAll("a")).toHaveLength(0)
+  h.assertStable()
 })

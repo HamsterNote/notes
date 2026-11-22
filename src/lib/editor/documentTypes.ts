@@ -1,6 +1,6 @@
 import type { ReactNode, Ref } from "react"
 import type { HnnDocument } from "../hnn/codec"
-import type { HostCandidateProvider, HostReferenceActivate, HostReferenceLookup, HostReferenceResolve, InitialLoadErrorHandler, PictureResolveHandler, PictureUploadHandler } from "./types"
+import type { ExternalLinkActivate, HostCandidateProvider, HostReferenceActivate, HostReferenceLookup, HostReferenceResolve, InitialLoadErrorHandler, PictureResolveHandler, PictureUploadHandler } from "./types"
 
 export type DraftKind = "card" | "drawing"
 export type DraftPhase = "none" | "editing" | "validating" | "invalid"
@@ -99,6 +99,7 @@ export type NoteDocumentProviderProps = {
   onReferenceCandidates?: HostCandidateProvider
   onReferenceResolve?: HostReferenceResolve
   onReferenceActivate?: HostReferenceActivate
+  onExternalLinkActivate?: ExternalLinkActivate
   onPictureUpload?: PictureUploadHandler
   onPictureResolve?: PictureResolveHandler
   onInitialLoadError?: InitialLoadErrorHandler

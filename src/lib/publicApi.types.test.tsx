@@ -53,6 +53,7 @@ const EXPECTED_TYPE_EXPORTS: readonly ExpectedExport[] = [
   { name: "EditorSessionOptions", kind: "type", source: "./editor/types" },
   { name: "EditorSessionState", kind: "type", source: "./editor/types" },
   { name: "EditorSessionStatus", kind: "type", source: "./editor/types" },
+  { name: "ExternalLinkActivate", kind: "type", source: "./editor/types" },
   { name: "HostCandidateKind", kind: "type", source: "./editor/types" },
   { name: "HostCandidateProvider", kind: "type", source: "./editor/types" },
   { name: "HostCandidateState", kind: "type", source: "./editor/types" },

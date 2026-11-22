@@ -1,7 +1,9 @@
 import { installInteractionToolbar } from "./interactionToolbar"
+import { openExternalLink } from "./linkBlockInteractions"
 import { Editor, Extension } from "@tiptap/core"
-import { closeHistory, history, redo, redoDepth, undo, undoDepth } from "@tiptap/pm/history"
+import { closeHistory, history, isHistoryTransaction, redo, redoDepth, undo, undoDepth } from "@tiptap/pm/history"
 import { EditorState, type Transaction } from "@tiptap/pm/state"
+import { HNN_LINK_BLOCK_TRANSACTION, markLinkBlockTransaction } from "./linkBlockTransactions"
 import type { Node as PmNode } from "@tiptap/pm/model"
 import { decodeHnn, encodeHnn } from "../hnn/codec"
 import { createHnnNodeId } from "../hnn/nodeId"
@@ -251,6 +253,9 @@ export class DocumentSession {
     record.cleanup.push(installInteractionToolbar(editor, {
       canUploadPicture: () => !!record.pictureUpload && this.canStartUpload(viewId) && !this.pictureDialog,
       openPictureDialog: (nodeId, anchor) => this.openPictureDialog(viewId, nodeId, anchor)
+    }, {
+      activate: reference => record.references?.activate(reference),
+      openExternal: href => (this.options.onExternalLinkActivate ?? openExternalLink)(href)
     }))
     this.configureReferences(record)
     this.configurePictureUpload(record)
@@ -422,7 +427,11 @@ export class DocumentSession {
       for (const peer of this.views.values()) {
         if (peer === record) continue
         const remote = peer.editor.state.tr
-        for (const tr of applied.transactions) for (const step of tr.steps) remote.step(step)
+        for (const tr of applied.transactions) {
+          if (tr.getMeta(HNN_LINK_BLOCK_TRANSACTION) === true || isHistoryTransaction(tr))
+            remote.setMeta(HNN_LINK_BLOCK_TRANSACTION, true)
+          for (const step of tr.steps) remote.step(step)
+        }
         remote.setStoredMarks(peer.editor.state.storedMarks)
         remote.setMeta("addToHistory", false)
         // Replicate the authority's accepted structure, without reinterpreting
@@ -512,7 +521,9 @@ export class DocumentSession {
     const overlap = start - Math.min(end.a, end.b)
     const oldEnd = overlap > 0 ? end.a + overlap : end.a
     const newEnd = overlap > 0 ? end.b + overlap : end.b
-    const tr = record.editor.state.tr.replace(start, oldEnd, document.slice(start, newEnd)).setMeta("addToHistory", false)
+    const tr = markLinkBlockTransaction(
+      record.editor.state.tr.replace(start, oldEnd, document.slice(start, newEnd)).setMeta("addToHistory", false)
+    )
     this.applyingHostDocument = true
     try { return { sessionId, kind: this.dispatch(viewId, tr) ? "applied" : "rejected" } }
     finally { this.applyingHostDocument = false }

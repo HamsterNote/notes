@@ -4,6 +4,7 @@ import type { Node as ProseMirrorNode } from "@tiptap/pm/model"
 import { closeHistory } from "@tiptap/pm/history"
 import { NodeSelection, Plugin, PluginKey, TextSelection } from "@tiptap/pm/state"
 import { Decoration, DecorationSet, type EditorView } from "@tiptap/pm/view"
+import { markLinkBlockTransaction } from "./linkBlockTransactions"
 
 /**
  * 顶层内容块重排（OpenSpec migrate-to-tiptap-prosemirror D10 / 任务 6.5）。
@@ -123,7 +124,9 @@ export function reorderTopLevelBlock(view: EditorView, fromIndex: number, bounda
   const insertPos = boundary > fromIndex
     ? (boundary === children.length ? view.state.doc.content.size : children[boundary]!.offset) - node.nodeSize
     : children[boundary]!.offset
-  const tr = view.state.tr.delete(offset, offset + node.nodeSize).insert(insertPos, node)
+  const tr = markLinkBlockTransaction(
+    view.state.tr.delete(offset, offset + node.nodeSize).insert(insertPos, node)
+  )
   // 移动后整块选中，标出落点；NodeSelection 也避免光标留在块内造成半编辑错觉。
   tr.setSelection(NodeSelection.create(tr.doc, insertPos))
   closeHistory(tr)

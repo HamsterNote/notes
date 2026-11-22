@@ -3,6 +3,7 @@ import type { Mark, Node } from "@tiptap/pm/model"
 import { TextSelection, type Transaction } from "@tiptap/pm/state"
 import { commitBudgetedTransaction } from "../hnn/budgetedTransaction"
 import { isSafeHnnUrl } from "../hnn/urlPolicy"
+import { markLinkBlockTransaction } from "./linkBlockTransactions"
 
 export interface LinkTarget {
   readonly editor: Editor
@@ -15,9 +16,15 @@ export interface LinkTarget {
 }
 const canInput = (editor: Editor) => !editor.isDestroyed && editor.view.editable && !editor.view.composing
 
-export function resolveLinkTarget(editor: Editor): LinkTarget | null {
-  if (!canInput(editor)) return null
-  const { doc, selection } = editor.state
+export function resolveLinkTarget(
+  editor: Editor,
+  options: { position?: number; allowReadOnly?: boolean } = {}
+): LinkTarget | null {
+  if (!options.allowReadOnly && !canInput(editor) || editor.isDestroyed) return null
+  const { doc } = editor.state
+  const selection = options.position === undefined
+    ? editor.state.selection
+    : TextSelection.create(doc, options.position)
   if (!(selection instanceof TextSelection) || !selection.$from.sameParent(selection.$to)) return null
   const { $from } = selection, parent = $from.parent, link = editor.schema.marks["link"]!
   if (!parent.isTextblock || parent.type.name === "codeBlock" || !parent.type.allowsMarkType(link)) return null
@@ -49,13 +56,25 @@ export function commitLink(editor: Editor, target: LinkTarget, title: string, ur
   if (stale || target.editor !== editor || editor.state.doc !== target.doc) return { ok: false, message: "正文已变化，请关闭后重新选择文字" }
   if (!remove && !title.trim()) return { ok: false, message: "链接标题不能为空" }
   const href = url.replace(/^ +| +$/gu, "")
+  if (!remove && target.href?.startsWith("hnmagic:") && href !== target.href)
+    return { ok: false, message: "内部链接地址不可修改" }
   if (!remove && !isSafeHnnUrl(href)) return { ok: false, message: "URL 必须是合法的 http、https、mailto 或 hnmagic 绝对地址" }
   const type = editor.schema.marks["link"]!
-  const tr = editor.state.tr
+  const tr = markLinkBlockTransaction(editor.state.tr)
   if (remove) tr.removeMark(target.from, target.to, type)
   else if (title === target.title) tr.addMark(target.from, target.to, type.create({ href }))
   else tr.replaceWith(target.from, target.to, editor.schema.text(title, [...target.commonMarks, type.create({ href })]))
   if (tr.doc.eq(editor.state.doc)) return { ok: true }
+  return commitBudgetedTransaction(editor, tr) ? { ok: true }
+    : { ok: false, message: "文档容量或提交校验未通过，未保存更改" }
+}
+
+export function deleteLinkBlock(editor: Editor, target: LinkTarget):
+  { ok: true } | { ok: false; message: string } {
+  if (!canInput(editor)) return { ok: false, message: "当前不可编辑，请解除冻结或结束组合输入后重试" }
+  if (target.editor !== editor || target.doc !== editor.state.doc)
+    return { ok: false, message: "正文已变化，请关闭后重新选择链接" }
+  const tr = markLinkBlockTransaction(editor.state.tr.delete(target.from, target.to))
   return commitBudgetedTransaction(editor, tr) ? { ok: true }
     : { ok: false, message: "文档容量或提交校验未通过，未保存更改" }
 }
@@ -79,8 +98,14 @@ export function openLinkEditor(editor: Editor, anchor: HTMLElement, onClose: () 
   }
   const title = field("链接标题", target.title), url = field("URL", target.href ?? "")
   url.inputMode = "url"
+  if (target.href?.startsWith("hnmagic:")) {
+    url.readOnly = true
+    url.setAttribute("aria-readonly", "true")
+  }
   const hint = document.createElement("p")
-  hint.textContent = "修改标题会移除非共有的混合格式；保留标题则保留原格式。"
+  hint.textContent = target.href?.startsWith("hnmagic:")
+    ? "内部链接地址不可修改；可修改标题。"
+    : "修改标题会移除非共有的混合格式；保留标题则保留原格式。"
   const error = document.createElement("p")
   error.setAttribute("role", "alert"); error.hidden = true
   const actions = document.createElement("div")

@@ -22,7 +22,7 @@ import type { HostCandidateKind, HostReferenceActivation, HostReferenceCandidate
  *   否则放弃插入并取消，旧 range 绝不插到新光标；
  * - 点击/键盘激活：在编辑器 DOM 上做事件委托，命中 mention/resource/externalItem 的
  *   NodeView dom 时经 posAtDOM 取回节点 attrs 交给 installer.activate，不自行导航；
- *   hnmagic link mark 以 kind/href 交宿主，无回调仍阻止原生协议跳转；普通 URL 不接管；
+ *   link mark 统一由链接文字块浮层接管，仅其「跳转」动作会经 installer.activate 交宿主；
  *   宿主提供 activate（installer.hasActivate）时才在运行时给引用 dom 补
  *   tabindex="0"/role="link"（运行时 attribute，不进 PM/HNN），Enter/Space 激活，
  *   无回调则无任何 tab stop 与链接语义（DESIGN.md §16）；
@@ -251,18 +251,9 @@ export function createHostReferenceInteractions(editor: Editor, installer: HostR
           return
       }
     }
-    // 菜单关闭：原生链接与引用 pill 的键盘激活。引用 pill 无回调时放行，
-    // hnmagic 原生锚点即使无回调也要阻止导航。
+    // 菜单关闭时仅处理引用 pill；link mark 由链接文字块浮层统一接管。
     if (event.key !== "Enter" && event.key !== " ") return
     if (!(target instanceof Element)) return
-    const magic = resolveMagicLinkTarget(target)
-    if (magic) {
-      // hnmagic 即使没有宿主回调也不得触发浏览器协议导航。
-      event.preventDefault()
-      event.stopPropagation()
-      if (installer.hasActivate && !event.repeat) installer.activate(magic)
-      return
-    }
     if (!installer.hasActivate) return
     const refDom = target.closest(REFERENCE_DOM_SELECTOR)
     if (!refDom || !editor.view.dom.contains(refDom)) return
@@ -313,12 +304,7 @@ export function createHostReferenceInteractions(editor: Editor, installer: HostR
     if (destroyed || editor.isDestroyed) return
     const target = event.target
     if (!(target instanceof Element)) return
-    const magic = resolveMagicLinkTarget(target)
-    if (magic) {
-      event.preventDefault()
-      installer.activate(magic)
-      return
-    }
+    if (resolveMagicLinkTarget(target)) return
     const refDom = target.closest(REFERENCE_DOM_SELECTOR)
     if (!refDom || !editor.view.dom.contains(refDom)) return
     const reference = resolveReferenceTarget(refDom)
