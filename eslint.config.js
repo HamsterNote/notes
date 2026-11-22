@@ -16,7 +16,8 @@ export default tseslint.config(
       // 非生产用 AST 守卫夹具，不在 tsconfig project 范围内，跳过类型感知检查
       "scripts/fixtures/phase1-ast-guards/public-options.ts",
       "scripts/fixtures/pack-consumer",
-      "scripts/fixtures/public-host"
+      "scripts/fixtures/public-host",
+      "scripts/fixtures/body-composition"
     ]
   },
   {

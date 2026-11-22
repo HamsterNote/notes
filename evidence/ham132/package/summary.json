@@ -1,0 +1,78 @@
+{
+  "entry": "package",
+  "results": [
+    {
+      "engine": "webkit",
+      "version": "26.4",
+      "mode": "single",
+      "width": 390,
+      "status": "passed",
+      "domComposition": "simulated",
+      "cdpComposition": false
+    },
+    {
+      "engine": "webkit",
+      "version": "26.4",
+      "mode": "single",
+      "width": 1440,
+      "status": "passed",
+      "domComposition": "simulated",
+      "cdpComposition": false
+    },
+    {
+      "engine": "webkit",
+      "version": "26.4",
+      "mode": "shared",
+      "width": 390,
+      "status": "passed",
+      "domComposition": "simulated",
+      "cdpComposition": false
+    },
+    {
+      "engine": "webkit",
+      "version": "26.4",
+      "mode": "shared",
+      "width": 1440,
+      "status": "passed",
+      "domComposition": "simulated",
+      "cdpComposition": false
+    },
+    {
+      "engine": "chromium",
+      "version": "148.0.7778.96",
+      "mode": "single",
+      "width": 390,
+      "status": "passed",
+      "domComposition": "simulated",
+      "cdpComposition": true
+    },
+    {
+      "engine": "chromium",
+      "version": "148.0.7778.96",
+      "mode": "single",
+      "width": 1440,
+      "status": "passed",
+      "domComposition": "simulated",
+      "cdpComposition": true
+    },
+    {
+      "engine": "chromium",
+      "version": "148.0.7778.96",
+      "mode": "shared",
+      "width": 390,
+      "status": "passed",
+      "domComposition": "simulated",
+      "cdpComposition": true
+    },
+    {
+      "engine": "chromium",
+      "version": "148.0.7778.96",
+      "mode": "shared",
+      "width": 1440,
+      "status": "passed",
+      "domComposition": "simulated",
+      "cdpComposition": true
+    }
+  ],
+  "physicalImeTested": false
+}

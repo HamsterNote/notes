@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>HAM-132 中文输入采集</title>
+    <style>
+      body { margin: 24px auto; padding: 0 16px; max-width: 720px; font: 16px/1.6 system-ui; }
+      nav { display: flex; gap: 16px; margin-bottom: 16px; }
+      .hn-editor { border: 1px solid #ccc; padding: 16px; }
+      pre { max-height: 240px; overflow: auto; white-space: pre-wrap; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <h1>中文输入采集</h1>
+    <p>请在下面的空白正文中用系统拼音输入“你好”“哈哈”，记录确认方式并导出日志。此页只采集本页测试输入。</p>
+    <nav><a href="?mode=shared">共享编辑器</a><a href="?mode=single">单编辑器</a></nav>
+    <div id="root"></div>
+    <p><button id="download" type="button">导出本页输入日志</button></p>
+    <pre id="events" aria-label="最近输入事件"></pre>
+    <script type="module" src="./main.tsx"></script>
+  </body>
+</html>
